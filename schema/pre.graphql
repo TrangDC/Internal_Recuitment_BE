@@ -1,0 +1,51 @@
+enum PreOrderField {
+  CREATED_AT
+}
+
+input PreOrder {
+  direction: OrderDirection!
+  field: PreOrderField!
+}
+
+input PreFreeWord {
+  stringInput: String
+}
+
+input NewPreInput {
+  stringInput: String!
+}
+
+input PreFilter {
+  stringInput: String
+  fromDate: Time
+  toDate: Time
+}
+
+input UpdatePreInput {
+  stringInput: String!
+  createdAt: Time!
+  updatedAt: Time
+  deletedAt: Time
+}
+
+type Pre {
+  id: ID!
+  stringOutput: String!
+  createdAt: Time!
+  updatedAt: Time
+  deletedAt: Time
+}
+
+type PreGetAllResponse {
+  edges: [PreEdge!]!
+  pagination: Pagination!
+}
+
+type PreEdge {
+  node: Pre!
+  cursor: Cursor!
+}
+
+type PreResponse {
+  data: Pre
+}
