@@ -1,0 +1,206 @@
+directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @validation(constraints: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+directive @authorize on QUERY | MUTATION | FIELD_DEFINITION
+
+scalar Time
+scalar Map
+scalar Cursor
+scalar Base64
+scalar Upload
+scalar JSON
+
+enum OrderDirection {
+    ASC
+    DESC
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+
+enum FilterOperator {
+  EQ
+  NEQ
+  GT
+  GTE
+  LT
+  LTE
+  IN
+  NIN
+  CONTAINS
+  NOT_CONTAINS
+  START_WITH
+  END_WITH
+}
+
+enum Language{
+  vn
+  en
+}
+
+type Pagination {
+  page: Int!
+  perPage: Int!
+  total: Int!
+}
+
+input PaginationInput {
+  page: Int
+  perPage: Int
+}
+
+enum GENDER {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MARITAL_STATUS {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum STATUS_ENUM {
+  active
+  inactive
+}
+
+enum RELATIONSHIP {
+  HUSBAND
+  WIFE
+  BROTHER
+  CHILD
+  GRANDCHILD
+  FATHER
+  MOTHER
+  GRANDFATHER
+  GRANDMOTHER
+  OTHER
+}
+
+enum ID_NUMBER_TYPE {
+  ID_NUMBER
+  OLD_ID_NUMBER
+  PASSPORT_ID
+}
+
+enum AttachmentAction {
+  UPLOAD
+  DOWNLOAD
+}
+
+enum AttachmentFolder{
+  employee
+  contract
+}
+
+input AttachmentInput {
+  id: ID!
+  folder: AttachmentFolder!
+  fileName: String!
+  action: AttachmentAction!
+}
+
+type AttachmentResponse {
+  fileName: String!
+  url: String!
+  action: AttachmentAction!
+  id: String!
+}
+
+type Base64Response {
+  data: Base64
+}
+
+enum EntityType {
+  department
+  company
+}
+
+enum projectModule{
+  employee
+  job_title
+  entity
+  employee_type
+  skill
+  skill_type
+  contract
+  contract_type
+  salary_component
+  salary_component_type
+  salary_rank
+  salary_rank_type
+  salary_template
+  insurance
+  insurance_type
+  attendance
+  payroll_template
+  coefficient_type
+  coefficient
+  payroll
+  employee_payslip
+  payslip_template
+}
+
+enum auditTrailAction {
+  create
+  update
+  delete
+}
+
+enum attachmentLabel {
+  attachment
+  contract
+  other
+}
+
+enum AttendanceStatus {
+  confirmed
+  unconfirmed
+  discarded
+}
+enum ValueType{
+  PERCENTAGE
+  NUMBER
+}
+enum SalaryComponentValueType{
+  formula
+  number
+  text
+}
+enum CalculationType{
+  addition
+  deduction
+  none
+}
+
+enum PayrollTemplateFrequency {
+  annually
+  monthly
+  quarterly
+}
+
+type jsonFormat {
+  key: String!
+  value: String!
+}
+
+enum StatusOfKeepSalary {
+  no_keep_salary
+  missing_personal_information
+  not_signed_contract
+  uncompleted_resignation_documents
+}
+
+enum EmployeeDegree {
+  vocational
+  college
+  university
+  postgraduate
+  master
+}
