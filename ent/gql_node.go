@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"trec/ent/jobtitle"
+	"trec/ent/user"
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
@@ -41,66 +41,58 @@ type Edge struct {
 	IDs  []uuid.UUID `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-func (jt *JobTitle) Node(ctx context.Context) (node *Node, err error) {
+func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     jt.ID,
-		Type:   "JobTitle",
-		Fields: make([]*Field, 7),
+		ID:     u.ID,
+		Type:   "User",
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(jt.Code); err != nil {
+	if buf, err = json.Marshal(u.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
 		Type:  "string",
-		Name:  "code",
+		Name:  "name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(jt.Name); err != nil {
+	if buf, err = json.Marshal(u.WorkEmail); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
 		Type:  "string",
-		Name:  "name",
+		Name:  "work_email",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(jt.Description); err != nil {
+	if buf, err = json.Marshal(u.Iod); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "description",
+		Name:  "iod",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(jt.Specification); err != nil {
+	if buf, err = json.Marshal(u.CreatedAt); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
-		Type:  "string",
-		Name:  "specification",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(jt.CreatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(jt.UpdatedAt); err != nil {
+	if buf, err = json.Marshal(u.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(jt.DeletedAt); err != nil {
+	if buf, err = json.Marshal(u.DeletedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "time.Time",
 		Name:  "deleted_at",
 		Value: string(buf),
@@ -174,10 +166,10 @@ func (c *Client) Noder(ctx context.Context, id uuid.UUID, opts ...NodeOption) (_
 
 func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, error) {
 	switch table {
-	case jobtitle.Table:
-		query := c.JobTitle.Query().
-			Where(jobtitle.ID(id))
-		query, err := query.CollectFields(ctx, "JobTitle")
+	case user.Table:
+		query := c.User.Query().
+			Where(user.ID(id))
+		query, err := query.CollectFields(ctx, "User")
 		if err != nil {
 			return nil, err
 		}
@@ -259,10 +251,10 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
-	case jobtitle.Table:
-		query := c.JobTitle.Query().
-			Where(jobtitle.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "JobTitle")
+	case user.Table:
+		query := c.User.Query().
+			Where(user.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "User")
 		if err != nil {
 			return nil, err
 		}

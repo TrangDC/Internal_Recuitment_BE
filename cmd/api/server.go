@@ -150,7 +150,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger) *cobra.Com
 			graphqlRouter := r.Group("/graphql")
 			{
 				if configs.AzureADOAuth.Enabled {
-					graphqlRouter.Use(middleware.AuthenticateMiddleware(azureADOAuthClient))
+					graphqlRouter.Use(middleware.AuthenticateMiddleware(azureADOAuthClient, db))
 				}
 
 				graphqlRouter.POST("", func(c *gin.Context) {

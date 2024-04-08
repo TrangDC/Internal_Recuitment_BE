@@ -8,26 +8,25 @@ import (
 )
 
 var (
-	// JobTitlesColumns holds the columns for the "job_titles" table.
-	JobTitlesColumns = []*schema.Column{
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "code", Type: field.TypeString, Size: 255},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
-		{Name: "specification", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "work_email", Type: field.TypeString, Size: 255},
+		{Name: "iod", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 	}
-	// JobTitlesTable holds the schema information for the "job_titles" table.
-	JobTitlesTable = &schema.Table{
-		Name:       "job_titles",
-		Columns:    JobTitlesColumns,
-		PrimaryKey: []*schema.Column{JobTitlesColumns[0]},
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		JobTitlesTable,
+		UsersTable,
 	}
 )
 

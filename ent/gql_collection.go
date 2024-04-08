@@ -10,30 +10,30 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (jt *JobTitleQuery) CollectFields(ctx context.Context, satisfies ...string) (*JobTitleQuery, error) {
+func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return jt, nil
+		return u, nil
 	}
-	if err := jt.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := u.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return jt, nil
+	return u, nil
 }
 
-func (jt *JobTitleQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	return nil
 }
 
-type jobtitlePaginateArgs struct {
+type userPaginateArgs struct {
 	first, last   *int
 	after, before *Cursor
-	opts          []JobTitlePaginateOption
+	opts          []UserPaginateOption
 }
 
-func newJobTitlePaginateArgs(rv map[string]interface{}) *jobtitlePaginateArgs {
-	args := &jobtitlePaginateArgs{}
+func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
+	args := &userPaginateArgs{}
 	if rv == nil {
 		return args
 	}
@@ -54,7 +54,7 @@ func newJobTitlePaginateArgs(rv map[string]interface{}) *jobtitlePaginateArgs {
 		case map[string]interface{}:
 			var (
 				err1, err2 error
-				order      = &JobTitleOrder{Field: &JobTitleOrderField{}}
+				order      = &UserOrder{Field: &UserOrderField{}}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)
@@ -63,11 +63,11 @@ func newJobTitlePaginateArgs(rv map[string]interface{}) *jobtitlePaginateArgs {
 				err2 = order.Field.UnmarshalGQL(f)
 			}
 			if err1 == nil && err2 == nil {
-				args.opts = append(args.opts, WithJobTitleOrder(order))
+				args.opts = append(args.opts, WithUserOrder(order))
 			}
-		case *JobTitleOrder:
+		case *UserOrder:
 			if v != nil {
-				args.opts = append(args.opts, WithJobTitleOrder(v))
+				args.opts = append(args.opts, WithUserOrder(v))
 			}
 		}
 	}

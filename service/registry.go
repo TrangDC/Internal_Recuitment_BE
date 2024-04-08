@@ -13,14 +13,14 @@ import (
 type Service interface {
 	Auth() AuthService
 	Storage() StorageService
-	Pre() PreService
+	User() UserService
 }
 
 // serviceImpl is the implementation of Service.
 type serviceImpl struct {
 	authService    AuthService
 	storageService StorageService
-	PreService     PreService
+	UserService    UserService
 }
 
 // NewService creates a new Service.
@@ -30,7 +30,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 	return &serviceImpl{
 		authService:    NewAuthService(azureADOAuthClient, logger),
 		storageService: NewStorageService(azureStorage, logger),
-		PreService:     NewPreService(repoRegistry, logger),
+		UserService:    NewUserService(repoRegistry, logger),
 	}
 }
 
@@ -44,7 +44,7 @@ func (i serviceImpl) Storage() StorageService {
 	return i.storageService
 }
 
-// Pre returns the PreService.
-func (i serviceImpl) Pre() PreService {
-	return i.PreService
+// User returns the UserService.
+func (i serviceImpl) User() UserService {
+	return i.UserService
 }

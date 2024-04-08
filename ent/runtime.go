@@ -3,9 +3,9 @@
 package ent
 
 import (
-	"trec/ent/jobtitle"
-	"trec/ent/schema"
 	"time"
+	"trec/ent/schema"
+	"trec/ent/user"
 
 	"github.com/google/uuid"
 )
@@ -14,31 +14,13 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	jobtitleFields := schema.JobTitle{}.Fields()
-	_ = jobtitleFields
-	// jobtitleDescCode is the schema descriptor for code field.
-	jobtitleDescCode := jobtitleFields[1].Descriptor()
-	// jobtitle.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	jobtitle.CodeValidator = func() func(string) error {
-		validators := jobtitleDescCode.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(code string) error {
-			for _, fn := range fns {
-				if err := fn(code); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// jobtitleDescName is the schema descriptor for name field.
-	jobtitleDescName := jobtitleFields[2].Descriptor()
-	// jobtitle.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	jobtitle.NameValidator = func() func(string) error {
-		validators := jobtitleDescName.Validators
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescName is the schema descriptor for name field.
+	userDescName := userFields[1].Descriptor()
+	// user.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	user.NameValidator = func() func(string) error {
+		validators := userDescName.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
@@ -52,20 +34,24 @@ func init() {
 			return nil
 		}
 	}()
-	// jobtitleDescDescription is the schema descriptor for description field.
-	jobtitleDescDescription := jobtitleFields[3].Descriptor()
-	// jobtitle.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	jobtitle.DescriptionValidator = jobtitleDescDescription.Validators[0].(func(string) error)
-	// jobtitleDescSpecification is the schema descriptor for specification field.
-	jobtitleDescSpecification := jobtitleFields[4].Descriptor()
-	// jobtitle.SpecificationValidator is a validator for the "specification" field. It is called by the builders before save.
-	jobtitle.SpecificationValidator = jobtitleDescSpecification.Validators[0].(func(string) error)
-	// jobtitleDescCreatedAt is the schema descriptor for created_at field.
-	jobtitleDescCreatedAt := jobtitleFields[5].Descriptor()
-	// jobtitle.DefaultCreatedAt holds the default value on creation for the created_at field.
-	jobtitle.DefaultCreatedAt = jobtitleDescCreatedAt.Default.(func() time.Time)
-	// jobtitleDescID is the schema descriptor for id field.
-	jobtitleDescID := jobtitleFields[0].Descriptor()
-	// jobtitle.DefaultID holds the default value on creation for the id field.
-	jobtitle.DefaultID = jobtitleDescID.Default.(func() uuid.UUID)
+	// userDescWorkEmail is the schema descriptor for work_email field.
+	userDescWorkEmail := userFields[2].Descriptor()
+	// user.WorkEmailValidator is a validator for the "work_email" field. It is called by the builders before save.
+	user.WorkEmailValidator = userDescWorkEmail.Validators[0].(func(string) error)
+	// userDescIod is the schema descriptor for iod field.
+	userDescIod := userFields[3].Descriptor()
+	// user.IodValidator is a validator for the "iod" field. It is called by the builders before save.
+	user.IodValidator = userDescIod.Validators[0].(func(string) error)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[4].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[5].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

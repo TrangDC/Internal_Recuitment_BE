@@ -7,11 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"trec/ent"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+	"trec/ent"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -39,6 +39,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -67,7 +68,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreatePreRequest func(childComplexity int, input ent.NewPreInput) int
+		CreatePreRequest func(childComplexity int, input string) int
 	}
 
 	PageInfo struct {
@@ -83,43 +84,25 @@ type ComplexityRoot struct {
 		Total   func(childComplexity int) int
 	}
 
-	Pre struct {
-		CreatedAt    func(childComplexity int) int
-		DeletedAt    func(childComplexity int) int
-		ID           func(childComplexity int) int
-		StringOutput func(childComplexity int) int
-		UpdatedAt    func(childComplexity int) int
-	}
-
-	PreEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
-	}
-
-	PreGetAllResponse struct {
-		Edges      func(childComplexity int) int
-		Pagination func(childComplexity int) int
-	}
-
-	PreResponse struct {
-		Data func(childComplexity int) int
-	}
-
 	Query struct {
-		GetPreRequest func(childComplexity int, id string) int
+		GetPreRequest func(childComplexity int) int
 	}
 
-	JsonFormat struct {
-		Key   func(childComplexity int) int
-		Value func(childComplexity int) int
+	User struct {
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		WorkEmail func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
-	CreatePreRequest(ctx context.Context, input ent.NewPreInput) (*ent.PreResponse, error)
+	CreatePreRequest(ctx context.Context, input string) (string, error)
 }
 type QueryResolver interface {
-	GetPreRequest(ctx context.Context, id string) (*ent.PreResponse, error)
+	GetPreRequest(ctx context.Context) (string, error)
+}
+type UserResolver interface {
+	ID(ctx context.Context, obj *ent.User) (string, error)
 }
 
 type executableSchema struct {
@@ -217,7 +200,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreatePreRequest(childComplexity, args["input"].(ent.NewPreInput)), true
+		return e.complexity.Mutation.CreatePreRequest(childComplexity, args["input"].(string)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -268,101 +251,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pagination.Total(childComplexity), true
 
-	case "Pre.createdAt":
-		if e.complexity.Pre.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.Pre.CreatedAt(childComplexity), true
-
-	case "Pre.deletedAt":
-		if e.complexity.Pre.DeletedAt == nil {
-			break
-		}
-
-		return e.complexity.Pre.DeletedAt(childComplexity), true
-
-	case "Pre.id":
-		if e.complexity.Pre.ID == nil {
-			break
-		}
-
-		return e.complexity.Pre.ID(childComplexity), true
-
-	case "Pre.stringOutput":
-		if e.complexity.Pre.StringOutput == nil {
-			break
-		}
-
-		return e.complexity.Pre.StringOutput(childComplexity), true
-
-	case "Pre.updatedAt":
-		if e.complexity.Pre.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.Pre.UpdatedAt(childComplexity), true
-
-	case "PreEdge.cursor":
-		if e.complexity.PreEdge.Cursor == nil {
-			break
-		}
-
-		return e.complexity.PreEdge.Cursor(childComplexity), true
-
-	case "PreEdge.node":
-		if e.complexity.PreEdge.Node == nil {
-			break
-		}
-
-		return e.complexity.PreEdge.Node(childComplexity), true
-
-	case "PreGetAllResponse.edges":
-		if e.complexity.PreGetAllResponse.Edges == nil {
-			break
-		}
-
-		return e.complexity.PreGetAllResponse.Edges(childComplexity), true
-
-	case "PreGetAllResponse.pagination":
-		if e.complexity.PreGetAllResponse.Pagination == nil {
-			break
-		}
-
-		return e.complexity.PreGetAllResponse.Pagination(childComplexity), true
-
-	case "PreResponse.data":
-		if e.complexity.PreResponse.Data == nil {
-			break
-		}
-
-		return e.complexity.PreResponse.Data(childComplexity), true
-
 	case "Query.GetPreRequest":
 		if e.complexity.Query.GetPreRequest == nil {
 			break
 		}
 
-		args, err := ec.field_Query_GetPreRequest_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.Query.GetPreRequest(childComplexity), true
 
-		return e.complexity.Query.GetPreRequest(childComplexity, args["id"].(string)), true
-
-	case "jsonFormat.key":
-		if e.complexity.JsonFormat.Key == nil {
+	case "User.id":
+		if e.complexity.User.ID == nil {
 			break
 		}
 
-		return e.complexity.JsonFormat.Key(childComplexity), true
+		return e.complexity.User.ID(childComplexity), true
 
-	case "jsonFormat.value":
-		if e.complexity.JsonFormat.Value == nil {
+	case "User.name":
+		if e.complexity.User.Name == nil {
 			break
 		}
 
-		return e.complexity.JsonFormat.Value(childComplexity), true
+		return e.complexity.User.Name(childComplexity), true
+
+	case "User.work_email":
+		if e.complexity.User.WorkEmail == nil {
+			break
+		}
+
+		return e.complexity.User.WorkEmail(childComplexity), true
 
 	}
 	return 0, false
@@ -373,12 +288,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAttachmentInput,
-		ec.unmarshalInputNewPreInput,
 		ec.unmarshalInputPaginationInput,
-		ec.unmarshalInputPreFilter,
-		ec.unmarshalInputPreFreeWord,
-		ec.unmarshalInputPreOrder,
-		ec.unmarshalInputUpdatePreInput,
 	)
 	first := true
 
@@ -474,26 +384,6 @@ type PageInfo {
   endCursor: Cursor
 }
 
-enum FilterOperator {
-  EQ
-  NEQ
-  GT
-  GTE
-  LT
-  LTE
-  IN
-  NIN
-  CONTAINS
-  NOT_CONTAINS
-  START_WITH
-  END_WITH
-}
-
-enum Language{
-  vn
-  en
-}
-
 type Pagination {
   page: Int!
   perPage: Int!
@@ -503,43 +393,6 @@ type Pagination {
 input PaginationInput {
   page: Int
   perPage: Int
-}
-
-enum GENDER {
-  MALE
-  FEMALE
-  OTHER
-}
-
-enum MARITAL_STATUS {
-  SINGLE
-  MARRIED
-  DIVORCED
-  WIDOWED
-}
-
-enum STATUS_ENUM {
-  active
-  inactive
-}
-
-enum RELATIONSHIP {
-  HUSBAND
-  WIFE
-  BROTHER
-  CHILD
-  GRANDCHILD
-  FATHER
-  MOTHER
-  GRANDFATHER
-  GRANDMOTHER
-  OTHER
-}
-
-enum ID_NUMBER_TYPE {
-  ID_NUMBER
-  OLD_ID_NUMBER
-  PASSPORT_ID
 }
 
 enum AttachmentAction {
@@ -569,155 +422,20 @@ type AttachmentResponse {
 type Base64Response {
   data: Base64
 }
-
-enum EntityType {
-  department
-  company
-}
-
-enum projectModule{
-  employee
-  job_title
-  entity
-  employee_type
-  skill
-  skill_type
-  contract
-  contract_type
-  salary_component
-  salary_component_type
-  salary_rank
-  salary_rank_type
-  salary_template
-  insurance
-  insurance_type
-  attendance
-  payroll_template
-  coefficient_type
-  coefficient
-  payroll
-  employee_payslip
-  payslip_template
-}
-
-enum auditTrailAction {
-  create
-  update
-  delete
-}
-
-enum attachmentLabel {
-  attachment
-  contract
-  other
-}
-
-enum AttendanceStatus {
-  confirmed
-  unconfirmed
-  discarded
-}
-enum ValueType{
-  PERCENTAGE
-  NUMBER
-}
-enum SalaryComponentValueType{
-  formula
-  number
-  text
-}
-enum CalculationType{
-  addition
-  deduction
-  none
-}
-
-enum PayrollTemplateFrequency {
-  annually
-  monthly
-  quarterly
-}
-
-type jsonFormat {
-  key: String!
-  value: String!
-}
-
-enum StatusOfKeepSalary {
-  no_keep_salary
-  missing_personal_information
-  not_signed_contract
-  uncompleted_resignation_documents
-}
-
-enum EmployeeDegree {
-  vocational
-  college
-  university
-  postgraduate
-  master
-}
 `, BuiltIn: false},
 	{Name: "../schema/mutation.graphql", Input: `type Mutation {
-  CreatePreRequest(input: NewPreInput!): PreResponse!
-}
-`, BuiltIn: false},
-	{Name: "../schema/pre.graphql", Input: `enum PreOrderField {
-  CREATED_AT
-}
-
-input PreOrder {
-  direction: OrderDirection!
-  field: PreOrderField!
-}
-
-input PreFreeWord {
-  stringInput: String
-}
-
-input NewPreInput {
-  stringInput: String!
-}
-
-input PreFilter {
-  stringInput: String
-  fromDate: Time
-  toDate: Time
-}
-
-input UpdatePreInput {
-  stringInput: String!
-  createdAt: Time!
-  updatedAt: Time
-  deletedAt: Time
-}
-
-type Pre {
-  id: ID!
-  stringOutput: String!
-  createdAt: Time!
-  updatedAt: Time
-  deletedAt: Time
-}
-
-type PreGetAllResponse {
-  edges: [PreEdge!]!
-  pagination: Pagination!
-}
-
-type PreEdge {
-  node: Pre!
-  cursor: Cursor!
-}
-
-type PreResponse {
-  data: Pre
+  CreatePreRequest(input: String!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
-	GetPreRequest(id: ID!): PreResponse!
+	GetPreRequest: String!
 }
 `, BuiltIn: false},
+	{Name: "../schema/user.graphql", Input: `type User {
+  id: ID!
+  name: String!
+  work_email: String!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -743,30 +461,15 @@ func (ec *executionContext) dir_validation_args(ctx context.Context, rawArgs map
 func (ec *executionContext) field_Mutation_CreatePreRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ent.NewPreInput
+	var arg0 string
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewPreInput2myᚑtechvifyᚋentᚐNewPreInput(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_GetPreRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -993,7 +696,7 @@ func (ec *executionContext) _AttachmentResponse_action(ctx context.Context, fiel
 	}
 	res := resTmp.(ent.AttachmentAction)
 	fc.Result = res
-	return ec.marshalNAttachmentAction2myᚑtechvifyᚋentᚐAttachmentAction(ctx, field.Selections, res)
+	return ec.marshalNAttachmentAction2trecᚋentᚐAttachmentAction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AttachmentResponse_action(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1328,7 +1031,7 @@ func (ec *executionContext) _Mutation_CreatePreRequest(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreatePreRequest(rctx, fc.Args["input"].(ent.NewPreInput))
+		return ec.resolvers.Mutation().CreatePreRequest(rctx, fc.Args["input"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1340,9 +1043,9 @@ func (ec *executionContext) _Mutation_CreatePreRequest(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.PreResponse)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNPreResponse2ᚖmyᚑtechvifyᚋentᚐPreResponse(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_CreatePreRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1352,11 +1055,7 @@ func (ec *executionContext) fieldContext_Mutation_CreatePreRequest(ctx context.C
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "data":
-				return ec.fieldContext_PreResponse_data(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PreResponse", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
@@ -1486,7 +1185,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	}
 	res := resTmp.(*ent.Cursor)
 	fc.Result = res
-	return ec.marshalOCursor2ᚖmyᚑtechvifyᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖtrecᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PageInfo_startCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1527,7 +1226,7 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	}
 	res := resTmp.(*ent.Cursor)
 	fc.Result = res
-	return ec.marshalOCursor2ᚖmyᚑtechvifyᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖtrecᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PageInfo_endCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1675,8 +1374,8 @@ func (ec *executionContext) fieldContext_Pagination_total(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Pre_id(ctx context.Context, field graphql.CollectedField, obj *ent.Pre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pre_id(ctx, field)
+func (ec *executionContext) _Query_GetPreRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetPreRequest(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1689,51 +1388,7 @@ func (ec *executionContext) _Pre_id(ctx context.Context, field graphql.Collected
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Pre_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Pre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Pre_stringOutput(ctx context.Context, field graphql.CollectedField, obj *ent.Pre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pre_stringOutput(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StringOutput, nil
+		return ec.resolvers.Query().GetPreRequest(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1750,431 +1405,6 @@ func (ec *executionContext) _Pre_stringOutput(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Pre_stringOutput(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Pre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Pre_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.Pre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pre_createdAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Pre_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Pre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Pre_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ent.Pre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pre_updatedAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Pre_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Pre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Pre_deletedAt(ctx context.Context, field graphql.CollectedField, obj *ent.Pre) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Pre_deletedAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Pre_deletedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Pre",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PreEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.PreEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PreEdge_node(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Pre)
-	fc.Result = res
-	return ec.marshalNPre2ᚖmyᚑtechvifyᚋentᚐPre(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PreEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PreEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Pre_id(ctx, field)
-			case "stringOutput":
-				return ec.fieldContext_Pre_stringOutput(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Pre_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Pre_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Pre_deletedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Pre", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PreEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.PreEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PreEdge_cursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(ent.Cursor)
-	fc.Result = res
-	return ec.marshalNCursor2myᚑtechvifyᚋentᚐCursor(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PreEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PreEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Cursor does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PreGetAllResponse_edges(ctx context.Context, field graphql.CollectedField, obj *ent.PreGetAllResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PreGetAllResponse_edges(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.PreEdge)
-	fc.Result = res
-	return ec.marshalNPreEdge2ᚕᚖmyᚑtechvifyᚋentᚐPreEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PreGetAllResponse_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PreGetAllResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_PreEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_PreEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PreEdge", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PreGetAllResponse_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.PreGetAllResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PreGetAllResponse_pagination(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Pagination, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Pagination)
-	fc.Result = res
-	return ec.marshalNPagination2ᚖmyᚑtechvifyᚋentᚐPagination(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PreGetAllResponse_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PreGetAllResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "page":
-				return ec.fieldContext_Pagination_page(ctx, field)
-			case "perPage":
-				return ec.fieldContext_Pagination_perPage(ctx, field)
-			case "total":
-				return ec.fieldContext_Pagination_total(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PreResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.PreResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PreResponse_data(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Data, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Pre)
-	fc.Result = res
-	return ec.marshalOPre2ᚖmyᚑtechvifyᚋentᚐPre(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PreResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PreResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Pre_id(ctx, field)
-			case "stringOutput":
-				return ec.fieldContext_Pre_stringOutput(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Pre_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Pre_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Pre_deletedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Pre", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_GetPreRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetPreRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPreRequest(rctx, fc.Args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.PreResponse)
-	fc.Result = res
-	return ec.marshalNPreResponse2ᚖmyᚑtechvifyᚋentᚐPreResponse(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) fieldContext_Query_GetPreRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
@@ -2182,23 +1412,8 @@ func (ec *executionContext) fieldContext_Query_GetPreRequest(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "data":
-				return ec.fieldContext_PreResponse_data(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PreResponse", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_GetPreRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -2327,6 +1542,138 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_work_email(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_work_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_work_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4101,94 +3448,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _jsonFormat_key(ctx context.Context, field graphql.CollectedField, obj *ent.JSONFormat) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_jsonFormat_key(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Key, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_jsonFormat_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "jsonFormat",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _jsonFormat_value(ctx context.Context, field graphql.CollectedField, obj *ent.JSONFormat) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_jsonFormat_value(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_jsonFormat_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "jsonFormat",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -4219,7 +3478,7 @@ func (ec *executionContext) unmarshalInputAttachmentInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("folder"))
-			it.Folder, err = ec.unmarshalNAttachmentFolder2myᚑtechvifyᚋentᚐAttachmentFolder(ctx, v)
+			it.Folder, err = ec.unmarshalNAttachmentFolder2trecᚋentᚐAttachmentFolder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4235,35 +3494,7 @@ func (ec *executionContext) unmarshalInputAttachmentInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
-			it.Action, err = ec.unmarshalNAttachmentAction2myᚑtechvifyᚋentᚐAttachmentAction(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewPreInput(ctx context.Context, obj interface{}) (ent.NewPreInput, error) {
-	var it ent.NewPreInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"stringInput"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "stringInput":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringInput"))
-			it.StringInput, err = ec.unmarshalNString2string(ctx, v)
+			it.Action, err = ec.unmarshalNAttachmentAction2trecᚋentᚐAttachmentAction(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4300,166 +3531,6 @@ func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("perPage"))
 			it.PerPage, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPreFilter(ctx context.Context, obj interface{}) (ent.PreFilter, error) {
-	var it ent.PreFilter
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"stringInput", "fromDate", "toDate"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "stringInput":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringInput"))
-			it.StringInput, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "fromDate":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromDate"))
-			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "toDate":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("toDate"))
-			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPreFreeWord(ctx context.Context, obj interface{}) (ent.PreFreeWord, error) {
-	var it ent.PreFreeWord
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"stringInput"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "stringInput":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringInput"))
-			it.StringInput, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPreOrder(ctx context.Context, obj interface{}) (ent.PreOrder, error) {
-	var it ent.PreOrder
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"direction", "field"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "direction":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2myᚑtechvifyᚋentᚐOrderDirection(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "field":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNPreOrderField2myᚑtechvifyᚋentᚐPreOrderField(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputUpdatePreInput(ctx context.Context, obj interface{}) (ent.UpdatePreInput, error) {
-	var it ent.UpdatePreInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"stringInput", "createdAt", "updatedAt", "deletedAt"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "stringInput":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringInput"))
-			it.StringInput, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "createdAt":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "updatedAt":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "deletedAt":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deletedAt"))
-			it.DeletedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4731,151 +3802,6 @@ func (ec *executionContext) _Pagination(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
-var preImplementors = []string{"Pre"}
-
-func (ec *executionContext) _Pre(ctx context.Context, sel ast.SelectionSet, obj *ent.Pre) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, preImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Pre")
-		case "id":
-
-			out.Values[i] = ec._Pre_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "stringOutput":
-
-			out.Values[i] = ec._Pre_stringOutput(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdAt":
-
-			out.Values[i] = ec._Pre_createdAt(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedAt":
-
-			out.Values[i] = ec._Pre_updatedAt(ctx, field, obj)
-
-		case "deletedAt":
-
-			out.Values[i] = ec._Pre_deletedAt(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var preEdgeImplementors = []string{"PreEdge"}
-
-func (ec *executionContext) _PreEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.PreEdge) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, preEdgeImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("PreEdge")
-		case "node":
-
-			out.Values[i] = ec._PreEdge_node(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "cursor":
-
-			out.Values[i] = ec._PreEdge_cursor(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var preGetAllResponseImplementors = []string{"PreGetAllResponse"}
-
-func (ec *executionContext) _PreGetAllResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.PreGetAllResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, preGetAllResponseImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("PreGetAllResponse")
-		case "edges":
-
-			out.Values[i] = ec._PreGetAllResponse_edges(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "pagination":
-
-			out.Values[i] = ec._PreGetAllResponse_pagination(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var preResponseImplementors = []string{"PreResponse"}
-
-func (ec *executionContext) _PreResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.PreResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, preResponseImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("PreResponse")
-		case "data":
-
-			out.Values[i] = ec._PreResponse_data(ctx, field, obj)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -4930,6 +3856,61 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				return ec._Query___schema(ctx, field)
 			})
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userImplementors = []string{"User"}
+
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("User")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "name":
+
+			out.Values[i] = ec._User_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "work_email":
+
+			out.Values[i] = ec._User_work_email(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5255,62 +4236,27 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var jsonFormatImplementors = []string{"jsonFormat"}
-
-func (ec *executionContext) _jsonFormat(ctx context.Context, sel ast.SelectionSet, obj *ent.JSONFormat) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, jsonFormatImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("jsonFormat")
-		case "key":
-
-			out.Values[i] = ec._jsonFormat_key(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "value":
-
-			out.Values[i] = ec._jsonFormat_value(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAttachmentAction2myᚑtechvifyᚋentᚐAttachmentAction(ctx context.Context, v interface{}) (ent.AttachmentAction, error) {
+func (ec *executionContext) unmarshalNAttachmentAction2trecᚋentᚐAttachmentAction(ctx context.Context, v interface{}) (ent.AttachmentAction, error) {
 	var res ent.AttachmentAction
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAttachmentAction2myᚑtechvifyᚋentᚐAttachmentAction(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentAction) graphql.Marshaler {
+func (ec *executionContext) marshalNAttachmentAction2trecᚋentᚐAttachmentAction(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentAction) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNAttachmentFolder2myᚑtechvifyᚋentᚐAttachmentFolder(ctx context.Context, v interface{}) (ent.AttachmentFolder, error) {
+func (ec *executionContext) unmarshalNAttachmentFolder2trecᚋentᚐAttachmentFolder(ctx context.Context, v interface{}) (ent.AttachmentFolder, error) {
 	var res ent.AttachmentFolder
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAttachmentFolder2myᚑtechvifyᚋentᚐAttachmentFolder(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentFolder) graphql.Marshaler {
+func (ec *executionContext) marshalNAttachmentFolder2trecᚋentᚐAttachmentFolder(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentFolder) graphql.Marshaler {
 	return v
 }
 
@@ -5327,16 +4273,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNCursor2myᚑtechvifyᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
-	var res ent.Cursor
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNCursor2myᚑtechvifyᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -5367,119 +4303,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNNewPreInput2myᚑtechvifyᚋentᚐNewPreInput(ctx context.Context, v interface{}) (ent.NewPreInput, error) {
-	res, err := ec.unmarshalInputNewPreInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNOrderDirection2myᚑtechvifyᚋentᚐOrderDirection(ctx context.Context, v interface{}) (ent.OrderDirection, error) {
-	var res ent.OrderDirection
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNOrderDirection2myᚑtechvifyᚋentᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v ent.OrderDirection) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) marshalNPagination2ᚖmyᚑtechvifyᚋentᚐPagination(ctx context.Context, sel ast.SelectionSet, v *ent.Pagination) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Pagination(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNPre2ᚖmyᚑtechvifyᚋentᚐPre(ctx context.Context, sel ast.SelectionSet, v *ent.Pre) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Pre(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNPreEdge2ᚕᚖmyᚑtechvifyᚋentᚐPreEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.PreEdge) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNPreEdge2ᚖmyᚑtechvifyᚋentᚐPreEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNPreEdge2ᚖmyᚑtechvifyᚋentᚐPreEdge(ctx context.Context, sel ast.SelectionSet, v *ent.PreEdge) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._PreEdge(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNPreOrderField2myᚑtechvifyᚋentᚐPreOrderField(ctx context.Context, v interface{}) (ent.PreOrderField, error) {
-	var res ent.PreOrderField
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNPreOrderField2myᚑtechvifyᚋentᚐPreOrderField(ctx context.Context, sel ast.SelectionSet, v ent.PreOrderField) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) marshalNPreResponse2myᚑtechvifyᚋentᚐPreResponse(ctx context.Context, sel ast.SelectionSet, v ent.PreResponse) graphql.Marshaler {
-	return ec._PreResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPreResponse2ᚖmyᚑtechvifyᚋentᚐPreResponse(ctx context.Context, sel ast.SelectionSet, v *ent.PreResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._PreResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -5807,7 +4630,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOCursor2ᚖmyᚑtechvifyᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
+func (ec *executionContext) unmarshalOCursor2ᚖtrecᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -5816,7 +4639,7 @@ func (ec *executionContext) unmarshalOCursor2ᚖmyᚑtechvifyᚋentᚐCursor(ctx
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCursor2ᚖmyᚑtechvifyᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2ᚖtrecᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5839,13 +4662,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPre2ᚖmyᚑtechvifyᚋentᚐPre(ctx context.Context, sel ast.SelectionSet, v *ent.Pre) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Pre(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -5859,22 +4675,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalTime(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalTime(*v)
 	return res
 }
 

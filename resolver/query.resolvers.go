@@ -5,23 +5,12 @@ package resolver
 
 import (
 	"context"
-	"trec/ent"
 	graphql1 "trec/graphql"
 )
 
 // GetPreRequest is the resolver for the GetPreRequest field.
-func (r *queryResolver) GetPreRequest(ctx context.Context, id string) (*ent.PreResponse, error) {
-	result, err := r.serviceRegistry.Pre().PreFunction(ctx)
-	if err != nil {
-		return nil, err
-	}
-	data := ent.Pre{
-		ID:           id,
-		StringOutput: result,
-	}
-	return &ent.PreResponse{
-		Data: &data,
-	}, nil
+func (r *queryResolver) GetPreRequest(ctx context.Context) (string, error) {
+	return "", nil
 }
 
 // Query returns graphql1.QueryResolver implementation.

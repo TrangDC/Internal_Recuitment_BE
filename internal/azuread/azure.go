@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"time"
 	"trec/config"
+	"trec/dto"
+	"trec/models"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
@@ -26,6 +29,7 @@ type AzureADOAuth interface {
 	GetOAuthTokenFromCallback(ctx context.Context, r *http.Request, code, state string) (*oauth2.Token, error)
 	ValidateNonce(ctx context.Context, r *http.Request, nonce string) error
 	VerifyAccessToken(ctx context.Context, token string) error
+	DecodeToken(ctx context.Context, token string) (*models.Token, error)
 }
 
 type JwtToken struct {
@@ -191,4 +195,17 @@ func (i azureADOAuthImpl) setCallBackSession(w http.ResponseWriter, r *http.Requ
 	}
 
 	return value, nil
+}
+
+func (i azureADOAuthImpl) DecodeToken(ctx context.Context, tokenString string) (*models.Token, error) {
+	tokenAu, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := tokenAu.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, err
+	}
+	tokenData := dto.ConvertTokenClam(claims)
+	return tokenData, err
 }

@@ -10,7 +10,7 @@ import (
 
 // Repository is a registry of all repositories
 type Repository interface {
-	JobTitle() PreRepository
+	User() UserRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -21,19 +21,19 @@ type RepoImpl struct {
 	// BankAccountRepository
 	entClient *ent.Client
 	entTx     *ent.Tx
-	jobTitle  PreRepository
+	user      UserRepository
 }
 
 // NewRepository creates new repository registry
 func NewRepository(entClient *ent.Client) Repository {
 	return &RepoImpl{
 		entClient: entClient,
-		jobTitle:  NewPreRepository(entClient),
+		user:      NewUserRepository(entClient),
 	}
 }
 
-func (r *RepoImpl) JobTitle() PreRepository {
-	return r.jobTitle
+func (r *RepoImpl) User() UserRepository {
+	return r.user
 }
 
 // DoInTx executes the given function in a transaction.
@@ -58,8 +58,8 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 	}()
 
 	impl := &RepoImpl{
-		entTx:    tx,
-		jobTitle: NewPreRepository(tx.Client()),
+		entTx: tx,
+		user:  NewUserRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

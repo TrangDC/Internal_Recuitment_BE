@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"trec/ent/jobtitle"
 	"strconv"
 	"strings"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
@@ -242,20 +242,20 @@ func paginateLimit(first, last *int) int {
 	return limit
 }
 
-// JobTitleEdge is the edge representation of JobTitle.
-type JobTitleEdge struct {
-	Node   *JobTitle `json:"node"`
-	Cursor Cursor    `json:"cursor"`
+// UserEdge is the edge representation of User.
+type UserEdge struct {
+	Node   *User  `json:"node"`
+	Cursor Cursor `json:"cursor"`
 }
 
-// JobTitleConnection is the connection containing edges to JobTitle.
-type JobTitleConnection struct {
-	Edges      []*JobTitleEdge `json:"edges"`
-	PageInfo   PageInfo        `json:"pageInfo"`
-	TotalCount int             `json:"totalCount"`
+// UserConnection is the connection containing edges to User.
+type UserConnection struct {
+	Edges      []*UserEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
 }
 
-func (c *JobTitleConnection) build(nodes []*JobTitle, pager *jobtitlePager, after *Cursor, first *int, before *Cursor, last *int) {
+func (c *UserConnection) build(nodes []*User, pager *userPager, after *Cursor, first *int, before *Cursor, last *int) {
 	c.PageInfo.HasNextPage = before != nil
 	c.PageInfo.HasPreviousPage = after != nil
 	if first != nil && *first+1 == len(nodes) {
@@ -265,21 +265,21 @@ func (c *JobTitleConnection) build(nodes []*JobTitle, pager *jobtitlePager, afte
 		c.PageInfo.HasPreviousPage = true
 		nodes = nodes[:len(nodes)-1]
 	}
-	var nodeAt func(int) *JobTitle
+	var nodeAt func(int) *User
 	if last != nil {
 		n := len(nodes) - 1
-		nodeAt = func(i int) *JobTitle {
+		nodeAt = func(i int) *User {
 			return nodes[n-i]
 		}
 	} else {
-		nodeAt = func(i int) *JobTitle {
+		nodeAt = func(i int) *User {
 			return nodes[i]
 		}
 	}
-	c.Edges = make([]*JobTitleEdge, len(nodes))
+	c.Edges = make([]*UserEdge, len(nodes))
 	for i := range nodes {
 		node := nodeAt(i)
-		c.Edges[i] = &JobTitleEdge{
+		c.Edges[i] = &UserEdge{
 			Node:   node,
 			Cursor: pager.toCursor(node),
 		}
@@ -293,123 +293,123 @@ func (c *JobTitleConnection) build(nodes []*JobTitle, pager *jobtitlePager, afte
 	}
 }
 
-// JobTitlePaginateOption enables pagination customization.
-type JobTitlePaginateOption func(*jobtitlePager) error
+// UserPaginateOption enables pagination customization.
+type UserPaginateOption func(*userPager) error
 
-// WithJobTitleOrder configures pagination ordering.
-func WithJobTitleOrder(order *JobTitleOrder) JobTitlePaginateOption {
+// WithUserOrder configures pagination ordering.
+func WithUserOrder(order *UserOrder) UserPaginateOption {
 	if order == nil {
-		order = DefaultJobTitleOrder
+		order = DefaultUserOrder
 	}
 	o := *order
-	return func(pager *jobtitlePager) error {
+	return func(pager *userPager) error {
 		if err := o.Direction.Validate(); err != nil {
 			return err
 		}
 		if o.Field == nil {
-			o.Field = DefaultJobTitleOrder.Field
+			o.Field = DefaultUserOrder.Field
 		}
 		pager.order = &o
 		return nil
 	}
 }
 
-// WithJobTitleFilter configures pagination filter.
-func WithJobTitleFilter(filter func(*JobTitleQuery) (*JobTitleQuery, error)) JobTitlePaginateOption {
-	return func(pager *jobtitlePager) error {
+// WithUserFilter configures pagination filter.
+func WithUserFilter(filter func(*UserQuery) (*UserQuery, error)) UserPaginateOption {
+	return func(pager *userPager) error {
 		if filter == nil {
-			return errors.New("JobTitleQuery filter cannot be nil")
+			return errors.New("UserQuery filter cannot be nil")
 		}
 		pager.filter = filter
 		return nil
 	}
 }
 
-type jobtitlePager struct {
-	order  *JobTitleOrder
-	filter func(*JobTitleQuery) (*JobTitleQuery, error)
+type userPager struct {
+	order  *UserOrder
+	filter func(*UserQuery) (*UserQuery, error)
 }
 
-func newJobTitlePager(opts []JobTitlePaginateOption) (*jobtitlePager, error) {
-	pager := &jobtitlePager{}
+func newUserPager(opts []UserPaginateOption) (*userPager, error) {
+	pager := &userPager{}
 	for _, opt := range opts {
 		if err := opt(pager); err != nil {
 			return nil, err
 		}
 	}
 	if pager.order == nil {
-		pager.order = DefaultJobTitleOrder
+		pager.order = DefaultUserOrder
 	}
 	return pager, nil
 }
 
-func (p *jobtitlePager) applyFilter(query *JobTitleQuery) (*JobTitleQuery, error) {
+func (p *userPager) applyFilter(query *UserQuery) (*UserQuery, error) {
 	if p.filter != nil {
 		return p.filter(query)
 	}
 	return query, nil
 }
 
-func (p *jobtitlePager) toCursor(jt *JobTitle) Cursor {
-	return p.order.Field.toCursor(jt)
+func (p *userPager) toCursor(u *User) Cursor {
+	return p.order.Field.toCursor(u)
 }
 
-func (p *jobtitlePager) applyCursors(query *JobTitleQuery, after, before *Cursor) *JobTitleQuery {
+func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
-		p.order.Field.field, DefaultJobTitleOrder.Field.field,
+		p.order.Field.field, DefaultUserOrder.Field.field,
 	) {
 		query = query.Where(predicate)
 	}
 	return query
 }
 
-func (p *jobtitlePager) applyOrder(query *JobTitleQuery, reverse bool) *JobTitleQuery {
+func (p *userPager) applyOrder(query *UserQuery, reverse bool) *UserQuery {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultJobTitleOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultJobTitleOrder.Field.field))
+	if p.order.Field != DefaultUserOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultUserOrder.Field.field))
 	}
 	return query
 }
 
-func (p *jobtitlePager) orderExpr(reverse bool) sql.Querier {
+func (p *userPager) orderExpr(reverse bool) sql.Querier {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultJobTitleOrder.Field {
-			b.Comma().Ident(DefaultJobTitleOrder.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultUserOrder.Field {
+			b.Comma().Ident(DefaultUserOrder.Field.field).Pad().WriteString(string(direction))
 		}
 	})
 }
 
-// Paginate executes the query and returns a relay based cursor connection to JobTitle.
-func (jt *JobTitleQuery) Paginate(
+// Paginate executes the query and returns a relay based cursor connection to User.
+func (u *UserQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...JobTitlePaginateOption,
-) (*JobTitleConnection, error) {
+	before *Cursor, last *int, opts ...UserPaginateOption,
+) (*UserConnection, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
-	pager, err := newJobTitlePager(opts)
+	pager, err := newUserPager(opts)
 	if err != nil {
 		return nil, err
 	}
-	if jt, err = pager.applyFilter(jt); err != nil {
+	if u, err = pager.applyFilter(u); err != nil {
 		return nil, err
 	}
-	conn := &JobTitleConnection{Edges: []*JobTitleEdge{}}
+	conn := &UserConnection{Edges: []*UserEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = jt.Clone().Count(ctx); err != nil {
+			if conn.TotalCount, err = u.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -420,18 +420,18 @@ func (jt *JobTitleQuery) Paginate(
 		return conn, nil
 	}
 
-	jt = pager.applyCursors(jt, after, before)
-	jt = pager.applyOrder(jt, last != nil)
+	u = pager.applyCursors(u, after, before)
+	u = pager.applyOrder(u, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		jt.Limit(limit)
+		u.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := jt.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := jt.All(ctx)
+	nodes, err := u.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -440,162 +440,134 @@ func (jt *JobTitleQuery) Paginate(
 }
 
 var (
-	// JobTitleOrderFieldCode orders JobTitle by code.
-	JobTitleOrderFieldCode = &JobTitleOrderField{
-		field: jobtitle.FieldCode,
-		toCursor: func(jt *JobTitle) Cursor {
+	// UserOrderFieldName orders User by name.
+	UserOrderFieldName = &UserOrderField{
+		field: user.FieldName,
+		toCursor: func(u *User) Cursor {
 			return Cursor{
-				ID:    jt.ID,
-				Value: jt.Code,
+				ID:    u.ID,
+				Value: u.Name,
 			}
 		},
 	}
-	// JobTitleOrderFieldName orders JobTitle by name.
-	JobTitleOrderFieldName = &JobTitleOrderField{
-		field: jobtitle.FieldName,
-		toCursor: func(jt *JobTitle) Cursor {
+	// UserOrderFieldWorkEmail orders User by work_email.
+	UserOrderFieldWorkEmail = &UserOrderField{
+		field: user.FieldWorkEmail,
+		toCursor: func(u *User) Cursor {
 			return Cursor{
-				ID:    jt.ID,
-				Value: jt.Name,
+				ID:    u.ID,
+				Value: u.WorkEmail,
 			}
 		},
 	}
-	// JobTitleOrderFieldDescription orders JobTitle by description.
-	JobTitleOrderFieldDescription = &JobTitleOrderField{
-		field: jobtitle.FieldDescription,
-		toCursor: func(jt *JobTitle) Cursor {
+	// UserOrderFieldCreatedAt orders User by created_at.
+	UserOrderFieldCreatedAt = &UserOrderField{
+		field: user.FieldCreatedAt,
+		toCursor: func(u *User) Cursor {
 			return Cursor{
-				ID:    jt.ID,
-				Value: jt.Description,
+				ID:    u.ID,
+				Value: u.CreatedAt,
 			}
 		},
 	}
-	// JobTitleOrderFieldSpecification orders JobTitle by specification.
-	JobTitleOrderFieldSpecification = &JobTitleOrderField{
-		field: jobtitle.FieldSpecification,
-		toCursor: func(jt *JobTitle) Cursor {
+	// UserOrderFieldUpdatedAt orders User by updated_at.
+	UserOrderFieldUpdatedAt = &UserOrderField{
+		field: user.FieldUpdatedAt,
+		toCursor: func(u *User) Cursor {
 			return Cursor{
-				ID:    jt.ID,
-				Value: jt.Specification,
+				ID:    u.ID,
+				Value: u.UpdatedAt,
 			}
 		},
 	}
-	// JobTitleOrderFieldCreatedAt orders JobTitle by created_at.
-	JobTitleOrderFieldCreatedAt = &JobTitleOrderField{
-		field: jobtitle.FieldCreatedAt,
-		toCursor: func(jt *JobTitle) Cursor {
+	// UserOrderFieldDeletedAt orders User by deleted_at.
+	UserOrderFieldDeletedAt = &UserOrderField{
+		field: user.FieldDeletedAt,
+		toCursor: func(u *User) Cursor {
 			return Cursor{
-				ID:    jt.ID,
-				Value: jt.CreatedAt,
-			}
-		},
-	}
-	// JobTitleOrderFieldUpdatedAt orders JobTitle by updated_at.
-	JobTitleOrderFieldUpdatedAt = &JobTitleOrderField{
-		field: jobtitle.FieldUpdatedAt,
-		toCursor: func(jt *JobTitle) Cursor {
-			return Cursor{
-				ID:    jt.ID,
-				Value: jt.UpdatedAt,
-			}
-		},
-	}
-	// JobTitleOrderFieldDeletedAt orders JobTitle by deleted_at.
-	JobTitleOrderFieldDeletedAt = &JobTitleOrderField{
-		field: jobtitle.FieldDeletedAt,
-		toCursor: func(jt *JobTitle) Cursor {
-			return Cursor{
-				ID:    jt.ID,
-				Value: jt.DeletedAt,
+				ID:    u.ID,
+				Value: u.DeletedAt,
 			}
 		},
 	}
 )
 
 // String implement fmt.Stringer interface.
-func (f JobTitleOrderField) String() string {
+func (f UserOrderField) String() string {
 	var str string
 	switch f.field {
-	case jobtitle.FieldCode:
-		str = "CODE"
-	case jobtitle.FieldName:
+	case user.FieldName:
 		str = "NAME"
-	case jobtitle.FieldDescription:
-		str = "DESCRIPTION"
-	case jobtitle.FieldSpecification:
-		str = "SPECIFICATION"
-	case jobtitle.FieldCreatedAt:
+	case user.FieldWorkEmail:
+		str = "WORK_EMAIL"
+	case user.FieldCreatedAt:
 		str = "CREATED_AT"
-	case jobtitle.FieldUpdatedAt:
+	case user.FieldUpdatedAt:
 		str = "UPDATED_AT"
-	case jobtitle.FieldDeletedAt:
+	case user.FieldDeletedAt:
 		str = "DELETED_AT"
 	}
 	return str
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (f JobTitleOrderField) MarshalGQL(w io.Writer) {
+func (f UserOrderField) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(f.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (f *JobTitleOrderField) UnmarshalGQL(v interface{}) error {
+func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("JobTitleOrderField %T must be a string", v)
+		return fmt.Errorf("UserOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CODE":
-		*f = *JobTitleOrderFieldCode
 	case "NAME":
-		*f = *JobTitleOrderFieldName
-	case "DESCRIPTION":
-		*f = *JobTitleOrderFieldDescription
-	case "SPECIFICATION":
-		*f = *JobTitleOrderFieldSpecification
+		*f = *UserOrderFieldName
+	case "WORK_EMAIL":
+		*f = *UserOrderFieldWorkEmail
 	case "CREATED_AT":
-		*f = *JobTitleOrderFieldCreatedAt
+		*f = *UserOrderFieldCreatedAt
 	case "UPDATED_AT":
-		*f = *JobTitleOrderFieldUpdatedAt
+		*f = *UserOrderFieldUpdatedAt
 	case "DELETED_AT":
-		*f = *JobTitleOrderFieldDeletedAt
+		*f = *UserOrderFieldDeletedAt
 	default:
-		return fmt.Errorf("%s is not a valid JobTitleOrderField", str)
+		return fmt.Errorf("%s is not a valid UserOrderField", str)
 	}
 	return nil
 }
 
-// JobTitleOrderField defines the ordering field of JobTitle.
-type JobTitleOrderField struct {
+// UserOrderField defines the ordering field of User.
+type UserOrderField struct {
 	field    string
-	toCursor func(*JobTitle) Cursor
+	toCursor func(*User) Cursor
 }
 
-// JobTitleOrder defines the ordering of JobTitle.
-type JobTitleOrder struct {
-	Direction OrderDirection      `json:"direction"`
-	Field     *JobTitleOrderField `json:"field"`
+// UserOrder defines the ordering of User.
+type UserOrder struct {
+	Direction OrderDirection  `json:"direction"`
+	Field     *UserOrderField `json:"field"`
 }
 
-// DefaultJobTitleOrder is the default ordering of JobTitle.
-var DefaultJobTitleOrder = &JobTitleOrder{
+// DefaultUserOrder is the default ordering of User.
+var DefaultUserOrder = &UserOrder{
 	Direction: OrderDirectionAsc,
-	Field: &JobTitleOrderField{
-		field: jobtitle.FieldID,
-		toCursor: func(jt *JobTitle) Cursor {
-			return Cursor{ID: jt.ID}
+	Field: &UserOrderField{
+		field: user.FieldID,
+		toCursor: func(u *User) Cursor {
+			return Cursor{ID: u.ID}
 		},
 	},
 }
 
-// ToEdge converts JobTitle into JobTitleEdge.
-func (jt *JobTitle) ToEdge(order *JobTitleOrder) *JobTitleEdge {
+// ToEdge converts User into UserEdge.
+func (u *User) ToEdge(order *UserOrder) *UserEdge {
 	if order == nil {
-		order = DefaultJobTitleOrder
+		order = DefaultUserOrder
 	}
-	return &JobTitleEdge{
-		Node:   jt,
-		Cursor: order.Field.toCursor(jt),
+	return &UserEdge{
+		Node:   u,
+		Cursor: order.Field.toCursor(u),
 	}
 }
