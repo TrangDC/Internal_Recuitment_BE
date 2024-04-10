@@ -8,11 +8,11 @@ import (
 	"trec/internal/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 // AuthenticateMiddleware is a middleware to authenticate user
-func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB) func(c *gin.Context) {
+func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger *zap.Logger) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		// Skip pre-flight request
@@ -30,9 +30,12 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB) func(c
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
 		}
-		err = db.QueryRow("WITH upsert AS ( UPDATE users SET name = $2, work_email = $3 WHERE oid = $1 RETURNING * ) "+
-			"INSERT INTO users (oid, name, work_email) SELECT $1, $2, $3 WHERE NOT EXISTS ( SELECT 1 FROM upsert );").Scan(uuid.MustParse(tokenData.ObjectID), tokenData.Name, tokenData.PreferredUsername)
+		_, err = db.Query("WITH upsert AS ( UPDATE users SET name = $2, work_email = $3 WHERE oid = $1 RETURNING * ) "+
+			"INSERT INTO users (oid, name, work_email) SELECT $1, $2, $3 WHERE NOT EXISTS ( SELECT 1 FROM upsert );", tokenData.ObjectID,
+			tokenData.Name,
+			tokenData.PreferredUsername)
 		if err != nil {
+			logger.Error("", zap.Error(err))
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
 		}
