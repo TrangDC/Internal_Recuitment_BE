@@ -52,7 +52,7 @@ func (rps *teamRepoImpl) BuildDelete() *ent.TeamUpdate {
 }
 
 func (rps *teamRepoImpl) BuildQuery() *ent.TeamQuery {
-	return rps.client.Team.Query().WithUserEdges(
+	return rps.client.Team.Query().Where(team.DeletedAtIsNil()).WithUserEdges(
 		func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
 		},
