@@ -6,6 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"trec/ent/audittrail"
+	"trec/ent/team"
+	"trec/ent/teammanager"
 	"trec/ent/user"
 
 	"entgo.io/contrib/entgql"
@@ -41,12 +44,239 @@ type Edge struct {
 	IDs  []uuid.UUID `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
+func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     at.ID,
+		Type:   "AuditTrail",
+		Fields: make([]*Field, 9),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(at.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.RecordId); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "recordId",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.Module); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "audittrail.Module",
+		Name:  "module",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.ActionType); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "audittrail.ActionType",
+		Name:  "actionType",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.Note); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "note",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.RecordChanges); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "record_changes",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "created_by_edge",
+	}
+	err = at.QueryCreatedByEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (t *Team) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     t.ID,
+		Type:   "Team",
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(t.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user_edges",
+	}
+	err = t.QueryUserEdges().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "TeamManager",
+		Name: "user_teams",
+	}
+	err = t.QueryUserTeams().
+		Select(teammanager.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (tm *TeamManager) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     tm.ID,
+		Type:   "TeamManager",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(tm.TeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "team_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user_edge",
+	}
+	err = tm.QueryUserEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Team",
+		Name: "team_edge",
+	}
+	err = tm.QueryTeamEdge().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.Name); err != nil {
@@ -65,12 +295,12 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "work_email",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Iod); err != nil {
+	if buf, err = json.Marshal(u.Oid); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "iod",
+		Name:  "oid",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
@@ -96,6 +326,36 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "time.Time",
 		Name:  "deleted_at",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "AuditTrail",
+		Name: "audit_edge",
+	}
+	err = u.QueryAuditEdge().
+		Select(audittrail.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Team",
+		Name: "team_edges",
+	}
+	err = u.QueryTeamEdges().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "TeamManager",
+		Name: "team_users",
+	}
+	err = u.QueryTeamUsers().
+		Select(teammanager.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
@@ -166,6 +426,42 @@ func (c *Client) Noder(ctx context.Context, id uuid.UUID, opts ...NodeOption) (_
 
 func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, error) {
 	switch table {
+	case audittrail.Table:
+		query := c.AuditTrail.Query().
+			Where(audittrail.ID(id))
+		query, err := query.CollectFields(ctx, "AuditTrail")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case team.Table:
+		query := c.Team.Query().
+			Where(team.ID(id))
+		query, err := query.CollectFields(ctx, "Team")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case teammanager.Table:
+		query := c.TeamManager.Query().
+			Where(teammanager.ID(id))
+		query, err := query.CollectFields(ctx, "TeamManager")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case user.Table:
 		query := c.User.Query().
 			Where(user.ID(id))
@@ -251,6 +547,54 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case audittrail.Table:
+		query := c.AuditTrail.Query().
+			Where(audittrail.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "AuditTrail")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case team.Table:
+		query := c.Team.Query().
+			Where(team.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Team")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case teammanager.Table:
+		query := c.TeamManager.Query().
+			Where(teammanager.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "TeamManager")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case user.Table:
 		query := c.User.Query().
 			Where(user.IDIn(ids...))

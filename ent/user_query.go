@@ -4,9 +4,13 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/audittrail"
 	"trec/ent/predicate"
+	"trec/ent/team"
+	"trec/ent/teammanager"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,14 +22,20 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.User
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*User) error
+	limit              *int
+	offset             *int
+	unique             *bool
+	order              []OrderFunc
+	fields             []string
+	predicates         []predicate.User
+	withAuditEdge      *AuditTrailQuery
+	withTeamEdges      *TeamQuery
+	withTeamUsers      *TeamManagerQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*User) error
+	withNamedAuditEdge map[string]*AuditTrailQuery
+	withNamedTeamEdges map[string]*TeamQuery
+	withNamedTeamUsers map[string]*TeamManagerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +70,72 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryAuditEdge chains the current query on the "audit_edge" edge.
+func (uq *UserQuery) QueryAuditEdge() *AuditTrailQuery {
+	query := &AuditTrailQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(audittrail.Table, audittrail.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AuditEdgeTable, user.AuditEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTeamEdges chains the current query on the "team_edges" edge.
+func (uq *UserQuery) QueryTeamEdges() *TeamQuery {
+	query := &TeamQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.TeamEdgesTable, user.TeamEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTeamUsers chains the current query on the "team_users" edge.
+func (uq *UserQuery) QueryTeamUsers() *TeamManagerQuery {
+	query := &TeamManagerQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(teammanager.Table, teammanager.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.TeamUsersTable, user.TeamUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first User entity from the query.
@@ -238,16 +314,52 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		limit:      uq.limit,
-		offset:     uq.offset,
-		order:      append([]OrderFunc{}, uq.order...),
-		predicates: append([]predicate.User{}, uq.predicates...),
+		config:        uq.config,
+		limit:         uq.limit,
+		offset:        uq.offset,
+		order:         append([]OrderFunc{}, uq.order...),
+		predicates:    append([]predicate.User{}, uq.predicates...),
+		withAuditEdge: uq.withAuditEdge.Clone(),
+		withTeamEdges: uq.withTeamEdges.Clone(),
+		withTeamUsers: uq.withTeamUsers.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
 		unique: uq.unique,
 	}
+}
+
+// WithAuditEdge tells the query-builder to eager-load the nodes that are connected to
+// the "audit_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAuditEdge(opts ...func(*AuditTrailQuery)) *UserQuery {
+	query := &AuditTrailQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAuditEdge = query
+	return uq
+}
+
+// WithTeamEdges tells the query-builder to eager-load the nodes that are connected to
+// the "team_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTeamEdges(opts ...func(*TeamQuery)) *UserQuery {
+	query := &TeamQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTeamEdges = query
+	return uq
+}
+
+// WithTeamUsers tells the query-builder to eager-load the nodes that are connected to
+// the "team_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithTeamUsers(opts ...func(*TeamManagerQuery)) *UserQuery {
+	query := &TeamManagerQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTeamUsers = query
+	return uq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +433,13 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
-		nodes = []*User{}
-		_spec = uq.querySpec()
+		nodes       = []*User{}
+		_spec       = uq.querySpec()
+		loadedTypes = [3]bool{
+			uq.withAuditEdge != nil,
+			uq.withTeamEdges != nil,
+			uq.withTeamUsers != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
@@ -330,6 +447,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(uq.modifiers) > 0 {
@@ -344,12 +462,167 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := uq.withAuditEdge; query != nil {
+		if err := uq.loadAuditEdge(ctx, query, nodes,
+			func(n *User) { n.Edges.AuditEdge = []*AuditTrail{} },
+			func(n *User, e *AuditTrail) { n.Edges.AuditEdge = append(n.Edges.AuditEdge, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withTeamEdges; query != nil {
+		if err := uq.loadTeamEdges(ctx, query, nodes,
+			func(n *User) { n.Edges.TeamEdges = []*Team{} },
+			func(n *User, e *Team) { n.Edges.TeamEdges = append(n.Edges.TeamEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withTeamUsers; query != nil {
+		if err := uq.loadTeamUsers(ctx, query, nodes,
+			func(n *User) { n.Edges.TeamUsers = []*TeamManager{} },
+			func(n *User, e *TeamManager) { n.Edges.TeamUsers = append(n.Edges.TeamUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedAuditEdge {
+		if err := uq.loadAuditEdge(ctx, query, nodes,
+			func(n *User) { n.appendNamedAuditEdge(name) },
+			func(n *User, e *AuditTrail) { n.appendNamedAuditEdge(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedTeamEdges {
+		if err := uq.loadTeamEdges(ctx, query, nodes,
+			func(n *User) { n.appendNamedTeamEdges(name) },
+			func(n *User, e *Team) { n.appendNamedTeamEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedTeamUsers {
+		if err := uq.loadTeamUsers(ctx, query, nodes,
+			func(n *User) { n.appendNamedTeamUsers(name) },
+			func(n *User, e *TeamManager) { n.appendNamedTeamUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range uq.loadTotal {
 		if err := uq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (uq *UserQuery) loadAuditEdge(ctx context.Context, query *AuditTrailQuery, nodes []*User, init func(*User), assign func(*User, *AuditTrail)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.AuditTrail(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.AuditEdgeColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadTeamEdges(ctx context.Context, query *TeamQuery, nodes []*User, init func(*User), assign func(*User, *Team)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.TeamEdgesTable)
+		s.Join(joinT).On(s.C(team.FieldID), joinT.C(user.TeamEdgesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.TeamEdgesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.TeamEdgesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "team_edges" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadTeamUsers(ctx context.Context, query *TeamManagerQuery, nodes []*User, init func(*User), assign func(*User, *TeamManager)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.TeamUsersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
@@ -453,6 +726,48 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedAuditEdge tells the query-builder to eager-load the nodes that are connected to the "audit_edge"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedAuditEdge(name string, opts ...func(*AuditTrailQuery)) *UserQuery {
+	query := &AuditTrailQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedAuditEdge == nil {
+		uq.withNamedAuditEdge = make(map[string]*AuditTrailQuery)
+	}
+	uq.withNamedAuditEdge[name] = query
+	return uq
+}
+
+// WithNamedTeamEdges tells the query-builder to eager-load the nodes that are connected to the "team_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedTeamEdges(name string, opts ...func(*TeamQuery)) *UserQuery {
+	query := &TeamQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedTeamEdges == nil {
+		uq.withNamedTeamEdges = make(map[string]*TeamQuery)
+	}
+	uq.withNamedTeamEdges[name] = query
+	return uq
+}
+
+// WithNamedTeamUsers tells the query-builder to eager-load the nodes that are connected to the "team_users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedTeamUsers(name string, opts ...func(*TeamManagerQuery)) *UserQuery {
+	query := &TeamManagerQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedTeamUsers == nil {
+		uq.withNamedTeamUsers = make(map[string]*TeamManagerQuery)
+	}
+	uq.withNamedTeamUsers[name] = query
+	return uq
 }
 
 // UserGroupBy is the group-by builder for User entities.

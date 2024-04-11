@@ -10,10 +10,14 @@ import (
 
 	"trec/ent/migrate"
 
+	"trec/ent/audittrail"
+	"trec/ent/team"
+	"trec/ent/teammanager"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -22,6 +26,12 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AuditTrail is the client for interacting with the AuditTrail builders.
+	AuditTrail *AuditTrailClient
+	// Team is the client for interacting with the Team builders.
+	Team *TeamClient
+	// TeamManager is the client for interacting with the TeamManager builders.
+	TeamManager *TeamManagerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -37,6 +47,9 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AuditTrail = NewAuditTrailClient(c.config)
+	c.Team = NewTeamClient(c.config)
+	c.TeamManager = NewTeamManagerClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -69,9 +82,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		AuditTrail:  NewAuditTrailClient(cfg),
+		Team:        NewTeamClient(cfg),
+		TeamManager: NewTeamManagerClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
@@ -89,16 +105,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		AuditTrail:  NewAuditTrailClient(cfg),
+		Team:        NewTeamClient(cfg),
+		TeamManager: NewTeamManagerClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		AuditTrail.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -120,7 +139,360 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.AuditTrail.Use(hooks...)
+	c.Team.Use(hooks...)
+	c.TeamManager.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// AuditTrailClient is a client for the AuditTrail schema.
+type AuditTrailClient struct {
+	config
+}
+
+// NewAuditTrailClient returns a client for the AuditTrail from the given config.
+func NewAuditTrailClient(c config) *AuditTrailClient {
+	return &AuditTrailClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `audittrail.Hooks(f(g(h())))`.
+func (c *AuditTrailClient) Use(hooks ...Hook) {
+	c.hooks.AuditTrail = append(c.hooks.AuditTrail, hooks...)
+}
+
+// Create returns a builder for creating a AuditTrail entity.
+func (c *AuditTrailClient) Create() *AuditTrailCreate {
+	mutation := newAuditTrailMutation(c.config, OpCreate)
+	return &AuditTrailCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuditTrail entities.
+func (c *AuditTrailClient) CreateBulk(builders ...*AuditTrailCreate) *AuditTrailCreateBulk {
+	return &AuditTrailCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuditTrail.
+func (c *AuditTrailClient) Update() *AuditTrailUpdate {
+	mutation := newAuditTrailMutation(c.config, OpUpdate)
+	return &AuditTrailUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuditTrailClient) UpdateOne(at *AuditTrail) *AuditTrailUpdateOne {
+	mutation := newAuditTrailMutation(c.config, OpUpdateOne, withAuditTrail(at))
+	return &AuditTrailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuditTrailClient) UpdateOneID(id uuid.UUID) *AuditTrailUpdateOne {
+	mutation := newAuditTrailMutation(c.config, OpUpdateOne, withAuditTrailID(id))
+	return &AuditTrailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuditTrail.
+func (c *AuditTrailClient) Delete() *AuditTrailDelete {
+	mutation := newAuditTrailMutation(c.config, OpDelete)
+	return &AuditTrailDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuditTrailClient) DeleteOne(at *AuditTrail) *AuditTrailDeleteOne {
+	return c.DeleteOneID(at.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuditTrailClient) DeleteOneID(id uuid.UUID) *AuditTrailDeleteOne {
+	builder := c.Delete().Where(audittrail.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuditTrailDeleteOne{builder}
+}
+
+// Query returns a query builder for AuditTrail.
+func (c *AuditTrailClient) Query() *AuditTrailQuery {
+	return &AuditTrailQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a AuditTrail entity by its id.
+func (c *AuditTrailClient) Get(ctx context.Context, id uuid.UUID) (*AuditTrail, error) {
+	return c.Query().Where(audittrail.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuditTrailClient) GetX(ctx context.Context, id uuid.UUID) *AuditTrail {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCreatedByEdge queries the created_by_edge edge of a AuditTrail.
+func (c *AuditTrailClient) QueryCreatedByEdge(at *AuditTrail) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(audittrail.Table, audittrail.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, audittrail.CreatedByEdgeTable, audittrail.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AuditTrailClient) Hooks() []Hook {
+	return c.hooks.AuditTrail
+}
+
+// TeamClient is a client for the Team schema.
+type TeamClient struct {
+	config
+}
+
+// NewTeamClient returns a client for the Team from the given config.
+func NewTeamClient(c config) *TeamClient {
+	return &TeamClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `team.Hooks(f(g(h())))`.
+func (c *TeamClient) Use(hooks ...Hook) {
+	c.hooks.Team = append(c.hooks.Team, hooks...)
+}
+
+// Create returns a builder for creating a Team entity.
+func (c *TeamClient) Create() *TeamCreate {
+	mutation := newTeamMutation(c.config, OpCreate)
+	return &TeamCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Team entities.
+func (c *TeamClient) CreateBulk(builders ...*TeamCreate) *TeamCreateBulk {
+	return &TeamCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Team.
+func (c *TeamClient) Update() *TeamUpdate {
+	mutation := newTeamMutation(c.config, OpUpdate)
+	return &TeamUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TeamClient) UpdateOne(t *Team) *TeamUpdateOne {
+	mutation := newTeamMutation(c.config, OpUpdateOne, withTeam(t))
+	return &TeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TeamClient) UpdateOneID(id uuid.UUID) *TeamUpdateOne {
+	mutation := newTeamMutation(c.config, OpUpdateOne, withTeamID(id))
+	return &TeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Team.
+func (c *TeamClient) Delete() *TeamDelete {
+	mutation := newTeamMutation(c.config, OpDelete)
+	return &TeamDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TeamClient) DeleteOne(t *Team) *TeamDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TeamClient) DeleteOneID(id uuid.UUID) *TeamDeleteOne {
+	builder := c.Delete().Where(team.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TeamDeleteOne{builder}
+}
+
+// Query returns a query builder for Team.
+func (c *TeamClient) Query() *TeamQuery {
+	return &TeamQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Team entity by its id.
+func (c *TeamClient) Get(ctx context.Context, id uuid.UUID) (*Team, error) {
+	return c.Query().Where(team.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TeamClient) GetX(ctx context.Context, id uuid.UUID) *Team {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUserEdges queries the user_edges edge of a Team.
+func (c *TeamClient) QueryUserEdges(t *Team) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, team.UserEdgesTable, team.UserEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserTeams queries the user_teams edge of a Team.
+func (c *TeamClient) QueryUserTeams(t *Team) *TeamManagerQuery {
+	query := &TeamManagerQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, id),
+			sqlgraph.To(teammanager.Table, teammanager.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, team.UserTeamsTable, team.UserTeamsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TeamClient) Hooks() []Hook {
+	return c.hooks.Team
+}
+
+// TeamManagerClient is a client for the TeamManager schema.
+type TeamManagerClient struct {
+	config
+}
+
+// NewTeamManagerClient returns a client for the TeamManager from the given config.
+func NewTeamManagerClient(c config) *TeamManagerClient {
+	return &TeamManagerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `teammanager.Hooks(f(g(h())))`.
+func (c *TeamManagerClient) Use(hooks ...Hook) {
+	c.hooks.TeamManager = append(c.hooks.TeamManager, hooks...)
+}
+
+// Create returns a builder for creating a TeamManager entity.
+func (c *TeamManagerClient) Create() *TeamManagerCreate {
+	mutation := newTeamManagerMutation(c.config, OpCreate)
+	return &TeamManagerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TeamManager entities.
+func (c *TeamManagerClient) CreateBulk(builders ...*TeamManagerCreate) *TeamManagerCreateBulk {
+	return &TeamManagerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TeamManager.
+func (c *TeamManagerClient) Update() *TeamManagerUpdate {
+	mutation := newTeamManagerMutation(c.config, OpUpdate)
+	return &TeamManagerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TeamManagerClient) UpdateOne(tm *TeamManager) *TeamManagerUpdateOne {
+	mutation := newTeamManagerMutation(c.config, OpUpdateOne, withTeamManager(tm))
+	return &TeamManagerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TeamManagerClient) UpdateOneID(id uuid.UUID) *TeamManagerUpdateOne {
+	mutation := newTeamManagerMutation(c.config, OpUpdateOne, withTeamManagerID(id))
+	return &TeamManagerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TeamManager.
+func (c *TeamManagerClient) Delete() *TeamManagerDelete {
+	mutation := newTeamManagerMutation(c.config, OpDelete)
+	return &TeamManagerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TeamManagerClient) DeleteOne(tm *TeamManager) *TeamManagerDeleteOne {
+	return c.DeleteOneID(tm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TeamManagerClient) DeleteOneID(id uuid.UUID) *TeamManagerDeleteOne {
+	builder := c.Delete().Where(teammanager.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TeamManagerDeleteOne{builder}
+}
+
+// Query returns a query builder for TeamManager.
+func (c *TeamManagerClient) Query() *TeamManagerQuery {
+	return &TeamManagerQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TeamManager entity by its id.
+func (c *TeamManagerClient) Get(ctx context.Context, id uuid.UUID) (*TeamManager, error) {
+	return c.Query().Where(teammanager.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TeamManagerClient) GetX(ctx context.Context, id uuid.UUID) *TeamManager {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUserEdge queries the user_edge edge of a TeamManager.
+func (c *TeamManagerClient) QueryUserEdge(tm *TeamManager) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teammanager.Table, teammanager.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, teammanager.UserEdgeTable, teammanager.UserEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(tm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTeamEdge queries the team_edge edge of a TeamManager.
+func (c *TeamManagerClient) QueryTeamEdge(tm *TeamManager) *TeamQuery {
+	query := &TeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teammanager.Table, teammanager.FieldID, id),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, teammanager.TeamEdgeTable, teammanager.TeamEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(tm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TeamManagerClient) Hooks() []Hook {
+	return c.hooks.TeamManager
 }
 
 // UserClient is a client for the User schema.
@@ -206,6 +578,54 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryAuditEdge queries the audit_edge edge of a User.
+func (c *UserClient) QueryAuditEdge(u *User) *AuditTrailQuery {
+	query := &AuditTrailQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(audittrail.Table, audittrail.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AuditEdgeTable, user.AuditEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTeamEdges queries the team_edges edge of a User.
+func (c *UserClient) QueryTeamEdges(u *User) *TeamQuery {
+	query := &TeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.TeamEdgesTable, user.TeamEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTeamUsers queries the team_users edge of a User.
+func (c *UserClient) QueryTeamUsers(u *User) *TeamManagerQuery {
+	query := &TeamManagerQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(teammanager.Table, teammanager.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.TeamUsersTable, user.TeamUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

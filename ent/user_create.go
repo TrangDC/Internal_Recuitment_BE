@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/audittrail"
+	"trec/ent/team"
+	"trec/ent/teammanager"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -33,9 +36,9 @@ func (uc *UserCreate) SetWorkEmail(s string) *UserCreate {
 	return uc
 }
 
-// SetIod sets the "iod" field.
-func (uc *UserCreate) SetIod(s string) *UserCreate {
-	uc.mutation.SetIod(s)
+// SetOid sets the "oid" field.
+func (uc *UserCreate) SetOid(s string) *UserCreate {
+	uc.mutation.SetOid(s)
 	return uc
 }
 
@@ -93,6 +96,51 @@ func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
 		uc.SetID(*u)
 	}
 	return uc
+}
+
+// AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
+func (uc *UserCreate) AddAuditEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddAuditEdgeIDs(ids...)
+	return uc
+}
+
+// AddAuditEdge adds the "audit_edge" edges to the AuditTrail entity.
+func (uc *UserCreate) AddAuditEdge(a ...*AuditTrail) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAuditEdgeIDs(ids...)
+}
+
+// AddTeamEdgeIDs adds the "team_edges" edge to the Team entity by IDs.
+func (uc *UserCreate) AddTeamEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTeamEdgeIDs(ids...)
+	return uc
+}
+
+// AddTeamEdges adds the "team_edges" edges to the Team entity.
+func (uc *UserCreate) AddTeamEdges(t ...*Team) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTeamEdgeIDs(ids...)
+}
+
+// AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
+func (uc *UserCreate) AddTeamUserIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddTeamUserIDs(ids...)
+	return uc
+}
+
+// AddTeamUsers adds the "team_users" edges to the TeamManager entity.
+func (uc *UserCreate) AddTeamUsers(t ...*TeamManager) *UserCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTeamUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -204,12 +252,12 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "work_email", err: fmt.Errorf(`ent: validator failed for field "User.work_email": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Iod(); !ok {
-		return &ValidationError{Name: "iod", err: errors.New(`ent: missing required field "User.iod"`)}
+	if _, ok := uc.mutation.Oid(); !ok {
+		return &ValidationError{Name: "oid", err: errors.New(`ent: missing required field "User.oid"`)}
 	}
-	if v, ok := uc.mutation.Iod(); ok {
-		if err := user.IodValidator(v); err != nil {
-			return &ValidationError{Name: "iod", err: fmt.Errorf(`ent: validator failed for field "User.iod": %w`, err)}
+	if v, ok := uc.mutation.Oid(); ok {
+		if err := user.OidValidator(v); err != nil {
+			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
@@ -259,9 +307,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
 		_node.WorkEmail = value
 	}
-	if value, ok := uc.mutation.Iod(); ok {
-		_spec.SetField(user.FieldIod, field.TypeString, value)
-		_node.Iod = value
+	if value, ok := uc.mutation.Oid(); ok {
+		_spec.SetField(user.FieldOid, field.TypeString, value)
+		_node.Oid = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -274,6 +322,70 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.DeletedAt(); ok {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
+	}
+	if nodes := uc.mutation.AuditEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AuditEdgeTable,
+			Columns: []string{user.AuditEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: audittrail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TeamEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.TeamEdgesTable,
+			Columns: user.TeamEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: team.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &TeamManagerCreate{config: uc.config, mutation: newTeamManagerMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		if specE.ID.Value != nil {
+			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TeamUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.TeamUsersTable,
+			Columns: []string{user.TeamUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teammanager.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
