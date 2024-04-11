@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -95,10 +96,10 @@ func WorkEmail(v string) predicate.User {
 	})
 }
 
-// Iod applies equality check predicate on the "iod" field. It's identical to IodEQ.
-func Iod(v string) predicate.User {
+// Oid applies equality check predicate on the "oid" field. It's identical to OidEQ.
+func Oid(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIod), v))
+		s.Where(sql.EQ(s.C(FieldOid), v))
 	})
 }
 
@@ -321,102 +322,102 @@ func WorkEmailContainsFold(v string) predicate.User {
 	})
 }
 
-// IodEQ applies the EQ predicate on the "iod" field.
-func IodEQ(v string) predicate.User {
+// OidEQ applies the EQ predicate on the "oid" field.
+func OidEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIod), v))
+		s.Where(sql.EQ(s.C(FieldOid), v))
 	})
 }
 
-// IodNEQ applies the NEQ predicate on the "iod" field.
-func IodNEQ(v string) predicate.User {
+// OidNEQ applies the NEQ predicate on the "oid" field.
+func OidNEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldIod), v))
+		s.Where(sql.NEQ(s.C(FieldOid), v))
 	})
 }
 
-// IodIn applies the In predicate on the "iod" field.
-func IodIn(vs ...string) predicate.User {
+// OidIn applies the In predicate on the "oid" field.
+func OidIn(vs ...string) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldIod), v...))
+		s.Where(sql.In(s.C(FieldOid), v...))
 	})
 }
 
-// IodNotIn applies the NotIn predicate on the "iod" field.
-func IodNotIn(vs ...string) predicate.User {
+// OidNotIn applies the NotIn predicate on the "oid" field.
+func OidNotIn(vs ...string) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldIod), v...))
+		s.Where(sql.NotIn(s.C(FieldOid), v...))
 	})
 }
 
-// IodGT applies the GT predicate on the "iod" field.
-func IodGT(v string) predicate.User {
+// OidGT applies the GT predicate on the "oid" field.
+func OidGT(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldIod), v))
+		s.Where(sql.GT(s.C(FieldOid), v))
 	})
 }
 
-// IodGTE applies the GTE predicate on the "iod" field.
-func IodGTE(v string) predicate.User {
+// OidGTE applies the GTE predicate on the "oid" field.
+func OidGTE(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldIod), v))
+		s.Where(sql.GTE(s.C(FieldOid), v))
 	})
 }
 
-// IodLT applies the LT predicate on the "iod" field.
-func IodLT(v string) predicate.User {
+// OidLT applies the LT predicate on the "oid" field.
+func OidLT(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldIod), v))
+		s.Where(sql.LT(s.C(FieldOid), v))
 	})
 }
 
-// IodLTE applies the LTE predicate on the "iod" field.
-func IodLTE(v string) predicate.User {
+// OidLTE applies the LTE predicate on the "oid" field.
+func OidLTE(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldIod), v))
+		s.Where(sql.LTE(s.C(FieldOid), v))
 	})
 }
 
-// IodContains applies the Contains predicate on the "iod" field.
-func IodContains(v string) predicate.User {
+// OidContains applies the Contains predicate on the "oid" field.
+func OidContains(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldIod), v))
+		s.Where(sql.Contains(s.C(FieldOid), v))
 	})
 }
 
-// IodHasPrefix applies the HasPrefix predicate on the "iod" field.
-func IodHasPrefix(v string) predicate.User {
+// OidHasPrefix applies the HasPrefix predicate on the "oid" field.
+func OidHasPrefix(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldIod), v))
+		s.Where(sql.HasPrefix(s.C(FieldOid), v))
 	})
 }
 
-// IodHasSuffix applies the HasSuffix predicate on the "iod" field.
-func IodHasSuffix(v string) predicate.User {
+// OidHasSuffix applies the HasSuffix predicate on the "oid" field.
+func OidHasSuffix(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldIod), v))
+		s.Where(sql.HasSuffix(s.C(FieldOid), v))
 	})
 }
 
-// IodEqualFold applies the EqualFold predicate on the "iod" field.
-func IodEqualFold(v string) predicate.User {
+// OidEqualFold applies the EqualFold predicate on the "oid" field.
+func OidEqualFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldIod), v))
+		s.Where(sql.EqualFold(s.C(FieldOid), v))
 	})
 }
 
-// IodContainsFold applies the ContainsFold predicate on the "iod" field.
-func IodContainsFold(v string) predicate.User {
+// OidContainsFold applies the ContainsFold predicate on the "oid" field.
+func OidContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldIod), v))
+		s.Where(sql.ContainsFold(s.C(FieldOid), v))
 	})
 }
 
@@ -637,6 +638,90 @@ func DeletedAtIsNil() predicate.User {
 func DeletedAtNotNil() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldDeletedAt)))
+	})
+}
+
+// HasAuditEdge applies the HasEdge predicate on the "audit_edge" edge.
+func HasAuditEdge() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuditEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuditEdgeTable, AuditEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuditEdgeWith applies the HasEdge predicate on the "audit_edge" edge with a given conditions (other predicates).
+func HasAuditEdgeWith(preds ...predicate.AuditTrail) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuditEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuditEdgeTable, AuditEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTeamEdges applies the HasEdge predicate on the "team_edges" edge.
+func HasTeamEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TeamEdgesTable, TeamEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamEdgesWith applies the HasEdge predicate on the "team_edges" edge with a given conditions (other predicates).
+func HasTeamEdgesWith(preds ...predicate.Team) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TeamEdgesTable, TeamEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTeamUsers applies the HasEdge predicate on the "team_users" edge.
+func HasTeamUsers() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, TeamUsersTable, TeamUsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamUsersWith applies the HasEdge predicate on the "team_users" edge with a given conditions (other predicates).
+func HasTeamUsersWith(preds ...predicate.TeamManager) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, TeamUsersTable, TeamUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

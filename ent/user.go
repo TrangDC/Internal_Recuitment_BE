@@ -21,14 +21,63 @@ type User struct {
 	Name string `json:"name,omitempty"`
 	// WorkEmail holds the value of the "work_email" field.
 	WorkEmail string `json:"work_email,omitempty"`
-	// Iod holds the value of the "iod" field.
-	Iod string `json:"iod,omitempty"`
+	// Oid holds the value of the "oid" field.
+	Oid string `json:"oid,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// AuditEdge holds the value of the audit_edge edge.
+	AuditEdge []*AuditTrail `json:"audit_edge,omitempty"`
+	// TeamEdges holds the value of the team_edges edge.
+	TeamEdges []*Team `json:"team_edges,omitempty"`
+	// TeamUsers holds the value of the team_users edge.
+	TeamUsers []*TeamManager `json:"team_users,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+	// totalCount holds the count of the edges above.
+	totalCount [3]map[string]int
+
+	namedAuditEdge map[string][]*AuditTrail
+	namedTeamEdges map[string][]*Team
+	namedTeamUsers map[string][]*TeamManager
+}
+
+// AuditEdgeOrErr returns the AuditEdge value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AuditEdgeOrErr() ([]*AuditTrail, error) {
+	if e.loadedTypes[0] {
+		return e.AuditEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "audit_edge"}
+}
+
+// TeamEdgesOrErr returns the TeamEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TeamEdgesOrErr() ([]*Team, error) {
+	if e.loadedTypes[1] {
+		return e.TeamEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "team_edges"}
+}
+
+// TeamUsersOrErr returns the TeamUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
+	if e.loadedTypes[2] {
+		return e.TeamUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "team_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,7 +85,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldName, user.FieldWorkEmail, user.FieldIod:
+		case user.FieldName, user.FieldWorkEmail, user.FieldOid:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -75,11 +124,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.WorkEmail = value.String
 			}
-		case user.FieldIod:
+		case user.FieldOid:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field iod", values[i])
+				return fmt.Errorf("unexpected type %T for field oid", values[i])
 			} else if value.Valid {
-				u.Iod = value.String
+				u.Oid = value.String
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -102,6 +151,21 @@ func (u *User) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryAuditEdge queries the "audit_edge" edge of the User entity.
+func (u *User) QueryAuditEdge() *AuditTrailQuery {
+	return (&UserClient{config: u.config}).QueryAuditEdge(u)
+}
+
+// QueryTeamEdges queries the "team_edges" edge of the User entity.
+func (u *User) QueryTeamEdges() *TeamQuery {
+	return (&UserClient{config: u.config}).QueryTeamEdges(u)
+}
+
+// QueryTeamUsers queries the "team_users" edge of the User entity.
+func (u *User) QueryTeamUsers() *TeamManagerQuery {
+	return (&UserClient{config: u.config}).QueryTeamUsers(u)
 }
 
 // Update returns a builder for updating this User.
@@ -133,8 +197,8 @@ func (u *User) String() string {
 	builder.WriteString("work_email=")
 	builder.WriteString(u.WorkEmail)
 	builder.WriteString(", ")
-	builder.WriteString("iod=")
-	builder.WriteString(u.Iod)
+	builder.WriteString("oid=")
+	builder.WriteString(u.Oid)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
@@ -146,6 +210,78 @@ func (u *User) String() string {
 	builder.WriteString(u.DeletedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedAuditEdge returns the AuditEdge named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedAuditEdge(name string) ([]*AuditTrail, error) {
+	if u.Edges.namedAuditEdge == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedAuditEdge[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedAuditEdge(name string, edges ...*AuditTrail) {
+	if u.Edges.namedAuditEdge == nil {
+		u.Edges.namedAuditEdge = make(map[string][]*AuditTrail)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedAuditEdge[name] = []*AuditTrail{}
+	} else {
+		u.Edges.namedAuditEdge[name] = append(u.Edges.namedAuditEdge[name], edges...)
+	}
+}
+
+// NamedTeamEdges returns the TeamEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedTeamEdges(name string) ([]*Team, error) {
+	if u.Edges.namedTeamEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedTeamEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedTeamEdges(name string, edges ...*Team) {
+	if u.Edges.namedTeamEdges == nil {
+		u.Edges.namedTeamEdges = make(map[string][]*Team)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedTeamEdges[name] = []*Team{}
+	} else {
+		u.Edges.namedTeamEdges[name] = append(u.Edges.namedTeamEdges[name], edges...)
+	}
+}
+
+// NamedTeamUsers returns the TeamUsers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedTeamUsers(name string) ([]*TeamManager, error) {
+	if u.Edges.namedTeamUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedTeamUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedTeamUsers(name string, edges ...*TeamManager) {
+	if u.Edges.namedTeamUsers == nil {
+		u.Edges.namedTeamUsers = make(map[string][]*TeamManager)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedTeamUsers[name] = []*TeamManager{}
+	} else {
+		u.Edges.namedTeamUsers[name] = append(u.Edges.namedTeamUsers[name], edges...)
+	}
 }
 
 // Users is a parsable slice of User.

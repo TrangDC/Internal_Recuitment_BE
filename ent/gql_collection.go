@@ -10,6 +10,267 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (at *AuditTrailQuery) CollectFields(ctx context.Context, satisfies ...string) (*AuditTrailQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return at, nil
+	}
+	if err := at.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return at, nil
+}
+
+func (at *AuditTrailQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "createdByEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: at.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			at.withCreatedByEdge = query
+		}
+	}
+	return nil
+}
+
+type audittrailPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []AuditTrailPaginateOption
+}
+
+func newAuditTrailPaginateArgs(rv map[string]interface{}) *audittrailPaginateArgs {
+	args := &audittrailPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &AuditTrailOrder{Field: &AuditTrailOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithAuditTrailOrder(order))
+			}
+		case *AuditTrailOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithAuditTrailOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (t *TeamQuery) CollectFields(ctx context.Context, satisfies ...string) (*TeamQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return t, nil
+	}
+	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func (t *TeamQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "userEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: t.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			t.WithNamedUserEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "userTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamManagerQuery{config: t.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			t.WithNamedUserTeams(alias, func(wq *TeamManagerQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type teamPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []TeamPaginateOption
+}
+
+func newTeamPaginateArgs(rv map[string]interface{}) *teamPaginateArgs {
+	args := &teamPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &TeamOrder{Field: &TeamOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithTeamOrder(order))
+			}
+		case *TeamOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithTeamOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (tm *TeamManagerQuery) CollectFields(ctx context.Context, satisfies ...string) (*TeamManagerQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return tm, nil
+	}
+	if err := tm.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return tm, nil
+}
+
+func (tm *TeamManagerQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "userEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: tm.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			tm.withUserEdge = query
+		case "teamEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: tm.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			tm.withTeamEdge = query
+		}
+	}
+	return nil
+}
+
+type teammanagerPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []TeamManagerPaginateOption
+}
+
+func newTeamManagerPaginateArgs(rv map[string]interface{}) *teammanagerPaginateArgs {
+	args := &teammanagerPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &TeamManagerOrder{Field: &TeamManagerOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithTeamManagerOrder(order))
+			}
+		case *TeamManagerOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithTeamManagerOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -23,6 +284,46 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 
 func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "auditEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AuditTrailQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedAuditEdge(alias, func(wq *AuditTrailQuery) {
+				*wq = *query
+			})
+		case "teamEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedTeamEdges(alias, func(wq *TeamQuery) {
+				*wq = *query
+			})
+		case "teamUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamManagerQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedTeamUsers(alias, func(wq *TeamManagerQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 

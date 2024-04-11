@@ -35,6 +35,11 @@ type Base64Response struct {
 	Data *string `json:"data"`
 }
 
+type NewTeamInput struct {
+	Name    string   `json:"name"`
+	Members []string `json:"members"`
+}
+
 type Pagination struct {
 	Page    int `json:"page"`
 	PerPage int `json:"perPage"`
@@ -44,6 +49,28 @@ type Pagination struct {
 type PaginationInput struct {
 	Page    *int `json:"page"`
 	PerPage *int `json:"perPage"`
+}
+
+type TeamFilter struct {
+	Name *string `json:"name"`
+}
+
+type TeamFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type TeamResponse struct {
+	Data *Team `json:"data"`
+}
+
+type TeamResponseGetAll struct {
+	Edges      []*TeamEdge `json:"edges"`
+	Pagination *Pagination `json:"pagination"`
+}
+
+type UpdateTeamInput struct {
+	Name    string   `json:"name"`
+	Members []string `json:"members"`
 }
 
 type AttachmentAction string

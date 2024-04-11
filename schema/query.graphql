@@ -1,3 +1,7 @@
 type Query {
 	GetPreRequest: String!
+
+	# Team
+	GetTeam(id: ID!): TeamResponse!
+	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
 }
