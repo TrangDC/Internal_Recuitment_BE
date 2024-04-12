@@ -73,6 +73,15 @@ type UpdateTeamInput struct {
 	Members []string `json:"members"`
 }
 
+type UserResponse struct {
+	Data *User `json:"data"`
+}
+
+type UserResponseGetAll struct {
+	Edges      []*UserEdge `json:"edges"`
+	Pagination *Pagination `json:"pagination"`
+}
+
 type AttachmentAction string
 
 const (

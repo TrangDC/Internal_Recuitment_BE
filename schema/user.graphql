@@ -1,5 +1,29 @@
+enum UserOrderField {
+  NAME
+  CREATED_AT
+}
+
+input UserOrder {
+  direction: OrderDirection!
+  field: UserOrderField!
+}
+
 type User {
   id: ID!
   name: String!
   work_email: String!
+}
+
+type UserResponse {
+  data: User
+}
+
+type UserEdge {
+  node: User!
+  cursor: Cursor!
+}
+
+type UserResponseGetAll {
+  edges: [UserEdge!]!
+  pagination: Pagination!
 }

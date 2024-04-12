@@ -135,6 +135,8 @@ func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.Tea
 func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error) {
 	var result *ent.TeamResponseGetAll
 	var edges []*ent.TeamEdge
+	var page int
+	var perPage int
 	query := svc.repoRegistry.Team().BuildQuery()
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
@@ -153,6 +155,8 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 		query = query.Order(ent.Desc(team.FieldCreatedAt))
 	}
 	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
 		query = query.Limit(*pagination.PerPage).Offset((*pagination.Page - 1) * *pagination.PerPage)
 	}
 	teams, err := svc.repoRegistry.Team().BuildList(ctx, query)
@@ -172,8 +176,8 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 		Edges: edges,
 		Pagination: &ent.Pagination{
 			Total:   count,
-			Page:    *pagination.Page,
-			PerPage: *pagination.PerPage,
+			Page:    page,
+			PerPage: perPage,
 		},
 	}
 	return result, nil

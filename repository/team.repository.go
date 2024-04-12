@@ -38,7 +38,7 @@ func NewTeamRepository(client *ent.Client) TeamRepository {
 	}
 }
 
-// Base function
+// Base functions
 func (rps *teamRepoImpl) BuildCreate() *ent.TeamCreate {
 	return rps.client.Team.Create()
 }

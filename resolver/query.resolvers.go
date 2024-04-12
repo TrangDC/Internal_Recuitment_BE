@@ -36,6 +36,15 @@ func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.Paginat
 	return result, nil
 }
 
+// GetAllUsers is the resolver for the GetAllUsers field.
+func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+	result, err := r.serviceRegistry.User().GetUsers(ctx, pagination, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 
