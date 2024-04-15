@@ -5,4 +5,10 @@ type Mutation {
   CreateTeam(input: NewTeamInput!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!): TeamResponse!
   DeleteTeam(id: ID!): Boolean!
+
+  # HiringJob
+  CreateHiringJob(input: NewHiringJobInput!): HiringJobResponse!
+  UpdateHiringJob(id: ID!, input: UpdateHiringJobInput!): HiringJobResponse!
+  DeleteHiringJob(id: ID!): Boolean!
+  UpdateHiringJobStatus(id: ID!, status: HiringJobStatus!): HiringJobResponse!
 }

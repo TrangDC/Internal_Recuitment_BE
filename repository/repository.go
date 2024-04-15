@@ -12,6 +12,7 @@ import (
 type Repository interface {
 	User() UserRepository
 	Team() TeamRepository
+	HiringJob() HiringJobRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -24,6 +25,7 @@ type RepoImpl struct {
 	entTx     *ent.Tx
 	user      UserRepository
 	team      TeamRepository
+	hiringJob HiringJobRepository
 }
 
 // NewRepository creates new repository registry
@@ -32,6 +34,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		entClient: entClient,
 		user:      NewUserRepository(entClient),
 		team:      NewTeamRepository(entClient),
+		hiringJob: NewHiringJobRepository(entClient),
 	}
 }
 
@@ -41,6 +44,10 @@ func (r *RepoImpl) User() UserRepository {
 
 func (r *RepoImpl) Team() TeamRepository {
 	return r.team
+}
+
+func (r *RepoImpl) HiringJob() HiringJobRepository {
+	return r.hiringJob
 }
 
 // DoInTx executes the given function in a transaction.
@@ -65,9 +72,10 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 	}()
 
 	impl := &RepoImpl{
-		entTx: tx,
-		user:  NewUserRepository(tx.Client()),
-		team:  NewTeamRepository(tx.Client()),
+		entTx:     tx,
+		user:      NewUserRepository(tx.Client()),
+		team:      NewTeamRepository(tx.Client()),
+		hiringJob: NewHiringJobRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

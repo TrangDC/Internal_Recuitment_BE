@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -21,12 +22,6 @@ type TeamCreate struct {
 	config
 	mutation *TeamMutation
 	hooks    []Hook
-}
-
-// SetName sets the "name" field.
-func (tc *TeamCreate) SetName(s string) *TeamCreate {
-	tc.mutation.SetName(s)
-	return tc
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -71,6 +66,18 @@ func (tc *TeamCreate) SetNillableDeletedAt(t *time.Time) *TeamCreate {
 	return tc
 }
 
+// SetSlug sets the "slug" field.
+func (tc *TeamCreate) SetSlug(s string) *TeamCreate {
+	tc.mutation.SetSlug(s)
+	return tc
+}
+
+// SetName sets the "name" field.
+func (tc *TeamCreate) SetName(s string) *TeamCreate {
+	tc.mutation.SetName(s)
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TeamCreate) SetID(u uuid.UUID) *TeamCreate {
 	tc.mutation.SetID(u)
@@ -98,6 +105,21 @@ func (tc *TeamCreate) AddUserEdges(u ...*User) *TeamCreate {
 		ids[i] = u[i].ID
 	}
 	return tc.AddUserEdgeIDs(ids...)
+}
+
+// AddHiringTeamIDs adds the "hiring_team" edge to the HiringJob entity by IDs.
+func (tc *TeamCreate) AddHiringTeamIDs(ids ...uuid.UUID) *TeamCreate {
+	tc.mutation.AddHiringTeamIDs(ids...)
+	return tc
+}
+
+// AddHiringTeam adds the "hiring_team" edges to the HiringJob entity.
+func (tc *TeamCreate) AddHiringTeam(h ...*HiringJob) *TeamCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return tc.AddHiringTeamIDs(ids...)
 }
 
 // AddUserTeamIDs adds the "user_teams" edge to the TeamManager entity by IDs.
@@ -196,10 +218,6 @@ func (tc *TeamCreate) defaults() {
 		v := team.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := tc.mutation.UpdatedAt(); !ok {
-		v := team.DefaultUpdatedAt()
-		tc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := tc.mutation.ID(); !ok {
 		v := team.DefaultID()
 		tc.mutation.SetID(v)
@@ -208,6 +226,17 @@ func (tc *TeamCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tc *TeamCreate) check() error {
+	if _, ok := tc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Team.created_at"`)}
+	}
+	if _, ok := tc.mutation.Slug(); !ok {
+		return &ValidationError{Name: "slug", err: errors.New(`ent: missing required field "Team.slug"`)}
+	}
+	if v, ok := tc.mutation.Slug(); ok {
+		if err := team.SlugValidator(v); err != nil {
+			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "Team.slug": %w`, err)}
+		}
+	}
 	if _, ok := tc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Team.name"`)}
 	}
@@ -215,9 +244,6 @@ func (tc *TeamCreate) check() error {
 		if err := team.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Team.name": %w`, err)}
 		}
-	}
-	if _, ok := tc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Team.created_at"`)}
 	}
 	return nil
 }
@@ -255,10 +281,6 @@ func (tc *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := tc.mutation.Name(); ok {
-		_spec.SetField(team.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
 	if value, ok := tc.mutation.CreatedAt(); ok {
 		_spec.SetField(team.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -270,6 +292,14 @@ func (tc *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.DeletedAt(); ok {
 		_spec.SetField(team.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
+	}
+	if value, ok := tc.mutation.Slug(); ok {
+		_spec.SetField(team.FieldSlug, field.TypeString, value)
+		_node.Slug = value
+	}
+	if value, ok := tc.mutation.Name(); ok {
+		_spec.SetField(team.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if nodes := tc.mutation.UserEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,6 +324,25 @@ func (tc *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.HiringTeamIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.HiringTeamTable,
+			Columns: []string{team.HiringTeamColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}

@@ -19,15 +19,15 @@ import (
 // AuditTrailQuery is the builder for querying AuditTrail entities.
 type AuditTrailQuery struct {
 	config
-	limit             *int
-	offset            *int
-	unique            *bool
-	order             []OrderFunc
-	fields            []string
-	predicates        []predicate.AuditTrail
-	withCreatedByEdge *UserQuery
-	modifiers         []func(*sql.Selector)
-	loadTotal         []func(context.Context, []*AuditTrail) error
+	limit        *int
+	offset       *int
+	unique       *bool
+	order        []OrderFunc
+	fields       []string
+	predicates   []predicate.AuditTrail
+	withUserEdge *UserQuery
+	modifiers    []func(*sql.Selector)
+	loadTotal    []func(context.Context, []*AuditTrail) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,8 +64,8 @@ func (atq *AuditTrailQuery) Order(o ...OrderFunc) *AuditTrailQuery {
 	return atq
 }
 
-// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
-func (atq *AuditTrailQuery) QueryCreatedByEdge() *UserQuery {
+// QueryUserEdge chains the current query on the "user_edge" edge.
+func (atq *AuditTrailQuery) QueryUserEdge() *UserQuery {
 	query := &UserQuery{config: atq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := atq.prepareQuery(ctx); err != nil {
@@ -78,7 +78,7 @@ func (atq *AuditTrailQuery) QueryCreatedByEdge() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(audittrail.Table, audittrail.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, audittrail.CreatedByEdgeTable, audittrail.CreatedByEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, audittrail.UserEdgeTable, audittrail.UserEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
 		return fromU, nil
@@ -262,12 +262,12 @@ func (atq *AuditTrailQuery) Clone() *AuditTrailQuery {
 		return nil
 	}
 	return &AuditTrailQuery{
-		config:            atq.config,
-		limit:             atq.limit,
-		offset:            atq.offset,
-		order:             append([]OrderFunc{}, atq.order...),
-		predicates:        append([]predicate.AuditTrail{}, atq.predicates...),
-		withCreatedByEdge: atq.withCreatedByEdge.Clone(),
+		config:       atq.config,
+		limit:        atq.limit,
+		offset:       atq.offset,
+		order:        append([]OrderFunc{}, atq.order...),
+		predicates:   append([]predicate.AuditTrail{}, atq.predicates...),
+		withUserEdge: atq.withUserEdge.Clone(),
 		// clone intermediate query.
 		sql:    atq.sql.Clone(),
 		path:   atq.path,
@@ -275,14 +275,14 @@ func (atq *AuditTrailQuery) Clone() *AuditTrailQuery {
 	}
 }
 
-// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
-// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (atq *AuditTrailQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *AuditTrailQuery {
+// WithUserEdge tells the query-builder to eager-load the nodes that are connected to
+// the "user_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (atq *AuditTrailQuery) WithUserEdge(opts ...func(*UserQuery)) *AuditTrailQuery {
 	query := &UserQuery{config: atq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	atq.withCreatedByEdge = query
+	atq.withUserEdge = query
 	return atq
 }
 
@@ -292,12 +292,12 @@ func (atq *AuditTrailQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *AuditTr
 // Example:
 //
 //	var v []struct {
-//		CreatedBy uuid.UUID `json:"created_by,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.AuditTrail.Query().
-//		GroupBy(audittrail.FieldCreatedBy).
+//		GroupBy(audittrail.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (atq *AuditTrailQuery) GroupBy(field string, fields ...string) *AuditTrailGroupBy {
@@ -320,11 +320,11 @@ func (atq *AuditTrailQuery) GroupBy(field string, fields ...string) *AuditTrailG
 // Example:
 //
 //	var v []struct {
-//		CreatedBy uuid.UUID `json:"created_by,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.AuditTrail.Query().
-//		Select(audittrail.FieldCreatedBy).
+//		Select(audittrail.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (atq *AuditTrailQuery) Select(fields ...string) *AuditTrailSelect {
 	atq.fields = append(atq.fields, fields...)
@@ -360,7 +360,7 @@ func (atq *AuditTrailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*AuditTrail{}
 		_spec       = atq.querySpec()
 		loadedTypes = [1]bool{
-			atq.withCreatedByEdge != nil,
+			atq.withUserEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -384,9 +384,9 @@ func (atq *AuditTrailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := atq.withCreatedByEdge; query != nil {
-		if err := atq.loadCreatedByEdge(ctx, query, nodes, nil,
-			func(n *AuditTrail, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
+	if query := atq.withUserEdge; query != nil {
+		if err := atq.loadUserEdge(ctx, query, nodes, nil,
+			func(n *AuditTrail, e *User) { n.Edges.UserEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -398,7 +398,7 @@ func (atq *AuditTrailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	return nodes, nil
 }
 
-func (atq *AuditTrailQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*AuditTrail, init func(*AuditTrail), assign func(*AuditTrail, *User)) error {
+func (atq *AuditTrailQuery) loadUserEdge(ctx context.Context, query *UserQuery, nodes []*AuditTrail, init func(*AuditTrail), assign func(*AuditTrail, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*AuditTrail)
 	for i := range nodes {

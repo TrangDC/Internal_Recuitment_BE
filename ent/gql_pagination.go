@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -547,6 +548,378 @@ func (at *AuditTrail) ToEdge(order *AuditTrailOrder) *AuditTrailEdge {
 	}
 }
 
+// HiringJobEdge is the edge representation of HiringJob.
+type HiringJobEdge struct {
+	Node   *HiringJob `json:"node"`
+	Cursor Cursor     `json:"cursor"`
+}
+
+// HiringJobConnection is the connection containing edges to HiringJob.
+type HiringJobConnection struct {
+	Edges      []*HiringJobEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
+	TotalCount int              `json:"totalCount"`
+}
+
+func (c *HiringJobConnection) build(nodes []*HiringJob, pager *hiringjobPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *HiringJob
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *HiringJob {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *HiringJob {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*HiringJobEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &HiringJobEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// HiringJobPaginateOption enables pagination customization.
+type HiringJobPaginateOption func(*hiringjobPager) error
+
+// WithHiringJobOrder configures pagination ordering.
+func WithHiringJobOrder(order *HiringJobOrder) HiringJobPaginateOption {
+	if order == nil {
+		order = DefaultHiringJobOrder
+	}
+	o := *order
+	return func(pager *hiringjobPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultHiringJobOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithHiringJobFilter configures pagination filter.
+func WithHiringJobFilter(filter func(*HiringJobQuery) (*HiringJobQuery, error)) HiringJobPaginateOption {
+	return func(pager *hiringjobPager) error {
+		if filter == nil {
+			return errors.New("HiringJobQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type hiringjobPager struct {
+	order  *HiringJobOrder
+	filter func(*HiringJobQuery) (*HiringJobQuery, error)
+}
+
+func newHiringJobPager(opts []HiringJobPaginateOption) (*hiringjobPager, error) {
+	pager := &hiringjobPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultHiringJobOrder
+	}
+	return pager, nil
+}
+
+func (p *hiringjobPager) applyFilter(query *HiringJobQuery) (*HiringJobQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *hiringjobPager) toCursor(hj *HiringJob) Cursor {
+	return p.order.Field.toCursor(hj)
+}
+
+func (p *hiringjobPager) applyCursors(query *HiringJobQuery, after, before *Cursor) *HiringJobQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultHiringJobOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *hiringjobPager) applyOrder(query *HiringJobQuery, reverse bool) *HiringJobQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultHiringJobOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultHiringJobOrder.Field.field))
+	}
+	return query
+}
+
+func (p *hiringjobPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultHiringJobOrder.Field {
+			b.Comma().Ident(DefaultHiringJobOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to HiringJob.
+func (hj *HiringJobQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...HiringJobPaginateOption,
+) (*HiringJobConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newHiringJobPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if hj, err = pager.applyFilter(hj); err != nil {
+		return nil, err
+	}
+	conn := &HiringJobConnection{Edges: []*HiringJobEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = hj.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	hj = pager.applyCursors(hj, after, before)
+	hj = pager.applyOrder(hj, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		hj.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := hj.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := hj.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// HiringJobOrderFieldCreatedAt orders HiringJob by created_at.
+	HiringJobOrderFieldCreatedAt = &HiringJobOrderField{
+		field: hiringjob.FieldCreatedAt,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.CreatedAt,
+			}
+		},
+	}
+	// HiringJobOrderFieldUpdatedAt orders HiringJob by updated_at.
+	HiringJobOrderFieldUpdatedAt = &HiringJobOrderField{
+		field: hiringjob.FieldUpdatedAt,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.UpdatedAt,
+			}
+		},
+	}
+	// HiringJobOrderFieldDeletedAt orders HiringJob by deleted_at.
+	HiringJobOrderFieldDeletedAt = &HiringJobOrderField{
+		field: hiringjob.FieldDeletedAt,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.DeletedAt,
+			}
+		},
+	}
+	// HiringJobOrderFieldSlug orders HiringJob by slug.
+	HiringJobOrderFieldSlug = &HiringJobOrderField{
+		field: hiringjob.FieldSlug,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.Slug,
+			}
+		},
+	}
+	// HiringJobOrderFieldName orders HiringJob by name.
+	HiringJobOrderFieldName = &HiringJobOrderField{
+		field: hiringjob.FieldName,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.Name,
+			}
+		},
+	}
+	// HiringJobOrderFieldAmount orders HiringJob by amount.
+	HiringJobOrderFieldAmount = &HiringJobOrderField{
+		field: hiringjob.FieldAmount,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.Amount,
+			}
+		},
+	}
+	// HiringJobOrderFieldSalaryFrom orders HiringJob by salary_from.
+	HiringJobOrderFieldSalaryFrom = &HiringJobOrderField{
+		field: hiringjob.FieldSalaryFrom,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.SalaryFrom,
+			}
+		},
+	}
+	// HiringJobOrderFieldSalaryTo orders HiringJob by salary_to.
+	HiringJobOrderFieldSalaryTo = &HiringJobOrderField{
+		field: hiringjob.FieldSalaryTo,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.SalaryTo,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f HiringJobOrderField) String() string {
+	var str string
+	switch f.field {
+	case hiringjob.FieldCreatedAt:
+		str = "CREATED_AT"
+	case hiringjob.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case hiringjob.FieldDeletedAt:
+		str = "DELETED_AT"
+	case hiringjob.FieldSlug:
+		str = "SLUG"
+	case hiringjob.FieldName:
+		str = "NAME"
+	case hiringjob.FieldAmount:
+		str = "AMOUNT"
+	case hiringjob.FieldSalaryFrom:
+		str = "SALARY_FROM"
+	case hiringjob.FieldSalaryTo:
+		str = "SALARY_TO"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f HiringJobOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *HiringJobOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("HiringJobOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *HiringJobOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *HiringJobOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *HiringJobOrderFieldDeletedAt
+	case "SLUG":
+		*f = *HiringJobOrderFieldSlug
+	case "NAME":
+		*f = *HiringJobOrderFieldName
+	case "AMOUNT":
+		*f = *HiringJobOrderFieldAmount
+	case "SALARY_FROM":
+		*f = *HiringJobOrderFieldSalaryFrom
+	case "SALARY_TO":
+		*f = *HiringJobOrderFieldSalaryTo
+	default:
+		return fmt.Errorf("%s is not a valid HiringJobOrderField", str)
+	}
+	return nil
+}
+
+// HiringJobOrderField defines the ordering field of HiringJob.
+type HiringJobOrderField struct {
+	field    string
+	toCursor func(*HiringJob) Cursor
+}
+
+// HiringJobOrder defines the ordering of HiringJob.
+type HiringJobOrder struct {
+	Direction OrderDirection       `json:"direction"`
+	Field     *HiringJobOrderField `json:"field"`
+}
+
+// DefaultHiringJobOrder is the default ordering of HiringJob.
+var DefaultHiringJobOrder = &HiringJobOrder{
+	Direction: OrderDirectionAsc,
+	Field: &HiringJobOrderField{
+		field: hiringjob.FieldID,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{ID: hj.ID}
+		},
+	},
+}
+
+// ToEdge converts HiringJob into HiringJobEdge.
+func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
+	if order == nil {
+		order = DefaultHiringJobOrder
+	}
+	return &HiringJobEdge{
+		Node:   hj,
+		Cursor: order.Field.toCursor(hj),
+	}
+}
+
 // TeamEdge is the edge representation of Team.
 type TeamEdge struct {
 	Node   *Team  `json:"node"`
@@ -745,16 +1118,6 @@ func (t *TeamQuery) Paginate(
 }
 
 var (
-	// TeamOrderFieldName orders Team by name.
-	TeamOrderFieldName = &TeamOrderField{
-		field: team.FieldName,
-		toCursor: func(t *Team) Cursor {
-			return Cursor{
-				ID:    t.ID,
-				Value: t.Name,
-			}
-		},
-	}
 	// TeamOrderFieldCreatedAt orders Team by created_at.
 	TeamOrderFieldCreatedAt = &TeamOrderField{
 		field: team.FieldCreatedAt,
@@ -785,20 +1148,42 @@ var (
 			}
 		},
 	}
+	// TeamOrderFieldSlug orders Team by slug.
+	TeamOrderFieldSlug = &TeamOrderField{
+		field: team.FieldSlug,
+		toCursor: func(t *Team) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.Slug,
+			}
+		},
+	}
+	// TeamOrderFieldName orders Team by name.
+	TeamOrderFieldName = &TeamOrderField{
+		field: team.FieldName,
+		toCursor: func(t *Team) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.Name,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
 func (f TeamOrderField) String() string {
 	var str string
 	switch f.field {
-	case team.FieldName:
-		str = "NAME"
 	case team.FieldCreatedAt:
 		str = "CREATED_AT"
 	case team.FieldUpdatedAt:
 		str = "UPDATED_AT"
 	case team.FieldDeletedAt:
 		str = "DELETED_AT"
+	case team.FieldSlug:
+		str = "SLUG"
+	case team.FieldName:
+		str = "NAME"
 	}
 	return str
 }
@@ -815,14 +1200,16 @@ func (f *TeamOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("TeamOrderField %T must be a string", v)
 	}
 	switch str {
-	case "NAME":
-		*f = *TeamOrderFieldName
 	case "CREATED_AT":
 		*f = *TeamOrderFieldCreatedAt
 	case "UPDATED_AT":
 		*f = *TeamOrderFieldUpdatedAt
 	case "DELETED_AT":
 		*f = *TeamOrderFieldDeletedAt
+	case "SLUG":
+		*f = *TeamOrderFieldSlug
+	case "NAME":
+		*f = *TeamOrderFieldName
 	default:
 		return fmt.Errorf("%s is not a valid TeamOrderField", str)
 	}
@@ -1363,26 +1750,6 @@ func (u *UserQuery) Paginate(
 }
 
 var (
-	// UserOrderFieldName orders User by name.
-	UserOrderFieldName = &UserOrderField{
-		field: user.FieldName,
-		toCursor: func(u *User) Cursor {
-			return Cursor{
-				ID:    u.ID,
-				Value: u.Name,
-			}
-		},
-	}
-	// UserOrderFieldWorkEmail orders User by work_email.
-	UserOrderFieldWorkEmail = &UserOrderField{
-		field: user.FieldWorkEmail,
-		toCursor: func(u *User) Cursor {
-			return Cursor{
-				ID:    u.ID,
-				Value: u.WorkEmail,
-			}
-		},
-	}
 	// UserOrderFieldCreatedAt orders User by created_at.
 	UserOrderFieldCreatedAt = &UserOrderField{
 		field: user.FieldCreatedAt,
@@ -1413,22 +1780,42 @@ var (
 			}
 		},
 	}
+	// UserOrderFieldName orders User by name.
+	UserOrderFieldName = &UserOrderField{
+		field: user.FieldName,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.Name,
+			}
+		},
+	}
+	// UserOrderFieldWorkEmail orders User by work_email.
+	UserOrderFieldWorkEmail = &UserOrderField{
+		field: user.FieldWorkEmail,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.WorkEmail,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
 func (f UserOrderField) String() string {
 	var str string
 	switch f.field {
-	case user.FieldName:
-		str = "NAME"
-	case user.FieldWorkEmail:
-		str = "WORK_EMAIL"
 	case user.FieldCreatedAt:
 		str = "CREATED_AT"
 	case user.FieldUpdatedAt:
 		str = "UPDATED_AT"
 	case user.FieldDeletedAt:
 		str = "DELETED_AT"
+	case user.FieldName:
+		str = "NAME"
+	case user.FieldWorkEmail:
+		str = "WORK_EMAIL"
 	}
 	return str
 }
@@ -1445,16 +1832,16 @@ func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("UserOrderField %T must be a string", v)
 	}
 	switch str {
-	case "NAME":
-		*f = *UserOrderFieldName
-	case "WORK_EMAIL":
-		*f = *UserOrderFieldWorkEmail
 	case "CREATED_AT":
 		*f = *UserOrderFieldCreatedAt
 	case "UPDATED_AT":
 		*f = *UserOrderFieldUpdatedAt
 	case "DELETED_AT":
 		*f = *UserOrderFieldDeletedAt
+	case "NAME":
+		*f = *UserOrderFieldName
+	case "WORK_EMAIL":
+		*f = *UserOrderFieldWorkEmail
 	default:
 		return fmt.Errorf("%s is not a valid UserOrderField", str)
 	}

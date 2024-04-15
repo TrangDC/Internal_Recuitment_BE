@@ -16,6 +16,12 @@ const (
 	Label = "audit_trail"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
 	// FieldRecordId holds the string denoting the recordid field in the database.
@@ -28,37 +34,31 @@ const (
 	FieldNote = "note"
 	// FieldRecordChanges holds the string denoting the record_changes field in the database.
 	FieldRecordChanges = "record_changes"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
-	FieldDeletedAt = "deleted_at"
-	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
-	EdgeCreatedByEdge = "created_by_edge"
+	// EdgeUserEdge holds the string denoting the user_edge edge name in mutations.
+	EdgeUserEdge = "user_edge"
 	// Table holds the table name of the audittrail in the database.
 	Table = "audit_trails"
-	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
-	CreatedByEdgeTable = "audit_trails"
-	// CreatedByEdgeInverseTable is the table name for the User entity.
+	// UserEdgeTable is the table that holds the user_edge relation/edge.
+	UserEdgeTable = "audit_trails"
+	// UserEdgeInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	CreatedByEdgeInverseTable = "users"
-	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
-	CreatedByEdgeColumn = "created_by"
+	UserEdgeInverseTable = "users"
+	// UserEdgeColumn is the table column denoting the user_edge relation/edge.
+	UserEdgeColumn = "created_by"
 )
 
 // Columns holds all SQL columns for audittrail fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
+	FieldDeletedAt,
 	FieldCreatedBy,
 	FieldRecordId,
 	FieldModule,
 	FieldActionType,
 	FieldNote,
 	FieldRecordChanges,
-	FieldCreatedAt,
-	FieldUpdatedAt,
-	FieldDeletedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -72,10 +72,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
-	NoteValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	NoteValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

@@ -8,10 +8,26 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (at *AuditTrail) CreatedByEdge(ctx context.Context) (*User, error) {
-	result, err := at.Edges.CreatedByEdgeOrErr()
+func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
+	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = at.QueryCreatedByEdge().Only(ctx)
+		result, err = at.QueryUserEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (hj *HiringJob) OwnerEdge(ctx context.Context) (*User, error) {
+	result, err := hj.Edges.OwnerEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hj.QueryOwnerEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (hj *HiringJob) TeamEdge(ctx context.Context) (*Team, error) {
+	result, err := hj.Edges.TeamEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hj.QueryTeamEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
@@ -24,6 +40,18 @@ func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {
 	}
 	if IsNotLoaded(err) {
 		result, err = t.QueryUserEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (t *Team) HiringTeam(ctx context.Context) (result []*HiringJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = t.NamedHiringTeam(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = t.Edges.HiringTeamOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = t.QueryHiringTeam().All(ctx)
 	}
 	return result, err
 }
@@ -64,6 +92,18 @@ func (u *User) AuditEdge(ctx context.Context) (result []*AuditTrail, err error) 
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryAuditEdge().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) HiringOwner(ctx context.Context) (result []*HiringJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedHiringOwner(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.HiringOwnerOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryHiringOwner().All(ctx)
 	}
 	return result, err
 }

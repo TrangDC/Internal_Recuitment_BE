@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -52,58 +53,10 @@ func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(at.CreatedBy); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "created_by",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(at.RecordId); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "recordId",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(at.Module); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "audittrail.Module",
-		Name:  "module",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(at.ActionType); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "audittrail.ActionType",
-		Name:  "actionType",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(at.Note); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "string",
-		Name:  "note",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(at.RecordChanges); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "string",
-		Name:  "record_changes",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(at.CreatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
@@ -111,7 +64,7 @@ func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(at.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
@@ -119,18 +72,217 @@ func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(at.DeletedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "time.Time",
 		Name:  "deleted_at",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(at.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.RecordId); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "recordId",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.Module); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "audittrail.Module",
+		Name:  "module",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.ActionType); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "audittrail.ActionType",
+		Name:  "actionType",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.Note); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "note",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(at.RecordChanges); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "string",
+		Name:  "record_changes",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "User",
-		Name: "created_by_edge",
+		Name: "user_edge",
 	}
-	err = at.QueryCreatedByEdge().
+	err = at.QueryUserEdge().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     hj.ID,
+		Type:   "HiringJob",
+		Fields: make([]*Field, 15),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Slug); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "slug",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Amount); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int",
+		Name:  "amount",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "hiringjob.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.TeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "team_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Location); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "hiringjob.Location",
+		Name:  "location",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.SalaryType); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "hiringjob.SalaryType",
+		Name:  "salary_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.SalaryFrom); err != nil {
+		return nil, err
+	}
+	node.Fields[12] = &Field{
+		Type:  "int",
+		Name:  "salary_from",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.SalaryTo); err != nil {
+		return nil, err
+	}
+	node.Fields[13] = &Field{
+		Type:  "int",
+		Name:  "salary_to",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hj.Currency); err != nil {
+		return nil, err
+	}
+	node.Fields[14] = &Field{
+		Type:  "hiringjob.Currency",
+		Name:  "currency",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "owner_edge",
+	}
+	err = hj.QueryOwnerEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Team",
+		Name: "team_edge",
+	}
+	err = hj.QueryTeamEdge().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -141,22 +293,14 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Team",
-		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(t.Name); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "string",
-		Name:  "name",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(t.CreatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[1] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
@@ -164,7 +308,7 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[2] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
@@ -172,9 +316,25 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(t.DeletedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "time.Time",
 		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Slug); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "slug",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "name",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -188,12 +348,22 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
+		Type: "HiringJob",
+		Name: "hiring_team",
+	}
+	err = t.QueryHiringTeam().
+		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
 		Type: "TeamManager",
 		Name: "user_teams",
 	}
 	err = t.QueryUserTeams().
 		Select(teammanager.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -208,26 +378,10 @@ func (tm *TeamManager) Node(ctx context.Context) (node *Node, err error) {
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(tm.TeamID); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "team_id",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(tm.UserID); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "user_id",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(tm.CreatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[2] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
@@ -235,7 +389,7 @@ func (tm *TeamManager) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(tm.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
@@ -243,9 +397,25 @@ func (tm *TeamManager) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(tm.DeletedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "time.Time",
 		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.TeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "team_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(tm.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "user_id",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -276,37 +446,13 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(u.Name); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "string",
-		Name:  "name",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.WorkEmail); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "string",
-		Name:  "work_email",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(u.Oid); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "string",
-		Name:  "oid",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "time.Time",
 		Name:  "created_at",
 		Value: string(buf),
@@ -314,7 +460,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(u.UpdatedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
@@ -322,9 +468,33 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(u.DeletedAt); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "time.Time",
 		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.WorkEmail); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "work_email",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Oid); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "oid",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -338,22 +508,32 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
-		Type: "Team",
-		Name: "team_edges",
+		Type: "HiringJob",
+		Name: "hiring_owner",
 	}
-	err = u.QueryTeamEdges().
-		Select(team.FieldID).
+	err = u.QueryHiringOwner().
+		Select(hiringjob.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[2] = &Edge{
+		Type: "Team",
+		Name: "team_edges",
+	}
+	err = u.QueryTeamEdges().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
 		Type: "TeamManager",
 		Name: "team_users",
 	}
 	err = u.QueryTeamUsers().
 		Select(teammanager.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
+		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -430,6 +610,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.AuditTrail.Query().
 			Where(audittrail.ID(id))
 		query, err := query.CollectFields(ctx, "AuditTrail")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case hiringjob.Table:
+		query := c.HiringJob.Query().
+			Where(hiringjob.ID(id))
+		query, err := query.CollectFields(ctx, "HiringJob")
 		if err != nil {
 			return nil, err
 		}
@@ -551,6 +743,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.AuditTrail.Query().
 			Where(audittrail.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "AuditTrail")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case hiringjob.Table:
+		query := c.HiringJob.Query().
+			Where(hiringjob.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "HiringJob")
 		if err != nil {
 			return nil, err
 		}

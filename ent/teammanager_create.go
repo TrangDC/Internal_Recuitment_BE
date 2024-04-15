@@ -23,18 +23,6 @@ type TeamManagerCreate struct {
 	hooks    []Hook
 }
 
-// SetTeamID sets the "team_id" field.
-func (tmc *TeamManagerCreate) SetTeamID(u uuid.UUID) *TeamManagerCreate {
-	tmc.mutation.SetTeamID(u)
-	return tmc
-}
-
-// SetUserID sets the "user_id" field.
-func (tmc *TeamManagerCreate) SetUserID(u uuid.UUID) *TeamManagerCreate {
-	tmc.mutation.SetUserID(u)
-	return tmc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (tmc *TeamManagerCreate) SetCreatedAt(t time.Time) *TeamManagerCreate {
 	tmc.mutation.SetCreatedAt(t)
@@ -74,6 +62,18 @@ func (tmc *TeamManagerCreate) SetNillableDeletedAt(t *time.Time) *TeamManagerCre
 	if t != nil {
 		tmc.SetDeletedAt(*t)
 	}
+	return tmc
+}
+
+// SetTeamID sets the "team_id" field.
+func (tmc *TeamManagerCreate) SetTeamID(u uuid.UUID) *TeamManagerCreate {
+	tmc.mutation.SetTeamID(u)
+	return tmc
+}
+
+// SetUserID sets the "user_id" field.
+func (tmc *TeamManagerCreate) SetUserID(u uuid.UUID) *TeamManagerCreate {
+	tmc.mutation.SetUserID(u)
 	return tmc
 }
 
@@ -194,10 +194,6 @@ func (tmc *TeamManagerCreate) defaults() {
 		v := teammanager.DefaultCreatedAt()
 		tmc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := tmc.mutation.UpdatedAt(); !ok {
-		v := teammanager.DefaultUpdatedAt()
-		tmc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := tmc.mutation.ID(); !ok {
 		v := teammanager.DefaultID()
 		tmc.mutation.SetID(v)
@@ -206,14 +202,14 @@ func (tmc *TeamManagerCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tmc *TeamManagerCreate) check() error {
+	if _, ok := tmc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "TeamManager.created_at"`)}
+	}
 	if _, ok := tmc.mutation.TeamID(); !ok {
 		return &ValidationError{Name: "team_id", err: errors.New(`ent: missing required field "TeamManager.team_id"`)}
 	}
 	if _, ok := tmc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "TeamManager.user_id"`)}
-	}
-	if _, ok := tmc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "TeamManager.created_at"`)}
 	}
 	if _, ok := tmc.mutation.UserEdgeID(); !ok {
 		return &ValidationError{Name: "user_edge", err: errors.New(`ent: missing required edge "TeamManager.user_edge"`)}

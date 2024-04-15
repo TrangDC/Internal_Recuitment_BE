@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -22,24 +23,6 @@ type UserCreate struct {
 	config
 	mutation *UserMutation
 	hooks    []Hook
-}
-
-// SetName sets the "name" field.
-func (uc *UserCreate) SetName(s string) *UserCreate {
-	uc.mutation.SetName(s)
-	return uc
-}
-
-// SetWorkEmail sets the "work_email" field.
-func (uc *UserCreate) SetWorkEmail(s string) *UserCreate {
-	uc.mutation.SetWorkEmail(s)
-	return uc
-}
-
-// SetOid sets the "oid" field.
-func (uc *UserCreate) SetOid(s string) *UserCreate {
-	uc.mutation.SetOid(s)
-	return uc
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -84,6 +67,24 @@ func (uc *UserCreate) SetNillableDeletedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetName sets the "name" field.
+func (uc *UserCreate) SetName(s string) *UserCreate {
+	uc.mutation.SetName(s)
+	return uc
+}
+
+// SetWorkEmail sets the "work_email" field.
+func (uc *UserCreate) SetWorkEmail(s string) *UserCreate {
+	uc.mutation.SetWorkEmail(s)
+	return uc
+}
+
+// SetOid sets the "oid" field.
+func (uc *UserCreate) SetOid(s string) *UserCreate {
+	uc.mutation.SetOid(s)
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
@@ -111,6 +112,21 @@ func (uc *UserCreate) AddAuditEdge(a ...*AuditTrail) *UserCreate {
 		ids[i] = a[i].ID
 	}
 	return uc.AddAuditEdgeIDs(ids...)
+}
+
+// AddHiringOwnerIDs adds the "hiring_owner" edge to the HiringJob entity by IDs.
+func (uc *UserCreate) AddHiringOwnerIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddHiringOwnerIDs(ids...)
+	return uc
+}
+
+// AddHiringOwner adds the "hiring_owner" edges to the HiringJob entity.
+func (uc *UserCreate) AddHiringOwner(h ...*HiringJob) *UserCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddHiringOwnerIDs(ids...)
 }
 
 // AddTeamEdgeIDs adds the "team_edges" edge to the Team entity by IDs.
@@ -224,10 +240,6 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := uc.mutation.UpdatedAt(); !ok {
-		v := user.DefaultUpdatedAt()
-		uc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := uc.mutation.ID(); !ok {
 		v := user.DefaultID()
 		uc.mutation.SetID(v)
@@ -236,6 +248,9 @@ func (uc *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
+	if _, ok := uc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
+	}
 	if _, ok := uc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
 	}
@@ -259,9 +274,6 @@ func (uc *UserCreate) check() error {
 		if err := user.OidValidator(v); err != nil {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
 		}
-	}
-	if _, ok := uc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
 	return nil
 }
@@ -299,18 +311,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := uc.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := uc.mutation.WorkEmail(); ok {
-		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
-		_node.WorkEmail = value
-	}
-	if value, ok := uc.mutation.Oid(); ok {
-		_spec.SetField(user.FieldOid, field.TypeString, value)
-		_node.Oid = value
-	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -323,6 +323,18 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
 	}
+	if value, ok := uc.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := uc.mutation.WorkEmail(); ok {
+		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
+		_node.WorkEmail = value
+	}
+	if value, ok := uc.mutation.Oid(); ok {
+		_spec.SetField(user.FieldOid, field.TypeString, value)
+		_node.Oid = value
+	}
 	if nodes := uc.mutation.AuditEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -334,6 +346,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: audittrail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.HiringOwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}

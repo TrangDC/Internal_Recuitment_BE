@@ -27,3 +27,14 @@ type UserResponseGetAll {
   edges: [UserEdge!]!
   pagination: Pagination!
 }
+
+input UserFilter {
+  name: String
+  ids: [ID!]
+  ignore_ids: [ID!]
+  not_in_team: Boolean
+}
+
+input UserFreeWord {
+  name: String
+}
