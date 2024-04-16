@@ -15,14 +15,16 @@ type Service interface {
 	Storage() StorageService
 	User() UserService
 	Team() TeamService
+	HiringJob() HiringJobService
 }
 
 // serviceImpl is the implementation of Service.
 type serviceImpl struct {
-	authService    AuthService
-	storageService StorageService
-	UserService    UserService
-	TeamService    TeamService
+	authService      AuthService
+	storageService   StorageService
+	userService      UserService
+	teamService      TeamService
+	hiringJobService HiringJobService
 }
 
 // NewService creates a new Service.
@@ -30,10 +32,11 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 	repoRegistry := repository.NewRepository(entClient)
 
 	return &serviceImpl{
-		authService:    NewAuthService(azureADOAuthClient, logger),
-		storageService: NewStorageService(azureStorage, logger),
-		UserService:    NewUserService(repoRegistry, logger),
-		TeamService:    NewTeamService(repoRegistry, logger),
+		authService:      NewAuthService(azureADOAuthClient, logger),
+		storageService:   NewStorageService(azureStorage, logger),
+		userService:      NewUserService(repoRegistry, logger),
+		teamService:      NewTeamService(repoRegistry, logger),
+		hiringJobService: NewHiringJobService(repoRegistry, logger),
 	}
 }
 
@@ -49,10 +52,15 @@ func (i serviceImpl) Storage() StorageService {
 
 // User returns the UserService.
 func (i serviceImpl) User() UserService {
-	return i.UserService
+	return i.userService
 }
 
 // Team returns the TeamService.
 func (i serviceImpl) Team() TeamService {
-	return i.TeamService
+	return i.teamService
+}
+
+// HiringJob returns the HiringJobService.
+func (i serviceImpl) HiringJob() HiringJobService {
+	return i.hiringJobService
 }

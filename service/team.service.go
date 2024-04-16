@@ -16,12 +16,13 @@ import (
 
 type TeamService interface {
 	// mutation
-	CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.Team, error)
-	UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.Team, error)
+	CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error)
+	UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.TeamResponse, error)
 	DeleteTeam(ctx context.Context, teamId uuid.UUID) error
 	// query
-	GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.Team, error)
-	GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
+	GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error)
+	GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
+		filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
 	//
 }
 
@@ -37,7 +38,7 @@ func NewTeamService(repoRegistry repository.Repository, logger *zap.Logger) Team
 	}
 }
 
-func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.Team, error) {
+func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error) {
 	var team *ent.Team
 	var memberIds []uuid.UUID
 	err := svc.repoRegistry.Team().ValidName(ctx, uuid.Nil, input.Name)
@@ -55,20 +56,19 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput) 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		team, err = repoRegistry.Team().CreateTeam(ctx, input, memberIds)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	result, err := svc.repoRegistry.Team().GetTeam(ctx, team.ID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	return result, nil
+	return &ent.TeamResponse{
+		Data: result,
+	}, nil
 }
 
-func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.Team, error) {
+func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.TeamResponse, error) {
 	var memberIds []uuid.UUID
 	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
 	if err != nil {
@@ -91,17 +91,16 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		team, err = repoRegistry.Team().UpdateTeam(ctx, team, input, newMemberIds, removeMemberids)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	result, err := svc.repoRegistry.Team().GetTeam(ctx, team.ID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	return result, nil
+	return &ent.TeamResponse{
+		Data: result,
+	}, nil
 }
 
 func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID) error {
@@ -115,21 +114,20 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID) error 
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.Team().DeleteTeam(ctx, team, memberIds)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	return err
 }
 
-func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.Team, error) {
+func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error) {
 	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	return team, nil
+	return &ent.TeamResponse{
+		Data: team,
+	}, nil
 }
 
 func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error) {

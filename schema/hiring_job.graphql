@@ -46,6 +46,7 @@ input HiringJobFreeWord {
 }
 
 input NewHiringJobInput {
+  status: HiringJobStatus!
   name: String!
   description: String!
   amount: Int!

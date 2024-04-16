@@ -23,9 +23,7 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInpu
 	if err != nil {
 		return nil, err
 	}
-	return &ent.TeamResponse{
-		Data: result,
-	}, nil
+	return result, nil
 }
 
 // UpdateTeam is the resolver for the UpdateTeam field.
@@ -34,9 +32,7 @@ func (r *mutationResolver) UpdateTeam(ctx context.Context, id string, input ent.
 	if err != nil {
 		return nil, err
 	}
-	return &ent.TeamResponse{
-		Data: result,
-	}, nil
+	return result, nil
 }
 
 // DeleteTeam is the resolver for the DeleteTeam field.
@@ -50,17 +46,29 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (bool, err
 
 // CreateHiringJob is the resolver for the CreateHiringJob field.
 func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput) (*ent.HiringJobResponse, error) {
-	panic(fmt.Errorf("not implemented: CreateHiringJob - CreateHiringJob"))
+	result, err := r.serviceRegistry.HiringJob().CreateHiringJob(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateHiringJob is the resolver for the UpdateHiringJob field.
 func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput) (*ent.HiringJobResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateHiringJob - UpdateHiringJob"))
+	result, err := r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // DeleteHiringJob is the resolver for the DeleteHiringJob field.
 func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteHiringJob - DeleteHiringJob"))
+	err := r.serviceRegistry.HiringJob().DeleteHiringJob(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // UpdateHiringJobStatus is the resolver for the UpdateHiringJobStatus field.

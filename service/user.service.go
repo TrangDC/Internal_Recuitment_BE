@@ -15,7 +15,7 @@ import (
 
 type UserService interface {
 	// query
-	GetUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 }
 
 type userSvcImpl struct {
@@ -30,7 +30,7 @@ func NewUserService(repoRegistry repository.Repository, logger *zap.Logger) User
 	}
 }
 
-func (svc *userSvcImpl) GetUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
 	var result *ent.UserResponseGetAll
 	var edges []*ent.UserEdge
 	var page int

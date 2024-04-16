@@ -53,16 +53,17 @@ type HiringJobResponseGetAll struct {
 }
 
 type NewHiringJobInput struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Amount      int            `json:"amount"`
-	Location    LocationEnum   `json:"location"`
-	SalaryType  SalaryTypeEnum `json:"salary_type"`
-	SalaryFrom  int            `json:"salary_from"`
-	SalaryTo    int            `json:"salary_to"`
-	Currency    CurrencyEnum   `json:"currency"`
-	TeamID      string         `json:"team_id"`
-	CreatedBy   string         `json:"created_by"`
+	Status      HiringJobStatus `json:"status"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Amount      int             `json:"amount"`
+	Location    LocationEnum    `json:"location"`
+	SalaryType  SalaryTypeEnum  `json:"salary_type"`
+	SalaryFrom  int             `json:"salary_from"`
+	SalaryTo    int             `json:"salary_to"`
+	Currency    CurrencyEnum    `json:"currency"`
+	TeamID      string          `json:"team_id"`
+	CreatedBy   string          `json:"created_by"`
 }
 
 type NewTeamInput struct {

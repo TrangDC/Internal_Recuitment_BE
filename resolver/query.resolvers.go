@@ -23,9 +23,7 @@ func (r *queryResolver) GetTeam(ctx context.Context, id string) (*ent.TeamRespon
 	if err != nil {
 		return nil, err
 	}
-	return &ent.TeamResponse{
-		Data: result,
-	}, nil
+	return result, nil
 }
 
 // GetAllTeams is the resolver for the GetAllTeams field.
@@ -37,9 +35,9 @@ func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.Paginat
 	return result, nil
 }
 
-// GetAllUsers is the resolver for the GetAllUsers field.
-func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error) {
-	result, err := r.serviceRegistry.User().GetUsers(ctx, pagination, orderBy)
+// SelectionUsers is the resolver for the SelectionUsers field.
+func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error) {
+	result, err := r.serviceRegistry.User().Selections(ctx, pagination, orderBy)
 	if err != nil {
 		return nil, err
 	}
