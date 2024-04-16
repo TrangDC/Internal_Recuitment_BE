@@ -129,10 +129,10 @@ type ComplexityRoot struct {
 	Query struct {
 		GetAllHiringJobs func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
 		GetAllTeams      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
-		GetAllUsers      func(childComplexity int, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) int
 		GetHiringJob     func(childComplexity int, id string) int
 		GetPreRequest    func(childComplexity int) int
 		GetTeam          func(childComplexity int, id string) int
+		SelectionUsers   func(childComplexity int, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) int
 	}
 
 	Team struct {
@@ -205,7 +205,7 @@ type QueryResolver interface {
 	GetPreRequest(ctx context.Context) (string, error)
 	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
 	GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
-	GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error)
+	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error)
 	GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error)
 	GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error)
 }
@@ -619,18 +619,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.TeamFilter), args["freeWord"].(*ent.TeamFreeWord), args["orderBy"].(*ent.TeamOrder)), true
 
-	case "Query.GetAllUsers":
-		if e.complexity.Query.GetAllUsers == nil {
-			break
-		}
-
-		args, err := ec.field_Query_GetAllUsers_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetAllUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["orderBy"].(*ent.UserOrder), args["freeWord"].(*ent.UserFreeWord), args["filter"].(*ent.UserFilter)), true
-
 	case "Query.GetHiringJob":
 		if e.complexity.Query.GetHiringJob == nil {
 			break
@@ -661,6 +649,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetTeam(childComplexity, args["id"].(string)), true
+
+	case "Query.SelectionUsers":
+		if e.complexity.Query.SelectionUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_SelectionUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SelectionUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["orderBy"].(*ent.UserOrder), args["freeWord"].(*ent.UserFreeWord), args["filter"].(*ent.UserFilter)), true
 
 	case "Team.created_at":
 		if e.complexity.Team.CreatedAt == nil {
@@ -1007,6 +1007,7 @@ input HiringJobFreeWord {
 }
 
 input NewHiringJobInput {
+  status: HiringJobStatus!
   name: String!
   description: String!
   amount: Int!
@@ -1087,9 +1088,9 @@ type HiringJobResponseGetAll {
 	#Team
 	GetTeam(id: ID!): TeamResponse!
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
-	
+
 	#User
-	GetAllUsers(pagination: PaginationInput, orderBy: UserOrder, freeWord: UserFreeWord, filter: UserFilter): UserResponseGetAll!
+	SelectionUsers(pagination: PaginationInput, orderBy: UserOrder, freeWord: UserFreeWord, filter: UserFilter): UserResponseGetAll!
 
 	#HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
@@ -1442,7 +1443,37 @@ func (ec *executionContext) field_Query_GetAllTeams_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_GetAllUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_GetHiringJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_SelectionUsers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *ent.PaginationInput
@@ -1481,36 +1512,6 @@ func (ec *executionContext) field_Query_GetAllUsers_args(ctx context.Context, ra
 		}
 	}
 	args["filter"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_GetHiringJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_GetTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -4008,8 +4009,8 @@ func (ec *executionContext) fieldContext_Query_GetAllTeams(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_GetAllUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetAllUsers(ctx, field)
+func (ec *executionContext) _Query_SelectionUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_SelectionUsers(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4022,7 +4023,7 @@ func (ec *executionContext) _Query_GetAllUsers(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllUsers(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["freeWord"].(*ent.UserFreeWord), fc.Args["filter"].(*ent.UserFilter))
+		return ec.resolvers.Query().SelectionUsers(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["freeWord"].(*ent.UserFreeWord), fc.Args["filter"].(*ent.UserFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4039,7 +4040,7 @@ func (ec *executionContext) _Query_GetAllUsers(ctx context.Context, field graphq
 	return ec.marshalNUserResponseGetAll2ᚖtrecᚋentᚐUserResponseGetAll(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_GetAllUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_SelectionUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -4062,7 +4063,7 @@ func (ec *executionContext) fieldContext_Query_GetAllUsers(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_GetAllUsers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_SelectionUsers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7197,13 +7198,21 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by"}
+	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNHiringJobStatus2trecᚋentᚐHiringJobStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 
@@ -8435,7 +8444,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "GetAllUsers":
+		case "SelectionUsers":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -8444,7 +8453,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_GetAllUsers(ctx, field)
+				res = ec._Query_SelectionUsers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

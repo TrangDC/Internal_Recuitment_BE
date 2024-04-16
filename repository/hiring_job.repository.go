@@ -2,11 +2,26 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/hiringjob"
+	"trec/internal/util"
+
+	"github.com/google/uuid"
 )
 
 type HiringJobRepository interface {
+	// mutation
+	CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput) (*ent.HiringJob, error)
+	UpdateHiringJob(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput) (*ent.HiringJob, error)
+	DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error
+
+	// query
+	GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error)
+	// common function
+	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error
 }
 
 type hiringJobRepoImpl struct {
@@ -62,4 +77,49 @@ func (rps *hiringJobRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Hir
 
 func (rps *hiringJobRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.HiringJobUpdateOne) (*ent.HiringJob, error) {
 	return update.Save(ctx)
+}
+
+// mutation
+func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput) (*ent.HiringJob, error) {
+	return rps.BuildCreate().SetName(strings.TrimSpace(input.Name)).SetAmount(input.Amount).
+		SetLocation(hiringjob.Location(input.Location)).
+		SetSlug(util.SlugGeneration(input.Name)).
+		SetSalaryType(hiringjob.SalaryType(input.SalaryType)).
+		SetCurrency(hiringjob.Currency(input.Currency)).
+		SetStatus(hiringjob.Status(input.Status)).
+		SetTeamID(uuid.MustParse(input.TeamID)).
+		SetCreatedBy(uuid.MustParse(input.CreatedBy)).Save(ctx)
+}
+
+func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput) (*ent.HiringJob, error) {
+	return rps.BuildUpdateOne(ctx, record).SetName(strings.TrimSpace(input.Name)).SetAmount(input.Amount).
+		SetLocation(hiringjob.Location(input.Location)).
+		SetSlug(util.SlugGeneration(input.Name)).
+		SetSalaryType(hiringjob.SalaryType(input.SalaryType)).
+		SetCurrency(hiringjob.Currency(input.Currency)).
+		SetTeamID(uuid.MustParse(input.TeamID)).
+		SetCreatedBy(uuid.MustParse(input.CreatedBy)).Save(ctx)
+}
+
+func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error {
+	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).Save(ctx)
+	return err
+}
+
+// query
+func (rps *hiringJobRepoImpl) GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error) {
+	return rps.BuildQuery().WithOwnerEdge().WithTeamEdge().Where(hiringjob.IDEQ(hiringJobId)).First(ctx)
+}
+
+// common function
+func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error {
+	query := rps.BuildQuery().Where(hiringjob.SlugEQ(util.SlugGeneration(name)))
+	if hiringJobId != uuid.Nil {
+		query = query.Where(hiringjob.IDNEQ(hiringJobId))
+	}
+	isExist, err := rps.BuildExist(ctx, query)
+	if isExist {
+		return fmt.Errorf("module_hiringJob.validation.name_exist")
+	}
+	return err
 }

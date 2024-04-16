@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -32,12 +31,12 @@ func (r *hiringJobResolver) Currency(ctx context.Context, obj *ent.HiringJob) (e
 
 // Team is the resolver for the team field.
 func (r *hiringJobResolver) Team(ctx context.Context, obj *ent.HiringJob) (*ent.Team, error) {
-	panic(fmt.Errorf("not implemented: Team - team"))
+	return obj.Edges.TeamEdge, nil
 }
 
 // User is the resolver for the user field.
 func (r *hiringJobResolver) User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	return obj.Edges.OwnerEdge, nil
 }
 
 // Status is the resolver for the status field.
