@@ -132,7 +132,7 @@ type ComplexityRoot struct {
 		GetHiringJob     func(childComplexity int, id string) int
 		GetPreRequest    func(childComplexity int) int
 		GetTeam          func(childComplexity int, id string) int
-		SelectionUsers   func(childComplexity int, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) int
+		SelectionUsers   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
 	Team struct {
@@ -205,7 +205,7 @@ type QueryResolver interface {
 	GetPreRequest(ctx context.Context) (string, error)
 	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
 	GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
-	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error)
+	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error)
 	GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error)
 }
@@ -660,7 +660,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SelectionUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["orderBy"].(*ent.UserOrder), args["freeWord"].(*ent.UserFreeWord), args["filter"].(*ent.UserFilter)), true
+		return e.complexity.Query.SelectionUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.UserFilter), args["freeWord"].(*ent.UserFreeWord), args["orderBy"].(*ent.UserOrder)), true
 
 	case "Team.created_at":
 		if e.complexity.Team.CreatedAt == nil {
@@ -1066,7 +1066,8 @@ type HiringJobResponseGetAll {
   pagination: Pagination!
 }
 
-# Path: schema/hiring_job.graphql`, BuiltIn: false},
+# Path: schema/hiring_job.graphql
+`, BuiltIn: false},
 	{Name: "../schema/mutation.graphql", Input: `type Mutation {
   CreatePreRequest(input: String!): String!
 
@@ -1090,7 +1091,7 @@ type HiringJobResponseGetAll {
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
 
 	#User
-	SelectionUsers(pagination: PaginationInput, orderBy: UserOrder, freeWord: UserFreeWord, filter: UserFilter): UserResponseGetAll!
+	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
 
 	#HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
@@ -1485,15 +1486,15 @@ func (ec *executionContext) field_Query_SelectionUsers_args(ctx context.Context,
 		}
 	}
 	args["pagination"] = arg0
-	var arg1 *ent.UserOrder
-	if tmp, ok := rawArgs["orderBy"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg1, err = ec.unmarshalOUserOrder2ᚖtrecᚋentᚐUserOrder(ctx, tmp)
+	var arg1 *ent.UserFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOUserFilter2ᚖtrecᚋentᚐUserFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["orderBy"] = arg1
+	args["filter"] = arg1
 	var arg2 *ent.UserFreeWord
 	if tmp, ok := rawArgs["freeWord"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
@@ -1503,15 +1504,15 @@ func (ec *executionContext) field_Query_SelectionUsers_args(ctx context.Context,
 		}
 	}
 	args["freeWord"] = arg2
-	var arg3 *ent.UserFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg3, err = ec.unmarshalOUserFilter2ᚖtrecᚋentᚐUserFilter(ctx, tmp)
+	var arg3 *ent.UserOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOUserOrder2ᚖtrecᚋentᚐUserOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter"] = arg3
+	args["orderBy"] = arg3
 	return args, nil
 }
 
@@ -4023,7 +4024,7 @@ func (ec *executionContext) _Query_SelectionUsers(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SelectionUsers(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["freeWord"].(*ent.UserFreeWord), fc.Args["filter"].(*ent.UserFilter))
+		return ec.resolvers.Query().SelectionUsers(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.UserFilter), fc.Args["freeWord"].(*ent.UserFreeWord), fc.Args["orderBy"].(*ent.UserOrder))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

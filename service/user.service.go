@@ -5,17 +5,19 @@ import (
 	"net/http"
 	"strings"
 	"trec/ent"
+	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/repository"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 type UserService interface {
 	// query
-	Selections(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 }
 
 type userSvcImpl struct {
@@ -30,12 +32,14 @@ func NewUserService(repoRegistry repository.Repository, logger *zap.Logger) User
 	}
 }
 
-func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
 	var result *ent.UserResponseGetAll
 	var edges []*ent.UserEdge
 	var page int
 	var perPage int
 	query := svc.repoRegistry.User().BuildQuery()
+	svc.filter(query, filter)
+	svc.freeWord(query, freeWord)
 	count, err := svc.repoRegistry.User().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -77,4 +81,40 @@ func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.Paginati
 		},
 	}
 	return result, nil
+}
+
+// common function
+func (svc *userSvcImpl) freeWord(userQuery *ent.UserQuery, input *ent.UserFreeWord) {
+	if input != nil {
+		if input.Name != nil {
+			userQuery.Where(user.NameContainsFold(strings.TrimSpace(*input.Name)))
+		}
+	}
+}
+
+func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) {
+	if input != nil {
+		if input.Name != nil {
+			userQuery.Where(user.NameEqualFold(strings.TrimSpace(*input.Name)))
+		}
+		if input.Ids != nil {
+			ids := lo.Map(input.Ids, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			userQuery.Where(user.IDIn(ids...))
+		}
+		if input.IgnoreIds != nil {
+			ids := lo.Map(input.IgnoreIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			userQuery.Where(user.IDNotIn(ids...))
+		}
+		if input.NotInTeam != nil {
+			predicate := user.HasTeamEdgesWith(team.DeletedAtIsNil())
+			if *input.NotInTeam {
+				predicate = user.Not(user.HasTeamEdgesWith(team.DeletedAtIsNil()))
+			}
+			userQuery.Where(predicate)
+		}
+	}
 }
