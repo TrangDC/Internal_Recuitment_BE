@@ -17,14 +17,16 @@ type Team struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Slug holds the value of the "slug" field.
+	Slug string `json:"slug,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamQuery when eager-loading is set.
 	Edges TeamEdges `json:"edges"`
@@ -34,16 +36,19 @@ type Team struct {
 type TeamEdges struct {
 	// The uniqueness of the user is enforced on the edge schema
 	UserEdges []*User `json:"user_edges,omitempty"`
+	// HiringTeam holds the value of the hiring_team edge.
+	HiringTeam []*HiringJob `json:"hiring_team,omitempty"`
 	// UserTeams holds the value of the user_teams edge.
 	UserTeams []*TeamManager `json:"user_teams,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
-	namedUserEdges map[string][]*User
-	namedUserTeams map[string][]*TeamManager
+	namedUserEdges  map[string][]*User
+	namedHiringTeam map[string][]*HiringJob
+	namedUserTeams  map[string][]*TeamManager
 }
 
 // UserEdgesOrErr returns the UserEdges value or an error if the edge
@@ -55,10 +60,19 @@ func (e TeamEdges) UserEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "user_edges"}
 }
 
+// HiringTeamOrErr returns the HiringTeam value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamEdges) HiringTeamOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[1] {
+		return e.HiringTeam, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_team"}
+}
+
 // UserTeamsOrErr returns the UserTeams value or an error if the edge
 // was not loaded in eager-loading.
 func (e TeamEdges) UserTeamsOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.UserTeams, nil
 	}
 	return nil, &NotLoadedError{edge: "user_teams"}
@@ -69,7 +83,7 @@ func (*Team) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case team.FieldName:
+		case team.FieldSlug, team.FieldName:
 			values[i] = new(sql.NullString)
 		case team.FieldCreatedAt, team.FieldUpdatedAt, team.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -96,12 +110,6 @@ func (t *Team) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				t.ID = *value
 			}
-		case team.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				t.Name = value.String
-			}
 		case team.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -120,6 +128,18 @@ func (t *Team) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.DeletedAt = value.Time
 			}
+		case team.FieldSlug:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field slug", values[i])
+			} else if value.Valid {
+				t.Slug = value.String
+			}
+		case team.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				t.Name = value.String
+			}
 		}
 	}
 	return nil
@@ -128,6 +148,11 @@ func (t *Team) assignValues(columns []string, values []any) error {
 // QueryUserEdges queries the "user_edges" edge of the Team entity.
 func (t *Team) QueryUserEdges() *UserQuery {
 	return (&TeamClient{config: t.config}).QueryUserEdges(t)
+}
+
+// QueryHiringTeam queries the "hiring_team" edge of the Team entity.
+func (t *Team) QueryHiringTeam() *HiringJobQuery {
+	return (&TeamClient{config: t.config}).QueryHiringTeam(t)
 }
 
 // QueryUserTeams queries the "user_teams" edge of the Team entity.
@@ -158,9 +183,6 @@ func (t *Team) String() string {
 	var builder strings.Builder
 	builder.WriteString("Team(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
-	builder.WriteString("name=")
-	builder.WriteString(t.Name)
-	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(t.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -169,6 +191,12 @@ func (t *Team) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
 	builder.WriteString(t.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("slug=")
+	builder.WriteString(t.Slug)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(t.Name)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -194,6 +222,30 @@ func (t *Team) appendNamedUserEdges(name string, edges ...*User) {
 		t.Edges.namedUserEdges[name] = []*User{}
 	} else {
 		t.Edges.namedUserEdges[name] = append(t.Edges.namedUserEdges[name], edges...)
+	}
+}
+
+// NamedHiringTeam returns the HiringTeam named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (t *Team) NamedHiringTeam(name string) ([]*HiringJob, error) {
+	if t.Edges.namedHiringTeam == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := t.Edges.namedHiringTeam[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (t *Team) appendNamedHiringTeam(name string, edges ...*HiringJob) {
+	if t.Edges.namedHiringTeam == nil {
+		t.Edges.namedHiringTeam = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		t.Edges.namedHiringTeam[name] = []*HiringJob{}
+	} else {
+		t.Edges.namedHiringTeam[name] = append(t.Edges.namedHiringTeam[name], edges...)
 	}
 }
 

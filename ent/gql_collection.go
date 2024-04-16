@@ -25,7 +25,7 @@ func (at *AuditTrailQuery) collectField(ctx context.Context, op *graphql.Operati
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "createdByEdge":
+		case "userEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -34,7 +34,7 @@ func (at *AuditTrailQuery) collectField(ctx context.Context, op *graphql.Operati
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			at.withCreatedByEdge = query
+			at.withUserEdge = query
 		}
 	}
 	return nil
@@ -89,6 +89,95 @@ func newAuditTrailPaginateArgs(rv map[string]interface{}) *audittrailPaginateArg
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (hj *HiringJobQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringJobQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return hj, nil
+	}
+	if err := hj.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return hj, nil
+}
+
+func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "ownerEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withOwnerEdge = query
+		case "teamEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withTeamEdge = query
+		}
+	}
+	return nil
+}
+
+type hiringjobPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []HiringJobPaginateOption
+}
+
+func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs {
+	args := &hiringjobPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &HiringJobOrder{Field: &HiringJobOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithHiringJobOrder(order))
+			}
+		case *HiringJobOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithHiringJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TeamQuery) CollectFields(ctx context.Context, satisfies ...string) (*TeamQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -114,6 +203,18 @@ func (t *TeamQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			t.WithNamedUserEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "hiringTeam":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: t.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			t.WithNamedHiringTeam(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "userTeams":
@@ -296,6 +397,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedAuditEdge(alias, func(wq *AuditTrailQuery) {
+				*wq = *query
+			})
+		case "hiringOwner":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedHiringOwner(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "teamEdges":

@@ -11,14 +11,14 @@ var (
 	// AuditTrailsColumns holds the columns for the "audit_trails" table.
 	AuditTrailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
 		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// AuditTrailsTable holds the schema information for the "audit_trails" table.
@@ -35,13 +35,53 @@ var (
 			},
 		},
 	}
-	// TeamsColumns holds the columns for the "teams" table.
-	TeamsColumns = []*schema.Column{
+	// HiringJobsColumns holds the columns for the "hiring_jobs" table.
+	HiringJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Size: 255},
+		{Name: "amount", Type: field.TypeInt, Default: 0},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "opened", "closed"}, Default: "opened"},
+		{Name: "location", Type: field.TypeEnum, Enums: []string{"ha_noi", "ho_chi_minh", "da_nang", "japan"}},
+		{Name: "salary_type", Type: field.TypeEnum, Enums: []string{"range", "up_to", "negotiate", "minimum"}},
+		{Name: "salary_from", Type: field.TypeInt, Default: 0},
+		{Name: "salary_to", Type: field.TypeInt, Default: 0},
+		{Name: "currency", Type: field.TypeEnum, Enums: []string{"vnd", "usd", "jpy"}},
+		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// HiringJobsTable holds the schema information for the "hiring_jobs" table.
+	HiringJobsTable = &schema.Table{
+		Name:       "hiring_jobs",
+		Columns:    HiringJobsColumns,
+		PrimaryKey: []*schema.Column{HiringJobsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "hiring_jobs_teams_hiring_team",
+				Columns:    []*schema.Column{HiringJobsColumns[14]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "hiring_jobs_users_hiring_owner",
+				Columns:    []*schema.Column{HiringJobsColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TeamsColumns holds the columns for the "teams" table.
+	TeamsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 255},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{
@@ -88,12 +128,12 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "work_email", Type: field.TypeString, Size: 255},
-		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "work_email", Type: field.TypeString, Size: 255},
+		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -104,6 +144,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuditTrailsTable,
+		HiringJobsTable,
 		TeamsTable,
 		TeamManagersTable,
 		UsersTable,
@@ -112,6 +153,8 @@ var (
 
 func init() {
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
+	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
+	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
 }

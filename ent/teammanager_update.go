@@ -31,18 +31,6 @@ func (tmu *TeamManagerUpdate) Where(ps ...predicate.TeamManager) *TeamManagerUpd
 	return tmu
 }
 
-// SetTeamID sets the "team_id" field.
-func (tmu *TeamManagerUpdate) SetTeamID(u uuid.UUID) *TeamManagerUpdate {
-	tmu.mutation.SetTeamID(u)
-	return tmu
-}
-
-// SetUserID sets the "user_id" field.
-func (tmu *TeamManagerUpdate) SetUserID(u uuid.UUID) *TeamManagerUpdate {
-	tmu.mutation.SetUserID(u)
-	return tmu
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (tmu *TeamManagerUpdate) SetUpdatedAt(t time.Time) *TeamManagerUpdate {
 	tmu.mutation.SetUpdatedAt(t)
@@ -80,6 +68,18 @@ func (tmu *TeamManagerUpdate) SetNillableDeletedAt(t *time.Time) *TeamManagerUpd
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (tmu *TeamManagerUpdate) ClearDeletedAt() *TeamManagerUpdate {
 	tmu.mutation.ClearDeletedAt()
+	return tmu
+}
+
+// SetTeamID sets the "team_id" field.
+func (tmu *TeamManagerUpdate) SetTeamID(u uuid.UUID) *TeamManagerUpdate {
+	tmu.mutation.SetTeamID(u)
+	return tmu
+}
+
+// SetUserID sets the "user_id" field.
+func (tmu *TeamManagerUpdate) SetUserID(u uuid.UUID) *TeamManagerUpdate {
+	tmu.mutation.SetUserID(u)
 	return tmu
 }
 
@@ -312,18 +312,6 @@ type TeamManagerUpdateOne struct {
 	mutation *TeamManagerMutation
 }
 
-// SetTeamID sets the "team_id" field.
-func (tmuo *TeamManagerUpdateOne) SetTeamID(u uuid.UUID) *TeamManagerUpdateOne {
-	tmuo.mutation.SetTeamID(u)
-	return tmuo
-}
-
-// SetUserID sets the "user_id" field.
-func (tmuo *TeamManagerUpdateOne) SetUserID(u uuid.UUID) *TeamManagerUpdateOne {
-	tmuo.mutation.SetUserID(u)
-	return tmuo
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (tmuo *TeamManagerUpdateOne) SetUpdatedAt(t time.Time) *TeamManagerUpdateOne {
 	tmuo.mutation.SetUpdatedAt(t)
@@ -361,6 +349,18 @@ func (tmuo *TeamManagerUpdateOne) SetNillableDeletedAt(t *time.Time) *TeamManage
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (tmuo *TeamManagerUpdateOne) ClearDeletedAt() *TeamManagerUpdateOne {
 	tmuo.mutation.ClearDeletedAt()
+	return tmuo
+}
+
+// SetTeamID sets the "team_id" field.
+func (tmuo *TeamManagerUpdateOne) SetTeamID(u uuid.UUID) *TeamManagerUpdateOne {
+	tmuo.mutation.SetTeamID(u)
+	return tmuo
+}
+
+// SetUserID sets the "user_id" field.
+func (tmuo *TeamManagerUpdateOne) SetUserID(u uuid.UUID) *TeamManagerUpdateOne {
+	tmuo.mutation.SetUserID(u)
 	return tmuo
 }
 

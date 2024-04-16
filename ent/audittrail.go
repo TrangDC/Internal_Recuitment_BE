@@ -18,6 +18,12 @@ type AuditTrail struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// RecordId holds the value of the "recordId" field.
@@ -30,12 +36,6 @@ type AuditTrail struct {
 	Note string `json:"note,omitempty"`
 	// RecordChanges holds the value of the "record_changes" field.
 	RecordChanges string `json:"record_changes,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AuditTrailQuery when eager-loading is set.
 	Edges AuditTrailEdges `json:"edges"`
@@ -43,8 +43,8 @@ type AuditTrail struct {
 
 // AuditTrailEdges holds the relations/edges for other nodes in the graph.
 type AuditTrailEdges struct {
-	// CreatedByEdge holds the value of the created_by_edge edge.
-	CreatedByEdge *User `json:"created_by_edge,omitempty"`
+	// UserEdge holds the value of the user_edge edge.
+	UserEdge *User `json:"user_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
@@ -52,17 +52,17 @@ type AuditTrailEdges struct {
 	totalCount [1]map[string]int
 }
 
-// CreatedByEdgeOrErr returns the CreatedByEdge value or an error if the edge
+// UserEdgeOrErr returns the UserEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AuditTrailEdges) CreatedByEdgeOrErr() (*User, error) {
+func (e AuditTrailEdges) UserEdgeOrErr() (*User, error) {
 	if e.loadedTypes[0] {
-		if e.CreatedByEdge == nil {
+		if e.UserEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.CreatedByEdge, nil
+		return e.UserEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "created_by_edge"}
+	return nil, &NotLoadedError{edge: "user_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +96,24 @@ func (at *AuditTrail) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				at.ID = *value
+			}
+		case audittrail.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				at.CreatedAt = value.Time
+			}
+		case audittrail.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				at.UpdatedAt = value.Time
+			}
+		case audittrail.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				at.DeletedAt = value.Time
 			}
 		case audittrail.FieldCreatedBy:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -133,32 +151,14 @@ func (at *AuditTrail) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				at.RecordChanges = value.String
 			}
-		case audittrail.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				at.CreatedAt = value.Time
-			}
-		case audittrail.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				at.UpdatedAt = value.Time
-			}
-		case audittrail.FieldDeletedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
-			} else if value.Valid {
-				at.DeletedAt = value.Time
-			}
 		}
 	}
 	return nil
 }
 
-// QueryCreatedByEdge queries the "created_by_edge" edge of the AuditTrail entity.
-func (at *AuditTrail) QueryCreatedByEdge() *UserQuery {
-	return (&AuditTrailClient{config: at.config}).QueryCreatedByEdge(at)
+// QueryUserEdge queries the "user_edge" edge of the AuditTrail entity.
+func (at *AuditTrail) QueryUserEdge() *UserQuery {
+	return (&AuditTrailClient{config: at.config}).QueryUserEdge(at)
 }
 
 // Update returns a builder for updating this AuditTrail.
@@ -184,6 +184,15 @@ func (at *AuditTrail) String() string {
 	var builder strings.Builder
 	builder.WriteString("AuditTrail(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", at.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(at.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(at.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("deleted_at=")
+	builder.WriteString(at.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", at.CreatedBy))
 	builder.WriteString(", ")
@@ -201,15 +210,6 @@ func (at *AuditTrail) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("record_changes=")
 	builder.WriteString(at.RecordChanges)
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(at.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(at.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("deleted_at=")
-	builder.WriteString(at.DeletedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

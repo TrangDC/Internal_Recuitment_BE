@@ -13,16 +13,20 @@ const (
 	Label = "team"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldSlug holds the string denoting the slug field in the database.
+	FieldSlug = "slug"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// EdgeUserEdges holds the string denoting the user_edges edge name in mutations.
 	EdgeUserEdges = "user_edges"
+	// EdgeHiringTeam holds the string denoting the hiring_team edge name in mutations.
+	EdgeHiringTeam = "hiring_team"
 	// EdgeUserTeams holds the string denoting the user_teams edge name in mutations.
 	EdgeUserTeams = "user_teams"
 	// Table holds the table name of the team in the database.
@@ -32,6 +36,13 @@ const (
 	// UserEdgesInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserEdgesInverseTable = "users"
+	// HiringTeamTable is the table that holds the hiring_team relation/edge.
+	HiringTeamTable = "hiring_jobs"
+	// HiringTeamInverseTable is the table name for the HiringJob entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
+	HiringTeamInverseTable = "hiring_jobs"
+	// HiringTeamColumn is the table column denoting the hiring_team relation/edge.
+	HiringTeamColumn = "team_id"
 	// UserTeamsTable is the table that holds the user_teams relation/edge.
 	UserTeamsTable = "team_managers"
 	// UserTeamsInverseTable is the table name for the TeamManager entity.
@@ -44,10 +55,11 @@ const (
 // Columns holds all SQL columns for team fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
+	FieldSlug,
+	FieldName,
 }
 
 var (
@@ -67,12 +79,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
+	// SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	SlugValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

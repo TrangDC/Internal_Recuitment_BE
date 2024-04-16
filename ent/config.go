@@ -25,6 +25,7 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	AuditTrail  []ent.Hook
+	HiringJob   []ent.Hook
 	Team        []ent.Hook
 	TeamManager []ent.Hook
 	User        []ent.Hook

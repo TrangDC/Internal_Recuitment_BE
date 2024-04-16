@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -45,6 +46,26 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (bool, err
 		return false, err
 	}
 	return true, nil
+}
+
+// CreateHiringJob is the resolver for the CreateHiringJob field.
+func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput) (*ent.HiringJobResponse, error) {
+	panic(fmt.Errorf("not implemented: CreateHiringJob - CreateHiringJob"))
+}
+
+// UpdateHiringJob is the resolver for the UpdateHiringJob field.
+func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput) (*ent.HiringJobResponse, error) {
+	panic(fmt.Errorf("not implemented: UpdateHiringJob - UpdateHiringJob"))
+}
+
+// DeleteHiringJob is the resolver for the DeleteHiringJob field.
+func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteHiringJob - DeleteHiringJob"))
+}
+
+// UpdateHiringJobStatus is the resolver for the UpdateHiringJobStatus field.
+func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus) (*ent.HiringJobResponse, error) {
+	panic(fmt.Errorf("not implemented: UpdateHiringJobStatus - UpdateHiringJobStatus"))
 }
 
 // Mutation returns graphql1.MutationResolver implementation.

@@ -19,16 +19,16 @@ type TeamManager struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// TeamID holds the value of the "team_id" field.
-	TeamID uuid.UUID `json:"team_id,omitempty"`
-	// UserID holds the value of the "user_id" field.
-	UserID uuid.UUID `json:"user_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// TeamID holds the value of the "team_id" field.
+	TeamID uuid.UUID `json:"team_id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamManagerQuery when eager-loading is set.
 	Edges TeamManagerEdges `json:"edges"`
@@ -103,18 +103,6 @@ func (tm *TeamManager) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				tm.ID = *value
 			}
-		case teammanager.FieldTeamID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field team_id", values[i])
-			} else if value != nil {
-				tm.TeamID = *value
-			}
-		case teammanager.FieldUserID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value != nil {
-				tm.UserID = *value
-			}
 		case teammanager.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -132,6 +120,18 @@ func (tm *TeamManager) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
 				tm.DeletedAt = value.Time
+			}
+		case teammanager.FieldTeamID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field team_id", values[i])
+			} else if value != nil {
+				tm.TeamID = *value
+			}
+		case teammanager.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				tm.UserID = *value
 			}
 		}
 	}
@@ -171,12 +171,6 @@ func (tm *TeamManager) String() string {
 	var builder strings.Builder
 	builder.WriteString("TeamManager(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", tm.ID))
-	builder.WriteString("team_id=")
-	builder.WriteString(fmt.Sprintf("%v", tm.TeamID))
-	builder.WriteString(", ")
-	builder.WriteString("user_id=")
-	builder.WriteString(fmt.Sprintf("%v", tm.UserID))
-	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(tm.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -185,6 +179,12 @@ func (tm *TeamManager) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
 	builder.WriteString(tm.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("team_id=")
+	builder.WriteString(fmt.Sprintf("%v", tm.TeamID))
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", tm.UserID))
 	builder.WriteByte(')')
 	return builder.String()
 }

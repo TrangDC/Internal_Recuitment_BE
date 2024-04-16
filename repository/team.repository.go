@@ -3,11 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 	"trec/ent"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/internal/util"
 
 	"github.com/google/uuid"
 )
@@ -85,12 +87,13 @@ func (rps *teamRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.Tea
 
 // mutation
 func (rps *teamRepoImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, memberIds []uuid.UUID) (*ent.Team, error) {
-	create := rps.BuildCreate().SetName(input.Name).AddUserEdgeIDs(memberIds...)
+	create := rps.BuildCreate().SetName(strings.TrimSpace(input.Name)).AddUserEdgeIDs(memberIds...).SetSlug(util.SlugGeneration(input.Name))
 	return create.Save(ctx)
 }
 
 func (rps *teamRepoImpl) UpdateTeam(ctx context.Context, model *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetName(input.Name).AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
+	update := rps.BuildUpdateOne(ctx, model).SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
+	AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -111,7 +114,7 @@ func (rps *teamRepoImpl) GetTeam(ctx context.Context, id uuid.UUID) (*ent.Team, 
 
 // common function
 func (rps *teamRepoImpl) ValidName(ctx context.Context, teamId uuid.UUID, name string) error {
-	query := rps.BuildQuery().Where(team.NameEqualFold(name))
+	query := rps.BuildQuery().Where(team.SlugEQ(util.SlugGeneration(name)))
 	if teamId != uuid.Nil {
 		query = query.Where(team.IDNEQ(teamId))
 	}

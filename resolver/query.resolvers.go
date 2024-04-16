@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -37,12 +38,22 @@ func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.Paginat
 }
 
 // GetAllUsers is the resolver for the GetAllUsers field.
-func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.UserOrder, freeWord *ent.UserFreeWord, filter *ent.UserFilter) (*ent.UserResponseGetAll, error) {
 	result, err := r.serviceRegistry.User().GetUsers(ctx, pagination, orderBy)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
+}
+
+// GetHiringJob is the resolver for the GetHiringJob field.
+func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error) {
+	panic(fmt.Errorf("not implemented: GetHiringJob - GetHiringJob"))
+}
+
+// GetAllHiringJobs is the resolver for the GetAllHiringJobs field.
+func (r *queryResolver) GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error) {
+	panic(fmt.Errorf("not implemented: GetAllHiringJobs - GetAllHiringJobs"))
 }
 
 // Query returns graphql1.QueryResolver implementation.

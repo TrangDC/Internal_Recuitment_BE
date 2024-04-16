@@ -13,16 +13,16 @@ const (
 	Label = "team_manager"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTeamID holds the string denoting the team_id field in the database.
-	FieldTeamID = "team_id"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldTeamID holds the string denoting the team_id field in the database.
+	FieldTeamID = "team_id"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// EdgeUserEdge holds the string denoting the user_edge edge name in mutations.
 	EdgeUserEdge = "user_edge"
 	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
@@ -48,11 +48,11 @@ const (
 // Columns holds all SQL columns for teammanager fields.
 var Columns = []string{
 	FieldID,
-	FieldTeamID,
-	FieldUserID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
+	FieldTeamID,
+	FieldUserID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -68,8 +68,6 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

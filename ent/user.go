@@ -17,18 +17,18 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// WorkEmail holds the value of the "work_email" field.
-	WorkEmail string `json:"work_email,omitempty"`
-	// Oid holds the value of the "oid" field.
-	Oid string `json:"oid,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// WorkEmail holds the value of the "work_email" field.
+	WorkEmail string `json:"work_email,omitempty"`
+	// Oid holds the value of the "oid" field.
+	Oid string `json:"oid,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -38,19 +38,22 @@ type User struct {
 type UserEdges struct {
 	// AuditEdge holds the value of the audit_edge edge.
 	AuditEdge []*AuditTrail `json:"audit_edge,omitempty"`
+	// HiringOwner holds the value of the hiring_owner edge.
+	HiringOwner []*HiringJob `json:"hiring_owner,omitempty"`
 	// TeamEdges holds the value of the team_edges edge.
 	TeamEdges []*Team `json:"team_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 
-	namedAuditEdge map[string][]*AuditTrail
-	namedTeamEdges map[string][]*Team
-	namedTeamUsers map[string][]*TeamManager
+	namedAuditEdge   map[string][]*AuditTrail
+	namedHiringOwner map[string][]*HiringJob
+	namedTeamEdges   map[string][]*Team
+	namedTeamUsers   map[string][]*TeamManager
 }
 
 // AuditEdgeOrErr returns the AuditEdge value or an error if the edge
@@ -62,10 +65,19 @@ func (e UserEdges) AuditEdgeOrErr() ([]*AuditTrail, error) {
 	return nil, &NotLoadedError{edge: "audit_edge"}
 }
 
+// HiringOwnerOrErr returns the HiringOwner value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) HiringOwnerOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[1] {
+		return e.HiringOwner, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_owner"}
+}
+
 // TeamEdgesOrErr returns the TeamEdges value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamEdgesOrErr() ([]*Team, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.TeamEdges, nil
 	}
 	return nil, &NotLoadedError{edge: "team_edges"}
@@ -74,7 +86,7 @@ func (e UserEdges) TeamEdgesOrErr() ([]*Team, error) {
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.TeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "team_users"}
@@ -112,24 +124,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				u.ID = *value
 			}
-		case user.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				u.Name = value.String
-			}
-		case user.FieldWorkEmail:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field work_email", values[i])
-			} else if value.Valid {
-				u.WorkEmail = value.String
-			}
-		case user.FieldOid:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field oid", values[i])
-			} else if value.Valid {
-				u.Oid = value.String
-			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -148,6 +142,24 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.DeletedAt = value.Time
 			}
+		case user.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				u.Name = value.String
+			}
+		case user.FieldWorkEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field work_email", values[i])
+			} else if value.Valid {
+				u.WorkEmail = value.String
+			}
+		case user.FieldOid:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field oid", values[i])
+			} else if value.Valid {
+				u.Oid = value.String
+			}
 		}
 	}
 	return nil
@@ -156,6 +168,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // QueryAuditEdge queries the "audit_edge" edge of the User entity.
 func (u *User) QueryAuditEdge() *AuditTrailQuery {
 	return (&UserClient{config: u.config}).QueryAuditEdge(u)
+}
+
+// QueryHiringOwner queries the "hiring_owner" edge of the User entity.
+func (u *User) QueryHiringOwner() *HiringJobQuery {
+	return (&UserClient{config: u.config}).QueryHiringOwner(u)
 }
 
 // QueryTeamEdges queries the "team_edges" edge of the User entity.
@@ -191,15 +208,6 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
-	builder.WriteString("name=")
-	builder.WriteString(u.Name)
-	builder.WriteString(", ")
-	builder.WriteString("work_email=")
-	builder.WriteString(u.WorkEmail)
-	builder.WriteString(", ")
-	builder.WriteString("oid=")
-	builder.WriteString(u.Oid)
-	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -208,6 +216,15 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
 	builder.WriteString(u.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(u.Name)
+	builder.WriteString(", ")
+	builder.WriteString("work_email=")
+	builder.WriteString(u.WorkEmail)
+	builder.WriteString(", ")
+	builder.WriteString("oid=")
+	builder.WriteString(u.Oid)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -233,6 +250,30 @@ func (u *User) appendNamedAuditEdge(name string, edges ...*AuditTrail) {
 		u.Edges.namedAuditEdge[name] = []*AuditTrail{}
 	} else {
 		u.Edges.namedAuditEdge[name] = append(u.Edges.namedAuditEdge[name], edges...)
+	}
+}
+
+// NamedHiringOwner returns the HiringOwner named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedHiringOwner(name string) ([]*HiringJob, error) {
+	if u.Edges.namedHiringOwner == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedHiringOwner[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedHiringOwner(name string, edges ...*HiringJob) {
+	if u.Edges.namedHiringOwner == nil {
+		u.Edges.namedHiringOwner = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedHiringOwner[name] = []*HiringJob{}
+	} else {
+		u.Edges.namedHiringOwner[name] = append(u.Edges.namedHiringOwner[name], edges...)
 	}
 }
 

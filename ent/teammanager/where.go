@@ -82,20 +82,6 @@ func IDLTE(id uuid.UUID) predicate.TeamManager {
 	})
 }
 
-// TeamID applies equality check predicate on the "team_id" field. It's identical to TeamIDEQ.
-func TeamID(v uuid.UUID) predicate.TeamManager {
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTeamID), v))
-	})
-}
-
-// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v uuid.UUID) predicate.TeamManager {
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.TeamManager {
 	return predicate.TeamManager(func(s *sql.Selector) {
@@ -117,75 +103,17 @@ func DeletedAt(v time.Time) predicate.TeamManager {
 	})
 }
 
-// TeamIDEQ applies the EQ predicate on the "team_id" field.
-func TeamIDEQ(v uuid.UUID) predicate.TeamManager {
+// TeamID applies equality check predicate on the "team_id" field. It's identical to TeamIDEQ.
+func TeamID(v uuid.UUID) predicate.TeamManager {
 	return predicate.TeamManager(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTeamID), v))
 	})
 }
 
-// TeamIDNEQ applies the NEQ predicate on the "team_id" field.
-func TeamIDNEQ(v uuid.UUID) predicate.TeamManager {
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTeamID), v))
-	})
-}
-
-// TeamIDIn applies the In predicate on the "team_id" field.
-func TeamIDIn(vs ...uuid.UUID) predicate.TeamManager {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTeamID), v...))
-	})
-}
-
-// TeamIDNotIn applies the NotIn predicate on the "team_id" field.
-func TeamIDNotIn(vs ...uuid.UUID) predicate.TeamManager {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTeamID), v...))
-	})
-}
-
-// UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v uuid.UUID) predicate.TeamManager {
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v uuid.UUID) predicate.TeamManager {
 	return predicate.TeamManager(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
-}
-
-// UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v uuid.UUID) predicate.TeamManager {
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUserID), v))
-	})
-}
-
-// UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...uuid.UUID) predicate.TeamManager {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUserID), v...))
-	})
-}
-
-// UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...uuid.UUID) predicate.TeamManager {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TeamManager(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUserID), v...))
 	})
 }
 
@@ -406,6 +334,78 @@ func DeletedAtIsNil() predicate.TeamManager {
 func DeletedAtNotNil() predicate.TeamManager {
 	return predicate.TeamManager(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldDeletedAt)))
+	})
+}
+
+// TeamIDEQ applies the EQ predicate on the "team_id" field.
+func TeamIDEQ(v uuid.UUID) predicate.TeamManager {
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTeamID), v))
+	})
+}
+
+// TeamIDNEQ applies the NEQ predicate on the "team_id" field.
+func TeamIDNEQ(v uuid.UUID) predicate.TeamManager {
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTeamID), v))
+	})
+}
+
+// TeamIDIn applies the In predicate on the "team_id" field.
+func TeamIDIn(vs ...uuid.UUID) predicate.TeamManager {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldTeamID), v...))
+	})
+}
+
+// TeamIDNotIn applies the NotIn predicate on the "team_id" field.
+func TeamIDNotIn(vs ...uuid.UUID) predicate.TeamManager {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldTeamID), v...))
+	})
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v uuid.UUID) predicate.TeamManager {
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUserID), v))
+	})
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v uuid.UUID) predicate.TeamManager {
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUserID), v))
+	})
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...uuid.UUID) predicate.TeamManager {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldUserID), v...))
+	})
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...uuid.UUID) predicate.TeamManager {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.TeamManager(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldUserID), v...))
 	})
 }
 

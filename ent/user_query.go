@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -22,20 +23,22 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit              *int
-	offset             *int
-	unique             *bool
-	order              []OrderFunc
-	fields             []string
-	predicates         []predicate.User
-	withAuditEdge      *AuditTrailQuery
-	withTeamEdges      *TeamQuery
-	withTeamUsers      *TeamManagerQuery
-	modifiers          []func(*sql.Selector)
-	loadTotal          []func(context.Context, []*User) error
-	withNamedAuditEdge map[string]*AuditTrailQuery
-	withNamedTeamEdges map[string]*TeamQuery
-	withNamedTeamUsers map[string]*TeamManagerQuery
+	limit                *int
+	offset               *int
+	unique               *bool
+	order                []OrderFunc
+	fields               []string
+	predicates           []predicate.User
+	withAuditEdge        *AuditTrailQuery
+	withHiringOwner      *HiringJobQuery
+	withTeamEdges        *TeamQuery
+	withTeamUsers        *TeamManagerQuery
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*User) error
+	withNamedAuditEdge   map[string]*AuditTrailQuery
+	withNamedHiringOwner map[string]*HiringJobQuery
+	withNamedTeamEdges   map[string]*TeamQuery
+	withNamedTeamUsers   map[string]*TeamManagerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -87,6 +90,28 @@ func (uq *UserQuery) QueryAuditEdge() *AuditTrailQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(audittrail.Table, audittrail.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AuditEdgeTable, user.AuditEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringOwner chains the current query on the "hiring_owner" edge.
+func (uq *UserQuery) QueryHiringOwner() *HiringJobQuery {
+	query := &HiringJobQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.HiringOwnerTable, user.HiringOwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -314,14 +339,15 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:        uq.config,
-		limit:         uq.limit,
-		offset:        uq.offset,
-		order:         append([]OrderFunc{}, uq.order...),
-		predicates:    append([]predicate.User{}, uq.predicates...),
-		withAuditEdge: uq.withAuditEdge.Clone(),
-		withTeamEdges: uq.withTeamEdges.Clone(),
-		withTeamUsers: uq.withTeamUsers.Clone(),
+		config:          uq.config,
+		limit:           uq.limit,
+		offset:          uq.offset,
+		order:           append([]OrderFunc{}, uq.order...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withAuditEdge:   uq.withAuditEdge.Clone(),
+		withHiringOwner: uq.withHiringOwner.Clone(),
+		withTeamEdges:   uq.withTeamEdges.Clone(),
+		withTeamUsers:   uq.withTeamUsers.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -337,6 +363,17 @@ func (uq *UserQuery) WithAuditEdge(opts ...func(*AuditTrailQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withAuditEdge = query
+	return uq
+}
+
+// WithHiringOwner tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithHiringOwner(opts ...func(*HiringJobQuery)) *UserQuery {
+	query := &HiringJobQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withHiringOwner = query
 	return uq
 }
 
@@ -368,12 +405,12 @@ func (uq *UserQuery) WithTeamUsers(opts ...func(*TeamManagerQuery)) *UserQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldName).
+//		GroupBy(user.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -396,11 +433,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldName).
+//		Select(user.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.fields = append(uq.fields, fields...)
@@ -435,8 +472,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withAuditEdge != nil,
+			uq.withHiringOwner != nil,
 			uq.withTeamEdges != nil,
 			uq.withTeamUsers != nil,
 		}
@@ -469,6 +507,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withHiringOwner; query != nil {
+		if err := uq.loadHiringOwner(ctx, query, nodes,
+			func(n *User) { n.Edges.HiringOwner = []*HiringJob{} },
+			func(n *User, e *HiringJob) { n.Edges.HiringOwner = append(n.Edges.HiringOwner, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := uq.withTeamEdges; query != nil {
 		if err := uq.loadTeamEdges(ctx, query, nodes,
 			func(n *User) { n.Edges.TeamEdges = []*Team{} },
@@ -487,6 +532,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadAuditEdge(ctx, query, nodes,
 			func(n *User) { n.appendNamedAuditEdge(name) },
 			func(n *User, e *AuditTrail) { n.appendNamedAuditEdge(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedHiringOwner {
+		if err := uq.loadHiringOwner(ctx, query, nodes,
+			func(n *User) { n.appendNamedHiringOwner(name) },
+			func(n *User, e *HiringJob) { n.appendNamedHiringOwner(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -524,6 +576,33 @@ func (uq *UserQuery) loadAuditEdge(ctx context.Context, query *AuditTrailQuery, 
 	}
 	query.Where(predicate.AuditTrail(func(s *sql.Selector) {
 		s.Where(sql.InValues(user.AuditEdgeColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadHiringOwner(ctx context.Context, query *HiringJobQuery, nodes []*User, init func(*User), assign func(*User, *HiringJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.HiringOwnerColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -739,6 +818,20 @@ func (uq *UserQuery) WithNamedAuditEdge(name string, opts ...func(*AuditTrailQue
 		uq.withNamedAuditEdge = make(map[string]*AuditTrailQuery)
 	}
 	uq.withNamedAuditEdge[name] = query
+	return uq
+}
+
+// WithNamedHiringOwner tells the query-builder to eager-load the nodes that are connected to the "hiring_owner"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedHiringOwner(name string, opts ...func(*HiringJobQuery)) *UserQuery {
+	query := &HiringJobQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedHiringOwner == nil {
+		uq.withNamedHiringOwner = make(map[string]*HiringJobQuery)
+	}
+	uq.withNamedHiringOwner[name] = query
 	return uq
 }
 

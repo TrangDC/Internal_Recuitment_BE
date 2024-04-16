@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -17,24 +18,113 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	audittrailMixin := schema.AuditTrail{}.Mixin()
+	audittrailMixinFields0 := audittrailMixin[0].Fields()
+	_ = audittrailMixinFields0
 	audittrailFields := schema.AuditTrail{}.Fields()
 	_ = audittrailFields
-	// audittrailDescNote is the schema descriptor for note field.
-	audittrailDescNote := audittrailFields[5].Descriptor()
-	// audittrail.NoteValidator is a validator for the "note" field. It is called by the builders before save.
-	audittrail.NoteValidator = audittrailDescNote.Validators[0].(func(string) error)
 	// audittrailDescCreatedAt is the schema descriptor for created_at field.
-	audittrailDescCreatedAt := audittrailFields[7].Descriptor()
+	audittrailDescCreatedAt := audittrailMixinFields0[1].Descriptor()
 	// audittrail.DefaultCreatedAt holds the default value on creation for the created_at field.
 	audittrail.DefaultCreatedAt = audittrailDescCreatedAt.Default.(func() time.Time)
+	// audittrailDescNote is the schema descriptor for note field.
+	audittrailDescNote := audittrailFields[4].Descriptor()
+	// audittrail.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	audittrail.NoteValidator = audittrailDescNote.Validators[0].(func(string) error)
 	// audittrailDescID is the schema descriptor for id field.
-	audittrailDescID := audittrailFields[0].Descriptor()
+	audittrailDescID := audittrailMixinFields0[0].Descriptor()
 	// audittrail.DefaultID holds the default value on creation for the id field.
 	audittrail.DefaultID = audittrailDescID.Default.(func() uuid.UUID)
+	hiringjobMixin := schema.HiringJob{}.Mixin()
+	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
+	_ = hiringjobMixinFields0
+	hiringjobMixinFields1 := hiringjobMixin[1].Fields()
+	_ = hiringjobMixinFields1
+	hiringjobFields := schema.HiringJob{}.Fields()
+	_ = hiringjobFields
+	// hiringjobDescCreatedAt is the schema descriptor for created_at field.
+	hiringjobDescCreatedAt := hiringjobMixinFields0[1].Descriptor()
+	// hiringjob.DefaultCreatedAt holds the default value on creation for the created_at field.
+	hiringjob.DefaultCreatedAt = hiringjobDescCreatedAt.Default.(func() time.Time)
+	// hiringjobDescSlug is the schema descriptor for slug field.
+	hiringjobDescSlug := hiringjobMixinFields1[0].Descriptor()
+	// hiringjob.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	hiringjob.SlugValidator = hiringjobDescSlug.Validators[0].(func(string) error)
+	// hiringjobDescName is the schema descriptor for name field.
+	hiringjobDescName := hiringjobFields[0].Descriptor()
+	// hiringjob.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	hiringjob.NameValidator = func() func(string) error {
+		validators := hiringjobDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// hiringjobDescDescription is the schema descriptor for description field.
+	hiringjobDescDescription := hiringjobFields[1].Descriptor()
+	// hiringjob.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	hiringjob.DescriptionValidator = func() func(string) error {
+		validators := hiringjobDescDescription.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(description string) error {
+			for _, fn := range fns {
+				if err := fn(description); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// hiringjobDescAmount is the schema descriptor for amount field.
+	hiringjobDescAmount := hiringjobFields[2].Descriptor()
+	// hiringjob.DefaultAmount holds the default value on creation for the amount field.
+	hiringjob.DefaultAmount = hiringjobDescAmount.Default.(int)
+	// hiringjob.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
+	hiringjob.AmountValidator = hiringjobDescAmount.Validators[0].(func(int) error)
+	// hiringjobDescSalaryFrom is the schema descriptor for salary_from field.
+	hiringjobDescSalaryFrom := hiringjobFields[8].Descriptor()
+	// hiringjob.DefaultSalaryFrom holds the default value on creation for the salary_from field.
+	hiringjob.DefaultSalaryFrom = hiringjobDescSalaryFrom.Default.(int)
+	// hiringjob.SalaryFromValidator is a validator for the "salary_from" field. It is called by the builders before save.
+	hiringjob.SalaryFromValidator = hiringjobDescSalaryFrom.Validators[0].(func(int) error)
+	// hiringjobDescSalaryTo is the schema descriptor for salary_to field.
+	hiringjobDescSalaryTo := hiringjobFields[9].Descriptor()
+	// hiringjob.DefaultSalaryTo holds the default value on creation for the salary_to field.
+	hiringjob.DefaultSalaryTo = hiringjobDescSalaryTo.Default.(int)
+	// hiringjob.SalaryToValidator is a validator for the "salary_to" field. It is called by the builders before save.
+	hiringjob.SalaryToValidator = hiringjobDescSalaryTo.Validators[0].(func(int) error)
+	// hiringjobDescID is the schema descriptor for id field.
+	hiringjobDescID := hiringjobMixinFields0[0].Descriptor()
+	// hiringjob.DefaultID holds the default value on creation for the id field.
+	hiringjob.DefaultID = hiringjobDescID.Default.(func() uuid.UUID)
+	teamMixin := schema.Team{}.Mixin()
+	teamMixinFields0 := teamMixin[0].Fields()
+	_ = teamMixinFields0
+	teamMixinFields1 := teamMixin[1].Fields()
+	_ = teamMixinFields1
 	teamFields := schema.Team{}.Fields()
 	_ = teamFields
+	// teamDescCreatedAt is the schema descriptor for created_at field.
+	teamDescCreatedAt := teamMixinFields0[1].Descriptor()
+	// team.DefaultCreatedAt holds the default value on creation for the created_at field.
+	team.DefaultCreatedAt = teamDescCreatedAt.Default.(func() time.Time)
+	// teamDescSlug is the schema descriptor for slug field.
+	teamDescSlug := teamMixinFields1[0].Descriptor()
+	// team.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	team.SlugValidator = teamDescSlug.Validators[0].(func(string) error)
 	// teamDescName is the schema descriptor for name field.
-	teamDescName := teamFields[1].Descriptor()
+	teamDescName := teamFields[0].Descriptor()
 	// team.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	team.NameValidator = func() func(string) error {
 		validators := teamDescName.Validators
@@ -51,36 +141,34 @@ func init() {
 			return nil
 		}
 	}()
-	// teamDescCreatedAt is the schema descriptor for created_at field.
-	teamDescCreatedAt := teamFields[2].Descriptor()
-	// team.DefaultCreatedAt holds the default value on creation for the created_at field.
-	team.DefaultCreatedAt = teamDescCreatedAt.Default.(func() time.Time)
-	// teamDescUpdatedAt is the schema descriptor for updated_at field.
-	teamDescUpdatedAt := teamFields[3].Descriptor()
-	// team.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	team.DefaultUpdatedAt = teamDescUpdatedAt.Default.(func() time.Time)
 	// teamDescID is the schema descriptor for id field.
-	teamDescID := teamFields[0].Descriptor()
+	teamDescID := teamMixinFields0[0].Descriptor()
 	// team.DefaultID holds the default value on creation for the id field.
 	team.DefaultID = teamDescID.Default.(func() uuid.UUID)
+	teammanagerMixin := schema.TeamManager{}.Mixin()
+	teammanagerMixinFields0 := teammanagerMixin[0].Fields()
+	_ = teammanagerMixinFields0
 	teammanagerFields := schema.TeamManager{}.Fields()
 	_ = teammanagerFields
 	// teammanagerDescCreatedAt is the schema descriptor for created_at field.
-	teammanagerDescCreatedAt := teammanagerFields[3].Descriptor()
+	teammanagerDescCreatedAt := teammanagerMixinFields0[1].Descriptor()
 	// teammanager.DefaultCreatedAt holds the default value on creation for the created_at field.
 	teammanager.DefaultCreatedAt = teammanagerDescCreatedAt.Default.(func() time.Time)
-	// teammanagerDescUpdatedAt is the schema descriptor for updated_at field.
-	teammanagerDescUpdatedAt := teammanagerFields[4].Descriptor()
-	// teammanager.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	teammanager.DefaultUpdatedAt = teammanagerDescUpdatedAt.Default.(func() time.Time)
 	// teammanagerDescID is the schema descriptor for id field.
-	teammanagerDescID := teammanagerFields[0].Descriptor()
+	teammanagerDescID := teammanagerMixinFields0[0].Descriptor()
 	// teammanager.DefaultID holds the default value on creation for the id field.
 	teammanager.DefaultID = teammanagerDescID.Default.(func() uuid.UUID)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userMixinFields0[1].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[1].Descriptor()
+	userDescName := userFields[0].Descriptor()
 	// user.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	user.NameValidator = func() func(string) error {
 		validators := userDescName.Validators
@@ -98,23 +186,15 @@ func init() {
 		}
 	}()
 	// userDescWorkEmail is the schema descriptor for work_email field.
-	userDescWorkEmail := userFields[2].Descriptor()
+	userDescWorkEmail := userFields[1].Descriptor()
 	// user.WorkEmailValidator is a validator for the "work_email" field. It is called by the builders before save.
 	user.WorkEmailValidator = userDescWorkEmail.Validators[0].(func(string) error)
 	// userDescOid is the schema descriptor for oid field.
-	userDescOid := userFields[3].Descriptor()
+	userDescOid := userFields[2].Descriptor()
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
-	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[4].Descriptor()
-	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
-	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
-	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[5].Descriptor()
-	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// userDescID is the schema descriptor for id field.
-	userDescID := userFields[0].Descriptor()
+	userDescID := userMixinFields0[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
 	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

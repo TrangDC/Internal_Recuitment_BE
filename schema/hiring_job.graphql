@@ -1,0 +1,107 @@
+enum LocationEnum {
+  ha_noi
+  ho_chi_minh
+  da_nang
+  japan
+}
+
+enum SalaryTypeEnum {
+  range
+  up_to
+  negotiable
+  minimum
+}
+
+enum CurrencyEnum {
+  vnd
+  usd
+  jpy
+}
+
+enum HiringJobStatus {
+  draft
+  opened
+  closed
+}
+
+enum HiringJobOrderField {
+  NAME
+  CREATED_AT
+  AMOUNT
+  SALARY_FROM
+  SALARY_TO
+}
+
+input HiringJobOrder {
+  direction: OrderDirection!
+  field: HiringJobOrderField!
+}
+
+input HiringJobFilter {
+  name: String
+}
+
+input HiringJobFreeWord {
+  name: String
+}
+
+input NewHiringJobInput {
+  name: String!
+  description: String!
+  amount: Int!
+  location: LocationEnum!
+  salary_type: SalaryTypeEnum!
+  salary_from: Int!
+  salary_to: Int!
+  currency: CurrencyEnum!
+  team_id: ID!
+  created_by: ID!
+}
+
+input UpdateHiringJobInput {
+  name: String!
+  description: String!
+  amount: Int!
+  location: LocationEnum!
+  salary_type: SalaryTypeEnum!
+  salary_from: Int!
+  salary_to: Int!
+  currency: CurrencyEnum!
+  team_id: ID!
+  created_by: ID!
+}
+
+type HiringJob {
+  id: ID!
+  name: String!
+  slug: String!
+  description: String!
+  amount: Int!
+  location: LocationEnum!
+  salary_type: SalaryTypeEnum!
+  salary_from: Int!
+  salary_to: Int!
+  currency: CurrencyEnum!
+  team: Team!
+  user: User!
+  status: HiringJobStatus!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type HiringJobResponse {
+  data: HiringJob
+}
+
+type HiringJobEdge {
+  node: HiringJob!
+  cursor: Cursor!
+}
+
+type HiringJobResponseGetAll {
+  edges: [HiringJobEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/hiring_job.graphql

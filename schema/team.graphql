@@ -29,6 +29,7 @@ input UpdateTeamInput {
 type Team {
   id: ID!
   name: String!
+  slug: String!
   members: [User!]!
   created_at: Time!
   updated_at: Time!
@@ -48,3 +49,5 @@ type TeamResponseGetAll {
   edges: [TeamEdge!]!
   pagination: Pagination!
 }
+
+# Path: schema/user.graphql

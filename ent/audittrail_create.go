@@ -22,6 +22,48 @@ type AuditTrailCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (atc *AuditTrailCreate) SetCreatedAt(t time.Time) *AuditTrailCreate {
+	atc.mutation.SetCreatedAt(t)
+	return atc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (atc *AuditTrailCreate) SetNillableCreatedAt(t *time.Time) *AuditTrailCreate {
+	if t != nil {
+		atc.SetCreatedAt(*t)
+	}
+	return atc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (atc *AuditTrailCreate) SetUpdatedAt(t time.Time) *AuditTrailCreate {
+	atc.mutation.SetUpdatedAt(t)
+	return atc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (atc *AuditTrailCreate) SetNillableUpdatedAt(t *time.Time) *AuditTrailCreate {
+	if t != nil {
+		atc.SetUpdatedAt(*t)
+	}
+	return atc
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (atc *AuditTrailCreate) SetDeletedAt(t time.Time) *AuditTrailCreate {
+	atc.mutation.SetDeletedAt(t)
+	return atc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (atc *AuditTrailCreate) SetNillableDeletedAt(t *time.Time) *AuditTrailCreate {
+	if t != nil {
+		atc.SetDeletedAt(*t)
+	}
+	return atc
+}
+
 // SetCreatedBy sets the "created_by" field.
 func (atc *AuditTrailCreate) SetCreatedBy(u uuid.UUID) *AuditTrailCreate {
 	atc.mutation.SetCreatedBy(u)
@@ -90,48 +132,6 @@ func (atc *AuditTrailCreate) SetNillableRecordChanges(s *string) *AuditTrailCrea
 	return atc
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (atc *AuditTrailCreate) SetCreatedAt(t time.Time) *AuditTrailCreate {
-	atc.mutation.SetCreatedAt(t)
-	return atc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (atc *AuditTrailCreate) SetNillableCreatedAt(t *time.Time) *AuditTrailCreate {
-	if t != nil {
-		atc.SetCreatedAt(*t)
-	}
-	return atc
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (atc *AuditTrailCreate) SetUpdatedAt(t time.Time) *AuditTrailCreate {
-	atc.mutation.SetUpdatedAt(t)
-	return atc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (atc *AuditTrailCreate) SetNillableUpdatedAt(t *time.Time) *AuditTrailCreate {
-	if t != nil {
-		atc.SetUpdatedAt(*t)
-	}
-	return atc
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (atc *AuditTrailCreate) SetDeletedAt(t time.Time) *AuditTrailCreate {
-	atc.mutation.SetDeletedAt(t)
-	return atc
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (atc *AuditTrailCreate) SetNillableDeletedAt(t *time.Time) *AuditTrailCreate {
-	if t != nil {
-		atc.SetDeletedAt(*t)
-	}
-	return atc
-}
-
 // SetID sets the "id" field.
 func (atc *AuditTrailCreate) SetID(u uuid.UUID) *AuditTrailCreate {
 	atc.mutation.SetID(u)
@@ -146,23 +146,23 @@ func (atc *AuditTrailCreate) SetNillableID(u *uuid.UUID) *AuditTrailCreate {
 	return atc
 }
 
-// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
-func (atc *AuditTrailCreate) SetCreatedByEdgeID(id uuid.UUID) *AuditTrailCreate {
-	atc.mutation.SetCreatedByEdgeID(id)
+// SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
+func (atc *AuditTrailCreate) SetUserEdgeID(id uuid.UUID) *AuditTrailCreate {
+	atc.mutation.SetUserEdgeID(id)
 	return atc
 }
 
-// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
-func (atc *AuditTrailCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *AuditTrailCreate {
+// SetNillableUserEdgeID sets the "user_edge" edge to the User entity by ID if the given value is not nil.
+func (atc *AuditTrailCreate) SetNillableUserEdgeID(id *uuid.UUID) *AuditTrailCreate {
 	if id != nil {
-		atc = atc.SetCreatedByEdgeID(*id)
+		atc = atc.SetUserEdgeID(*id)
 	}
 	return atc
 }
 
-// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
-func (atc *AuditTrailCreate) SetCreatedByEdge(u *User) *AuditTrailCreate {
-	return atc.SetCreatedByEdgeID(u.ID)
+// SetUserEdge sets the "user_edge" edge to the User entity.
+func (atc *AuditTrailCreate) SetUserEdge(u *User) *AuditTrailCreate {
+	return atc.SetUserEdgeID(u.ID)
 }
 
 // Mutation returns the AuditTrailMutation object of the builder.
@@ -242,13 +242,13 @@ func (atc *AuditTrailCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (atc *AuditTrailCreate) defaults() {
-	if _, ok := atc.mutation.ActionType(); !ok {
-		v := audittrail.DefaultActionType
-		atc.mutation.SetActionType(v)
-	}
 	if _, ok := atc.mutation.CreatedAt(); !ok {
 		v := audittrail.DefaultCreatedAt()
 		atc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := atc.mutation.ActionType(); !ok {
+		v := audittrail.DefaultActionType
+		atc.mutation.SetActionType(v)
 	}
 	if _, ok := atc.mutation.ID(); !ok {
 		v := audittrail.DefaultID()
@@ -258,6 +258,9 @@ func (atc *AuditTrailCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (atc *AuditTrailCreate) check() error {
+	if _, ok := atc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AuditTrail.created_at"`)}
+	}
 	if _, ok := atc.mutation.RecordId(); !ok {
 		return &ValidationError{Name: "recordId", err: errors.New(`ent: missing required field "AuditTrail.recordId"`)}
 	}
@@ -278,9 +281,6 @@ func (atc *AuditTrailCreate) check() error {
 		if err := audittrail.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "AuditTrail.note": %w`, err)}
 		}
-	}
-	if _, ok := atc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AuditTrail.created_at"`)}
 	}
 	return nil
 }
@@ -318,6 +318,18 @@ func (atc *AuditTrailCreate) createSpec() (*AuditTrail, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := atc.mutation.CreatedAt(); ok {
+		_spec.SetField(audittrail.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := atc.mutation.UpdatedAt(); ok {
+		_spec.SetField(audittrail.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if value, ok := atc.mutation.DeletedAt(); ok {
+		_spec.SetField(audittrail.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
+	}
 	if value, ok := atc.mutation.RecordId(); ok {
 		_spec.SetField(audittrail.FieldRecordId, field.TypeUUID, value)
 		_node.RecordId = value
@@ -338,24 +350,12 @@ func (atc *AuditTrailCreate) createSpec() (*AuditTrail, *sqlgraph.CreateSpec) {
 		_spec.SetField(audittrail.FieldRecordChanges, field.TypeString, value)
 		_node.RecordChanges = value
 	}
-	if value, ok := atc.mutation.CreatedAt(); ok {
-		_spec.SetField(audittrail.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := atc.mutation.UpdatedAt(); ok {
-		_spec.SetField(audittrail.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
-	if value, ok := atc.mutation.DeletedAt(); ok {
-		_spec.SetField(audittrail.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = value
-	}
-	if nodes := atc.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+	if nodes := atc.mutation.UserEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   audittrail.CreatedByEdgeTable,
-			Columns: []string{audittrail.CreatedByEdgeColumn},
+			Table:   audittrail.UserEdgeTable,
+			Columns: []string{audittrail.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

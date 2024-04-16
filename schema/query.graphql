@@ -1,8 +1,14 @@
 type Query {
 	GetPreRequest: String!
+
 	#Team
 	GetTeam(id: ID!): TeamResponse!
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
+	
 	#User
-	GetAllUsers(pagination: PaginationInput, orderBy: UserOrder): UserResponseGetAll!
+	GetAllUsers(pagination: PaginationInput, orderBy: UserOrder, freeWord: UserFreeWord, filter: UserFilter): UserResponseGetAll!
+
+	#HiringJob
+	GetHiringJob(id: ID!): HiringJobResponse!
+	GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrder): HiringJobResponseGetAll!
 }

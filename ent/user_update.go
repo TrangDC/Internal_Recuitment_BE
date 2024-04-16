@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -29,24 +30,6 @@ type UserUpdate struct {
 // Where appends a list predicates to the UserUpdate builder.
 func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	uu.mutation.Where(ps...)
-	return uu
-}
-
-// SetName sets the "name" field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.mutation.SetName(s)
-	return uu
-}
-
-// SetWorkEmail sets the "work_email" field.
-func (uu *UserUpdate) SetWorkEmail(s string) *UserUpdate {
-	uu.mutation.SetWorkEmail(s)
-	return uu
-}
-
-// SetOid sets the "oid" field.
-func (uu *UserUpdate) SetOid(s string) *UserUpdate {
-	uu.mutation.SetOid(s)
 	return uu
 }
 
@@ -90,6 +73,24 @@ func (uu *UserUpdate) ClearDeletedAt() *UserUpdate {
 	return uu
 }
 
+// SetName sets the "name" field.
+func (uu *UserUpdate) SetName(s string) *UserUpdate {
+	uu.mutation.SetName(s)
+	return uu
+}
+
+// SetWorkEmail sets the "work_email" field.
+func (uu *UserUpdate) SetWorkEmail(s string) *UserUpdate {
+	uu.mutation.SetWorkEmail(s)
+	return uu
+}
+
+// SetOid sets the "oid" field.
+func (uu *UserUpdate) SetOid(s string) *UserUpdate {
+	uu.mutation.SetOid(s)
+	return uu
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uu *UserUpdate) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddAuditEdgeIDs(ids...)
@@ -103,6 +104,21 @@ func (uu *UserUpdate) AddAuditEdge(a ...*AuditTrail) *UserUpdate {
 		ids[i] = a[i].ID
 	}
 	return uu.AddAuditEdgeIDs(ids...)
+}
+
+// AddHiringOwnerIDs adds the "hiring_owner" edge to the HiringJob entity by IDs.
+func (uu *UserUpdate) AddHiringOwnerIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddHiringOwnerIDs(ids...)
+	return uu
+}
+
+// AddHiringOwner adds the "hiring_owner" edges to the HiringJob entity.
+func (uu *UserUpdate) AddHiringOwner(h ...*HiringJob) *UserUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uu.AddHiringOwnerIDs(ids...)
 }
 
 // AddTeamEdgeIDs adds the "team_edges" edge to the Team entity by IDs.
@@ -159,6 +175,27 @@ func (uu *UserUpdate) RemoveAuditEdge(a ...*AuditTrail) *UserUpdate {
 		ids[i] = a[i].ID
 	}
 	return uu.RemoveAuditEdgeIDs(ids...)
+}
+
+// ClearHiringOwner clears all "hiring_owner" edges to the HiringJob entity.
+func (uu *UserUpdate) ClearHiringOwner() *UserUpdate {
+	uu.mutation.ClearHiringOwner()
+	return uu
+}
+
+// RemoveHiringOwnerIDs removes the "hiring_owner" edge to HiringJob entities by IDs.
+func (uu *UserUpdate) RemoveHiringOwnerIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveHiringOwnerIDs(ids...)
+	return uu
+}
+
+// RemoveHiringOwner removes "hiring_owner" edges to HiringJob entities.
+func (uu *UserUpdate) RemoveHiringOwner(h ...*HiringJob) *UserUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uu.RemoveHiringOwnerIDs(ids...)
 }
 
 // ClearTeamEdges clears all "team_edges" edges to the Team entity.
@@ -301,15 +338,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.WorkEmail(); ok {
-		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
-	}
-	if value, ok := uu.mutation.Oid(); ok {
-		_spec.SetField(user.FieldOid, field.TypeString, value)
-	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -321,6 +349,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.DeletedAtCleared() {
 		_spec.ClearField(user.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.WorkEmail(); ok {
+		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Oid(); ok {
+		_spec.SetField(user.FieldOid, field.TypeString, value)
 	}
 	if uu.mutation.AuditEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -368,6 +405,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: audittrail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.HiringOwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedHiringOwnerIDs(); len(nodes) > 0 && !uu.mutation.HiringOwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.HiringOwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}
@@ -524,24 +615,6 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
-// SetName sets the "name" field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.mutation.SetName(s)
-	return uuo
-}
-
-// SetWorkEmail sets the "work_email" field.
-func (uuo *UserUpdateOne) SetWorkEmail(s string) *UserUpdateOne {
-	uuo.mutation.SetWorkEmail(s)
-	return uuo
-}
-
-// SetOid sets the "oid" field.
-func (uuo *UserUpdateOne) SetOid(s string) *UserUpdateOne {
-	uuo.mutation.SetOid(s)
-	return uuo
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -582,6 +655,24 @@ func (uuo *UserUpdateOne) ClearDeletedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetName sets the "name" field.
+func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
+	uuo.mutation.SetName(s)
+	return uuo
+}
+
+// SetWorkEmail sets the "work_email" field.
+func (uuo *UserUpdateOne) SetWorkEmail(s string) *UserUpdateOne {
+	uuo.mutation.SetWorkEmail(s)
+	return uuo
+}
+
+// SetOid sets the "oid" field.
+func (uuo *UserUpdateOne) SetOid(s string) *UserUpdateOne {
+	uuo.mutation.SetOid(s)
+	return uuo
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uuo *UserUpdateOne) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddAuditEdgeIDs(ids...)
@@ -595,6 +686,21 @@ func (uuo *UserUpdateOne) AddAuditEdge(a ...*AuditTrail) *UserUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return uuo.AddAuditEdgeIDs(ids...)
+}
+
+// AddHiringOwnerIDs adds the "hiring_owner" edge to the HiringJob entity by IDs.
+func (uuo *UserUpdateOne) AddHiringOwnerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddHiringOwnerIDs(ids...)
+	return uuo
+}
+
+// AddHiringOwner adds the "hiring_owner" edges to the HiringJob entity.
+func (uuo *UserUpdateOne) AddHiringOwner(h ...*HiringJob) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uuo.AddHiringOwnerIDs(ids...)
 }
 
 // AddTeamEdgeIDs adds the "team_edges" edge to the Team entity by IDs.
@@ -651,6 +757,27 @@ func (uuo *UserUpdateOne) RemoveAuditEdge(a ...*AuditTrail) *UserUpdateOne {
 		ids[i] = a[i].ID
 	}
 	return uuo.RemoveAuditEdgeIDs(ids...)
+}
+
+// ClearHiringOwner clears all "hiring_owner" edges to the HiringJob entity.
+func (uuo *UserUpdateOne) ClearHiringOwner() *UserUpdateOne {
+	uuo.mutation.ClearHiringOwner()
+	return uuo
+}
+
+// RemoveHiringOwnerIDs removes the "hiring_owner" edge to HiringJob entities by IDs.
+func (uuo *UserUpdateOne) RemoveHiringOwnerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveHiringOwnerIDs(ids...)
+	return uuo
+}
+
+// RemoveHiringOwner removes "hiring_owner" edges to HiringJob entities.
+func (uuo *UserUpdateOne) RemoveHiringOwner(h ...*HiringJob) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uuo.RemoveHiringOwnerIDs(ids...)
 }
 
 // ClearTeamEdges clears all "team_edges" edges to the Team entity.
@@ -823,15 +950,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
-	if value, ok := uuo.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.WorkEmail(); ok {
-		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
-	}
-	if value, ok := uuo.mutation.Oid(); ok {
-		_spec.SetField(user.FieldOid, field.TypeString, value)
-	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -843,6 +961,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(user.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.Name(); ok {
+		_spec.SetField(user.FieldName, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.WorkEmail(); ok {
+		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Oid(); ok {
+		_spec.SetField(user.FieldOid, field.TypeString, value)
 	}
 	if uuo.mutation.AuditEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -890,6 +1017,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: audittrail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.HiringOwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedHiringOwnerIDs(); len(nodes) > 0 && !uuo.mutation.HiringOwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.HiringOwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringOwnerTable,
+			Columns: []string{user.HiringOwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}

@@ -328,12 +328,12 @@ func (tmq *TeamManagerQuery) WithTeamEdge(opts ...func(*TeamQuery)) *TeamManager
 // Example:
 //
 //	var v []struct {
-//		TeamID uuid.UUID `json:"team_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.TeamManager.Query().
-//		GroupBy(teammanager.FieldTeamID).
+//		GroupBy(teammanager.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (tmq *TeamManagerQuery) GroupBy(field string, fields ...string) *TeamManagerGroupBy {
@@ -356,11 +356,11 @@ func (tmq *TeamManagerQuery) GroupBy(field string, fields ...string) *TeamManage
 // Example:
 //
 //	var v []struct {
-//		TeamID uuid.UUID `json:"team_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.TeamManager.Query().
-//		Select(teammanager.FieldTeamID).
+//		Select(teammanager.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (tmq *TeamManagerQuery) Select(fields ...string) *TeamManagerSelect {
 	tmq.fields = append(tmq.fields, fields...)

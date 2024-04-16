@@ -11,6 +11,7 @@ import (
 	"trec/ent/migrate"
 
 	"trec/ent/audittrail"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -28,6 +29,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AuditTrail is the client for interacting with the AuditTrail builders.
 	AuditTrail *AuditTrailClient
+	// HiringJob is the client for interacting with the HiringJob builders.
+	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
 	Team *TeamClient
 	// TeamManager is the client for interacting with the TeamManager builders.
@@ -48,6 +51,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AuditTrail = NewAuditTrailClient(c.config)
+	c.HiringJob = NewHiringJobClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -85,6 +89,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:         ctx,
 		config:      cfg,
 		AuditTrail:  NewAuditTrailClient(cfg),
+		HiringJob:   NewHiringJobClient(cfg),
 		Team:        NewTeamClient(cfg),
 		TeamManager: NewTeamManagerClient(cfg),
 		User:        NewUserClient(cfg),
@@ -108,6 +113,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:         ctx,
 		config:      cfg,
 		AuditTrail:  NewAuditTrailClient(cfg),
+		HiringJob:   NewHiringJobClient(cfg),
 		Team:        NewTeamClient(cfg),
 		TeamManager: NewTeamManagerClient(cfg),
 		User:        NewUserClient(cfg),
@@ -140,6 +146,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.AuditTrail.Use(hooks...)
+	c.HiringJob.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
 	c.User.Use(hooks...)
@@ -230,15 +237,15 @@ func (c *AuditTrailClient) GetX(ctx context.Context, id uuid.UUID) *AuditTrail {
 	return obj
 }
 
-// QueryCreatedByEdge queries the created_by_edge edge of a AuditTrail.
-func (c *AuditTrailClient) QueryCreatedByEdge(at *AuditTrail) *UserQuery {
+// QueryUserEdge queries the user_edge edge of a AuditTrail.
+func (c *AuditTrailClient) QueryUserEdge(at *AuditTrail) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := at.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(audittrail.Table, audittrail.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, audittrail.CreatedByEdgeTable, audittrail.CreatedByEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, audittrail.UserEdgeTable, audittrail.UserEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
 		return fromV, nil
@@ -249,6 +256,128 @@ func (c *AuditTrailClient) QueryCreatedByEdge(at *AuditTrail) *UserQuery {
 // Hooks returns the client hooks.
 func (c *AuditTrailClient) Hooks() []Hook {
 	return c.hooks.AuditTrail
+}
+
+// HiringJobClient is a client for the HiringJob schema.
+type HiringJobClient struct {
+	config
+}
+
+// NewHiringJobClient returns a client for the HiringJob from the given config.
+func NewHiringJobClient(c config) *HiringJobClient {
+	return &HiringJobClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hiringjob.Hooks(f(g(h())))`.
+func (c *HiringJobClient) Use(hooks ...Hook) {
+	c.hooks.HiringJob = append(c.hooks.HiringJob, hooks...)
+}
+
+// Create returns a builder for creating a HiringJob entity.
+func (c *HiringJobClient) Create() *HiringJobCreate {
+	mutation := newHiringJobMutation(c.config, OpCreate)
+	return &HiringJobCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HiringJob entities.
+func (c *HiringJobClient) CreateBulk(builders ...*HiringJobCreate) *HiringJobCreateBulk {
+	return &HiringJobCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HiringJob.
+func (c *HiringJobClient) Update() *HiringJobUpdate {
+	mutation := newHiringJobMutation(c.config, OpUpdate)
+	return &HiringJobUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HiringJobClient) UpdateOne(hj *HiringJob) *HiringJobUpdateOne {
+	mutation := newHiringJobMutation(c.config, OpUpdateOne, withHiringJob(hj))
+	return &HiringJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HiringJobClient) UpdateOneID(id uuid.UUID) *HiringJobUpdateOne {
+	mutation := newHiringJobMutation(c.config, OpUpdateOne, withHiringJobID(id))
+	return &HiringJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HiringJob.
+func (c *HiringJobClient) Delete() *HiringJobDelete {
+	mutation := newHiringJobMutation(c.config, OpDelete)
+	return &HiringJobDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HiringJobClient) DeleteOne(hj *HiringJob) *HiringJobDeleteOne {
+	return c.DeleteOneID(hj.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HiringJobClient) DeleteOneID(id uuid.UUID) *HiringJobDeleteOne {
+	builder := c.Delete().Where(hiringjob.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HiringJobDeleteOne{builder}
+}
+
+// Query returns a query builder for HiringJob.
+func (c *HiringJobClient) Query() *HiringJobQuery {
+	return &HiringJobQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a HiringJob entity by its id.
+func (c *HiringJobClient) Get(ctx context.Context, id uuid.UUID) (*HiringJob, error) {
+	return c.Query().Where(hiringjob.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HiringJobClient) GetX(ctx context.Context, id uuid.UUID) *HiringJob {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwnerEdge queries the owner_edge edge of a HiringJob.
+func (c *HiringJobClient) QueryOwnerEdge(hj *HiringJob) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.OwnerEdgeTable, hiringjob.OwnerEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTeamEdge queries the team_edge edge of a HiringJob.
+func (c *HiringJobClient) QueryTeamEdge(hj *HiringJob) *TeamQuery {
+	query := &TeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.TeamEdgeTable, hiringjob.TeamEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *HiringJobClient) Hooks() []Hook {
+	return c.hooks.HiringJob
 }
 
 // TeamClient is a client for the Team schema.
@@ -345,6 +474,22 @@ func (c *TeamClient) QueryUserEdges(t *Team) *UserQuery {
 			sqlgraph.From(team.Table, team.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, team.UserEdgesTable, team.UserEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringTeam queries the hiring_team edge of a Team.
+func (c *TeamClient) QueryHiringTeam(t *Team) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.HiringTeamTable, team.HiringTeamColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -589,6 +734,22 @@ func (c *UserClient) QueryAuditEdge(u *User) *AuditTrailQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(audittrail.Table, audittrail.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AuditEdgeTable, user.AuditEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringOwner queries the hiring_owner edge of a User.
+func (c *UserClient) QueryHiringOwner(u *User) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.HiringOwnerTable, user.HiringOwnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

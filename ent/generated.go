@@ -35,6 +35,36 @@ type Base64Response struct {
 	Data *string `json:"data"`
 }
 
+type HiringJobFilter struct {
+	Name *string `json:"name"`
+}
+
+type HiringJobFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type HiringJobResponse struct {
+	Data *HiringJob `json:"data"`
+}
+
+type HiringJobResponseGetAll struct {
+	Edges      []*HiringJobEdge `json:"edges"`
+	Pagination *Pagination      `json:"pagination"`
+}
+
+type NewHiringJobInput struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Amount      int            `json:"amount"`
+	Location    LocationEnum   `json:"location"`
+	SalaryType  SalaryTypeEnum `json:"salary_type"`
+	SalaryFrom  int            `json:"salary_from"`
+	SalaryTo    int            `json:"salary_to"`
+	Currency    CurrencyEnum   `json:"currency"`
+	TeamID      string         `json:"team_id"`
+	CreatedBy   string         `json:"created_by"`
+}
+
 type NewTeamInput struct {
 	Name    string   `json:"name"`
 	Members []string `json:"members"`
@@ -68,9 +98,33 @@ type TeamResponseGetAll struct {
 	Pagination *Pagination `json:"pagination"`
 }
 
+type UpdateHiringJobInput struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Amount      int            `json:"amount"`
+	Location    LocationEnum   `json:"location"`
+	SalaryType  SalaryTypeEnum `json:"salary_type"`
+	SalaryFrom  int            `json:"salary_from"`
+	SalaryTo    int            `json:"salary_to"`
+	Currency    CurrencyEnum   `json:"currency"`
+	TeamID      string         `json:"team_id"`
+	CreatedBy   string         `json:"created_by"`
+}
+
 type UpdateTeamInput struct {
 	Name    string   `json:"name"`
 	Members []string `json:"members"`
+}
+
+type UserFilter struct {
+	Name      *string  `json:"name"`
+	Ids       []string `json:"ids"`
+	IgnoreIds []string `json:"ignore_ids"`
+	NotInTeam *bool    `json:"not_in_team"`
+}
+
+type UserFreeWord struct {
+	Name *string `json:"name"`
 }
 
 type UserResponse struct {
@@ -161,5 +215,181 @@ func (e *AttachmentFolder) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentFolder) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CurrencyEnum string
+
+const (
+	CurrencyEnumVnd CurrencyEnum = "vnd"
+	CurrencyEnumUsd CurrencyEnum = "usd"
+	CurrencyEnumJpy CurrencyEnum = "jpy"
+)
+
+var AllCurrencyEnum = []CurrencyEnum{
+	CurrencyEnumVnd,
+	CurrencyEnumUsd,
+	CurrencyEnumJpy,
+}
+
+func (e CurrencyEnum) IsValid() bool {
+	switch e {
+	case CurrencyEnumVnd, CurrencyEnumUsd, CurrencyEnumJpy:
+		return true
+	}
+	return false
+}
+
+func (e CurrencyEnum) String() string {
+	return string(e)
+}
+
+func (e *CurrencyEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CurrencyEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CurrencyEnum", str)
+	}
+	return nil
+}
+
+func (e CurrencyEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HiringJobStatus string
+
+const (
+	HiringJobStatusDraft  HiringJobStatus = "draft"
+	HiringJobStatusOpened HiringJobStatus = "opened"
+	HiringJobStatusClosed HiringJobStatus = "closed"
+)
+
+var AllHiringJobStatus = []HiringJobStatus{
+	HiringJobStatusDraft,
+	HiringJobStatusOpened,
+	HiringJobStatusClosed,
+}
+
+func (e HiringJobStatus) IsValid() bool {
+	switch e {
+	case HiringJobStatusDraft, HiringJobStatusOpened, HiringJobStatusClosed:
+		return true
+	}
+	return false
+}
+
+func (e HiringJobStatus) String() string {
+	return string(e)
+}
+
+func (e *HiringJobStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringJobStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringJobStatus", str)
+	}
+	return nil
+}
+
+func (e HiringJobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LocationEnum string
+
+const (
+	LocationEnumHaNoi     LocationEnum = "ha_noi"
+	LocationEnumHoChiMinh LocationEnum = "ho_chi_minh"
+	LocationEnumDaNang    LocationEnum = "da_nang"
+	LocationEnumJapan     LocationEnum = "japan"
+)
+
+var AllLocationEnum = []LocationEnum{
+	LocationEnumHaNoi,
+	LocationEnumHoChiMinh,
+	LocationEnumDaNang,
+	LocationEnumJapan,
+}
+
+func (e LocationEnum) IsValid() bool {
+	switch e {
+	case LocationEnumHaNoi, LocationEnumHoChiMinh, LocationEnumDaNang, LocationEnumJapan:
+		return true
+	}
+	return false
+}
+
+func (e LocationEnum) String() string {
+	return string(e)
+}
+
+func (e *LocationEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LocationEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LocationEnum", str)
+	}
+	return nil
+}
+
+func (e LocationEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SalaryTypeEnum string
+
+const (
+	SalaryTypeEnumRange      SalaryTypeEnum = "range"
+	SalaryTypeEnumUpTo       SalaryTypeEnum = "up_to"
+	SalaryTypeEnumNegotiable SalaryTypeEnum = "negotiable"
+	SalaryTypeEnumMinimum    SalaryTypeEnum = "minimum"
+)
+
+var AllSalaryTypeEnum = []SalaryTypeEnum{
+	SalaryTypeEnumRange,
+	SalaryTypeEnumUpTo,
+	SalaryTypeEnumNegotiable,
+	SalaryTypeEnumMinimum,
+}
+
+func (e SalaryTypeEnum) IsValid() bool {
+	switch e {
+	case SalaryTypeEnumRange, SalaryTypeEnumUpTo, SalaryTypeEnumNegotiable, SalaryTypeEnumMinimum:
+		return true
+	}
+	return false
+}
+
+func (e SalaryTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SalaryTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SalaryTypeEnum", str)
+	}
+	return nil
+}
+
+func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
