@@ -8,7 +8,7 @@ enum LocationEnum {
 enum SalaryTypeEnum {
   range
   up_to
-  negotiable
+  negotiate
   minimum
 }
 
@@ -39,6 +39,8 @@ input HiringJobOrder {
 
 input HiringJobFilter {
   name: String
+  team_ids: [ID!]
+  status: HiringJobStatus
 }
 
 input HiringJobFreeWord {

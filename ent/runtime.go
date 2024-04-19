@@ -90,20 +90,14 @@ func init() {
 	hiringjobDescAmount := hiringjobFields[2].Descriptor()
 	// hiringjob.DefaultAmount holds the default value on creation for the amount field.
 	hiringjob.DefaultAmount = hiringjobDescAmount.Default.(int)
-	// hiringjob.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
-	hiringjob.AmountValidator = hiringjobDescAmount.Validators[0].(func(int) error)
 	// hiringjobDescSalaryFrom is the schema descriptor for salary_from field.
 	hiringjobDescSalaryFrom := hiringjobFields[8].Descriptor()
 	// hiringjob.DefaultSalaryFrom holds the default value on creation for the salary_from field.
 	hiringjob.DefaultSalaryFrom = hiringjobDescSalaryFrom.Default.(int)
-	// hiringjob.SalaryFromValidator is a validator for the "salary_from" field. It is called by the builders before save.
-	hiringjob.SalaryFromValidator = hiringjobDescSalaryFrom.Validators[0].(func(int) error)
 	// hiringjobDescSalaryTo is the schema descriptor for salary_to field.
 	hiringjobDescSalaryTo := hiringjobFields[9].Descriptor()
 	// hiringjob.DefaultSalaryTo holds the default value on creation for the salary_to field.
 	hiringjob.DefaultSalaryTo = hiringjobDescSalaryTo.Default.(int)
-	// hiringjob.SalaryToValidator is a validator for the "salary_to" field. It is called by the builders before save.
-	hiringjob.SalaryToValidator = hiringjobDescSalaryTo.Validators[0].(func(int) error)
 	// hiringjobDescID is the schema descriptor for id field.
 	hiringjobDescID := hiringjobMixinFields0[0].Descriptor()
 	// hiringjob.DefaultID holds the default value on creation for the id field.

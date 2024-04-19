@@ -36,7 +36,9 @@ type Base64Response struct {
 }
 
 type HiringJobFilter struct {
-	Name *string `json:"name"`
+	Name    *string          `json:"name"`
+	TeamIds []string         `json:"team_ids"`
+	Status  *HiringJobStatus `json:"status"`
 }
 
 type HiringJobFreeWord struct {
@@ -353,22 +355,22 @@ func (e LocationEnum) MarshalGQL(w io.Writer) {
 type SalaryTypeEnum string
 
 const (
-	SalaryTypeEnumRange      SalaryTypeEnum = "range"
-	SalaryTypeEnumUpTo       SalaryTypeEnum = "up_to"
-	SalaryTypeEnumNegotiable SalaryTypeEnum = "negotiable"
-	SalaryTypeEnumMinimum    SalaryTypeEnum = "minimum"
+	SalaryTypeEnumRange     SalaryTypeEnum = "range"
+	SalaryTypeEnumUpTo      SalaryTypeEnum = "up_to"
+	SalaryTypeEnumNegotiate SalaryTypeEnum = "negotiate"
+	SalaryTypeEnumMinimum   SalaryTypeEnum = "minimum"
 )
 
 var AllSalaryTypeEnum = []SalaryTypeEnum{
 	SalaryTypeEnumRange,
 	SalaryTypeEnumUpTo,
-	SalaryTypeEnumNegotiable,
+	SalaryTypeEnumNegotiate,
 	SalaryTypeEnumMinimum,
 }
 
 func (e SalaryTypeEnum) IsValid() bool {
 	switch e {
-	case SalaryTypeEnumRange, SalaryTypeEnumUpTo, SalaryTypeEnumNegotiable, SalaryTypeEnumMinimum:
+	case SalaryTypeEnumRange, SalaryTypeEnumUpTo, SalaryTypeEnumNegotiate, SalaryTypeEnumMinimum:
 		return true
 	}
 	return false
