@@ -18,14 +18,14 @@ func (HiringJob) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("NAME")),
 		field.String("description").MaxLen(255).NotEmpty(),
-		field.Int("amount").Default(0).Positive().Annotations(entgql.OrderField("AMOUNT")),
+		field.Int("amount").Default(0).Annotations(entgql.OrderField("AMOUNT")),
 		field.Enum("status").Values("draft", "opened", "closed").Default("opened"),
 		field.UUID("created_by", uuid.UUID{}).Optional().Annotations(),
 		field.UUID("team_id", uuid.UUID{}).Optional().Annotations(),
 		field.Enum("location").Values("ha_noi", "ho_chi_minh", "da_nang", "japan"),
 		field.Enum("salary_type").Values("range", "up_to", "negotiate", "minimum"),
-		field.Int("salary_from").Default(0).Positive().Annotations(entgql.OrderField("SALARY_FROM")),
-		field.Int("salary_to").Default(0).Positive().Annotations(entgql.OrderField("SALARY_TO")),
+		field.Int("salary_from").Default(0).Annotations(entgql.OrderField("SALARY_FROM")),
+		field.Int("salary_to").Default(0).Annotations(entgql.OrderField("SALARY_TO")),
 		field.Enum("currency").Values("vnd", "usd", "jpy"),
 	}
 }

@@ -16,10 +16,13 @@ type HiringJobRepository interface {
 	// mutation
 	CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput) (*ent.HiringJob, error)
 	UpdateHiringJob(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput) (*ent.HiringJob, error)
+	UpdateHiringJobStatus(ctx context.Context, record *ent.HiringJob, status ent.HiringJobStatus) (*ent.HiringJob, error)
 	DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error
-
 	// query
 	GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error)
+	BuildQuery() *ent.HiringJobQuery
+	BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error)
+	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
 	// common function
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error
 }
@@ -60,7 +63,7 @@ func (rps *hiringJobRepoImpl) BuildGet(ctx context.Context, query *ent.HiringJob
 }
 
 func (rps *hiringJobRepoImpl) BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error) {
-	return query.All(ctx)
+	return query.WithOwnerEdge().WithTeamEdge().All(ctx)
 }
 
 func (rps *hiringJobRepoImpl) BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error) {
@@ -81,24 +84,40 @@ func (rps *hiringJobRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *en
 
 // mutation
 func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput) (*ent.HiringJob, error) {
-	return rps.BuildCreate().SetName(strings.TrimSpace(input.Name)).SetAmount(input.Amount).
+	return rps.BuildCreate().
+		SetName(strings.TrimSpace(input.Name)).
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetAmount(input.Amount).
 		SetLocation(hiringjob.Location(input.Location)).
 		SetSlug(util.SlugGeneration(input.Name)).
 		SetSalaryType(hiringjob.SalaryType(input.SalaryType)).
+		SetSalaryFrom(input.SalaryFrom).
+		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
 		SetStatus(hiringjob.Status(input.Status)).
 		SetTeamID(uuid.MustParse(input.TeamID)).
-		SetCreatedBy(uuid.MustParse(input.CreatedBy)).Save(ctx)
+		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
+		Save(ctx)
 }
 
 func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput) (*ent.HiringJob, error) {
-	return rps.BuildUpdateOne(ctx, record).SetName(strings.TrimSpace(input.Name)).SetAmount(input.Amount).
+	return rps.BuildUpdateOne(ctx, record).
+		SetName(strings.TrimSpace(input.Name)).
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetAmount(input.Amount).
 		SetLocation(hiringjob.Location(input.Location)).
 		SetSlug(util.SlugGeneration(input.Name)).
 		SetSalaryType(hiringjob.SalaryType(input.SalaryType)).
+		SetSalaryFrom(input.SalaryFrom).
+		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
 		SetTeamID(uuid.MustParse(input.TeamID)).
-		SetCreatedBy(uuid.MustParse(input.CreatedBy)).Save(ctx)
+		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
+		Save(ctx)
+}
+
+func (rps *hiringJobRepoImpl) UpdateHiringJobStatus(ctx context.Context, record *ent.HiringJob, status ent.HiringJobStatus) (*ent.HiringJob, error) {
+	return rps.BuildUpdateOne(ctx, record).SetStatus(hiringjob.Status(status)).Save(ctx)
 }
 
 func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error {

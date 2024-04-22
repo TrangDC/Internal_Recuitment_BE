@@ -356,11 +356,6 @@ func (hju *HiringJobUpdate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringJob.description": %w`, err)}
 		}
 	}
-	if v, ok := hju.mutation.Amount(); ok {
-		if err := hiringjob.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "HiringJob.amount": %w`, err)}
-		}
-	}
 	if v, ok := hju.mutation.Status(); ok {
 		if err := hiringjob.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "HiringJob.status": %w`, err)}
@@ -374,16 +369,6 @@ func (hju *HiringJobUpdate) check() error {
 	if v, ok := hju.mutation.SalaryType(); ok {
 		if err := hiringjob.SalaryTypeValidator(v); err != nil {
 			return &ValidationError{Name: "salary_type", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_type": %w`, err)}
-		}
-	}
-	if v, ok := hju.mutation.SalaryFrom(); ok {
-		if err := hiringjob.SalaryFromValidator(v); err != nil {
-			return &ValidationError{Name: "salary_from", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_from": %w`, err)}
-		}
-	}
-	if v, ok := hju.mutation.SalaryTo(); ok {
-		if err := hiringjob.SalaryToValidator(v); err != nil {
-			return &ValidationError{Name: "salary_to", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_to": %w`, err)}
 		}
 	}
 	if v, ok := hju.mutation.Currency(); ok {
@@ -890,11 +875,6 @@ func (hjuo *HiringJobUpdateOne) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringJob.description": %w`, err)}
 		}
 	}
-	if v, ok := hjuo.mutation.Amount(); ok {
-		if err := hiringjob.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "HiringJob.amount": %w`, err)}
-		}
-	}
 	if v, ok := hjuo.mutation.Status(); ok {
 		if err := hiringjob.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "HiringJob.status": %w`, err)}
@@ -908,16 +888,6 @@ func (hjuo *HiringJobUpdateOne) check() error {
 	if v, ok := hjuo.mutation.SalaryType(); ok {
 		if err := hiringjob.SalaryTypeValidator(v); err != nil {
 			return &ValidationError{Name: "salary_type", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_type": %w`, err)}
-		}
-	}
-	if v, ok := hjuo.mutation.SalaryFrom(); ok {
-		if err := hiringjob.SalaryFromValidator(v); err != nil {
-			return &ValidationError{Name: "salary_from", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_from": %w`, err)}
-		}
-	}
-	if v, ok := hjuo.mutation.SalaryTo(); ok {
-		if err := hiringjob.SalaryToValidator(v); err != nil {
-			return &ValidationError{Name: "salary_to", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_to": %w`, err)}
 		}
 	}
 	if v, ok := hjuo.mutation.Currency(); ok {

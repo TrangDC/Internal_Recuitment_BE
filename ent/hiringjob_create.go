@@ -372,11 +372,6 @@ func (hjc *HiringJobCreate) check() error {
 	if _, ok := hjc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "HiringJob.amount"`)}
 	}
-	if v, ok := hjc.mutation.Amount(); ok {
-		if err := hiringjob.AmountValidator(v); err != nil {
-			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "HiringJob.amount": %w`, err)}
-		}
-	}
 	if _, ok := hjc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "HiringJob.status"`)}
 	}
@@ -404,18 +399,8 @@ func (hjc *HiringJobCreate) check() error {
 	if _, ok := hjc.mutation.SalaryFrom(); !ok {
 		return &ValidationError{Name: "salary_from", err: errors.New(`ent: missing required field "HiringJob.salary_from"`)}
 	}
-	if v, ok := hjc.mutation.SalaryFrom(); ok {
-		if err := hiringjob.SalaryFromValidator(v); err != nil {
-			return &ValidationError{Name: "salary_from", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_from": %w`, err)}
-		}
-	}
 	if _, ok := hjc.mutation.SalaryTo(); !ok {
 		return &ValidationError{Name: "salary_to", err: errors.New(`ent: missing required field "HiringJob.salary_to"`)}
-	}
-	if v, ok := hjc.mutation.SalaryTo(); ok {
-		if err := hiringjob.SalaryToValidator(v); err != nil {
-			return &ValidationError{Name: "salary_to", err: fmt.Errorf(`ent: validator failed for field "HiringJob.salary_to": %w`, err)}
-		}
 	}
 	if _, ok := hjc.mutation.Currency(); !ok {
 		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "HiringJob.currency"`)}

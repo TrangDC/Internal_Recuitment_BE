@@ -109,16 +109,10 @@ var (
 	DescriptionValidator func(string) error
 	// DefaultAmount holds the default value on creation for the "amount" field.
 	DefaultAmount int
-	// AmountValidator is a validator for the "amount" field. It is called by the builders before save.
-	AmountValidator func(int) error
 	// DefaultSalaryFrom holds the default value on creation for the "salary_from" field.
 	DefaultSalaryFrom int
-	// SalaryFromValidator is a validator for the "salary_from" field. It is called by the builders before save.
-	SalaryFromValidator func(int) error
 	// DefaultSalaryTo holds the default value on creation for the "salary_to" field.
 	DefaultSalaryTo int
-	// SalaryToValidator is a validator for the "salary_to" field. It is called by the builders before save.
-	SalaryToValidator func(int) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

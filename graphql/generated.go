@@ -969,7 +969,7 @@ type Base64Response {
 enum SalaryTypeEnum {
   range
   up_to
-  negotiable
+  negotiate
   minimum
 }
 
@@ -1000,6 +1000,8 @@ input HiringJobOrder {
 
 input HiringJobFilter {
   name: String
+  team_ids: [ID!]
+  status: HiringJobStatus
 }
 
 input HiringJobFreeWord {
@@ -7107,7 +7109,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "team_ids", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7119,6 +7121,22 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "team_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_ids"))
+			it.TeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10080,6 +10098,22 @@ func (ec *executionContext) unmarshalOHiringJobOrder2ᚖtrecᚋentᚐHiringJobOr
 	}
 	res, err := ec.unmarshalInputHiringJobOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobStatus(ctx context.Context, v interface{}) (*ent.HiringJobStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.HiringJobStatus)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobStatus(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJobStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

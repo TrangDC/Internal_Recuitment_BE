@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -73,7 +72,11 @@ func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string) (bool
 
 // UpdateHiringJobStatus is the resolver for the UpdateHiringJobStatus field.
 func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus) (*ent.HiringJobResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateHiringJobStatus - UpdateHiringJobStatus"))
+	result, err := r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // Mutation returns graphql1.MutationResolver implementation.
