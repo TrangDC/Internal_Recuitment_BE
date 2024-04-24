@@ -23,6 +23,27 @@ type AttachmentResponse struct {
 	ID       string           `json:"id"`
 }
 
+type AuditTrailFilter struct {
+	RecordID   *string           `json:"recordId"`
+	Module     *ProjectModule    `json:"module"`
+	ActionType *AuditTrailAction `json:"actionType"`
+	FromDate   *time.Time        `json:"fromDate"`
+	ToDate     *time.Time        `json:"toDate"`
+}
+
+type AuditTrailFreeWord struct {
+	RecordChange *string `json:"recordChange"`
+}
+
+type AuditTrailResponse struct {
+	Data *AuditTrail `json:"data"`
+}
+
+type AuditTrailResponseGetAll struct {
+	Edges      []*AuditTrailEdge `json:"edges"`
+	Pagination *Pagination       `json:"pagination"`
+}
+
 type AuthenticationToken struct {
 	AccessToken  string    `json:"accessToken"`
 	RefreshToken string    `json:"refreshToken"`
@@ -394,5 +415,87 @@ func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AuditTrailAction string
+
+const (
+	AuditTrailActionCreate AuditTrailAction = "create"
+	AuditTrailActionUpdate AuditTrailAction = "update"
+	AuditTrailActionDelete AuditTrailAction = "delete"
+)
+
+var AllAuditTrailAction = []AuditTrailAction{
+	AuditTrailActionCreate,
+	AuditTrailActionUpdate,
+	AuditTrailActionDelete,
+}
+
+func (e AuditTrailAction) IsValid() bool {
+	switch e {
+	case AuditTrailActionCreate, AuditTrailActionUpdate, AuditTrailActionDelete:
+		return true
+	}
+	return false
+}
+
+func (e AuditTrailAction) String() string {
+	return string(e)
+}
+
+func (e *AuditTrailAction) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuditTrailAction(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid auditTrailAction", str)
+	}
+	return nil
+}
+
+func (e AuditTrailAction) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ProjectModule string
+
+const (
+	ProjectModuleTeams ProjectModule = "teams"
+)
+
+var AllProjectModule = []ProjectModule{
+	ProjectModuleTeams,
+}
+
+func (e ProjectModule) IsValid() bool {
+	switch e {
+	case ProjectModuleTeams:
+		return true
+	}
+	return false
+}
+
+func (e ProjectModule) String() string {
+	return string(e)
+}
+
+func (e *ProjectModule) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProjectModule(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid projectModule", str)
+	}
+	return nil
+}
+
+func (e ProjectModule) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

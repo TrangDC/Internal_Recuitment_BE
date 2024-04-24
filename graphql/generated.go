@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AuditTrail() AuditTrailResolver
 	HiringJob() HiringJobResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -55,6 +56,33 @@ type ComplexityRoot struct {
 		FileName func(childComplexity int) int
 		ID       func(childComplexity int) int
 		URL      func(childComplexity int) int
+	}
+
+	AuditTrail struct {
+		ActionType    func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		CreatedBy     func(childComplexity int) int
+		CreatedInfo   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Module        func(childComplexity int) int
+		Note          func(childComplexity int) int
+		RecordChanges func(childComplexity int) int
+		RecordID      func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+	}
+
+	AuditTrailEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	AuditTrailResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	AuditTrailResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
 	}
 
 	AuthenticationToken struct {
@@ -105,12 +133,12 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateHiringJob       func(childComplexity int, input ent.NewHiringJobInput) int
 		CreatePreRequest      func(childComplexity int, input string) int
-		CreateTeam            func(childComplexity int, input ent.NewTeamInput) int
+		CreateTeam            func(childComplexity int, input ent.NewTeamInput, note string) int
 		DeleteHiringJob       func(childComplexity int, id string) int
-		DeleteTeam            func(childComplexity int, id string) int
+		DeleteTeam            func(childComplexity int, id string, note string) int
 		UpdateHiringJob       func(childComplexity int, id string, input ent.UpdateHiringJobInput) int
 		UpdateHiringJobStatus func(childComplexity int, id string, status ent.HiringJobStatus) int
-		UpdateTeam            func(childComplexity int, id string, input ent.UpdateTeamInput) int
+		UpdateTeam            func(childComplexity int, id string, input ent.UpdateTeamInput, note string) int
 	}
 
 	PageInfo struct {
@@ -127,12 +155,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAllHiringJobs func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
-		GetAllTeams      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
-		GetHiringJob     func(childComplexity int, id string) int
-		GetPreRequest    func(childComplexity int) int
-		GetTeam          func(childComplexity int, id string) int
-		SelectionUsers   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		GetAllAuditTrails func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllHiringJobs  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
+		GetAllTeams       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
+		GetAuditTrail     func(childComplexity int, id string) int
+		GetHiringJob      func(childComplexity int, id string) int
+		GetPreRequest     func(childComplexity int) int
+		GetTeam           func(childComplexity int, id string) int
+		SelectionUsers    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
 	Team struct {
@@ -180,6 +210,14 @@ type ComplexityRoot struct {
 	}
 }
 
+type AuditTrailResolver interface {
+	ID(ctx context.Context, obj *ent.AuditTrail) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.AuditTrail) (string, error)
+	CreatedInfo(ctx context.Context, obj *ent.AuditTrail) (*ent.User, error)
+	RecordID(ctx context.Context, obj *ent.AuditTrail) (string, error)
+	Module(ctx context.Context, obj *ent.AuditTrail) (ent.ProjectModule, error)
+	ActionType(ctx context.Context, obj *ent.AuditTrail) (ent.AuditTrailAction, error)
+}
 type HiringJobResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJob) (string, error)
 
@@ -193,9 +231,9 @@ type HiringJobResolver interface {
 }
 type MutationResolver interface {
 	CreatePreRequest(ctx context.Context, input string) (string, error)
-	CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error)
-	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput) (*ent.TeamResponse, error)
-	DeleteTeam(ctx context.Context, id string) (bool, error)
+	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
+	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
+	DeleteTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput) (*ent.HiringJobResponse, error)
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string) (bool, error)
@@ -208,6 +246,8 @@ type QueryResolver interface {
 	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error)
 	GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error)
+	GetAuditTrail(ctx context.Context, id string) (*ent.AuditTrailResponse, error)
+	GetAllAuditTrails(ctx context.Context, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) (*ent.AuditTrailResponseGetAll, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *ent.Team) (string, error)
@@ -260,6 +300,111 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AttachmentResponse.URL(childComplexity), true
+
+	case "AuditTrail.actionType":
+		if e.complexity.AuditTrail.ActionType == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.ActionType(childComplexity), true
+
+	case "AuditTrail.createdAt":
+		if e.complexity.AuditTrail.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.CreatedAt(childComplexity), true
+
+	case "AuditTrail.createdBy":
+		if e.complexity.AuditTrail.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.CreatedBy(childComplexity), true
+
+	case "AuditTrail.createdInfo":
+		if e.complexity.AuditTrail.CreatedInfo == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.CreatedInfo(childComplexity), true
+
+	case "AuditTrail.id":
+		if e.complexity.AuditTrail.ID == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.ID(childComplexity), true
+
+	case "AuditTrail.module":
+		if e.complexity.AuditTrail.Module == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.Module(childComplexity), true
+
+	case "AuditTrail.note":
+		if e.complexity.AuditTrail.Note == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.Note(childComplexity), true
+
+	case "AuditTrail.record_changes":
+		if e.complexity.AuditTrail.RecordChanges == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.RecordChanges(childComplexity), true
+
+	case "AuditTrail.recordId":
+		if e.complexity.AuditTrail.RecordID == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.RecordID(childComplexity), true
+
+	case "AuditTrail.updatedAt":
+		if e.complexity.AuditTrail.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.AuditTrail.UpdatedAt(childComplexity), true
+
+	case "AuditTrailEdge.cursor":
+		if e.complexity.AuditTrailEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.AuditTrailEdge.Cursor(childComplexity), true
+
+	case "AuditTrailEdge.node":
+		if e.complexity.AuditTrailEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.AuditTrailEdge.Node(childComplexity), true
+
+	case "AuditTrailResponse.data":
+		if e.complexity.AuditTrailResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.AuditTrailResponse.Data(childComplexity), true
+
+	case "AuditTrailResponseGetAll.edges":
+		if e.complexity.AuditTrailResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.AuditTrailResponseGetAll.Edges(childComplexity), true
+
+	case "AuditTrailResponseGetAll.pagination":
+		if e.complexity.AuditTrailResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.AuditTrailResponseGetAll.Pagination(childComplexity), true
 
 	case "AuthenticationToken.accessToken":
 		if e.complexity.AuthenticationToken.AccessToken == nil {
@@ -484,7 +629,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTeam(childComplexity, args["input"].(ent.NewTeamInput)), true
+		return e.complexity.Mutation.CreateTeam(childComplexity, args["input"].(ent.NewTeamInput), args["note"].(string)), true
 
 	case "Mutation.DeleteHiringJob":
 		if e.complexity.Mutation.DeleteHiringJob == nil {
@@ -508,7 +653,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.UpdateHiringJob":
 		if e.complexity.Mutation.UpdateHiringJob == nil {
@@ -544,7 +689,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTeam(childComplexity, args["id"].(string), args["input"].(ent.UpdateTeamInput)), true
+		return e.complexity.Mutation.UpdateTeam(childComplexity, args["id"].(string), args["input"].(ent.UpdateTeamInput), args["note"].(string)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -595,6 +740,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pagination.Total(childComplexity), true
 
+	case "Query.GetAllAuditTrails":
+		if e.complexity.Query.GetAllAuditTrails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllAuditTrails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllAuditTrails(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.AuditTrailFilter), args["freeWord"].(*ent.AuditTrailFreeWord), args["orderBy"].(*ent.AuditTrailOrder)), true
+
 	case "Query.GetAllHiringJobs":
 		if e.complexity.Query.GetAllHiringJobs == nil {
 			break
@@ -618,6 +775,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.TeamFilter), args["freeWord"].(*ent.TeamFreeWord), args["orderBy"].(*ent.TeamOrder)), true
+
+	case "Query.GetAuditTrail":
+		if e.complexity.Query.GetAuditTrail == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAuditTrail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAuditTrail(childComplexity, args["id"].(string)), true
 
 	case "Query.GetHiringJob":
 		if e.complexity.Query.GetHiringJob == nil {
@@ -811,6 +980,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAttachmentInput,
+		ec.unmarshalInputAuditTrailFilter,
+		ec.unmarshalInputAuditTrailFreeWord,
+		ec.unmarshalInputAuditTrailOrder,
 		ec.unmarshalInputHiringJobFilter,
 		ec.unmarshalInputHiringJobFreeWord,
 		ec.unmarshalInputHiringJobOrder,
@@ -889,6 +1061,53 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/audit_trail.graphql", Input: `enum AuditTrailOrderField {
+  CREATED_AT
+}
+
+input AuditTrailFilter  {
+  recordId: String
+  module: projectModule
+  actionType: auditTrailAction
+  fromDate: Time
+  toDate: Time
+}
+
+input AuditTrailFreeWord  {
+  recordChange: String
+}
+
+input AuditTrailOrder {
+  direction: OrderDirection!
+  field: AuditTrailOrderField!
+}
+
+type AuditTrail {
+  id: ID!
+  createdBy: String!
+  createdInfo: User!
+  recordId: String!
+  module: projectModule!
+  actionType: auditTrailAction!
+  note: String!
+  record_changes: JSON!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type AuditTrailEdge {
+  node: AuditTrail!
+  cursor: Cursor!
+}
+
+type AuditTrailResponse {
+  data: AuditTrail!
+}
+
+type AuditTrailResponseGetAll {
+  edges: [AuditTrailEdge!]!
+  pagination: Pagination!
+}`, BuiltIn: false},
 	{Name: "../schema/authentication.graphql", Input: `type AuthenticationToken {
   accessToken: String!
   refreshToken: String!
@@ -957,6 +1176,16 @@ type AttachmentResponse {
 
 type Base64Response {
   data: Base64
+}
+
+enum projectModule {
+  teams
+}
+
+enum auditTrailAction {
+  create
+  update
+  delete
 }
 `, BuiltIn: false},
 	{Name: "../schema/hiring_job.graphql", Input: `enum LocationEnum {
@@ -1074,9 +1303,9 @@ type HiringJobResponseGetAll {
   CreatePreRequest(input: String!): String!
 
   # Team
-  CreateTeam(input: NewTeamInput!): TeamResponse!
-  UpdateTeam(id: ID!, input: UpdateTeamInput!): TeamResponse!
-  DeleteTeam(id: ID!): Boolean!
+  CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
+  UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
+  DeleteTeam(id: ID!, note: String!): Boolean!
 
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!): HiringJobResponse!
@@ -1098,6 +1327,10 @@ type HiringJobResponseGetAll {
 	#HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
 	GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrder): HiringJobResponseGetAll!
+
+	#AuditTrail
+	GetAuditTrail(id: ID!): AuditTrailResponse!
+	GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
 }
 `, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderField {
@@ -1257,6 +1490,15 @@ func (ec *executionContext) field_Mutation_CreateTeam_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -1287,6 +1529,15 @@ func (ec *executionContext) field_Mutation_DeleteTeam_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -1359,6 +1610,57 @@ func (ec *executionContext) field_Mutation_UpdateTeam_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllAuditTrails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.AuditTrailFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOAuditTrailFilter2ᚖtrecᚋentᚐAuditTrailFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.AuditTrailFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOAuditTrailFreeWord2ᚖtrecᚋentᚐAuditTrailFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.AuditTrailOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOAuditTrailOrder2ᚖtrecᚋentᚐAuditTrailOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
 	return args, nil
 }
 
@@ -1443,6 +1745,21 @@ func (ec *executionContext) field_Query_GetAllTeams_args(ctx context.Context, ra
 		}
 	}
 	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAuditTrail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1796,6 +2113,732 @@ func (ec *executionContext) fieldContext_AttachmentResponse_id(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_id(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_createdBy(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_createdBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_createdInfo(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_createdInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().CreatedInfo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_recordId(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_recordId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().RecordID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_recordId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_module(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_module(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().Module(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.ProjectModule)
+	fc.Result = res
+	return ec.marshalNprojectModule2trecᚋentᚐProjectModule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_module(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type projectModule does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_actionType(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_actionType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AuditTrail().ActionType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.AuditTrailAction)
+	fc.Result = res
+	return ec.marshalNauditTrailAction2trecᚋentᚐAuditTrailAction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_actionType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type auditTrailAction does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_note(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_note(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Note, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_note(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_record_changes(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_record_changes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RecordChanges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNJSON2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_record_changes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type JSON does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrail_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrail_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrail_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrailEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrailEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrailEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.AuditTrail)
+	fc.Result = res
+	return ec.marshalNAuditTrail2ᚖtrecᚋentᚐAuditTrail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrailEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrailEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AuditTrail_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_AuditTrail_createdBy(ctx, field)
+			case "createdInfo":
+				return ec.fieldContext_AuditTrail_createdInfo(ctx, field)
+			case "recordId":
+				return ec.fieldContext_AuditTrail_recordId(ctx, field)
+			case "module":
+				return ec.fieldContext_AuditTrail_module(ctx, field)
+			case "actionType":
+				return ec.fieldContext_AuditTrail_actionType(ctx, field)
+			case "note":
+				return ec.fieldContext_AuditTrail_note(ctx, field)
+			case "record_changes":
+				return ec.fieldContext_AuditTrail_record_changes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AuditTrail_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AuditTrail_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditTrail", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrailEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrailEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrailEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrailEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrailEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrailResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrailResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrailResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.AuditTrail)
+	fc.Result = res
+	return ec.marshalNAuditTrail2ᚖtrecᚋentᚐAuditTrail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrailResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrailResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AuditTrail_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_AuditTrail_createdBy(ctx, field)
+			case "createdInfo":
+				return ec.fieldContext_AuditTrail_createdInfo(ctx, field)
+			case "recordId":
+				return ec.fieldContext_AuditTrail_recordId(ctx, field)
+			case "module":
+				return ec.fieldContext_AuditTrail_module(ctx, field)
+			case "actionType":
+				return ec.fieldContext_AuditTrail_actionType(ctx, field)
+			case "note":
+				return ec.fieldContext_AuditTrail_note(ctx, field)
+			case "record_changes":
+				return ec.fieldContext_AuditTrail_record_changes(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_AuditTrail_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_AuditTrail_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditTrail", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrailResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrailResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrailResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.AuditTrailEdge)
+	fc.Result = res
+	return ec.marshalNAuditTrailEdge2ᚕᚖtrecᚋentᚐAuditTrailEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrailResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrailResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_AuditTrailEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_AuditTrailEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditTrailEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuditTrailResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.AuditTrailResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuditTrailResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuditTrailResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuditTrailResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -3155,7 +4198,7 @@ func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["input"].(ent.NewTeamInput))
+		return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["input"].(ent.NewTeamInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3214,7 +4257,7 @@ func (ec *executionContext) _Mutation_UpdateTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTeam(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateTeamInput))
+		return ec.resolvers.Mutation().UpdateTeam(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateTeamInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3273,7 +4316,7 @@ func (ec *executionContext) _Mutation_DeleteTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeam(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTeam(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4187,6 +5230,126 @@ func (ec *executionContext) fieldContext_Query_GetAllHiringJobs(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllHiringJobs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAuditTrail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAuditTrail(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAuditTrail(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.AuditTrailResponse)
+	fc.Result = res
+	return ec.marshalNAuditTrailResponse2ᚖtrecᚋentᚐAuditTrailResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAuditTrail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_AuditTrailResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditTrailResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAuditTrail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllAuditTrails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllAuditTrails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllAuditTrails(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.AuditTrailFilter), fc.Args["freeWord"].(*ent.AuditTrailFreeWord), fc.Args["orderBy"].(*ent.AuditTrailOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.AuditTrailResponseGetAll)
+	fc.Result = res
+	return ec.marshalNAuditTrailResponseGetAll2ᚖtrecᚋentᚐAuditTrailResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllAuditTrails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_AuditTrailResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_AuditTrailResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuditTrailResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllAuditTrails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7102,6 +8265,130 @@ func (ec *executionContext) unmarshalInputAttachmentInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAuditTrailFilter(ctx context.Context, obj interface{}) (ent.AuditTrailFilter, error) {
+	var it ent.AuditTrailFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"recordId", "module", "actionType", "fromDate", "toDate"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "recordId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recordId"))
+			it.RecordID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "module":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("module"))
+			it.Module, err = ec.unmarshalOprojectModule2ᚖtrecᚋentᚐProjectModule(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "actionType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actionType"))
+			it.ActionType, err = ec.unmarshalOauditTrailAction2ᚖtrecᚋentᚐAuditTrailAction(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fromDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromDate"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "toDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("toDate"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAuditTrailFreeWord(ctx context.Context, obj interface{}) (ent.AuditTrailFreeWord, error) {
+	var it ent.AuditTrailFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"recordChange"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "recordChange":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recordChange"))
+			it.RecordChange, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAuditTrailOrder(ctx context.Context, obj interface{}) (ent.AuditTrailOrder, error) {
+	var it ent.AuditTrailOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNAuditTrailOrderField2ᚖtrecᚋentᚐAuditTrailOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, obj interface{}) (ent.HiringJobFilter, error) {
 	var it ent.HiringJobFilter
 	asMap := map[string]interface{}{}
@@ -7776,6 +9063,273 @@ func (ec *executionContext) _AttachmentResponse(ctx context.Context, sel ast.Sel
 		case "id":
 
 			out.Values[i] = ec._AttachmentResponse_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var auditTrailImplementors = []string{"AuditTrail"}
+
+func (ec *executionContext) _AuditTrail(ctx context.Context, sel ast.SelectionSet, obj *ent.AuditTrail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, auditTrailImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuditTrail")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "createdBy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "createdInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_createdInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "recordId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_recordId(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "module":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_module(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "actionType":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AuditTrail_actionType(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "note":
+
+			out.Values[i] = ec._AuditTrail_note(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "record_changes":
+
+			out.Values[i] = ec._AuditTrail_record_changes(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+
+			out.Values[i] = ec._AuditTrail_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedAt":
+
+			out.Values[i] = ec._AuditTrail_updatedAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var auditTrailEdgeImplementors = []string{"AuditTrailEdge"}
+
+func (ec *executionContext) _AuditTrailEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.AuditTrailEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, auditTrailEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuditTrailEdge")
+		case "node":
+
+			out.Values[i] = ec._AuditTrailEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._AuditTrailEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var auditTrailResponseImplementors = []string{"AuditTrailResponse"}
+
+func (ec *executionContext) _AuditTrailResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.AuditTrailResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, auditTrailResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuditTrailResponse")
+		case "data":
+
+			out.Values[i] = ec._AuditTrailResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var auditTrailResponseGetAllImplementors = []string{"AuditTrailResponseGetAll"}
+
+func (ec *executionContext) _AuditTrailResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.AuditTrailResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, auditTrailResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuditTrailResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._AuditTrailResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._AuditTrailResponseGetAll_pagination(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -8532,6 +10086,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "GetAuditTrail":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAuditTrail(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetAllAuditTrails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllAuditTrails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -9231,6 +10831,114 @@ func (ec *executionContext) marshalNAttachmentFolder2trecᚋentᚐAttachmentFold
 	return v
 }
 
+func (ec *executionContext) marshalNAuditTrail2ᚖtrecᚋentᚐAuditTrail(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrail) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuditTrail(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAuditTrailEdge2ᚕᚖtrecᚋentᚐAuditTrailEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.AuditTrailEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAuditTrailEdge2ᚖtrecᚋentᚐAuditTrailEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAuditTrailEdge2ᚖtrecᚋentᚐAuditTrailEdge(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrailEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuditTrailEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAuditTrailOrderField2ᚖtrecᚋentᚐAuditTrailOrderField(ctx context.Context, v interface{}) (*ent.AuditTrailOrderField, error) {
+	var res = new(ent.AuditTrailOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAuditTrailOrderField2ᚖtrecᚋentᚐAuditTrailOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrailOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalNAuditTrailResponse2trecᚋentᚐAuditTrailResponse(ctx context.Context, sel ast.SelectionSet, v ent.AuditTrailResponse) graphql.Marshaler {
+	return ec._AuditTrailResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuditTrailResponse2ᚖtrecᚋentᚐAuditTrailResponse(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrailResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuditTrailResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAuditTrailResponseGetAll2trecᚋentᚐAuditTrailResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.AuditTrailResponseGetAll) graphql.Marshaler {
+	return ec._AuditTrailResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuditTrailResponseGetAll2ᚖtrecᚋentᚐAuditTrailResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrailResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuditTrailResponseGetAll(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9406,6 +11114,21 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNJSON2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNJSON2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -10011,6 +11734,50 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalNauditTrailAction2trecᚋentᚐAuditTrailAction(ctx context.Context, v interface{}) (ent.AuditTrailAction, error) {
+	var res ent.AuditTrailAction
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNauditTrailAction2trecᚋentᚐAuditTrailAction(ctx context.Context, sel ast.SelectionSet, v ent.AuditTrailAction) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNprojectModule2trecᚋentᚐProjectModule(ctx context.Context, v interface{}) (ent.ProjectModule, error) {
+	var res ent.ProjectModule
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNprojectModule2trecᚋentᚐProjectModule(ctx context.Context, sel ast.SelectionSet, v ent.ProjectModule) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOAuditTrailFilter2ᚖtrecᚋentᚐAuditTrailFilter(ctx context.Context, v interface{}) (*ent.AuditTrailFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAuditTrailFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOAuditTrailFreeWord2ᚖtrecᚋentᚐAuditTrailFreeWord(ctx context.Context, v interface{}) (*ent.AuditTrailFreeWord, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAuditTrailFreeWord(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOAuditTrailOrder2ᚖtrecᚋentᚐAuditTrailOrder(ctx context.Context, v interface{}) (*ent.AuditTrailOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAuditTrailOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOBase642ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -10232,6 +11999,22 @@ func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	res := graphql.MarshalTime(v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
 	return res
 }
 
@@ -10466,6 +12249,38 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOauditTrailAction2ᚖtrecᚋentᚐAuditTrailAction(ctx context.Context, v interface{}) (*ent.AuditTrailAction, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.AuditTrailAction)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOauditTrailAction2ᚖtrecᚋentᚐAuditTrailAction(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrailAction) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOprojectModule2ᚖtrecᚋentᚐProjectModule(ctx context.Context, v interface{}) (*ent.ProjectModule, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.ProjectModule)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOprojectModule2ᚖtrecᚋentᚐProjectModule(ctx context.Context, sel ast.SelectionSet, v *ent.ProjectModule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 // endregion ***************************** type.gotpl *****************************

@@ -61,6 +61,24 @@ func (r *queryResolver) GetAllHiringJobs(ctx context.Context, pagination *ent.Pa
 	return result, nil
 }
 
+// GetAuditTrail is the resolver for the GetAuditTrail field.
+func (r *queryResolver) GetAuditTrail(ctx context.Context, id string) (*ent.AuditTrailResponse, error) {
+	result, err := r.serviceRegistry.AuditTrail().GetAuditTrail(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetAllAuditTrails is the resolver for the GetAllAuditTrails field.
+func (r *queryResolver) GetAllAuditTrails(ctx context.Context, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) (*ent.AuditTrailResponseGetAll, error) {
+	result, err := r.serviceRegistry.AuditTrail().GetAuditTrails(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

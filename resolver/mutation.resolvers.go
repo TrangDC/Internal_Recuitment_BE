@@ -17,8 +17,8 @@ func (r *mutationResolver) CreatePreRequest(ctx context.Context, input string) (
 }
 
 // CreateTeam is the resolver for the CreateTeam field.
-func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error) {
-	result, err := r.serviceRegistry.Team().CreateTeam(ctx, input)
+func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
+	result, err := r.serviceRegistry.Team().CreateTeam(ctx, input, note)
 	if err != nil {
 		return nil, err
 	}
@@ -26,8 +26,8 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInpu
 }
 
 // UpdateTeam is the resolver for the UpdateTeam field.
-func (r *mutationResolver) UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput) (*ent.TeamResponse, error) {
-	result, err := r.serviceRegistry.Team().UpdateTeam(ctx, uuid.MustParse(id), input)
+func (r *mutationResolver) UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error) {
+	result, err := r.serviceRegistry.Team().UpdateTeam(ctx, uuid.MustParse(id), input, note)
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +35,8 @@ func (r *mutationResolver) UpdateTeam(ctx context.Context, id string, input ent.
 }
 
 // DeleteTeam is the resolver for the DeleteTeam field.
-func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.Team().DeleteTeam(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteTeam(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.Team().DeleteTeam(ctx, uuid.MustParse(id), note)
 	if err != nil {
 		return false, err
 	}
