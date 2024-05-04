@@ -2,9 +2,9 @@ type Mutation {
   CreatePreRequest(input: String!): String!
 
   # Team
-  CreateTeam(input: NewTeamInput!): TeamResponse!
-  UpdateTeam(id: ID!, input: UpdateTeamInput!): TeamResponse!
-  DeleteTeam(id: ID!): Boolean!
+  CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
+  UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
+  DeleteTeam(id: ID!, note: String!): Boolean!
 
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!): HiringJobResponse!

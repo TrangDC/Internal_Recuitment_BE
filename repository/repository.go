@@ -13,6 +13,7 @@ type Repository interface {
 	User() UserRepository
 	Team() TeamRepository
 	HiringJob() HiringJobRepository
+	AuditTrail() AuditTrailRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -20,21 +21,22 @@ type Repository interface {
 
 // RepoImpl is implementation of Repository
 type RepoImpl struct {
-	// BankAccountRepository
-	entClient *ent.Client
-	entTx     *ent.Tx
-	user      UserRepository
-	team      TeamRepository
-	hiringJob HiringJobRepository
+	entClient  *ent.Client
+	entTx      *ent.Tx
+	user       UserRepository
+	team       TeamRepository
+	hiringJob  HiringJobRepository
+	auditTrail AuditTrailRepository
 }
 
 // NewRepository creates new repository registry
 func NewRepository(entClient *ent.Client) Repository {
 	return &RepoImpl{
-		entClient: entClient,
-		user:      NewUserRepository(entClient),
-		team:      NewTeamRepository(entClient),
-		hiringJob: NewHiringJobRepository(entClient),
+		entClient:  entClient,
+		user:       NewUserRepository(entClient),
+		team:       NewTeamRepository(entClient),
+		hiringJob:  NewHiringJobRepository(entClient),
+		auditTrail: NewAuditTrailRepository(entClient),
 	}
 }
 
@@ -48,6 +50,10 @@ func (r *RepoImpl) Team() TeamRepository {
 
 func (r *RepoImpl) HiringJob() HiringJobRepository {
 	return r.hiringJob
+}
+
+func (r *RepoImpl) AuditTrail() AuditTrailRepository {
+	return r.auditTrail
 }
 
 // DoInTx executes the given function in a transaction.
@@ -72,10 +78,11 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 	}()
 
 	impl := &RepoImpl{
-		entTx:     tx,
-		user:      NewUserRepository(tx.Client()),
-		team:      NewTeamRepository(tx.Client()),
-		hiringJob: NewHiringJobRepository(tx.Client()),
+		entTx:      tx,
+		user:       NewUserRepository(tx.Client()),
+		team:       NewTeamRepository(tx.Client()),
+		hiringJob:  NewHiringJobRepository(tx.Client()),
+		auditTrail: NewAuditTrailRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

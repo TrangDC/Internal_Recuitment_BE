@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/team"
 	"trec/internal/util"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -15,15 +18,15 @@ import (
 )
 
 type TeamService interface {
+	formatTeamField(input string) string
 	// mutation
-	CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error)
-	UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.TeamResponse, error)
-	DeleteTeam(ctx context.Context, teamId uuid.UUID) error
+	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
+	UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
+	DeleteTeam(ctx context.Context, teamId uuid.UUID, note string) error
 	// query
 	GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error)
 	GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
 		filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
-	//
 }
 
 type teamSvcImpl struct {
@@ -38,7 +41,17 @@ func NewTeamService(repoRegistry repository.Repository, logger *zap.Logger) Team
 	}
 }
 
-func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput) (*ent.TeamResponse, error) {
+func (svc *teamSvcImpl) formatTeamField(input string) string {
+	switch input {
+	case "Name":
+		return "model.team.name"
+	case "Members":
+		return "model.team.members"
+	}
+	return ""
+}
+
+func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
 	var team *ent.Team
 	var memberIds []uuid.UUID
 	err := svc.repoRegistry.Team().ValidName(ctx, uuid.Nil, input.Name)
@@ -63,37 +76,24 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput) 
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	return &ent.TeamResponse{
-		Data: result,
-	}, nil
-}
-
-func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput) (*ent.TeamResponse, error) {
-	var memberIds []uuid.UUID
-	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	record := models.AuditTrailData{
+		Module: "module.team",
+		Update: make([]interface{}, 0),
+		Delete: make([]interface{}, 0),
 	}
-	err = svc.repoRegistry.Team().ValidName(ctx, teamId, input.Name)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
-		return uuid.MustParse(member)
+	record.Create = append(record.Create, models.AuditTrailCreateDelete{
+		Field: svc.formatTeamField("Name"),
+		Value: result.Name,
 	})
-	newMemberIds, removeMemberids := svc.updateMembers(team, memberIds)
-	err = svc.repoRegistry.Team().ValidUserInAnotherTeam(ctx, teamId, memberIds)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		team, err = repoRegistry.Team().UpdateTeam(ctx, team, input, newMemberIds, removeMemberids)
-		return err
+	membersName := lo.Map(result.Edges.UserEdges, func(item *ent.User, index int) string {
+		return item.Name
 	})
-	result, err := svc.repoRegistry.Team().GetTeam(ctx, team.ID)
+	record.Create = append(record.Create, models.AuditTrailCreateDelete{
+		Field: svc.formatTeamField("Members"),
+		Value: membersName,
+	})
+	recordChanges, _ := json.Marshal([]interface{}{record})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleTeams, string(recordChanges), audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -103,12 +103,111 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 	}, nil
 }
 
-func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID) error {
+func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error) {
+	var memberIds []uuid.UUID
+	record, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.Team().ValidName(ctx, teamId, input.Name)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	var result *ent.Team
+	if len(input.Members) != 0 {
+		memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
+			return uuid.MustParse(member)
+		})
+	}
+	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
+	err = svc.repoRegistry.Team().ValidUserInAnotherTeam(ctx, teamId, memberIds)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		_, err = repoRegistry.Team().UpdateTeam(ctx, record, input, newMemberIds, removeMemberIds)
+		return err
+	})
+	result, err = svc.repoRegistry.Team().GetTeam(ctx, teamId)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	recordChanges, err := svc.compareTeamUpdate(record, result)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleTeams, recordChanges, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return &ent.TeamResponse{
+		Data: result,
+	}, nil
+}
+
+func (svc *teamSvcImpl) compareTeamUpdate(oldRecord *ent.Team, newRecord *ent.Team) (string, error) {
+	result := models.AuditTrailData{
+		Module: "module.team",
+		Create: make([]interface{}, 0),
+		Delete: make([]interface{}, 0),
+	}
+	if oldRecord.Name != newRecord.Name {
+		result.Update = append(result.Update, models.AuditTrailUpdate{
+			Field: svc.formatTeamField("Name"),
+			Value: models.ValueChange{
+				OldValue: oldRecord.Name,
+				NewValue: newRecord.Name,
+			},
+		})
+	}
+	oldTeamMembers := lo.Map(oldRecord.Edges.UserEdges, func(item *ent.User, index int) string {
+		return item.Name
+	})
+	newTeamMembers := lo.Map(newRecord.Edges.UserEdges, func(item *ent.User, index int) string {
+		return item.Name
+	})
+	left, right := lo.Difference(oldTeamMembers, newTeamMembers)
+	if len(left) != 0 || len(right) != 0 {
+		result.Update = append(result.Update, models.AuditTrailUpdate{
+			Field: svc.formatTeamField("Members"),
+			Value: models.ValueChange{
+				OldValue: oldTeamMembers,
+				NewValue: newTeamMembers,
+			},
+		})
+	}
+	jsonBytes, err := json.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonBytes), nil
+}
+
+func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note string) error {
 	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	record := models.AuditTrailData{
+		Module: "module.team",
+        Create: make([]interface{}, 0),
+        Update: make([]interface{}, 0),
+	}
+	record.Delete = append(record.Delete, models.AuditTrailCreateDelete{
+        Field: svc.formatTeamField("Name"),
+        Value: team.Name,
+    })
+	membersName := lo.Map(team.Edges.UserEdges, func(item *ent.User, index int) string {
+        return item.Name
+    })
+	record.Delete = append(record.Delete, models.AuditTrailCreateDelete{
+        Field: svc.formatTeamField("Members"),
+        Value: membersName,
+    })
+	recordChanges, _ := json.Marshal([]interface{}{record})
 	memberIds := lo.Map(team.Edges.UserEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID
 	})
@@ -116,6 +215,11 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID) error 
 		_, err = repoRegistry.Team().DeleteTeam(ctx, team, memberIds)
 		return err
 	})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, teamId, audittrail.ModuleTeams, string(recordChanges), audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
 	return err
 }
 

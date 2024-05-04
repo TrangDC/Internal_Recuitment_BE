@@ -1,0 +1,47 @@
+enum AuditTrailOrderField {
+  CREATED_AT
+}
+
+input AuditTrailFilter  {
+  recordId: String
+  module: projectModule
+  actionType: auditTrailAction
+  fromDate: Time
+  toDate: Time
+}
+
+input AuditTrailFreeWord  {
+  recordChange: String
+}
+
+input AuditTrailOrder {
+  direction: OrderDirection!
+  field: AuditTrailOrderField!
+}
+
+type AuditTrail {
+  id: ID!
+  createdBy: String!
+  createdInfo: User!
+  recordId: String!
+  module: projectModule!
+  actionType: auditTrailAction!
+  note: String!
+  record_changes: JSON!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type AuditTrailEdge {
+  node: AuditTrail!
+  cursor: Cursor!
+}
+
+type AuditTrailResponse {
+  data: AuditTrail!
+}
+
+type AuditTrailResponseGetAll {
+  edges: [AuditTrailEdge!]!
+  pagination: Pagination!
+}

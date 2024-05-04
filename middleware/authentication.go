@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"strings"
@@ -8,8 +9,11 @@ import (
 	"trec/internal/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+type Key struct{}
 
 // AuthenticateMiddleware is a middleware to authenticate user
 func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger *zap.Logger) func(c *gin.Context) {
@@ -39,6 +43,10 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
 		}
+		var id uuid.UUID
+		_ = db.QueryRow("SELECT id FROM users WHERE oid = $1 AND deleted_at IS NULL", tokenData.ObjectID).Scan(&id)
+		ctx = context.WithValue(ctx, Key{}, id)
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

@@ -59,3 +59,13 @@ type AttachmentResponse {
 type Base64Response {
   data: Base64
 }
+
+enum projectModule {
+  teams
+}
+
+enum auditTrailAction {
+  create
+  update
+  delete
+}
