@@ -38,6 +38,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	AuditTrail() AuditTrailResolver
+	Candidate() CandidateResolver
 	HiringJob() HiringJobResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -97,6 +98,33 @@ type ComplexityRoot struct {
 		Data func(childComplexity int) int
 	}
 
+	Candidate struct {
+		CreatedAt   func(childComplexity int) int
+		DeletedAt   func(childComplexity int) int
+		Dob         func(childComplexity int) int
+		Email       func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsBlacklist func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Phone       func(childComplexity int) int
+		Status      func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
+	CandidateEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	CandidateResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	CandidateResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	HiringJob struct {
 		Amount      func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
@@ -131,11 +159,15 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateCandidate       func(childComplexity int, input ent.NewCandidateInput) int
 		CreateHiringJob       func(childComplexity int, input ent.NewHiringJobInput) int
 		CreatePreRequest      func(childComplexity int, input string) int
 		CreateTeam            func(childComplexity int, input ent.NewTeamInput, note string) int
+		DeleteCandidate       func(childComplexity int, id string) int
 		DeleteHiringJob       func(childComplexity int, id string) int
 		DeleteTeam            func(childComplexity int, id string, note string) int
+		SetBlackListCandidate func(childComplexity int, id string, isBlackList bool) int
+		UpdateCandidate       func(childComplexity int, id string, input ent.UpdateCandidateInput) int
 		UpdateHiringJob       func(childComplexity int, id string, input ent.UpdateHiringJobInput) int
 		UpdateHiringJobStatus func(childComplexity int, id string, status ent.HiringJobStatus) int
 		UpdateTeam            func(childComplexity int, id string, input ent.UpdateTeamInput, note string) int
@@ -156,9 +188,11 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetAllAuditTrails func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllCandidates  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
 		GetAllHiringJobs  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
 		GetAllTeams       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
 		GetAuditTrail     func(childComplexity int, id string) int
+		GetCandidate      func(childComplexity int, id string) int
 		GetHiringJob      func(childComplexity int, id string) int
 		GetPreRequest     func(childComplexity int) int
 		GetTeam           func(childComplexity int, id string) int
@@ -218,6 +252,11 @@ type AuditTrailResolver interface {
 	Module(ctx context.Context, obj *ent.AuditTrail) (ent.ProjectModule, error)
 	ActionType(ctx context.Context, obj *ent.AuditTrail) (ent.AuditTrailAction, error)
 }
+type CandidateResolver interface {
+	ID(ctx context.Context, obj *ent.Candidate) (string, error)
+
+	Status(ctx context.Context, obj *ent.Candidate) (ent.CandidateStatusEnum, error)
+}
 type HiringJobResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJob) (string, error)
 
@@ -238,6 +277,10 @@ type MutationResolver interface {
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string) (bool, error)
 	UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus) (*ent.HiringJobResponse, error)
+	CreateCandidate(ctx context.Context, input ent.NewCandidateInput) (*ent.CandidateResponse, error)
+	UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput) (*ent.CandidateResponse, error)
+	DeleteCandidate(ctx context.Context, id string) (bool, error)
+	SetBlackListCandidate(ctx context.Context, id string, isBlackList bool) (bool, error)
 }
 type QueryResolver interface {
 	GetPreRequest(ctx context.Context) (string, error)
@@ -248,6 +291,8 @@ type QueryResolver interface {
 	GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error)
 	GetAuditTrail(ctx context.Context, id string) (*ent.AuditTrailResponse, error)
 	GetAllAuditTrails(ctx context.Context, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) (*ent.AuditTrailResponseGetAll, error)
+	GetCandidate(ctx context.Context, id string) (*ent.CandidateResponse, error)
+	GetAllCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *ent.Team) (string, error)
@@ -448,6 +493,111 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Base64Response.Data(childComplexity), true
 
+	case "Candidate.created_at":
+		if e.complexity.Candidate.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Candidate.CreatedAt(childComplexity), true
+
+	case "Candidate.deleted_at":
+		if e.complexity.Candidate.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.Candidate.DeletedAt(childComplexity), true
+
+	case "Candidate.dob":
+		if e.complexity.Candidate.Dob == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Dob(childComplexity), true
+
+	case "Candidate.email":
+		if e.complexity.Candidate.Email == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Email(childComplexity), true
+
+	case "Candidate.id":
+		if e.complexity.Candidate.ID == nil {
+			break
+		}
+
+		return e.complexity.Candidate.ID(childComplexity), true
+
+	case "Candidate.is_black_list":
+		if e.complexity.Candidate.IsBlacklist == nil {
+			break
+		}
+
+		return e.complexity.Candidate.IsBlacklist(childComplexity), true
+
+	case "Candidate.name":
+		if e.complexity.Candidate.Name == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Name(childComplexity), true
+
+	case "Candidate.phone":
+		if e.complexity.Candidate.Phone == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Phone(childComplexity), true
+
+	case "Candidate.status":
+		if e.complexity.Candidate.Status == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Status(childComplexity), true
+
+	case "Candidate.updated_at":
+		if e.complexity.Candidate.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Candidate.UpdatedAt(childComplexity), true
+
+	case "CandidateEdge.cursor":
+		if e.complexity.CandidateEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.CandidateEdge.Cursor(childComplexity), true
+
+	case "CandidateEdge.node":
+		if e.complexity.CandidateEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.CandidateEdge.Node(childComplexity), true
+
+	case "CandidateResponse.data":
+		if e.complexity.CandidateResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.CandidateResponse.Data(childComplexity), true
+
+	case "CandidateResponseGetAll.edges":
+		if e.complexity.CandidateResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.CandidateResponseGetAll.Edges(childComplexity), true
+
+	case "CandidateResponseGetAll.pagination":
+		if e.complexity.CandidateResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.CandidateResponseGetAll.Pagination(childComplexity), true
+
 	case "HiringJob.amount":
 		if e.complexity.HiringJob.Amount == nil {
 			break
@@ -595,6 +745,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJobResponseGetAll.Pagination(childComplexity), true
 
+	case "Mutation.CreateCandidate":
+		if e.complexity.Mutation.CreateCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCandidate(childComplexity, args["input"].(ent.NewCandidateInput)), true
+
 	case "Mutation.CreateHiringJob":
 		if e.complexity.Mutation.CreateHiringJob == nil {
 			break
@@ -631,6 +793,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTeam(childComplexity, args["input"].(ent.NewTeamInput), args["note"].(string)), true
 
+	case "Mutation.DeleteCandidate":
+		if e.complexity.Mutation.DeleteCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCandidate(childComplexity, args["id"].(string)), true
+
 	case "Mutation.DeleteHiringJob":
 		if e.complexity.Mutation.DeleteHiringJob == nil {
 			break
@@ -654,6 +828,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string), args["note"].(string)), true
+
+	case "Mutation.SetBlackListCandidate":
+		if e.complexity.Mutation.SetBlackListCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_SetBlackListCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetBlackListCandidate(childComplexity, args["id"].(string), args["is_black_list"].(bool)), true
+
+	case "Mutation.UpdateCandidate":
+		if e.complexity.Mutation.UpdateCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCandidate(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateInput)), true
 
 	case "Mutation.UpdateHiringJob":
 		if e.complexity.Mutation.UpdateHiringJob == nil {
@@ -752,6 +950,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAuditTrails(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.AuditTrailFilter), args["freeWord"].(*ent.AuditTrailFreeWord), args["orderBy"].(*ent.AuditTrailOrder)), true
 
+	case "Query.GetAllCandidates":
+		if e.complexity.Query.GetAllCandidates == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllCandidates_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllCandidates(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.CandidateFilter), args["freeWord"].(*ent.CandidateFreeWord), args["orderBy"].(*ent.CandidateOrder)), true
+
 	case "Query.GetAllHiringJobs":
 		if e.complexity.Query.GetAllHiringJobs == nil {
 			break
@@ -787,6 +997,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAuditTrail(childComplexity, args["id"].(string)), true
+
+	case "Query.GetCandidate":
+		if e.complexity.Query.GetCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidate(childComplexity, args["id"].(string)), true
 
 	case "Query.GetHiringJob":
 		if e.complexity.Query.GetHiringJob == nil {
@@ -983,15 +1205,20 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAuditTrailFilter,
 		ec.unmarshalInputAuditTrailFreeWord,
 		ec.unmarshalInputAuditTrailOrder,
+		ec.unmarshalInputCandidateFilter,
+		ec.unmarshalInputCandidateFreeWord,
+		ec.unmarshalInputCandidateOrder,
 		ec.unmarshalInputHiringJobFilter,
 		ec.unmarshalInputHiringJobFreeWord,
 		ec.unmarshalInputHiringJobOrder,
+		ec.unmarshalInputNewCandidateInput,
 		ec.unmarshalInputNewHiringJobInput,
 		ec.unmarshalInputNewTeamInput,
 		ec.unmarshalInputPaginationInput,
 		ec.unmarshalInputTeamFilter,
 		ec.unmarshalInputTeamFreeWord,
 		ec.unmarshalInputTeamOrder,
+		ec.unmarshalInputUpdateCandidateInput,
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateTeamInput,
 		ec.unmarshalInputUserFilter,
@@ -1114,6 +1341,87 @@ type AuditTrailResponseGetAll {
   tokenType: String!
   expiresAt: Time!
   email: String!
+}
+`, BuiltIn: false},
+	{Name: "../schema/candidates.graphql", Input: `enum CandidateStatusEnum {
+  applied
+  interviewing
+  offering
+  hired
+  kiv
+  offer_lost
+  ex_staff
+  new
+}
+
+enum CandidateOrderField {
+  name
+  dob
+  created_at
+}
+
+input NewCandidateInput{
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+}
+
+input UpdateCandidateInput {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+}
+
+input CandidateFilter {
+  name: String
+  email: String
+  phone: String
+  dob_from_date: Time
+  dob_to_date: Time
+  status: CandidateStatusEnum
+  from_date: Time
+  to_date: Time
+  is_black_list: Boolean
+}
+
+input CandidateFreeWord {
+  name: String
+  email: String
+  phone: String
+}
+input CandidateOrder {
+  direction: OrderDirection!
+  field: CandidateOrderField!
+}
+
+type Candidate {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+  status: CandidateStatusEnum!
+  is_black_list: Boolean!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type CandidateResponse {
+  data: Candidate!
+}
+
+type CandidateResponseGetAll {
+  edges: [CandidateEdge!]!
+  pagination: Pagination!
+}
+
+type CandidateEdge {
+  node: Candidate!
+  cursor: Cursor!
 }
 `, BuiltIn: false},
 	{Name: "../schema/common.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
@@ -1312,6 +1620,12 @@ type HiringJobResponseGetAll {
   UpdateHiringJob(id: ID!, input: UpdateHiringJobInput!): HiringJobResponse!
   DeleteHiringJob(id: ID!): Boolean!
   UpdateHiringJobStatus(id: ID!, status: HiringJobStatus!): HiringJobResponse!
+
+  # Candidate
+  CreateCandidate(input: NewCandidateInput!): CandidateResponse!
+  UpdateCandidate(id: ID!, input: UpdateCandidateInput!): CandidateResponse!
+  DeleteCandidate(id: ID!): Boolean!
+  SetBlackListCandidate(id: ID!, is_black_list: Boolean!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
@@ -1331,6 +1645,10 @@ type HiringJobResponseGetAll {
 	#AuditTrail
 	GetAuditTrail(id: ID!): AuditTrailResponse!
 	GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
+
+	#Candidate
+	GetCandidate(id: ID!): CandidateResponse!
+	GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
 }
 `, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderField {
@@ -1448,6 +1766,21 @@ func (ec *executionContext) dir_validation_args(ctx context.Context, rawArgs map
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_CreateCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.NewCandidateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewCandidateInput2trecᚋentᚐNewCandidateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_CreateHiringJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1502,6 +1835,21 @@ func (ec *executionContext) field_Mutation_CreateTeam_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_DeleteCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_DeleteHiringJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1538,6 +1886,54 @@ func (ec *executionContext) field_Mutation_DeleteTeam_args(ctx context.Context, 
 		}
 	}
 	args["note"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_SetBlackListCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["is_black_list"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_black_list"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["is_black_list"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateCandidateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateCandidateInput2trecᚋentᚐUpdateCandidateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1664,6 +2060,48 @@ func (ec *executionContext) field_Query_GetAllAuditTrails_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_GetAllCandidates_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.CandidateFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOCandidateFilter2ᚖtrecᚋentᚐCandidateFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.CandidateFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOCandidateFreeWord2ᚖtrecᚋentᚐCandidateFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.CandidateOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOCandidateOrder2ᚖtrecᚋentᚐCandidateOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_GetAllHiringJobs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1749,6 +2187,21 @@ func (ec *executionContext) field_Query_GetAllTeams_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_Query_GetAuditTrail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3100,6 +3553,721 @@ func (ec *executionContext) fieldContext_Base64Response_data(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Base64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_id(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_name(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_email(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_phone(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_dob(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_dob(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dob, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_dob(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_status(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().Status(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.CandidateStatusEnum)
+	fc.Result = res
+	return ec.marshalNCandidateStatusEnum2trecᚋentᚐCandidateStatusEnum(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateStatusEnum does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_is_black_list(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_is_black_list(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsBlacklist, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_is_black_list(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_deleted_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_deleted_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_deleted_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Candidate)
+	fc.Result = res
+	return ec.marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Candidate_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Candidate_name(ctx, field)
+			case "email":
+				return ec.fieldContext_Candidate_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_Candidate_phone(ctx, field)
+			case "dob":
+				return ec.fieldContext_Candidate_dob(ctx, field)
+			case "status":
+				return ec.fieldContext_Candidate_status(ctx, field)
+			case "is_black_list":
+				return ec.fieldContext_Candidate_is_black_list(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Candidate_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Candidate_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Candidate_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Candidate", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Candidate)
+	fc.Result = res
+	return ec.marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Candidate_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Candidate_name(ctx, field)
+			case "email":
+				return ec.fieldContext_Candidate_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_Candidate_phone(ctx, field)
+			case "dob":
+				return ec.fieldContext_Candidate_dob(ctx, field)
+			case "status":
+				return ec.fieldContext_Candidate_status(ctx, field)
+			case "is_black_list":
+				return ec.fieldContext_Candidate_is_black_list(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Candidate_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Candidate_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Candidate_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Candidate", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateEdge)
+	fc.Result = res
+	return ec.marshalNCandidateEdge2ᚕᚖtrecᚋentᚐCandidateEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_CandidateEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_CandidateEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -4589,6 +5757,234 @@ func (ec *executionContext) fieldContext_Mutation_UpdateHiringJobStatus(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_CreateCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCandidate(rctx, fc.Args["input"].(ent.NewCandidateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateResponse)
+	fc.Result = res
+	return ec.marshalNCandidateResponse2ᚖtrecᚋentᚐCandidateResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCandidate(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateResponse)
+	fc.Result = res
+	return ec.marshalNCandidateResponse2ᚖtrecᚋentᚐCandidateResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteCandidate(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_SetBlackListCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_SetBlackListCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetBlackListCandidate(rctx, fc.Args["id"].(string), fc.Args["is_black_list"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_SetBlackListCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_SetBlackListCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -5350,6 +6746,126 @@ func (ec *executionContext) fieldContext_Query_GetAllAuditTrails(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllAuditTrails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCandidate(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateResponse)
+	fc.Result = res
+	return ec.marshalNCandidateResponse2ᚖtrecᚋentᚐCandidateResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllCandidates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllCandidates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllCandidates(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.CandidateFilter), fc.Args["freeWord"].(*ent.CandidateFreeWord), fc.Args["orderBy"].(*ent.CandidateOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateResponseGetAll)
+	fc.Result = res
+	return ec.marshalNCandidateResponseGetAll2ᚖtrecᚋentᚐCandidateResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllCandidates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CandidateResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_CandidateResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllCandidates_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -8389,6 +9905,178 @@ func (ec *executionContext) unmarshalInputAuditTrailOrder(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, obj interface{}) (ent.CandidateFilter, error) {
+	var it ent.CandidateFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dob_from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob_from_date"))
+			it.DobFromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dob_to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob_to_date"))
+			it.DobToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOCandidateStatusEnum2ᚖtrecᚋentᚐCandidateStatusEnum(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_date"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_black_list":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_black_list"))
+			it.IsBlackList, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateFreeWord(ctx context.Context, obj interface{}) (ent.CandidateFreeWord, error) {
+	var it ent.CandidateFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "phone"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateOrder(ctx context.Context, obj interface{}) (ent.CandidateOrder, error) {
+	var it ent.CandidateOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNCandidateOrderField2ᚖtrecᚋentᚐCandidateOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, obj interface{}) (ent.HiringJobFilter, error) {
 	var it ent.HiringJobFilter
 	asMap := map[string]interface{}{}
@@ -8488,6 +10176,58 @@ func (ec *executionContext) unmarshalInputHiringJobOrder(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			it.Field, err = ec.unmarshalNHiringJobOrderField2ᚖtrecᚋentᚐHiringJobOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context, obj interface{}) (ent.NewCandidateInput, error) {
+	var it ent.NewCandidateInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dob":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
+			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8760,6 +10500,66 @@ func (ec *executionContext) unmarshalInputTeamOrder(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			it.Field, err = ec.unmarshalNTeamOrderField2ᚖtrecᚋentᚐTeamOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Context, obj interface{}) (ent.UpdateCandidateInput, error) {
+	var it ent.UpdateCandidateInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "email", "phone", "dob"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dob":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
+			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9426,6 +11226,218 @@ func (ec *executionContext) _Base64Response(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var candidateImplementors = []string{"Candidate"}
+
+func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet, obj *ent.Candidate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Candidate")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "name":
+
+			out.Values[i] = ec._Candidate_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "email":
+
+			out.Values[i] = ec._Candidate_email(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "phone":
+
+			out.Values[i] = ec._Candidate_phone(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "dob":
+
+			out.Values[i] = ec._Candidate_dob(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "status":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_black_list":
+
+			out.Values[i] = ec._Candidate_is_black_list(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "created_at":
+
+			out.Values[i] = ec._Candidate_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._Candidate_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "deleted_at":
+
+			out.Values[i] = ec._Candidate_deleted_at(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateEdgeImplementors = []string{"CandidateEdge"}
+
+func (ec *executionContext) _CandidateEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateEdge")
+		case "node":
+
+			out.Values[i] = ec._CandidateEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._CandidateEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateResponseImplementors = []string{"CandidateResponse"}
+
+func (ec *executionContext) _CandidateResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateResponse")
+		case "data":
+
+			out.Values[i] = ec._CandidateResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateResponseGetAllImplementors = []string{"CandidateResponseGetAll"}
+
+func (ec *executionContext) _CandidateResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._CandidateResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._CandidateResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var hiringJobImplementors = []string{"HiringJob"}
 
 func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringJob) graphql.Marshaler {
@@ -9833,6 +11845,42 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "CreateCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateCandidate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateCandidate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "DeleteCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteCandidate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "SetBlackListCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_SetBlackListCandidate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10119,6 +12167,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllAuditTrails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetCandidate":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCandidate(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetAllCandidates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllCandidates(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10954,6 +13048,124 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v *ent.Candidate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Candidate(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateEdge2ᚕᚖtrecᚋentᚐCandidateEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateEdge2ᚖtrecᚋentᚐCandidateEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCandidateEdge2ᚖtrecᚋentᚐCandidateEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCandidateOrderField2ᚖtrecᚋentᚐCandidateOrderField(ctx context.Context, v interface{}) (*ent.CandidateOrderField, error) {
+	var res = new(ent.CandidateOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateOrderField2ᚖtrecᚋentᚐCandidateOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalNCandidateResponse2trecᚋentᚐCandidateResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateResponse) graphql.Marshaler {
+	return ec._CandidateResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateResponse2ᚖtrecᚋentᚐCandidateResponse(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateResponseGetAll2trecᚋentᚐCandidateResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.CandidateResponseGetAll) graphql.Marshaler {
+	return ec._CandidateResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateResponseGetAll2ᚖtrecᚋentᚐCandidateResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateResponseGetAll(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCandidateStatusEnum2trecᚋentᚐCandidateStatusEnum(ctx context.Context, v interface{}) (ent.CandidateStatusEnum, error) {
+	var res ent.CandidateStatusEnum
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateStatusEnum2trecᚋentᚐCandidateStatusEnum(ctx context.Context, sel ast.SelectionSet, v ent.CandidateStatusEnum) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNCurrencyEnum2trecᚋentᚐCurrencyEnum(ctx context.Context, v interface{}) (ent.CurrencyEnum, error) {
 	var res ent.CurrencyEnum
 	err := res.UnmarshalGQL(v)
@@ -11147,6 +13359,11 @@ func (ec *executionContext) marshalNLocationEnum2trecᚋentᚐLocationEnum(ctx c
 	return v
 }
 
+func (ec *executionContext) unmarshalNNewCandidateInput2trecᚋentᚐNewCandidateInput(ctx context.Context, v interface{}) (ent.NewCandidateInput, error) {
+	res, err := ec.unmarshalInputNewCandidateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewHiringJobInput2trecᚋentᚐNewHiringJobInput(ctx context.Context, v interface{}) (ent.NewHiringJobInput, error) {
 	res, err := ec.unmarshalInputNewHiringJobInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11327,6 +13544,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateCandidateInput2trecᚋentᚐUpdateCandidateInput(ctx context.Context, v interface{}) (ent.UpdateCandidateInput, error) {
+	res, err := ec.unmarshalInputUpdateCandidateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpdateHiringJobInput2trecᚋentᚐUpdateHiringJobInput(ctx context.Context, v interface{}) (ent.UpdateHiringJobInput, error) {
@@ -11818,6 +14040,46 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOCandidateFilter2ᚖtrecᚋentᚐCandidateFilter(ctx context.Context, v interface{}) (*ent.CandidateFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateFreeWord2ᚖtrecᚋentᚐCandidateFreeWord(ctx context.Context, v interface{}) (*ent.CandidateFreeWord, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateFreeWord(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateOrder2ᚖtrecᚋentᚐCandidateOrder(ctx context.Context, v interface{}) (*ent.CandidateOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateStatusEnum2ᚖtrecᚋentᚐCandidateStatusEnum(ctx context.Context, v interface{}) (*ent.CandidateStatusEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.CandidateStatusEnum)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCandidateStatusEnum2ᚖtrecᚋentᚐCandidateStatusEnum(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateStatusEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOCursor2ᚖtrecᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {

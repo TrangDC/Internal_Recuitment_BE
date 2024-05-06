@@ -17,6 +17,7 @@ type Service interface {
 	Team() TeamService
 	HiringJob() HiringJobService
 	AuditTrail() AuditTrailService
+	Candidate() CandidateService
 }
 
 // serviceImpl is the implementation of Service.
@@ -27,6 +28,7 @@ type serviceImpl struct {
 	teamService       TeamService
 	hiringJobService  HiringJobService
 	auditTrailService AuditTrailService
+	candidateService  CandidateService
 }
 
 // NewService creates a new Service.
@@ -40,6 +42,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		teamService:       NewTeamService(repoRegistry, logger),
 		hiringJobService:  NewHiringJobService(repoRegistry, logger),
 		auditTrailService: NewAuditTrailService(repoRegistry, logger),
+		candidateService:  NewCandidateService(repoRegistry, logger),
 	}
 }
 
@@ -71,4 +74,9 @@ func (i serviceImpl) HiringJob() HiringJobService {
 // AuditTrail returns the AuditTrailService.
 func (i serviceImpl) AuditTrail() AuditTrailService {
 	return i.auditTrailService
+}
+
+// Candidate returns the CandidateService.
+func (i serviceImpl) Candidate() CandidateService {
+	return i.candidateService
 }

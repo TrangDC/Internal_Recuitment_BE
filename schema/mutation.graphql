@@ -11,4 +11,10 @@ type Mutation {
   UpdateHiringJob(id: ID!, input: UpdateHiringJobInput!): HiringJobResponse!
   DeleteHiringJob(id: ID!): Boolean!
   UpdateHiringJobStatus(id: ID!, status: HiringJobStatus!): HiringJobResponse!
+
+  # Candidate
+  CreateCandidate(input: NewCandidateInput!): CandidateResponse!
+  UpdateCandidate(id: ID!, input: UpdateCandidateInput!): CandidateResponse!
+  DeleteCandidate(id: ID!): Boolean!
+  SetBlackListCandidate(id: ID!, is_black_list: Boolean!): Boolean!
 }

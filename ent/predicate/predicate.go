@@ -9,6 +9,9 @@ import (
 // AuditTrail is the predicate function for audittrail builders.
 type AuditTrail func(*sql.Selector)
 
+// Candidate is the predicate function for candidate builders.
+type Candidate func(*sql.Selector)
+
 // HiringJob is the predicate function for hiringjob builders.
 type HiringJob func(*sql.Selector)
 

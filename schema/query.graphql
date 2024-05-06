@@ -15,4 +15,8 @@ type Query {
 	#AuditTrail
 	GetAuditTrail(id: ID!): AuditTrailResponse!
 	GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
+
+	#Candidate
+	GetCandidate(id: ID!): CandidateResponse!
+	GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
 }

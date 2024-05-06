@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// AuditTrail is the client for interacting with the AuditTrail builders.
 	AuditTrail *AuditTrailClient
+	// Candidate is the client for interacting with the Candidate builders.
+	Candidate *CandidateClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
@@ -154,6 +156,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AuditTrail = NewAuditTrailClient(tx.config)
+	tx.Candidate = NewCandidateClient(tx.config)
 	tx.HiringJob = NewHiringJobClient(tx.config)
 	tx.Team = NewTeamClient(tx.config)
 	tx.TeamManager = NewTeamManagerClient(tx.config)

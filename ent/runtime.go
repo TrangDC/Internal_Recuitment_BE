@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/candidate"
 	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/team"
@@ -35,6 +36,77 @@ func init() {
 	audittrailDescID := audittrailMixinFields0[0].Descriptor()
 	// audittrail.DefaultID holds the default value on creation for the id field.
 	audittrail.DefaultID = audittrailDescID.Default.(func() uuid.UUID)
+	candidateMixin := schema.Candidate{}.Mixin()
+	candidateMixinFields0 := candidateMixin[0].Fields()
+	_ = candidateMixinFields0
+	candidateFields := schema.Candidate{}.Fields()
+	_ = candidateFields
+	// candidateDescCreatedAt is the schema descriptor for created_at field.
+	candidateDescCreatedAt := candidateMixinFields0[1].Descriptor()
+	// candidate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidate.DefaultCreatedAt = candidateDescCreatedAt.Default.(func() time.Time)
+	// candidateDescName is the schema descriptor for name field.
+	candidateDescName := candidateFields[0].Descriptor()
+	// candidate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	candidate.NameValidator = func() func(string) error {
+		validators := candidateDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateDescEmail is the schema descriptor for email field.
+	candidateDescEmail := candidateFields[1].Descriptor()
+	// candidate.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	candidate.EmailValidator = func() func(string) error {
+		validators := candidateDescEmail.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(email string) error {
+			for _, fn := range fns {
+				if err := fn(email); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateDescPhone is the schema descriptor for phone field.
+	candidateDescPhone := candidateFields[2].Descriptor()
+	// candidate.PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
+	candidate.PhoneValidator = func() func(string) error {
+		validators := candidateDescPhone.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(phone string) error {
+			for _, fn := range fns {
+				if err := fn(phone); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateDescIsBlacklist is the schema descriptor for is_blacklist field.
+	candidateDescIsBlacklist := candidateFields[4].Descriptor()
+	// candidate.DefaultIsBlacklist holds the default value on creation for the is_blacklist field.
+	candidate.DefaultIsBlacklist = candidateDescIsBlacklist.Default.(bool)
+	// candidateDescID is the schema descriptor for id field.
+	candidateDescID := candidateMixinFields0[0].Descriptor()
+	// candidate.DefaultID holds the default value on creation for the id field.
+	candidate.DefaultID = candidateDescID.Default.(func() uuid.UUID)
 	hiringjobMixin := schema.HiringJob{}.Mixin()
 	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
 	_ = hiringjobMixinFields0

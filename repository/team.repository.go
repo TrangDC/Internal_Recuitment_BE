@@ -93,7 +93,7 @@ func (rps *teamRepoImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput,
 
 func (rps *teamRepoImpl) UpdateTeam(ctx context.Context, model *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error) {
 	update := rps.BuildUpdateOne(ctx, model).SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
-	AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
+		AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -123,7 +123,7 @@ func (rps *teamRepoImpl) ValidName(ctx context.Context, teamId uuid.UUID, name s
 		return err
 	}
 	if isExist {
-		return fmt.Errorf("module_team.validation.name_exist")
+		return fmt.Errorf("model.teams.validation.name_exist")
 	}
 	return nil
 }
@@ -138,7 +138,7 @@ func (rps *teamRepoImpl) ValidUserInAnotherTeam(ctx context.Context, id uuid.UUI
 		return err
 	}
 	if isExist {
-		return fmt.Errorf("module_team.validation.user_in_another_team")
+		return fmt.Errorf("model.teams.validation.user_in_another_team")
 	}
 	return nil
 }

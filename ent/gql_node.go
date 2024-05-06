@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"trec/ent/audittrail"
+	"trec/ent/candidate"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -134,6 +135,81 @@ func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     c.ID,
+		Type:   "Candidate",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(c.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Email); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "email",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Phone); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "phone",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Dob); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "time.Time",
+		Name:  "dob",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.IsBlacklist); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "is_blacklist",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -618,6 +694,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case candidate.Table:
+		query := c.Candidate.Query().
+			Where(candidate.ID(id))
+		query, err := query.CollectFields(ctx, "Candidate")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case hiringjob.Table:
 		query := c.HiringJob.Query().
 			Where(hiringjob.ID(id))
@@ -743,6 +831,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.AuditTrail.Query().
 			Where(audittrail.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "AuditTrail")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidate.Table:
+		query := c.Candidate.Query().
+			Where(candidate.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Candidate")
 		if err != nil {
 			return nil, err
 		}

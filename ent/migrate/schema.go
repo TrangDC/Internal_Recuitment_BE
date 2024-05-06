@@ -35,6 +35,24 @@ var (
 			},
 		},
 	}
+	// CandidatesColumns holds the columns for the "candidates" table.
+	CandidatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "phone", Type: field.TypeString, Size: 255},
+		{Name: "dob", Type: field.TypeTime},
+		{Name: "is_blacklist", Type: field.TypeBool, Default: false},
+	}
+	// CandidatesTable holds the schema information for the "candidates" table.
+	CandidatesTable = &schema.Table{
+		Name:       "candidates",
+		Columns:    CandidatesColumns,
+		PrimaryKey: []*schema.Column{CandidatesColumns[0]},
+	}
 	// HiringJobsColumns holds the columns for the "hiring_jobs" table.
 	HiringJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -144,6 +162,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AuditTrailsTable,
+		CandidatesTable,
 		HiringJobsTable,
 		TeamsTable,
 		TeamManagersTable,
