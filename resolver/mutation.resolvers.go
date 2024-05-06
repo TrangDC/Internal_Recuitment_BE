@@ -115,6 +115,42 @@ func (r *mutationResolver) SetBlackListCandidate(ctx context.Context, id string,
 	return true, nil
 }
 
+// CreateCandidateJob is the resolver for the CreateCandidateJob field.
+func (r *mutationResolver) CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error) {
+	result, err := r.serviceRegistry.CandidateJob().CreateCandidateJob(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateCandidateJobAttachment is the resolver for the UpdateCandidateJobAttachment field.
+func (r *mutationResolver) UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment) (*ent.CandidateJobResponse, error) {
+	result, err := r.serviceRegistry.CandidateJob().UpdateCandidateJobAttachment(ctx, input, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// DeleteCandidateJob is the resolver for the DeleteCandidateJob field.
+func (r *mutationResolver) DeleteCandidateJob(ctx context.Context, id string) (bool, error) {
+	err := r.serviceRegistry.CandidateJob().DeleteCandidateJob(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// UpdateCandidateJobStatus is the resolver for the UpdateCandidateJobStatus field.
+func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id string, status ent.CandidateJobStatus) (*ent.CandidateJobResponse, error) {
+	result, err := r.serviceRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, status, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

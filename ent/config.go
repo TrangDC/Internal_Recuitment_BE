@@ -24,12 +24,14 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
-	AuditTrail  []ent.Hook
-	Candidate   []ent.Hook
-	HiringJob   []ent.Hook
-	Team        []ent.Hook
-	TeamManager []ent.Hook
-	User        []ent.Hook
+	Attachment   []ent.Hook
+	AuditTrail   []ent.Hook
+	Candidate    []ent.Hook
+	CandidateJob []ent.Hook
+	HiringJob    []ent.Hook
+	Team         []ent.Hook
+	TeamManager  []ent.Hook
+	User         []ent.Hook
 }
 
 // Options applies the options on the config object.

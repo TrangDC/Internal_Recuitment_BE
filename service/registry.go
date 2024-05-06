@@ -18,17 +18,21 @@ type Service interface {
 	HiringJob() HiringJobService
 	AuditTrail() AuditTrailService
 	Candidate() CandidateService
+	CandidateJob() CandidateJobService
+	Attachment() AttachmentService
 }
 
 // serviceImpl is the implementation of Service.
 type serviceImpl struct {
-	authService       AuthService
-	storageService    StorageService
-	userService       UserService
-	teamService       TeamService
-	hiringJobService  HiringJobService
-	auditTrailService AuditTrailService
-	candidateService  CandidateService
+	authService         AuthService
+	storageService      StorageService
+	userService         UserService
+	teamService         TeamService
+	hiringJobService    HiringJobService
+	auditTrailService   AuditTrailService
+	candidateService    CandidateService
+	candidateJobService CandidateJobService
+	attachmentService   AttachmentService
 }
 
 // NewService creates a new Service.
@@ -36,13 +40,15 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 	repoRegistry := repository.NewRepository(entClient)
 
 	return &serviceImpl{
-		authService:       NewAuthService(azureADOAuthClient, logger),
-		storageService:    NewStorageService(azureStorage, logger),
-		userService:       NewUserService(repoRegistry, logger),
-		teamService:       NewTeamService(repoRegistry, logger),
-		hiringJobService:  NewHiringJobService(repoRegistry, logger),
-		auditTrailService: NewAuditTrailService(repoRegistry, logger),
-		candidateService:  NewCandidateService(repoRegistry, logger),
+		authService:         NewAuthService(azureADOAuthClient, logger),
+		storageService:      NewStorageService(azureStorage, logger),
+		userService:         NewUserService(repoRegistry, logger),
+		teamService:         NewTeamService(repoRegistry, logger),
+		hiringJobService:    NewHiringJobService(repoRegistry, logger),
+		auditTrailService:   NewAuditTrailService(repoRegistry, logger),
+		candidateService:    NewCandidateService(repoRegistry, logger),
+		candidateJobService: NewCandidateJobService(repoRegistry, logger),
+		attachmentService:   NewAttachmentService(repoRegistry, logger),
 	}
 }
 
@@ -79,4 +85,14 @@ func (i serviceImpl) AuditTrail() AuditTrailService {
 // Candidate returns the CandidateService.
 func (i serviceImpl) Candidate() CandidateService {
 	return i.candidateService
+}
+
+// CandidateJob returns the CandidateJobService.
+func (i serviceImpl) CandidateJob() CandidateJobService {
+	return i.candidateJobService
+}
+
+// Attachment returns the AttachmentService.
+func (i serviceImpl) Attachment() AttachmentService {
+	return i.attachmentService
 }

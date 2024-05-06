@@ -97,6 +97,24 @@ func (r *queryResolver) GetAllCandidates(ctx context.Context, pagination *ent.Pa
 	return result, nil
 }
 
+// GetCandidateJob is the resolver for the GetCandidateJob field.
+func (r *queryResolver) GetCandidateJob(ctx context.Context, id string) (*ent.CandidateJobResponse, error) {
+	result, err := r.serviceRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetAllCandidateJobs is the resolver for the GetAllCandidateJobs field.
+func (r *queryResolver) GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error) {
+	result, err := r.serviceRegistry.CandidateJob().GetCandidateJobs(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

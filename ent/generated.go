@@ -74,6 +74,29 @@ type CandidateFreeWord struct {
 	Phone *string `json:"phone"`
 }
 
+type CandidateJobFilter struct {
+	Status      *CandidateJobStatus `json:"status"`
+	FromDate    *time.Time          `json:"from_date"`
+	ToDate      *time.Time          `json:"to_date"`
+	TeamID      *string             `json:"team_id"`
+	HiringJobID *string             `json:"hiring_job_id"`
+	CandidateID string              `json:"candidate_id"`
+}
+
+type CandidateJobFreeWord struct {
+	Team      *string `json:"team"`
+	HiringJob *string `json:"hiring_job"`
+}
+
+type CandidateJobResponse struct {
+	Data *CandidateJob `json:"data"`
+}
+
+type CandidateJobResponseGetAll struct {
+	Edges      []*CandidateJobEdge `json:"edges"`
+	Pagination *Pagination         `json:"pagination"`
+}
+
 type CandidateResponse struct {
 	Data *Candidate `json:"data"`
 }
@@ -102,11 +125,23 @@ type HiringJobResponseGetAll struct {
 	Pagination *Pagination      `json:"pagination"`
 }
 
+type NewAttachmentInput struct {
+	DocumentName string `json:"document_name"`
+	DocumentID   string `json:"document_id"`
+}
+
 type NewCandidateInput struct {
 	Name  string    `json:"name"`
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
 	Dob   time.Time `json:"dob"`
+}
+
+type NewCandidateJobInput struct {
+	CandidateID string                `json:"candidate_id"`
+	HiringJobID string                `json:"hiring_job_id"`
+	Status      CandidateJobStatus    `json:"status"`
+	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
 type NewHiringJobInput struct {
@@ -154,6 +189,10 @@ type TeamResponse struct {
 type TeamResponseGetAll struct {
 	Edges      []*TeamEdge `json:"edges"`
 	Pagination *Pagination `json:"pagination"`
+}
+
+type UpdateCandidateAttachment struct {
+	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
 type UpdateCandidateInput struct {
@@ -281,6 +320,186 @@ func (e *AttachmentFolder) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentFolder) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AttachmentRelationType string
+
+const (
+	AttachmentRelationTypeCandidateJobs AttachmentRelationType = "candidate_jobs"
+)
+
+var AllAttachmentRelationType = []AttachmentRelationType{
+	AttachmentRelationTypeCandidateJobs,
+}
+
+func (e AttachmentRelationType) IsValid() bool {
+	switch e {
+	case AttachmentRelationTypeCandidateJobs:
+		return true
+	}
+	return false
+}
+
+func (e AttachmentRelationType) String() string {
+	return string(e)
+}
+
+func (e *AttachmentRelationType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AttachmentRelationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AttachmentRelationType", str)
+	}
+	return nil
+}
+
+func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobStatus string
+
+const (
+	CandidateJobStatusHired        CandidateJobStatus = "hired"
+	CandidateJobStatusKiv          CandidateJobStatus = "kiv"
+	CandidateJobStatusOfferLost    CandidateJobStatus = "offer_lost"
+	CandidateJobStatusExStaff      CandidateJobStatus = "ex_staff"
+	CandidateJobStatusApplied      CandidateJobStatus = "applied"
+	CandidateJobStatusInterviewing CandidateJobStatus = "interviewing"
+	CandidateJobStatusOffering     CandidateJobStatus = "offering"
+	CandidateJobStatusNew          CandidateJobStatus = "new"
+)
+
+var AllCandidateJobStatus = []CandidateJobStatus{
+	CandidateJobStatusHired,
+	CandidateJobStatusKiv,
+	CandidateJobStatusOfferLost,
+	CandidateJobStatusExStaff,
+	CandidateJobStatusApplied,
+	CandidateJobStatusInterviewing,
+	CandidateJobStatusOffering,
+	CandidateJobStatusNew,
+}
+
+func (e CandidateJobStatus) IsValid() bool {
+	switch e {
+	case CandidateJobStatusHired, CandidateJobStatusKiv, CandidateJobStatusOfferLost, CandidateJobStatusExStaff, CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusNew:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatus) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatus", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobStatusEnded string
+
+const (
+	CandidateJobStatusEndedHired     CandidateJobStatusEnded = "hired"
+	CandidateJobStatusEndedKiv       CandidateJobStatusEnded = "kiv"
+	CandidateJobStatusEndedOfferLost CandidateJobStatusEnded = "offer_lost"
+	CandidateJobStatusEndedExStaff   CandidateJobStatusEnded = "ex_staff"
+)
+
+var AllCandidateJobStatusEnded = []CandidateJobStatusEnded{
+	CandidateJobStatusEndedHired,
+	CandidateJobStatusEndedKiv,
+	CandidateJobStatusEndedOfferLost,
+	CandidateJobStatusEndedExStaff,
+}
+
+func (e CandidateJobStatusEnded) IsValid() bool {
+	switch e {
+	case CandidateJobStatusEndedHired, CandidateJobStatusEndedKiv, CandidateJobStatusEndedOfferLost, CandidateJobStatusEndedExStaff:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatusEnded) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatusEnded) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatusEnded(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatusEnded", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatusEnded) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobStatusOpen string
+
+const (
+	CandidateJobStatusOpenApplied      CandidateJobStatusOpen = "applied"
+	CandidateJobStatusOpenInterviewing CandidateJobStatusOpen = "interviewing"
+	CandidateJobStatusOpenOffering     CandidateJobStatusOpen = "offering"
+)
+
+var AllCandidateJobStatusOpen = []CandidateJobStatusOpen{
+	CandidateJobStatusOpenApplied,
+	CandidateJobStatusOpenInterviewing,
+	CandidateJobStatusOpenOffering,
+}
+
+func (e CandidateJobStatusOpen) IsValid() bool {
+	switch e {
+	case CandidateJobStatusOpenApplied, CandidateJobStatusOpenInterviewing, CandidateJobStatusOpenOffering:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatusOpen) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatusOpen) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatusOpen(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatusOpen", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatusOpen) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

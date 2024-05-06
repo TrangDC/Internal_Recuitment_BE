@@ -8,6 +8,19 @@ import (
 	"trec/ent"
 )
 
+// The AttachmentFunc type is an adapter to allow the use of ordinary
+// function as Attachment mutator.
+type AttachmentFunc func(context.Context, *ent.AttachmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AttachmentMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachmentMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The AuditTrailFunc type is an adapter to allow the use of ordinary
 // function as AuditTrail mutator.
 type AuditTrailFunc func(context.Context, *ent.AuditTrailMutation) (ent.Value, error)
@@ -30,6 +43,19 @@ func (f CandidateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	mv, ok := m.(*ent.CandidateMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CandidateJobFunc type is an adapter to allow the use of ordinary
+// function as CandidateJob mutator.
+type CandidateJobFunc func(context.Context, *ent.CandidateJobMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateJobFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateJobMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateJobMutation", m)
 	}
 	return f(ctx, mv)
 }

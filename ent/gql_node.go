@@ -6,8 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -44,6 +46,83 @@ type Edge struct {
 	Type string      `json:"type,omitempty"` // edge type.
 	Name string      `json:"name,omitempty"` // edge name.
 	IDs  []uuid.UUID `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     a.ID,
+		Type:   "Attachment",
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(a.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.DocumentID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "document_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.DocumentName); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "document_name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.RelationType); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "attachment.RelationType",
+		Name:  "relation_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(a.RelationID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "relation_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "CandidateJob",
+		Name: "candidate_job",
+	}
+	err = a.QueryCandidateJob().
+		Select(candidatejob.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
 }
 
 func (at *AuditTrail) Node(ctx context.Context) (node *Node, err error) {
@@ -214,12 +293,91 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (cj *CandidateJob) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     cj.ID,
+		Type:   "CandidateJob",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(cj.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cj.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cj.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cj.HiringJobID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "hiring_job_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cj.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cj.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "candidatejob.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = cj.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "HiringJob",
+		Name: "hiring_job",
+	}
+	err = cj.QueryHiringJob().
+		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     hj.ID,
 		Type:   "HiringJob",
 		Fields: make([]*Field, 15),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
@@ -359,6 +517,16 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	err = hj.QueryTeamEdge().
 		Select(team.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "CandidateJob",
+		Name: "candidate_job_edges",
+	}
+	err = hj.QueryCandidateJobEdges().
+		Select(candidatejob.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -682,6 +850,18 @@ func (c *Client) Noder(ctx context.Context, id uuid.UUID, opts ...NodeOption) (_
 
 func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, error) {
 	switch table {
+	case attachment.Table:
+		query := c.Attachment.Query().
+			Where(attachment.ID(id))
+		query, err := query.CollectFields(ctx, "Attachment")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case audittrail.Table:
 		query := c.AuditTrail.Query().
 			Where(audittrail.ID(id))
@@ -698,6 +878,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.Candidate.Query().
 			Where(candidate.ID(id))
 		query, err := query.CollectFields(ctx, "Candidate")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case candidatejob.Table:
+		query := c.CandidateJob.Query().
+			Where(candidatejob.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateJob")
 		if err != nil {
 			return nil, err
 		}
@@ -827,6 +1019,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case attachment.Table:
+		query := c.Attachment.Query().
+			Where(attachment.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Attachment")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case audittrail.Table:
 		query := c.AuditTrail.Query().
 			Where(audittrail.IDIn(ids...))
@@ -847,6 +1055,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.Candidate.Query().
 			Where(candidate.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Candidate")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidatejob.Table:
+		query := c.CandidateJob.Query().
+			Where(candidatejob.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateJob")
 		if err != nil {
 			return nil, err
 		}

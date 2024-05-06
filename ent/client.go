@@ -10,8 +10,10 @@ import (
 
 	"trec/ent/migrate"
 
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -28,10 +30,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Attachment is the client for interacting with the Attachment builders.
+	Attachment *AttachmentClient
 	// AuditTrail is the client for interacting with the AuditTrail builders.
 	AuditTrail *AuditTrailClient
 	// Candidate is the client for interacting with the Candidate builders.
 	Candidate *CandidateClient
+	// CandidateJob is the client for interacting with the CandidateJob builders.
+	CandidateJob *CandidateJobClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
@@ -53,8 +59,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Attachment = NewAttachmentClient(c.config)
 	c.AuditTrail = NewAuditTrailClient(c.config)
 	c.Candidate = NewCandidateClient(c.config)
+	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
@@ -90,14 +98,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		AuditTrail:  NewAuditTrailClient(cfg),
-		Candidate:   NewCandidateClient(cfg),
-		HiringJob:   NewHiringJobClient(cfg),
-		Team:        NewTeamClient(cfg),
-		TeamManager: NewTeamManagerClient(cfg),
-		User:        NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Attachment:   NewAttachmentClient(cfg),
+		AuditTrail:   NewAuditTrailClient(cfg),
+		Candidate:    NewCandidateClient(cfg),
+		CandidateJob: NewCandidateJobClient(cfg),
+		HiringJob:    NewHiringJobClient(cfg),
+		Team:         NewTeamClient(cfg),
+		TeamManager:  NewTeamManagerClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -115,21 +125,23 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		AuditTrail:  NewAuditTrailClient(cfg),
-		Candidate:   NewCandidateClient(cfg),
-		HiringJob:   NewHiringJobClient(cfg),
-		Team:        NewTeamClient(cfg),
-		TeamManager: NewTeamManagerClient(cfg),
-		User:        NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Attachment:   NewAttachmentClient(cfg),
+		AuditTrail:   NewAuditTrailClient(cfg),
+		Candidate:    NewCandidateClient(cfg),
+		CandidateJob: NewCandidateJobClient(cfg),
+		HiringJob:    NewHiringJobClient(cfg),
+		Team:         NewTeamClient(cfg),
+		TeamManager:  NewTeamManagerClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AuditTrail.
+//		Attachment.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -151,12 +163,120 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Attachment.Use(hooks...)
 	c.AuditTrail.Use(hooks...)
 	c.Candidate.Use(hooks...)
+	c.CandidateJob.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// AttachmentClient is a client for the Attachment schema.
+type AttachmentClient struct {
+	config
+}
+
+// NewAttachmentClient returns a client for the Attachment from the given config.
+func NewAttachmentClient(c config) *AttachmentClient {
+	return &AttachmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `attachment.Hooks(f(g(h())))`.
+func (c *AttachmentClient) Use(hooks ...Hook) {
+	c.hooks.Attachment = append(c.hooks.Attachment, hooks...)
+}
+
+// Create returns a builder for creating a Attachment entity.
+func (c *AttachmentClient) Create() *AttachmentCreate {
+	mutation := newAttachmentMutation(c.config, OpCreate)
+	return &AttachmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Attachment entities.
+func (c *AttachmentClient) CreateBulk(builders ...*AttachmentCreate) *AttachmentCreateBulk {
+	return &AttachmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Attachment.
+func (c *AttachmentClient) Update() *AttachmentUpdate {
+	mutation := newAttachmentMutation(c.config, OpUpdate)
+	return &AttachmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AttachmentClient) UpdateOne(a *Attachment) *AttachmentUpdateOne {
+	mutation := newAttachmentMutation(c.config, OpUpdateOne, withAttachment(a))
+	return &AttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AttachmentClient) UpdateOneID(id uuid.UUID) *AttachmentUpdateOne {
+	mutation := newAttachmentMutation(c.config, OpUpdateOne, withAttachmentID(id))
+	return &AttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Attachment.
+func (c *AttachmentClient) Delete() *AttachmentDelete {
+	mutation := newAttachmentMutation(c.config, OpDelete)
+	return &AttachmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AttachmentClient) DeleteOne(a *Attachment) *AttachmentDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AttachmentClient) DeleteOneID(id uuid.UUID) *AttachmentDeleteOne {
+	builder := c.Delete().Where(attachment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AttachmentDeleteOne{builder}
+}
+
+// Query returns a query builder for Attachment.
+func (c *AttachmentClient) Query() *AttachmentQuery {
+	return &AttachmentQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Attachment entity by its id.
+func (c *AttachmentClient) Get(ctx context.Context, id uuid.UUID) (*Attachment, error) {
+	return c.Query().Where(attachment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AttachmentClient) GetX(ctx context.Context, id uuid.UUID) *Attachment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCandidateJob queries the candidate_job edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateJob(a *Attachment) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobTable, attachment.CandidateJobColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AttachmentClient) Hooks() []Hook {
+	return c.hooks.Attachment
 }
 
 // AuditTrailClient is a client for the AuditTrail schema.
@@ -355,6 +475,128 @@ func (c *CandidateClient) Hooks() []Hook {
 	return c.hooks.Candidate
 }
 
+// CandidateJobClient is a client for the CandidateJob schema.
+type CandidateJobClient struct {
+	config
+}
+
+// NewCandidateJobClient returns a client for the CandidateJob from the given config.
+func NewCandidateJobClient(c config) *CandidateJobClient {
+	return &CandidateJobClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatejob.Hooks(f(g(h())))`.
+func (c *CandidateJobClient) Use(hooks ...Hook) {
+	c.hooks.CandidateJob = append(c.hooks.CandidateJob, hooks...)
+}
+
+// Create returns a builder for creating a CandidateJob entity.
+func (c *CandidateJobClient) Create() *CandidateJobCreate {
+	mutation := newCandidateJobMutation(c.config, OpCreate)
+	return &CandidateJobCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateJob entities.
+func (c *CandidateJobClient) CreateBulk(builders ...*CandidateJobCreate) *CandidateJobCreateBulk {
+	return &CandidateJobCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateJob.
+func (c *CandidateJobClient) Update() *CandidateJobUpdate {
+	mutation := newCandidateJobMutation(c.config, OpUpdate)
+	return &CandidateJobUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateJobClient) UpdateOne(cj *CandidateJob) *CandidateJobUpdateOne {
+	mutation := newCandidateJobMutation(c.config, OpUpdateOne, withCandidateJob(cj))
+	return &CandidateJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateJobClient) UpdateOneID(id uuid.UUID) *CandidateJobUpdateOne {
+	mutation := newCandidateJobMutation(c.config, OpUpdateOne, withCandidateJobID(id))
+	return &CandidateJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateJob.
+func (c *CandidateJobClient) Delete() *CandidateJobDelete {
+	mutation := newCandidateJobMutation(c.config, OpDelete)
+	return &CandidateJobDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateJobClient) DeleteOne(cj *CandidateJob) *CandidateJobDeleteOne {
+	return c.DeleteOneID(cj.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateJobClient) DeleteOneID(id uuid.UUID) *CandidateJobDeleteOne {
+	builder := c.Delete().Where(candidatejob.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateJobDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateJob.
+func (c *CandidateJobClient) Query() *CandidateJobQuery {
+	return &CandidateJobQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateJob entity by its id.
+func (c *CandidateJobClient) Get(ctx context.Context, id uuid.UUID) (*CandidateJob, error) {
+	return c.Query().Where(candidatejob.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateJobClient) GetX(ctx context.Context, id uuid.UUID) *CandidateJob {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateJob.
+func (c *CandidateJobClient) QueryAttachmentEdges(cj *CandidateJob) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.AttachmentEdgesTable, candidatejob.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringJob queries the hiring_job edge of a CandidateJob.
+func (c *CandidateJobClient) QueryHiringJob(cj *CandidateJob) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.HiringJobTable, candidatejob.HiringJobColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateJobClient) Hooks() []Hook {
+	return c.hooks.CandidateJob
+}
+
 // HiringJobClient is a client for the HiringJob schema.
 type HiringJobClient struct {
 	config
@@ -465,6 +707,22 @@ func (c *HiringJobClient) QueryTeamEdge(hj *HiringJob) *TeamQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
 			sqlgraph.To(team.Table, team.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.TeamEdgeTable, hiringjob.TeamEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobEdges queries the candidate_job_edges edge of a HiringJob.
+func (c *HiringJobClient) QueryCandidateJobEdges(hj *HiringJob) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.CandidateJobEdgesTable, hiringjob.CandidateJobEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
 		return fromV, nil

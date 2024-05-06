@@ -8,6 +8,31 @@ import (
 )
 
 var (
+	// AttachmentsColumns holds the columns for the "attachments" table.
+	AttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "document_id", Type: field.TypeUUID, Unique: true},
+		{Name: "document_name", Type: field.TypeString, Size: 255},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs"}},
+		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// AttachmentsTable holds the schema information for the "attachments" table.
+	AttachmentsTable = &schema.Table{
+		Name:       "attachments",
+		Columns:    AttachmentsColumns,
+		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attachments_candidate_jobs_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// AuditTrailsColumns holds the columns for the "audit_trails" table.
 	AuditTrailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -52,6 +77,30 @@ var (
 		Name:       "candidates",
 		Columns:    CandidatesColumns,
 		PrimaryKey: []*schema.Column{CandidatesColumns[0]},
+	}
+	// CandidateJobsColumns holds the columns for the "candidate_jobs" table.
+	CandidateJobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
+		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateJobsTable holds the schema information for the "candidate_jobs" table.
+	CandidateJobsTable = &schema.Table{
+		Name:       "candidate_jobs",
+		Columns:    CandidateJobsColumns,
+		PrimaryKey: []*schema.Column{CandidateJobsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_jobs_hiring_jobs_candidate_job_edges",
+				Columns:    []*schema.Column{CandidateJobsColumns[6]},
+				RefColumns: []*schema.Column{HiringJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// HiringJobsColumns holds the columns for the "hiring_jobs" table.
 	HiringJobsColumns = []*schema.Column{
@@ -161,8 +210,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AttachmentsTable,
 		AuditTrailsTable,
 		CandidatesTable,
+		CandidateJobsTable,
 		HiringJobsTable,
 		TeamsTable,
 		TeamManagersTable,
@@ -171,7 +222,9 @@ var (
 )
 
 func init() {
+	AttachmentsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
+	CandidateJobsTable.ForeignKeys[0].RefTable = HiringJobsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable

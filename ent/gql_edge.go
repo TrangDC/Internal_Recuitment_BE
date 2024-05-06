@@ -8,10 +8,38 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+func (a *Attachment) CandidateJob(ctx context.Context) (*CandidateJob, error) {
+	result, err := a.Edges.CandidateJobOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateJob().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
 	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
 		result, err = at.QueryUserEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (cj *CandidateJob) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cj.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cj.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cj.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (cj *CandidateJob) HiringJob(ctx context.Context) (*HiringJob, error) {
+	result, err := cj.Edges.HiringJobOrErr()
+	if IsNotLoaded(err) {
+		result, err = cj.QueryHiringJob().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
@@ -30,6 +58,18 @@ func (hj *HiringJob) TeamEdge(ctx context.Context) (*Team, error) {
 		result, err = hj.QueryTeamEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (hj *HiringJob) CandidateJobEdges(ctx context.Context) (result []*CandidateJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = hj.NamedCandidateJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = hj.Edges.CandidateJobEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = hj.QueryCandidateJobEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {

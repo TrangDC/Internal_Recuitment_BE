@@ -1,0 +1,81 @@
+enum CandidateJobStatusEnded {
+  hired
+  kiv
+  offer_lost
+  ex_staff
+}
+
+enum CandidateJobStatusOpen{
+  applied
+  interviewing
+  offering
+}
+
+enum CandidateJobStatus {
+  hired
+  kiv
+  offer_lost
+  ex_staff
+  applied
+  interviewing
+  offering
+  new
+}
+
+type CandidateJob {
+  id: ID!
+  candidate_id: ID!
+  hiring_job_id: ID!
+  status: CandidateJobStatus!
+  attachments: [Attachment!]
+  created_at: Time!
+  updated_at: Time!
+}
+
+input NewCandidateJobInput {
+  candidate_id: ID!
+  hiring_job_id: ID!
+  status: CandidateJobStatus!
+  attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateAttachment {
+  attachments: [NewAttachmentInput!]
+}
+
+type CandidateJobResponse {
+  data: CandidateJob
+}
+
+type CandidateJobEdge {
+  node: CandidateJob!
+  cursor: Cursor!
+}
+
+type CandidateJobResponseGetAll {
+  edges: [CandidateJobEdge!]!
+  pagination: Pagination!
+}
+
+input CandidateJobFilter {
+  status: CandidateJobStatus
+  from_date: Time
+  to_date: Time
+  team_id: ID
+  hiring_job_id: ID
+  candidate_id: ID!
+}
+
+input CandidateJobOrder {
+  direction: OrderDirection!
+  field: CandidateJobOrderField!
+}
+
+enum CandidateJobOrderField {
+  created_at
+}
+
+input CandidateJobFreeWord {
+  team: String
+  hiring_job: String
+}

@@ -10,6 +10,85 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (a *AttachmentQuery) CollectFields(ctx context.Context, satisfies ...string) (*AttachmentQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return a, nil
+	}
+	if err := a.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
+func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "candidateJob":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: a.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			a.withCandidateJob = query
+		}
+	}
+	return nil
+}
+
+type attachmentPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []AttachmentPaginateOption
+}
+
+func newAttachmentPaginateArgs(rv map[string]interface{}) *attachmentPaginateArgs {
+	args := &attachmentPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &AttachmentOrder{Field: &AttachmentOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithAttachmentOrder(order))
+			}
+		case *AttachmentOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithAttachmentOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (at *AuditTrailQuery) CollectFields(ctx context.Context, satisfies ...string) (*AuditTrailQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -154,6 +233,97 @@ func newCandidatePaginateArgs(rv map[string]interface{}) *candidatePaginateArgs 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (cj *CandidateJobQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateJobQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return cj, nil
+	}
+	if err := cj.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return cj, nil
+}
+
+func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "attachmentEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AttachmentQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
+				*wq = *query
+			})
+		case "hiringJob":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.withHiringJob = query
+		}
+	}
+	return nil
+}
+
+type candidatejobPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CandidateJobPaginateOption
+}
+
+func newCandidateJobPaginateArgs(rv map[string]interface{}) *candidatejobPaginateArgs {
+	args := &candidatejobPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &CandidateJobOrder{Field: &CandidateJobOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithCandidateJobOrder(order))
+			}
+		case *CandidateJobOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithCandidateJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (hj *HiringJobQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringJobQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -189,6 +359,18 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.withTeamEdge = query
+		case "candidateJobEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.WithNamedCandidateJobEdges(alias, func(wq *CandidateJobQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
