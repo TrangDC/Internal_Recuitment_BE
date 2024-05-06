@@ -6,11 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Attachment is the predicate function for attachment builders.
+type Attachment func(*sql.Selector)
+
 // AuditTrail is the predicate function for audittrail builders.
 type AuditTrail func(*sql.Selector)
 
 // Candidate is the predicate function for candidate builders.
 type Candidate func(*sql.Selector)
+
+// CandidateJob is the predicate function for candidatejob builders.
+type CandidateJob func(*sql.Selector)
 
 // HiringJob is the predicate function for hiringjob builders.
 type HiringJob func(*sql.Selector)

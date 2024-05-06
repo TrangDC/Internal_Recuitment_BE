@@ -4,8 +4,10 @@ package ent
 
 import (
 	"time"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/team"
@@ -19,6 +21,23 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	attachmentMixin := schema.Attachment{}.Mixin()
+	attachmentMixinFields0 := attachmentMixin[0].Fields()
+	_ = attachmentMixinFields0
+	attachmentFields := schema.Attachment{}.Fields()
+	_ = attachmentFields
+	// attachmentDescCreatedAt is the schema descriptor for created_at field.
+	attachmentDescCreatedAt := attachmentMixinFields0[1].Descriptor()
+	// attachment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	attachment.DefaultCreatedAt = attachmentDescCreatedAt.Default.(func() time.Time)
+	// attachmentDescDocumentName is the schema descriptor for document_name field.
+	attachmentDescDocumentName := attachmentFields[1].Descriptor()
+	// attachment.DocumentNameValidator is a validator for the "document_name" field. It is called by the builders before save.
+	attachment.DocumentNameValidator = attachmentDescDocumentName.Validators[0].(func(string) error)
+	// attachmentDescID is the schema descriptor for id field.
+	attachmentDescID := attachmentMixinFields0[0].Descriptor()
+	// attachment.DefaultID holds the default value on creation for the id field.
+	attachment.DefaultID = attachmentDescID.Default.(func() uuid.UUID)
 	audittrailMixin := schema.AuditTrail{}.Mixin()
 	audittrailMixinFields0 := audittrailMixin[0].Fields()
 	_ = audittrailMixinFields0
@@ -107,6 +126,19 @@ func init() {
 	candidateDescID := candidateMixinFields0[0].Descriptor()
 	// candidate.DefaultID holds the default value on creation for the id field.
 	candidate.DefaultID = candidateDescID.Default.(func() uuid.UUID)
+	candidatejobMixin := schema.CandidateJob{}.Mixin()
+	candidatejobMixinFields0 := candidatejobMixin[0].Fields()
+	_ = candidatejobMixinFields0
+	candidatejobFields := schema.CandidateJob{}.Fields()
+	_ = candidatejobFields
+	// candidatejobDescCreatedAt is the schema descriptor for created_at field.
+	candidatejobDescCreatedAt := candidatejobMixinFields0[1].Descriptor()
+	// candidatejob.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidatejob.DefaultCreatedAt = candidatejobDescCreatedAt.Default.(func() time.Time)
+	// candidatejobDescID is the schema descriptor for id field.
+	candidatejobDescID := candidatejobMixinFields0[0].Descriptor()
+	// candidatejob.DefaultID holds the default value on creation for the id field.
+	candidatejob.DefaultID = candidatejobDescID.Default.(func() uuid.UUID)
 	hiringjobMixin := schema.HiringJob{}.Mixin()
 	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
 	_ = hiringjobMixinFields0

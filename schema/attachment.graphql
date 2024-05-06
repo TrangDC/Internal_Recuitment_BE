@@ -1,0 +1,14 @@
+type Attachment {
+  id: ID!
+  document_name: String!
+  document_id: ID!
+}
+
+input NewAttachmentInput {
+  document_name: String!
+  document_id: ID!
+}
+
+enum AttachmentRelationType {
+  candidate_jobs
+}

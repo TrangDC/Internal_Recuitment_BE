@@ -4,8 +4,10 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -20,16 +22,18 @@ import (
 // HiringJobQuery is the builder for querying HiringJob entities.
 type HiringJobQuery struct {
 	config
-	limit         *int
-	offset        *int
-	unique        *bool
-	order         []OrderFunc
-	fields        []string
-	predicates    []predicate.HiringJob
-	withOwnerEdge *UserQuery
-	withTeamEdge  *TeamQuery
-	modifiers     []func(*sql.Selector)
-	loadTotal     []func(context.Context, []*HiringJob) error
+	limit                      *int
+	offset                     *int
+	unique                     *bool
+	order                      []OrderFunc
+	fields                     []string
+	predicates                 []predicate.HiringJob
+	withOwnerEdge              *UserQuery
+	withTeamEdge               *TeamQuery
+	withCandidateJobEdges      *CandidateJobQuery
+	modifiers                  []func(*sql.Selector)
+	loadTotal                  []func(context.Context, []*HiringJob) error
+	withNamedCandidateJobEdges map[string]*CandidateJobQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +107,28 @@ func (hjq *HiringJobQuery) QueryTeamEdge() *TeamQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(team.Table, team.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.TeamEdgeTable, hiringjob.TeamEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateJobEdges chains the current query on the "candidate_job_edges" edge.
+func (hjq *HiringJobQuery) QueryCandidateJobEdges() *CandidateJobQuery {
+	query := &CandidateJobQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.CandidateJobEdgesTable, hiringjob.CandidateJobEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,13 +312,14 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		return nil
 	}
 	return &HiringJobQuery{
-		config:        hjq.config,
-		limit:         hjq.limit,
-		offset:        hjq.offset,
-		order:         append([]OrderFunc{}, hjq.order...),
-		predicates:    append([]predicate.HiringJob{}, hjq.predicates...),
-		withOwnerEdge: hjq.withOwnerEdge.Clone(),
-		withTeamEdge:  hjq.withTeamEdge.Clone(),
+		config:                hjq.config,
+		limit:                 hjq.limit,
+		offset:                hjq.offset,
+		order:                 append([]OrderFunc{}, hjq.order...),
+		predicates:            append([]predicate.HiringJob{}, hjq.predicates...),
+		withOwnerEdge:         hjq.withOwnerEdge.Clone(),
+		withTeamEdge:          hjq.withTeamEdge.Clone(),
+		withCandidateJobEdges: hjq.withCandidateJobEdges.Clone(),
 		// clone intermediate query.
 		sql:    hjq.sql.Clone(),
 		path:   hjq.path,
@@ -319,6 +346,17 @@ func (hjq *HiringJobQuery) WithTeamEdge(opts ...func(*TeamQuery)) *HiringJobQuer
 		opt(query)
 	}
 	hjq.withTeamEdge = query
+	return hjq
+}
+
+// WithCandidateJobEdges tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithCandidateJobEdges(opts ...func(*CandidateJobQuery)) *HiringJobQuery {
+	query := &CandidateJobQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withCandidateJobEdges = query
 	return hjq
 }
 
@@ -395,9 +433,10 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			hjq.withOwnerEdge != nil,
 			hjq.withTeamEdge != nil,
+			hjq.withCandidateJobEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -430,6 +469,20 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	if query := hjq.withTeamEdge; query != nil {
 		if err := hjq.loadTeamEdge(ctx, query, nodes, nil,
 			func(n *HiringJob, e *Team) { n.Edges.TeamEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := hjq.withCandidateJobEdges; query != nil {
+		if err := hjq.loadCandidateJobEdges(ctx, query, nodes,
+			func(n *HiringJob) { n.Edges.CandidateJobEdges = []*CandidateJob{} },
+			func(n *HiringJob, e *CandidateJob) { n.Edges.CandidateJobEdges = append(n.Edges.CandidateJobEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range hjq.withNamedCandidateJobEdges {
+		if err := hjq.loadCandidateJobEdges(ctx, query, nodes,
+			func(n *HiringJob) { n.appendNamedCandidateJobEdges(name) },
+			func(n *HiringJob, e *CandidateJob) { n.appendNamedCandidateJobEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -490,6 +543,33 @@ func (hjq *HiringJobQuery) loadTeamEdge(ctx context.Context, query *TeamQuery, n
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (hjq *HiringJobQuery) loadCandidateJobEdges(ctx context.Context, query *CandidateJobQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *CandidateJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HiringJob)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(hiringjob.CandidateJobEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.HiringJobID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "hiring_job_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -595,6 +675,20 @@ func (hjq *HiringJobQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedCandidateJobEdges tells the query-builder to eager-load the nodes that are connected to the "candidate_job_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithNamedCandidateJobEdges(name string, opts ...func(*CandidateJobQuery)) *HiringJobQuery {
+	query := &CandidateJobQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if hjq.withNamedCandidateJobEdges == nil {
+		hjq.withNamedCandidateJobEdges = make(map[string]*CandidateJobQuery)
+	}
+	hjq.withNamedCandidateJobEdges[name] = query
+	return hjq
 }
 
 // HiringJobGroupBy is the group-by builder for HiringJob entities.

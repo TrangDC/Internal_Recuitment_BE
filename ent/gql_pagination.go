@@ -10,8 +10,10 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -245,6 +247,308 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
+}
+
+// AttachmentEdge is the edge representation of Attachment.
+type AttachmentEdge struct {
+	Node   *Attachment `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// AttachmentConnection is the connection containing edges to Attachment.
+type AttachmentConnection struct {
+	Edges      []*AttachmentEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *AttachmentConnection) build(nodes []*Attachment, pager *attachmentPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Attachment
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Attachment {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Attachment {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*AttachmentEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &AttachmentEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// AttachmentPaginateOption enables pagination customization.
+type AttachmentPaginateOption func(*attachmentPager) error
+
+// WithAttachmentOrder configures pagination ordering.
+func WithAttachmentOrder(order *AttachmentOrder) AttachmentPaginateOption {
+	if order == nil {
+		order = DefaultAttachmentOrder
+	}
+	o := *order
+	return func(pager *attachmentPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultAttachmentOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithAttachmentFilter configures pagination filter.
+func WithAttachmentFilter(filter func(*AttachmentQuery) (*AttachmentQuery, error)) AttachmentPaginateOption {
+	return func(pager *attachmentPager) error {
+		if filter == nil {
+			return errors.New("AttachmentQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type attachmentPager struct {
+	order  *AttachmentOrder
+	filter func(*AttachmentQuery) (*AttachmentQuery, error)
+}
+
+func newAttachmentPager(opts []AttachmentPaginateOption) (*attachmentPager, error) {
+	pager := &attachmentPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultAttachmentOrder
+	}
+	return pager, nil
+}
+
+func (p *attachmentPager) applyFilter(query *AttachmentQuery) (*AttachmentQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *attachmentPager) toCursor(a *Attachment) Cursor {
+	return p.order.Field.toCursor(a)
+}
+
+func (p *attachmentPager) applyCursors(query *AttachmentQuery, after, before *Cursor) *AttachmentQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultAttachmentOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *attachmentPager) applyOrder(query *AttachmentQuery, reverse bool) *AttachmentQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultAttachmentOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultAttachmentOrder.Field.field))
+	}
+	return query
+}
+
+func (p *attachmentPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultAttachmentOrder.Field {
+			b.Comma().Ident(DefaultAttachmentOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Attachment.
+func (a *AttachmentQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...AttachmentPaginateOption,
+) (*AttachmentConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newAttachmentPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if a, err = pager.applyFilter(a); err != nil {
+		return nil, err
+	}
+	conn := &AttachmentConnection{Edges: []*AttachmentEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = a.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	a = pager.applyCursors(a, after, before)
+	a = pager.applyOrder(a, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		a.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := a.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := a.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// AttachmentOrderFieldCreatedAt orders Attachment by created_at.
+	AttachmentOrderFieldCreatedAt = &AttachmentOrderField{
+		field: attachment.FieldCreatedAt,
+		toCursor: func(a *Attachment) Cursor {
+			return Cursor{
+				ID:    a.ID,
+				Value: a.CreatedAt,
+			}
+		},
+	}
+	// AttachmentOrderFieldUpdatedAt orders Attachment by updated_at.
+	AttachmentOrderFieldUpdatedAt = &AttachmentOrderField{
+		field: attachment.FieldUpdatedAt,
+		toCursor: func(a *Attachment) Cursor {
+			return Cursor{
+				ID:    a.ID,
+				Value: a.UpdatedAt,
+			}
+		},
+	}
+	// AttachmentOrderFieldDeletedAt orders Attachment by deleted_at.
+	AttachmentOrderFieldDeletedAt = &AttachmentOrderField{
+		field: attachment.FieldDeletedAt,
+		toCursor: func(a *Attachment) Cursor {
+			return Cursor{
+				ID:    a.ID,
+				Value: a.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f AttachmentOrderField) String() string {
+	var str string
+	switch f.field {
+	case attachment.FieldCreatedAt:
+		str = "CREATED_AT"
+	case attachment.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case attachment.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f AttachmentOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *AttachmentOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("AttachmentOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *AttachmentOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *AttachmentOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *AttachmentOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid AttachmentOrderField", str)
+	}
+	return nil
+}
+
+// AttachmentOrderField defines the ordering field of Attachment.
+type AttachmentOrderField struct {
+	field    string
+	toCursor func(*Attachment) Cursor
+}
+
+// AttachmentOrder defines the ordering of Attachment.
+type AttachmentOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *AttachmentOrderField `json:"field"`
+}
+
+// DefaultAttachmentOrder is the default ordering of Attachment.
+var DefaultAttachmentOrder = &AttachmentOrder{
+	Direction: OrderDirectionAsc,
+	Field: &AttachmentOrderField{
+		field: attachment.FieldID,
+		toCursor: func(a *Attachment) Cursor {
+			return Cursor{ID: a.ID}
+		},
+	},
+}
+
+// ToEdge converts Attachment into AttachmentEdge.
+func (a *Attachment) ToEdge(order *AttachmentOrder) *AttachmentEdge {
+	if order == nil {
+		order = DefaultAttachmentOrder
+	}
+	return &AttachmentEdge{
+		Node:   a,
+		Cursor: order.Field.toCursor(a),
+	}
 }
 
 // AuditTrailEdge is the edge representation of AuditTrail.
@@ -862,6 +1166,308 @@ func (c *Candidate) ToEdge(order *CandidateOrder) *CandidateEdge {
 	return &CandidateEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// CandidateJobEdge is the edge representation of CandidateJob.
+type CandidateJobEdge struct {
+	Node   *CandidateJob `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// CandidateJobConnection is the connection containing edges to CandidateJob.
+type CandidateJobConnection struct {
+	Edges      []*CandidateJobEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+func (c *CandidateJobConnection) build(nodes []*CandidateJob, pager *candidatejobPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateJob
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateJob {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateJob {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateJobEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateJobEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateJobPaginateOption enables pagination customization.
+type CandidateJobPaginateOption func(*candidatejobPager) error
+
+// WithCandidateJobOrder configures pagination ordering.
+func WithCandidateJobOrder(order *CandidateJobOrder) CandidateJobPaginateOption {
+	if order == nil {
+		order = DefaultCandidateJobOrder
+	}
+	o := *order
+	return func(pager *candidatejobPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateJobOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateJobFilter configures pagination filter.
+func WithCandidateJobFilter(filter func(*CandidateJobQuery) (*CandidateJobQuery, error)) CandidateJobPaginateOption {
+	return func(pager *candidatejobPager) error {
+		if filter == nil {
+			return errors.New("CandidateJobQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatejobPager struct {
+	order  *CandidateJobOrder
+	filter func(*CandidateJobQuery) (*CandidateJobQuery, error)
+}
+
+func newCandidateJobPager(opts []CandidateJobPaginateOption) (*candidatejobPager, error) {
+	pager := &candidatejobPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateJobOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatejobPager) applyFilter(query *CandidateJobQuery) (*CandidateJobQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatejobPager) toCursor(cj *CandidateJob) Cursor {
+	return p.order.Field.toCursor(cj)
+}
+
+func (p *candidatejobPager) applyCursors(query *CandidateJobQuery, after, before *Cursor) *CandidateJobQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateJobOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatejobPager) applyOrder(query *CandidateJobQuery, reverse bool) *CandidateJobQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateJobOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateJobOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatejobPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateJobOrder.Field {
+			b.Comma().Ident(DefaultCandidateJobOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateJob.
+func (cj *CandidateJobQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateJobPaginateOption,
+) (*CandidateJobConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateJobPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if cj, err = pager.applyFilter(cj); err != nil {
+		return nil, err
+	}
+	conn := &CandidateJobConnection{Edges: []*CandidateJobEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = cj.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	cj = pager.applyCursors(cj, after, before)
+	cj = pager.applyOrder(cj, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		cj.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cj.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := cj.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateJobOrderFieldCreatedAt orders CandidateJob by created_at.
+	CandidateJobOrderFieldCreatedAt = &CandidateJobOrderField{
+		field: candidatejob.FieldCreatedAt,
+		toCursor: func(cj *CandidateJob) Cursor {
+			return Cursor{
+				ID:    cj.ID,
+				Value: cj.CreatedAt,
+			}
+		},
+	}
+	// CandidateJobOrderFieldUpdatedAt orders CandidateJob by updated_at.
+	CandidateJobOrderFieldUpdatedAt = &CandidateJobOrderField{
+		field: candidatejob.FieldUpdatedAt,
+		toCursor: func(cj *CandidateJob) Cursor {
+			return Cursor{
+				ID:    cj.ID,
+				Value: cj.UpdatedAt,
+			}
+		},
+	}
+	// CandidateJobOrderFieldDeletedAt orders CandidateJob by deleted_at.
+	CandidateJobOrderFieldDeletedAt = &CandidateJobOrderField{
+		field: candidatejob.FieldDeletedAt,
+		toCursor: func(cj *CandidateJob) Cursor {
+			return Cursor{
+				ID:    cj.ID,
+				Value: cj.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateJobOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatejob.FieldCreatedAt:
+		str = "CREATED_AT"
+	case candidatejob.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case candidatejob.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateJobOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateJobOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateJobOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *CandidateJobOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *CandidateJobOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *CandidateJobOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateJobOrderField", str)
+	}
+	return nil
+}
+
+// CandidateJobOrderField defines the ordering field of CandidateJob.
+type CandidateJobOrderField struct {
+	field    string
+	toCursor func(*CandidateJob) Cursor
+}
+
+// CandidateJobOrder defines the ordering of CandidateJob.
+type CandidateJobOrder struct {
+	Direction OrderDirection          `json:"direction"`
+	Field     *CandidateJobOrderField `json:"field"`
+}
+
+// DefaultCandidateJobOrder is the default ordering of CandidateJob.
+var DefaultCandidateJobOrder = &CandidateJobOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateJobOrderField{
+		field: candidatejob.FieldID,
+		toCursor: func(cj *CandidateJob) Cursor {
+			return Cursor{ID: cj.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateJob into CandidateJobEdge.
+func (cj *CandidateJob) ToEdge(order *CandidateJobOrder) *CandidateJobEdge {
+	if order == nil {
+		order = DefaultCandidateJobOrder
+	}
+	return &CandidateJobEdge{
+		Node:   cj,
+		Cursor: order.Field.toCursor(cj),
 	}
 }
 

@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -36,12 +38,14 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		audittrail.Table:  audittrail.ValidColumn,
-		candidate.Table:   candidate.ValidColumn,
-		hiringjob.Table:   hiringjob.ValidColumn,
-		team.Table:        team.ValidColumn,
-		teammanager.Table: teammanager.ValidColumn,
-		user.Table:        user.ValidColumn,
+		attachment.Table:   attachment.ValidColumn,
+		audittrail.Table:   audittrail.ValidColumn,
+		candidate.Table:    candidate.ValidColumn,
+		candidatejob.Table: candidatejob.ValidColumn,
+		hiringjob.Table:    hiringjob.ValidColumn,
+		team.Table:         team.ValidColumn,
+		teammanager.Table:  teammanager.ValidColumn,
+		user.Table:         user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

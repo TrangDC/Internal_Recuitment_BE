@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/user"
@@ -237,6 +238,21 @@ func (hjc *HiringJobCreate) SetTeamEdge(t *Team) *HiringJobCreate {
 	return hjc.SetTeamEdgeID(t.ID)
 }
 
+// AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
+func (hjc *HiringJobCreate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *HiringJobCreate {
+	hjc.mutation.AddCandidateJobEdgeIDs(ids...)
+	return hjc
+}
+
+// AddCandidateJobEdges adds the "candidate_job_edges" edges to the CandidateJob entity.
+func (hjc *HiringJobCreate) AddCandidateJobEdges(c ...*CandidateJob) *HiringJobCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return hjc.AddCandidateJobEdgeIDs(ids...)
+}
+
 // Mutation returns the HiringJobMutation object of the builder.
 func (hjc *HiringJobCreate) Mutation() *HiringJobMutation {
 	return hjc.mutation
@@ -410,6 +426,9 @@ func (hjc *HiringJobCreate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "HiringJob.currency": %w`, err)}
 		}
 	}
+	if len(hjc.mutation.CandidateJobEdgesIDs()) == 0 {
+		return &ValidationError{Name: "candidate_job_edges", err: errors.New(`ent: missing required edge "HiringJob.candidate_job_edges"`)}
+	}
 	return nil
 }
 
@@ -536,6 +555,25 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.TeamID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringjob.CandidateJobEdgesTable,
+			Columns: []string{hiringjob.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -60,11 +60,15 @@ type HiringJobEdges struct {
 	OwnerEdge *User `json:"owner_edge,omitempty"`
 	// TeamEdge holds the value of the team_edge edge.
 	TeamEdge *Team `json:"team_edge,omitempty"`
+	// CandidateJobEdges holds the value of the candidate_job_edges edge.
+	CandidateJobEdges []*CandidateJob `json:"candidate_job_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
+
+	namedCandidateJobEdges map[string][]*CandidateJob
 }
 
 // OwnerEdgeOrErr returns the OwnerEdge value or an error if the edge
@@ -91,6 +95,15 @@ func (e HiringJobEdges) TeamEdgeOrErr() (*Team, error) {
 		return e.TeamEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "team_edge"}
+}
+
+// CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringJobEdges) CandidateJobEdgesOrErr() ([]*CandidateJob, error) {
+	if e.loadedTypes[2] {
+		return e.CandidateJobEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_job_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -232,6 +245,11 @@ func (hj *HiringJob) QueryTeamEdge() *TeamQuery {
 	return (&HiringJobClient{config: hj.config}).QueryTeamEdge(hj)
 }
 
+// QueryCandidateJobEdges queries the "candidate_job_edges" edge of the HiringJob entity.
+func (hj *HiringJob) QueryCandidateJobEdges() *CandidateJobQuery {
+	return (&HiringJobClient{config: hj.config}).QueryCandidateJobEdges(hj)
+}
+
 // Update returns a builder for updating this HiringJob.
 // Note that you need to call HiringJob.Unwrap() before calling this method if this HiringJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -301,6 +319,30 @@ func (hj *HiringJob) String() string {
 	builder.WriteString(fmt.Sprintf("%v", hj.Currency))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedCandidateJobEdges returns the CandidateJobEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (hj *HiringJob) NamedCandidateJobEdges(name string) ([]*CandidateJob, error) {
+	if hj.Edges.namedCandidateJobEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := hj.Edges.namedCandidateJobEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (hj *HiringJob) appendNamedCandidateJobEdges(name string, edges ...*CandidateJob) {
+	if hj.Edges.namedCandidateJobEdges == nil {
+		hj.Edges.namedCandidateJobEdges = make(map[string][]*CandidateJob)
+	}
+	if len(edges) == 0 {
+		hj.Edges.namedCandidateJobEdges[name] = []*CandidateJob{}
+	} else {
+		hj.Edges.namedCandidateJobEdges[name] = append(hj.Edges.namedCandidateJobEdges[name], edges...)
+	}
 }
 
 // HiringJobs is a parsable slice of HiringJob.

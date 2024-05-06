@@ -19,4 +19,8 @@ type Query {
 	#Candidate
 	GetCandidate(id: ID!): CandidateResponse!
 	GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
+
+	#CandidateJob
+	GetCandidateJob(id: ID!): CandidateJobResponse!
+	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
 }
