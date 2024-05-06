@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"trec/ent/audittrail"
+	"trec/ent/candidate"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -36,6 +37,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		audittrail.Table:  audittrail.ValidColumn,
+		candidate.Table:   candidate.ValidColumn,
 		hiringjob.Table:   hiringjob.ValidColumn,
 		team.Table:        team.ValidColumn,
 		teammanager.Table: teammanager.ValidColumn,

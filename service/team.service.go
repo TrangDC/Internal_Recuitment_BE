@@ -44,9 +44,9 @@ func NewTeamService(repoRegistry repository.Repository, logger *zap.Logger) Team
 func (svc *teamSvcImpl) formatTeamField(input string) string {
 	switch input {
 	case "Name":
-		return "model.team.name"
+		return "model.teams.name"
 	case "Members":
-		return "model.team.members"
+		return "model.teams.members"
 	}
 	return ""
 }
@@ -77,7 +77,7 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, 
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	record := models.AuditTrailData{
-		Module: "module.team",
+		Module: "model.teams",
 		Update: make([]interface{}, 0),
 		Delete: make([]interface{}, 0),
 	}
@@ -149,7 +149,7 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 
 func (svc *teamSvcImpl) compareTeamUpdate(oldRecord *ent.Team, newRecord *ent.Team) (string, error) {
 	result := models.AuditTrailData{
-		Module: "module.team",
+		Module: "model.teams.model_name",
 		Create: make([]interface{}, 0),
 		Delete: make([]interface{}, 0),
 	}
@@ -192,21 +192,21 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	record := models.AuditTrailData{
-		Module: "module.team",
-        Create: make([]interface{}, 0),
-        Update: make([]interface{}, 0),
+		Module: "model.teams.model_name",
+		Create: make([]interface{}, 0),
+		Update: make([]interface{}, 0),
 	}
 	record.Delete = append(record.Delete, models.AuditTrailCreateDelete{
-        Field: svc.formatTeamField("Name"),
-        Value: team.Name,
-    })
+		Field: svc.formatTeamField("Name"),
+		Value: team.Name,
+	})
 	membersName := lo.Map(team.Edges.UserEdges, func(item *ent.User, index int) string {
-        return item.Name
-    })
+		return item.Name
+	})
 	record.Delete = append(record.Delete, models.AuditTrailCreateDelete{
-        Field: svc.formatTeamField("Members"),
-        Value: membersName,
-    })
+		Field: svc.formatTeamField("Members"),
+		Value: membersName,
+	})
 	recordChanges, _ := json.Marshal([]interface{}{record})
 	memberIds := lo.Map(team.Edges.UserEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID

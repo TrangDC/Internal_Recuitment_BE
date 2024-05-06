@@ -138,7 +138,7 @@ func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UU
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if isExist {
-		return fmt.Errorf("module_hiringJob.validation.name_exist")
+		return fmt.Errorf("model.hiring_jobs.validation.name_exist")
 	}
 	return err
 }

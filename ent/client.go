@@ -11,6 +11,7 @@ import (
 	"trec/ent/migrate"
 
 	"trec/ent/audittrail"
+	"trec/ent/candidate"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -29,6 +30,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AuditTrail is the client for interacting with the AuditTrail builders.
 	AuditTrail *AuditTrailClient
+	// Candidate is the client for interacting with the Candidate builders.
+	Candidate *CandidateClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
@@ -51,6 +54,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AuditTrail = NewAuditTrailClient(c.config)
+	c.Candidate = NewCandidateClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
@@ -89,6 +93,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:         ctx,
 		config:      cfg,
 		AuditTrail:  NewAuditTrailClient(cfg),
+		Candidate:   NewCandidateClient(cfg),
 		HiringJob:   NewHiringJobClient(cfg),
 		Team:        NewTeamClient(cfg),
 		TeamManager: NewTeamManagerClient(cfg),
@@ -113,6 +118,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:         ctx,
 		config:      cfg,
 		AuditTrail:  NewAuditTrailClient(cfg),
+		Candidate:   NewCandidateClient(cfg),
 		HiringJob:   NewHiringJobClient(cfg),
 		Team:        NewTeamClient(cfg),
 		TeamManager: NewTeamManagerClient(cfg),
@@ -146,6 +152,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.AuditTrail.Use(hooks...)
+	c.Candidate.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
@@ -256,6 +263,96 @@ func (c *AuditTrailClient) QueryUserEdge(at *AuditTrail) *UserQuery {
 // Hooks returns the client hooks.
 func (c *AuditTrailClient) Hooks() []Hook {
 	return c.hooks.AuditTrail
+}
+
+// CandidateClient is a client for the Candidate schema.
+type CandidateClient struct {
+	config
+}
+
+// NewCandidateClient returns a client for the Candidate from the given config.
+func NewCandidateClient(c config) *CandidateClient {
+	return &CandidateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidate.Hooks(f(g(h())))`.
+func (c *CandidateClient) Use(hooks ...Hook) {
+	c.hooks.Candidate = append(c.hooks.Candidate, hooks...)
+}
+
+// Create returns a builder for creating a Candidate entity.
+func (c *CandidateClient) Create() *CandidateCreate {
+	mutation := newCandidateMutation(c.config, OpCreate)
+	return &CandidateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Candidate entities.
+func (c *CandidateClient) CreateBulk(builders ...*CandidateCreate) *CandidateCreateBulk {
+	return &CandidateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Candidate.
+func (c *CandidateClient) Update() *CandidateUpdate {
+	mutation := newCandidateMutation(c.config, OpUpdate)
+	return &CandidateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateClient) UpdateOne(ca *Candidate) *CandidateUpdateOne {
+	mutation := newCandidateMutation(c.config, OpUpdateOne, withCandidate(ca))
+	return &CandidateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateClient) UpdateOneID(id uuid.UUID) *CandidateUpdateOne {
+	mutation := newCandidateMutation(c.config, OpUpdateOne, withCandidateID(id))
+	return &CandidateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Candidate.
+func (c *CandidateClient) Delete() *CandidateDelete {
+	mutation := newCandidateMutation(c.config, OpDelete)
+	return &CandidateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateClient) DeleteOne(ca *Candidate) *CandidateDeleteOne {
+	return c.DeleteOneID(ca.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateClient) DeleteOneID(id uuid.UUID) *CandidateDeleteOne {
+	builder := c.Delete().Where(candidate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateDeleteOne{builder}
+}
+
+// Query returns a query builder for Candidate.
+func (c *CandidateClient) Query() *CandidateQuery {
+	return &CandidateQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Candidate entity by its id.
+func (c *CandidateClient) Get(ctx context.Context, id uuid.UUID) (*Candidate, error) {
+	return c.Query().Where(candidate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateClient) GetX(ctx context.Context, id uuid.UUID) *Candidate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateClient) Hooks() []Hook {
+	return c.hooks.Candidate
 }
 
 // HiringJobClient is a client for the HiringJob schema.

@@ -79,6 +79,42 @@ func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string,
 	return result, nil
 }
 
+// CreateCandidate is the resolver for the CreateCandidate field.
+func (r *mutationResolver) CreateCandidate(ctx context.Context, input ent.NewCandidateInput) (*ent.CandidateResponse, error) {
+	result, err := r.serviceRegistry.Candidate().CreateCandidate(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UpdateCandidate is the resolver for the UpdateCandidate field.
+func (r *mutationResolver) UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput) (*ent.CandidateResponse, error) {
+	result, err := r.serviceRegistry.Candidate().UpdateCandidate(ctx, &input, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// DeleteCandidate is the resolver for the DeleteCandidate field.
+func (r *mutationResolver) DeleteCandidate(ctx context.Context, id string) (bool, error) {
+	err := r.serviceRegistry.Candidate().DeleteCandidate(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// SetBlackListCandidate is the resolver for the SetBlackListCandidate field.
+func (r *mutationResolver) SetBlackListCandidate(ctx context.Context, id string, isBlackList bool) (bool, error) {
+	err := r.serviceRegistry.Candidate().SetBlackListCandidate(ctx, uuid.MustParse(id), isBlackList)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

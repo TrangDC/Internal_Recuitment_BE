@@ -1,0 +1,80 @@
+enum CandidateStatusEnum {
+  applied
+  interviewing
+  offering
+  hired
+  kiv
+  offer_lost
+  ex_staff
+  new
+}
+
+enum CandidateOrderField {
+  name
+  dob
+  created_at
+}
+
+input NewCandidateInput{
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+}
+
+input UpdateCandidateInput {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+}
+
+input CandidateFilter {
+  name: String
+  email: String
+  phone: String
+  dob_from_date: Time
+  dob_to_date: Time
+  status: CandidateStatusEnum
+  from_date: Time
+  to_date: Time
+  is_black_list: Boolean
+}
+
+input CandidateFreeWord {
+  name: String
+  email: String
+  phone: String
+}
+input CandidateOrder {
+  direction: OrderDirection!
+  field: CandidateOrderField!
+}
+
+type Candidate {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String!
+  dob: Time!
+  status: CandidateStatusEnum!
+  is_black_list: Boolean!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type CandidateResponse {
+  data: Candidate!
+}
+
+type CandidateResponseGetAll {
+  edges: [CandidateEdge!]!
+  pagination: Pagination!
+}
+
+type CandidateEdge {
+  node: Candidate!
+  cursor: Cursor!
+}

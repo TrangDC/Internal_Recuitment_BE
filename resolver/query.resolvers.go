@@ -79,6 +79,24 @@ func (r *queryResolver) GetAllAuditTrails(ctx context.Context, pagination *ent.P
 	return result, nil
 }
 
+// GetCandidate is the resolver for the GetCandidate field.
+func (r *queryResolver) GetCandidate(ctx context.Context, id string) (*ent.CandidateResponse, error) {
+	result, err := r.serviceRegistry.Candidate().GetCandidate(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetAllCandidates is the resolver for the GetAllCandidates field.
+func (r *queryResolver) GetAllCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error) {
+	result, err := r.serviceRegistry.Candidate().GetCandidates(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 
