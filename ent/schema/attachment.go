@@ -17,7 +17,7 @@ func (Attachment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("document_id", uuid.UUID{}).Unique(),
 		field.String("document_name").MaxLen(255),
-		field.Enum("relation_type").Values("candidate_jobs"),
+		field.Enum("relation_type").Values("candidate_jobs", "candidate_job_feedbacks"),
 		field.UUID("relation_id", uuid.UUID{}).Optional(),
 	}
 }
@@ -26,6 +26,7 @@ func (Attachment) Fields() []ent.Field {
 func (Attachment) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("candidate_job", CandidateJob.Type).Ref("attachment_edges").Unique().Field("relation_id"),
+		edge.From("candidate_job_feedback", CandidateJobFeedback.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 	}
 }
 

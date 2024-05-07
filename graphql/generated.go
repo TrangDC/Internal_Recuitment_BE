@@ -41,6 +41,7 @@ type ResolverRoot interface {
 	AuditTrail() AuditTrailResolver
 	Candidate() CandidateResolver
 	CandidateJob() CandidateJobResolver
+	CandidateJobFeedback() CandidateJobFeedbackResolver
 	HiringJob() HiringJobResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -139,6 +140,32 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	CandidateJobFeedback struct {
+		Attachments    func(childComplexity int) int
+		CandidateJob   func(childComplexity int) int
+		CandidateJobID func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		CreatedBy      func(childComplexity int) int
+		Feedback       func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Owner          func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
+	}
+
+	CandidateJobFeedbackEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	CandidateJobFeedbackResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	CandidateJobFeedbackResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	CandidateJobResponse struct {
 		Data func(childComplexity int) int
 	}
@@ -193,6 +220,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateCandidate              func(childComplexity int, input ent.NewCandidateInput) int
 		CreateCandidateJob           func(childComplexity int, input ent.NewCandidateJobInput) int
+		CreateCandidateJobFeedback   func(childComplexity int, input ent.NewCandidateJobFeedbackInput) int
 		CreateHiringJob              func(childComplexity int, input ent.NewHiringJobInput) int
 		CreatePreRequest             func(childComplexity int, input string) int
 		CreateTeam                   func(childComplexity int, input ent.NewTeamInput, note string) int
@@ -203,6 +231,7 @@ type ComplexityRoot struct {
 		SetBlackListCandidate        func(childComplexity int, id string, isBlackList bool) int
 		UpdateCandidate              func(childComplexity int, id string, input ent.UpdateCandidateInput) int
 		UpdateCandidateJobAttachment func(childComplexity int, id string, input ent.UpdateCandidateAttachment) int
+		UpdateCandidateJobFeedback   func(childComplexity int, id string, input ent.UpdateCandidateJobFeedbackInput) int
 		UpdateCandidateJobStatus     func(childComplexity int, id string, status ent.CandidateJobStatus) int
 		UpdateHiringJob              func(childComplexity int, id string, input ent.UpdateHiringJobInput) int
 		UpdateHiringJobStatus        func(childComplexity int, id string, status ent.HiringJobStatus) int
@@ -223,18 +252,20 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAllAuditTrails   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
-		GetAllCandidateJobs func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
-		GetAllCandidates    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		GetAllHiringJobs    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
-		GetAllTeams         func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
-		GetAuditTrail       func(childComplexity int, id string) int
-		GetCandidate        func(childComplexity int, id string) int
-		GetCandidateJob     func(childComplexity int, id string) int
-		GetHiringJob        func(childComplexity int, id string) int
-		GetPreRequest       func(childComplexity int) int
-		GetTeam             func(childComplexity int, id string) int
-		SelectionUsers      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		GetAllAuditTrails           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllCandidateJobFeedbacks func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
+		GetAllCandidateJobs         func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
+		GetAllCandidates            func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		GetAllHiringJobs            func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) int
+		GetAllTeams                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) int
+		GetAuditTrail               func(childComplexity int, id string) int
+		GetCandidate                func(childComplexity int, id string) int
+		GetCandidateJob             func(childComplexity int, id string) int
+		GetCandidateJobFeedback     func(childComplexity int, id string) int
+		GetHiringJob                func(childComplexity int, id string) int
+		GetPreRequest               func(childComplexity int) int
+		GetTeam                     func(childComplexity int, id string) int
+		SelectionUsers              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
 	Team struct {
@@ -307,6 +338,15 @@ type CandidateJobResolver interface {
 	Status(ctx context.Context, obj *ent.CandidateJob) (ent.CandidateJobStatus, error)
 	Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error)
 }
+type CandidateJobFeedbackResolver interface {
+	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
+	CandidateJobID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
+	CandidateJob(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.CandidateJob, error)
+	Owner(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.User, error)
+
+	Attachments(ctx context.Context, obj *ent.CandidateJobFeedback) ([]*ent.Attachment, error)
+}
 type HiringJobResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJob) (string, error)
 
@@ -335,6 +375,8 @@ type MutationResolver interface {
 	UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment) (*ent.CandidateJobResponse, error)
 	DeleteCandidateJob(ctx context.Context, id string) (bool, error)
 	UpdateCandidateJobStatus(ctx context.Context, id string, status ent.CandidateJobStatus) (*ent.CandidateJobResponse, error)
+	CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
+	UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
 }
 type QueryResolver interface {
 	GetPreRequest(ctx context.Context) (string, error)
@@ -349,6 +391,8 @@ type QueryResolver interface {
 	GetAllCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
 	GetCandidateJob(ctx context.Context, id string) (*ent.CandidateJobResponse, error)
 	GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
+	GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error)
+	GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *ent.Team) (string, error)
@@ -717,6 +761,104 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobEdge.Node(childComplexity), true
 
+	case "CandidateJobFeedback.attachments":
+		if e.complexity.CandidateJobFeedback.Attachments == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.Attachments(childComplexity), true
+
+	case "CandidateJobFeedback.candidate_job":
+		if e.complexity.CandidateJobFeedback.CandidateJob == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.CandidateJob(childComplexity), true
+
+	case "CandidateJobFeedback.candidate_job_id":
+		if e.complexity.CandidateJobFeedback.CandidateJobID == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.CandidateJobID(childComplexity), true
+
+	case "CandidateJobFeedback.created_at":
+		if e.complexity.CandidateJobFeedback.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.CreatedAt(childComplexity), true
+
+	case "CandidateJobFeedback.created_by":
+		if e.complexity.CandidateJobFeedback.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.CreatedBy(childComplexity), true
+
+	case "CandidateJobFeedback.feedback":
+		if e.complexity.CandidateJobFeedback.Feedback == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.Feedback(childComplexity), true
+
+	case "CandidateJobFeedback.id":
+		if e.complexity.CandidateJobFeedback.ID == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.ID(childComplexity), true
+
+	case "CandidateJobFeedback.owner":
+		if e.complexity.CandidateJobFeedback.Owner == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.Owner(childComplexity), true
+
+	case "CandidateJobFeedback.updated_at":
+		if e.complexity.CandidateJobFeedback.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.UpdatedAt(childComplexity), true
+
+	case "CandidateJobFeedbackEdge.cursor":
+		if e.complexity.CandidateJobFeedbackEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedbackEdge.Cursor(childComplexity), true
+
+	case "CandidateJobFeedbackEdge.node":
+		if e.complexity.CandidateJobFeedbackEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedbackEdge.Node(childComplexity), true
+
+	case "CandidateJobFeedbackResponse.data":
+		if e.complexity.CandidateJobFeedbackResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedbackResponse.Data(childComplexity), true
+
+	case "CandidateJobFeedbackResponseGetAll.edges":
+		if e.complexity.CandidateJobFeedbackResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedbackResponseGetAll.Edges(childComplexity), true
+
+	case "CandidateJobFeedbackResponseGetAll.pagination":
+		if e.complexity.CandidateJobFeedbackResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedbackResponseGetAll.Pagination(childComplexity), true
+
 	case "CandidateJobResponse.data":
 		if e.complexity.CandidateJobResponse.Data == nil {
 			break
@@ -930,6 +1072,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateCandidateJob(childComplexity, args["input"].(ent.NewCandidateJobInput)), true
 
+	case "Mutation.CreateCandidateJobFeedback":
+		if e.complexity.Mutation.CreateCandidateJobFeedback == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateCandidateJobFeedback_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCandidateJobFeedback(childComplexity, args["input"].(ent.NewCandidateJobFeedbackInput)), true
+
 	case "Mutation.CreateHiringJob":
 		if e.complexity.Mutation.CreateHiringJob == nil {
 			break
@@ -1050,6 +1204,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateCandidateJobAttachment(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateAttachment)), true
 
+	case "Mutation.UpdateCandidateJobFeedback":
+		if e.complexity.Mutation.UpdateCandidateJobFeedback == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateCandidateJobFeedback_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCandidateJobFeedback(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateJobFeedbackInput)), true
+
 	case "Mutation.UpdateCandidateJobStatus":
 		if e.complexity.Mutation.UpdateCandidateJobStatus == nil {
 			break
@@ -1159,6 +1325,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAuditTrails(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.AuditTrailFilter), args["freeWord"].(*ent.AuditTrailFreeWord), args["orderBy"].(*ent.AuditTrailOrder)), true
 
+	case "Query.GetAllCandidateJobFeedbacks":
+		if e.complexity.Query.GetAllCandidateJobFeedbacks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllCandidateJobFeedbacks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllCandidateJobFeedbacks(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(ent.CandidateJobFeedbackFilter), args["freeWord"].(*ent.CandidateJobFeedbackFreeWord), args["orderBy"].(*ent.CandidateJobFeedbackOrder)), true
+
 	case "Query.GetAllCandidateJobs":
 		if e.complexity.Query.GetAllCandidateJobs == nil {
 			break
@@ -1242,6 +1420,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCandidateJob(childComplexity, args["id"].(string)), true
+
+	case "Query.GetCandidateJobFeedback":
+		if e.complexity.Query.GetCandidateJobFeedback == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidateJobFeedback_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidateJobFeedback(childComplexity, args["id"].(string)), true
 
 	case "Query.GetHiringJob":
 		if e.complexity.Query.GetHiringJob == nil {
@@ -1440,6 +1630,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAuditTrailOrder,
 		ec.unmarshalInputCandidateFilter,
 		ec.unmarshalInputCandidateFreeWord,
+		ec.unmarshalInputCandidateJobFeedbackFilter,
+		ec.unmarshalInputCandidateJobFeedbackFreeWord,
+		ec.unmarshalInputCandidateJobFeedbackOrder,
 		ec.unmarshalInputCandidateJobFilter,
 		ec.unmarshalInputCandidateJobFreeWord,
 		ec.unmarshalInputCandidateJobOrder,
@@ -1449,6 +1642,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHiringJobOrder,
 		ec.unmarshalInputNewAttachmentInput,
 		ec.unmarshalInputNewCandidateInput,
+		ec.unmarshalInputNewCandidateJobFeedbackInput,
 		ec.unmarshalInputNewCandidateJobInput,
 		ec.unmarshalInputNewHiringJobInput,
 		ec.unmarshalInputNewTeamInput,
@@ -1458,6 +1652,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputTeamOrder,
 		ec.unmarshalInputUpdateCandidateAttachment,
 		ec.unmarshalInputUpdateCandidateInput,
+		ec.unmarshalInputUpdateCandidateJobFeedbackInput,
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateTeamInput,
 		ec.unmarshalInputUserFilter,
@@ -1540,7 +1735,9 @@ input NewAttachmentInput {
 
 enum AttachmentRelationType {
   candidate_jobs
-}`, BuiltIn: false},
+  candidate_job_feedbacks
+}
+`, BuiltIn: false},
 	{Name: "../schema/audit_trail.graphql", Input: `enum AuditTrailOrderField {
   CREATED_AT
 }
@@ -1676,7 +1873,64 @@ enum CandidateJobOrderField {
 input CandidateJobFreeWord {
   team: String
   hiring_job: String
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
+	{Name: "../schema/candidate_job_feedback.graphql", Input: `type CandidateJobFeedback {
+  id: ID!
+  created_by: ID!
+  candidate_job_id: ID!
+  candidate_job: CandidateJob!
+  owner: User!
+  feedback: String!
+  attachments: [Attachment!]
+  created_at: Time!
+  updated_at: Time!
+}
+
+input NewCandidateJobFeedbackInput {
+  candidate_job_id: ID!
+  feedback: String!
+  attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateJobFeedbackInput {
+  feedback: String!
+  attachments: [NewAttachmentInput!]
+}
+
+enum CandidateJobFeedbackOrderField {
+  CREATED_AT
+}
+
+input CandidateJobFeedbackOrder {
+  field: CandidateJobFeedbackOrderField!
+  direction: OrderDirection!
+}
+
+input CandidateJobFeedbackFilter {
+  candidate_job_id: ID!
+  created_by: ID
+}
+
+input CandidateJobFeedbackFreeWord {
+  feedback: String
+  user_name: String
+}
+
+type CandidateJobFeedbackResponse {
+  data: CandidateJobFeedback
+}
+
+type CandidateJobFeedbackEdge {
+  node: CandidateJobFeedback!
+  cursor: Cursor!
+}
+
+type CandidateJobFeedbackResponseGetAll {
+  edges: [CandidateJobFeedbackEdge!]!
+  pagination: Pagination!
+}
+`, BuiltIn: false},
 	{Name: "../schema/candidates.graphql", Input: `enum CandidateStatusEnum {
   applied
   interviewing
@@ -1966,6 +2220,10 @@ type HiringJobResponseGetAll {
   UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!): CandidateJobResponse!
   DeleteCandidateJob(id: ID!): Boolean!
   UpdateCandidateJobStatus(id: ID!, status: CandidateJobStatus!): CandidateJobResponse!
+
+  # CandidateJobFeedback
+  CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
+  UpdateCandidateJobFeedback(id: ID!, input: UpdateCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
@@ -1993,6 +2251,10 @@ type HiringJobResponseGetAll {
 	#CandidateJob
 	GetCandidateJob(id: ID!): CandidateJobResponse!
 	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
+
+	#CandidateJobFeedback
+	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
+	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
 }
 `, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderField {
@@ -2107,6 +2369,21 @@ func (ec *executionContext) dir_validation_args(ctx context.Context, rawArgs map
 		}
 	}
 	args["constraints"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateCandidateJobFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.NewCandidateJobFeedbackInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewCandidateJobFeedbackInput2trecᚋentᚐNewCandidateJobFeedbackInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2311,6 +2588,30 @@ func (ec *executionContext) field_Mutation_UpdateCandidateJobAttachment_args(ctx
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_UpdateCandidateJobFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateCandidateJobFeedbackInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateCandidateJobFeedbackInput2trecᚋentᚐUpdateCandidateJobFeedbackInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_UpdateCandidateJobStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2474,6 +2775,48 @@ func (ec *executionContext) field_Query_GetAllAuditTrails_args(ctx context.Conte
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOAuditTrailOrder2ᚖtrecᚋentᚐAuditTrailOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllCandidateJobFeedbacks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 ent.CandidateJobFeedbackFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalNCandidateJobFeedbackFilter2trecᚋentᚐCandidateJobFeedbackFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.CandidateJobFeedbackFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOCandidateJobFeedbackFreeWord2ᚖtrecᚋentᚐCandidateJobFeedbackFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.CandidateJobFeedbackOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOCandidateJobFeedbackOrder2ᚖtrecᚋentᚐCandidateJobFeedbackOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2651,6 +2994,21 @@ func (ec *executionContext) field_Query_GetAllTeams_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_Query_GetAuditTrail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidateJobFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -5133,6 +5491,702 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_cursor(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJobFeedback_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_created_by(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_candidate_job_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().CandidateJobID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_candidate_job(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().CandidateJob(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJob)
+	fc.Result = res
+	return ec.marshalNCandidateJob2ᚖtrecᚋentᚐCandidateJob(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJob_id(ctx, field)
+			case "candidate_id":
+				return ec.fieldContext_CandidateJob_candidate_id(ctx, field)
+			case "hiring_job_id":
+				return ec.fieldContext_CandidateJob_hiring_job_id(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateJob_status(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJob_attachments(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJob_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_owner(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().Owner(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_feedback(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Feedback, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_feedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().Attachments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Attachment)
+	fc.Result = res
+	return ec.marshalOAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedback_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedbackEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedbackEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedbackEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedback)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedbackEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedbackEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJobFeedback_id(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedbackEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedbackEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedbackEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedbackEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedbackEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedbackResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedbackResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedbackResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedbackResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedbackResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJobFeedback_id(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedbackResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedbackResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedbackResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateJobFeedbackEdge)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedbackEdge2ᚕᚖtrecᚋentᚐCandidateJobFeedbackEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedbackResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedbackResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_CandidateJobFeedbackEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_CandidateJobFeedbackEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedbackEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobFeedbackResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedbackResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedbackResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedbackResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedbackResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJobResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJobResponse_data(ctx, field)
 	if err != nil {
@@ -7404,6 +8458,124 @@ func (ec *executionContext) fieldContext_Mutation_UpdateCandidateJobStatus(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_CreateCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateCandidateJobFeedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCandidateJobFeedback(rctx, fc.Args["input"].(ent.NewCandidateJobFeedbackInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedbackResponse)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedbackResponse2ᚖtrecᚋentᚐCandidateJobFeedbackResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateJobFeedbackResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedbackResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateCandidateJobFeedback_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateCandidateJobFeedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCandidateJobFeedback(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateJobFeedbackInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedbackResponse)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedbackResponse2ᚖtrecᚋentᚐCandidateJobFeedbackResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateJobFeedbackResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedbackResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateCandidateJobFeedback_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -8405,6 +9577,126 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateJobs(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllCandidateJobs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidateJobFeedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCandidateJobFeedback(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedbackResponse)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedbackResponse2ᚖtrecᚋentᚐCandidateJobFeedbackResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateJobFeedbackResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedbackResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetCandidateJobFeedback_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllCandidateJobFeedbacks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllCandidateJobFeedbacks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllCandidateJobFeedbacks(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(ent.CandidateJobFeedbackFilter), fc.Args["freeWord"].(*ent.CandidateJobFeedbackFreeWord), fc.Args["orderBy"].(*ent.CandidateJobFeedbackOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobFeedbackResponseGetAll)
+	fc.Result = res
+	return ec.marshalNCandidateJobFeedbackResponseGetAll2ᚖtrecᚋentᚐCandidateJobFeedbackResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllCandidateJobFeedbacks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CandidateJobFeedbackResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_CandidateJobFeedbackResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedbackResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllCandidateJobFeedbacks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -11580,6 +12872,114 @@ func (ec *executionContext) unmarshalInputCandidateFreeWord(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCandidateJobFeedbackFilter(ctx context.Context, obj interface{}) (ent.CandidateJobFeedbackFilter, error) {
+	var it ent.CandidateJobFeedbackFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"candidate_job_id", "created_by"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "candidate_job_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_job_id"))
+			it.CandidateJobID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "created_by":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
+			it.CreatedBy, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateJobFeedbackFreeWord(ctx context.Context, obj interface{}) (ent.CandidateJobFeedbackFreeWord, error) {
+	var it ent.CandidateJobFeedbackFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"feedback", "user_name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "feedback":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feedback"))
+			it.Feedback, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
+			it.UserName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateJobFeedbackOrder(ctx context.Context, obj interface{}) (ent.CandidateJobFeedbackOrder, error) {
+	var it ent.CandidateJobFeedbackOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "direction"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNCandidateJobFeedbackOrderField2ᚖtrecᚋentᚐCandidateJobFeedbackOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context, obj interface{}) (ent.CandidateJobFilter, error) {
 	var it ent.CandidateJobFilter
 	asMap := map[string]interface{}{}
@@ -11943,6 +13343,50 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
 			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewCandidateJobFeedbackInput(ctx context.Context, obj interface{}) (ent.NewCandidateJobFeedbackInput, error) {
+	var it ent.NewCandidateJobFeedbackInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"candidate_job_id", "feedback", "attachments"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "candidate_job_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_job_id"))
+			it.CandidateJobID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "feedback":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feedback"))
+			it.Feedback, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12355,6 +13799,42 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
 			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateCandidateJobFeedbackInput(ctx context.Context, obj interface{}) (ent.UpdateCandidateJobFeedbackInput, error) {
+	var it ent.UpdateCandidateJobFeedbackInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"feedback", "attachments"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "feedback":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("feedback"))
+			it.Feedback, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13405,6 +14885,260 @@ func (ec *executionContext) _CandidateJobEdge(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var candidateJobFeedbackImplementors = []string{"CandidateJobFeedback"}
+
+func (ec *executionContext) _CandidateJobFeedback(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobFeedback) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobFeedbackImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobFeedback")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_by":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_created_by(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "candidate_job_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_candidate_job_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "candidate_job":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_candidate_job(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "owner":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "feedback":
+
+			out.Values[i] = ec._CandidateJobFeedback_feedback(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "attachments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_attachments(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_at":
+
+			out.Values[i] = ec._CandidateJobFeedback_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._CandidateJobFeedback_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobFeedbackEdgeImplementors = []string{"CandidateJobFeedbackEdge"}
+
+func (ec *executionContext) _CandidateJobFeedbackEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobFeedbackEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobFeedbackEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobFeedbackEdge")
+		case "node":
+
+			out.Values[i] = ec._CandidateJobFeedbackEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._CandidateJobFeedbackEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobFeedbackResponseImplementors = []string{"CandidateJobFeedbackResponse"}
+
+func (ec *executionContext) _CandidateJobFeedbackResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobFeedbackResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobFeedbackResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobFeedbackResponse")
+		case "data":
+
+			out.Values[i] = ec._CandidateJobFeedbackResponse_data(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobFeedbackResponseGetAllImplementors = []string{"CandidateJobFeedbackResponseGetAll"}
+
+func (ec *executionContext) _CandidateJobFeedbackResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobFeedbackResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobFeedbackResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobFeedbackResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._CandidateJobFeedbackResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._CandidateJobFeedbackResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var candidateJobResponseImplementors = []string{"CandidateJobResponse"}
 
 func (ec *executionContext) _CandidateJobResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobResponse) graphql.Marshaler {
@@ -14007,6 +15741,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "CreateCandidateJobFeedback":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateCandidateJobFeedback(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateCandidateJobFeedback":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateCandidateJobFeedback(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14385,6 +16137,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllCandidateJobs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetCandidateJobFeedback":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCandidateJobFeedback(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetAllCandidateJobFeedbacks":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllCandidateJobFeedbacks(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -15294,6 +17092,10 @@ func (ec *executionContext) marshalNCandidateEdge2ᚖtrecᚋentᚐCandidateEdge(
 	return ec._CandidateEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCandidateJob2trecᚋentᚐCandidateJob(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJob) graphql.Marshaler {
+	return ec._CandidateJob(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNCandidateJob2ᚖtrecᚋentᚐCandidateJob(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJob) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -15356,6 +17158,119 @@ func (ec *executionContext) marshalNCandidateJobEdge2ᚖtrecᚋentᚐCandidateJo
 		return graphql.Null
 	}
 	return ec._CandidateJobEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedback) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobFeedback(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackEdge2ᚕᚖtrecᚋentᚐCandidateJobFeedbackEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateJobFeedbackEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateJobFeedbackEdge2ᚖtrecᚋentᚐCandidateJobFeedbackEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackEdge2ᚖtrecᚋentᚐCandidateJobFeedbackEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedbackEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobFeedbackEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCandidateJobFeedbackFilter2trecᚋentᚐCandidateJobFeedbackFilter(ctx context.Context, v interface{}) (ent.CandidateJobFeedbackFilter, error) {
+	res, err := ec.unmarshalInputCandidateJobFeedbackFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCandidateJobFeedbackOrderField2ᚖtrecᚋentᚐCandidateJobFeedbackOrderField(ctx context.Context, v interface{}) (*ent.CandidateJobFeedbackOrderField, error) {
+	var res = new(ent.CandidateJobFeedbackOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackOrderField2ᚖtrecᚋentᚐCandidateJobFeedbackOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedbackOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackResponse2trecᚋentᚐCandidateJobFeedbackResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobFeedbackResponse) graphql.Marshaler {
+	return ec._CandidateJobFeedbackResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackResponse2ᚖtrecᚋentᚐCandidateJobFeedbackResponse(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedbackResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobFeedbackResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackResponseGetAll2trecᚋentᚐCandidateJobFeedbackResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobFeedbackResponseGetAll) graphql.Marshaler {
+	return ec._CandidateJobFeedbackResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateJobFeedbackResponseGetAll2ᚖtrecᚋentᚐCandidateJobFeedbackResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedbackResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobFeedbackResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCandidateJobFilter2trecᚋentᚐCandidateJobFilter(ctx context.Context, v interface{}) (ent.CandidateJobFilter, error) {
@@ -15674,6 +17589,11 @@ func (ec *executionContext) unmarshalNNewCandidateInput2trecᚋentᚐNewCandidat
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewCandidateJobFeedbackInput2trecᚋentᚐNewCandidateJobFeedbackInput(ctx context.Context, v interface{}) (ent.NewCandidateJobFeedbackInput, error) {
+	res, err := ec.unmarshalInputNewCandidateJobFeedbackInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewCandidateJobInput2trecᚋentᚐNewCandidateJobInput(ctx context.Context, v interface{}) (ent.NewCandidateJobInput, error) {
 	res, err := ec.unmarshalInputNewCandidateJobInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -15868,6 +17788,11 @@ func (ec *executionContext) unmarshalNUpdateCandidateAttachment2trecᚋentᚐUpd
 
 func (ec *executionContext) unmarshalNUpdateCandidateInput2trecᚋentᚐUpdateCandidateInput(ctx context.Context, v interface{}) (ent.UpdateCandidateInput, error) {
 	res, err := ec.unmarshalInputUpdateCandidateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateCandidateJobFeedbackInput2trecᚋentᚐUpdateCandidateJobFeedbackInput(ctx context.Context, v interface{}) (ent.UpdateCandidateJobFeedbackInput, error) {
+	res, err := ec.unmarshalInputUpdateCandidateJobFeedbackInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -16430,6 +18355,29 @@ func (ec *executionContext) marshalOCandidateJob2ᚖtrecᚋentᚐCandidateJob(ct
 		return graphql.Null
 	}
 	return ec._CandidateJob(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedback) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CandidateJobFeedback(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCandidateJobFeedbackFreeWord2ᚖtrecᚋentᚐCandidateJobFeedbackFreeWord(ctx context.Context, v interface{}) (*ent.CandidateJobFeedbackFreeWord, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateJobFeedbackFreeWord(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateJobFeedbackOrder2ᚖtrecᚋentᚐCandidateJobFeedbackOrder(ctx context.Context, v interface{}) (*ent.CandidateJobFeedbackOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateJobFeedbackOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOCandidateJobFreeWord2ᚖtrecᚋentᚐCandidateJobFreeWord(ctx context.Context, v interface{}) (*ent.CandidateJobFreeWord, error) {

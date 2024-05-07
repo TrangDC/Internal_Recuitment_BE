@@ -1,0 +1,55 @@
+type CandidateJobFeedback {
+  id: ID!
+  created_by: ID!
+  candidate_job_id: ID!
+  candidate_job: CandidateJob!
+  owner: User!
+  feedback: String!
+  attachments: [Attachment!]
+  created_at: Time!
+  updated_at: Time!
+}
+
+input NewCandidateJobFeedbackInput {
+  candidate_job_id: ID!
+  feedback: String!
+  attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateJobFeedbackInput {
+  feedback: String!
+  attachments: [NewAttachmentInput!]
+}
+
+enum CandidateJobFeedbackOrderField {
+  CREATED_AT
+}
+
+input CandidateJobFeedbackOrder {
+  field: CandidateJobFeedbackOrderField!
+  direction: OrderDirection!
+}
+
+input CandidateJobFeedbackFilter {
+  candidate_job_id: ID!
+  created_by: ID
+}
+
+input CandidateJobFeedbackFreeWord {
+  feedback: String
+  user_name: String
+}
+
+type CandidateJobFeedbackResponse {
+  data: CandidateJobFeedback
+}
+
+type CandidateJobFeedbackEdge {
+  node: CandidateJobFeedback!
+  cursor: Cursor!
+}
+
+type CandidateJobFeedbackResponseGetAll {
+  edges: [CandidateJobFeedbackEdge!]!
+  pagination: Pagination!
+}

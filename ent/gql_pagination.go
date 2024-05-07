@@ -14,6 +14,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -1468,6 +1469,308 @@ func (cj *CandidateJob) ToEdge(order *CandidateJobOrder) *CandidateJobEdge {
 	return &CandidateJobEdge{
 		Node:   cj,
 		Cursor: order.Field.toCursor(cj),
+	}
+}
+
+// CandidateJobFeedbackEdge is the edge representation of CandidateJobFeedback.
+type CandidateJobFeedbackEdge struct {
+	Node   *CandidateJobFeedback `json:"node"`
+	Cursor Cursor                `json:"cursor"`
+}
+
+// CandidateJobFeedbackConnection is the connection containing edges to CandidateJobFeedback.
+type CandidateJobFeedbackConnection struct {
+	Edges      []*CandidateJobFeedbackEdge `json:"edges"`
+	PageInfo   PageInfo                    `json:"pageInfo"`
+	TotalCount int                         `json:"totalCount"`
+}
+
+func (c *CandidateJobFeedbackConnection) build(nodes []*CandidateJobFeedback, pager *candidatejobfeedbackPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateJobFeedback
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateJobFeedback {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateJobFeedback {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateJobFeedbackEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateJobFeedbackEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateJobFeedbackPaginateOption enables pagination customization.
+type CandidateJobFeedbackPaginateOption func(*candidatejobfeedbackPager) error
+
+// WithCandidateJobFeedbackOrder configures pagination ordering.
+func WithCandidateJobFeedbackOrder(order *CandidateJobFeedbackOrder) CandidateJobFeedbackPaginateOption {
+	if order == nil {
+		order = DefaultCandidateJobFeedbackOrder
+	}
+	o := *order
+	return func(pager *candidatejobfeedbackPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateJobFeedbackOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateJobFeedbackFilter configures pagination filter.
+func WithCandidateJobFeedbackFilter(filter func(*CandidateJobFeedbackQuery) (*CandidateJobFeedbackQuery, error)) CandidateJobFeedbackPaginateOption {
+	return func(pager *candidatejobfeedbackPager) error {
+		if filter == nil {
+			return errors.New("CandidateJobFeedbackQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatejobfeedbackPager struct {
+	order  *CandidateJobFeedbackOrder
+	filter func(*CandidateJobFeedbackQuery) (*CandidateJobFeedbackQuery, error)
+}
+
+func newCandidateJobFeedbackPager(opts []CandidateJobFeedbackPaginateOption) (*candidatejobfeedbackPager, error) {
+	pager := &candidatejobfeedbackPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateJobFeedbackOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatejobfeedbackPager) applyFilter(query *CandidateJobFeedbackQuery) (*CandidateJobFeedbackQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatejobfeedbackPager) toCursor(cjf *CandidateJobFeedback) Cursor {
+	return p.order.Field.toCursor(cjf)
+}
+
+func (p *candidatejobfeedbackPager) applyCursors(query *CandidateJobFeedbackQuery, after, before *Cursor) *CandidateJobFeedbackQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateJobFeedbackOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatejobfeedbackPager) applyOrder(query *CandidateJobFeedbackQuery, reverse bool) *CandidateJobFeedbackQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateJobFeedbackOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateJobFeedbackOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatejobfeedbackPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateJobFeedbackOrder.Field {
+			b.Comma().Ident(DefaultCandidateJobFeedbackOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateJobFeedback.
+func (cjf *CandidateJobFeedbackQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateJobFeedbackPaginateOption,
+) (*CandidateJobFeedbackConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateJobFeedbackPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if cjf, err = pager.applyFilter(cjf); err != nil {
+		return nil, err
+	}
+	conn := &CandidateJobFeedbackConnection{Edges: []*CandidateJobFeedbackEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = cjf.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	cjf = pager.applyCursors(cjf, after, before)
+	cjf = pager.applyOrder(cjf, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		cjf.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cjf.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := cjf.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateJobFeedbackOrderFieldCreatedAt orders CandidateJobFeedback by created_at.
+	CandidateJobFeedbackOrderFieldCreatedAt = &CandidateJobFeedbackOrderField{
+		field: candidatejobfeedback.FieldCreatedAt,
+		toCursor: func(cjf *CandidateJobFeedback) Cursor {
+			return Cursor{
+				ID:    cjf.ID,
+				Value: cjf.CreatedAt,
+			}
+		},
+	}
+	// CandidateJobFeedbackOrderFieldUpdatedAt orders CandidateJobFeedback by updated_at.
+	CandidateJobFeedbackOrderFieldUpdatedAt = &CandidateJobFeedbackOrderField{
+		field: candidatejobfeedback.FieldUpdatedAt,
+		toCursor: func(cjf *CandidateJobFeedback) Cursor {
+			return Cursor{
+				ID:    cjf.ID,
+				Value: cjf.UpdatedAt,
+			}
+		},
+	}
+	// CandidateJobFeedbackOrderFieldDeletedAt orders CandidateJobFeedback by deleted_at.
+	CandidateJobFeedbackOrderFieldDeletedAt = &CandidateJobFeedbackOrderField{
+		field: candidatejobfeedback.FieldDeletedAt,
+		toCursor: func(cjf *CandidateJobFeedback) Cursor {
+			return Cursor{
+				ID:    cjf.ID,
+				Value: cjf.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateJobFeedbackOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatejobfeedback.FieldCreatedAt:
+		str = "CREATED_AT"
+	case candidatejobfeedback.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case candidatejobfeedback.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateJobFeedbackOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateJobFeedbackOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateJobFeedbackOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *CandidateJobFeedbackOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *CandidateJobFeedbackOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *CandidateJobFeedbackOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateJobFeedbackOrderField", str)
+	}
+	return nil
+}
+
+// CandidateJobFeedbackOrderField defines the ordering field of CandidateJobFeedback.
+type CandidateJobFeedbackOrderField struct {
+	field    string
+	toCursor func(*CandidateJobFeedback) Cursor
+}
+
+// CandidateJobFeedbackOrder defines the ordering of CandidateJobFeedback.
+type CandidateJobFeedbackOrder struct {
+	Direction OrderDirection                  `json:"direction"`
+	Field     *CandidateJobFeedbackOrderField `json:"field"`
+}
+
+// DefaultCandidateJobFeedbackOrder is the default ordering of CandidateJobFeedback.
+var DefaultCandidateJobFeedbackOrder = &CandidateJobFeedbackOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateJobFeedbackOrderField{
+		field: candidatejobfeedback.FieldID,
+		toCursor: func(cjf *CandidateJobFeedback) Cursor {
+			return Cursor{ID: cjf.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateJobFeedback into CandidateJobFeedbackEdge.
+func (cjf *CandidateJobFeedback) ToEdge(order *CandidateJobFeedbackOrder) *CandidateJobFeedbackEdge {
+	if order == nil {
+		order = DefaultCandidateJobFeedbackOrder
+	}
+	return &CandidateJobFeedbackEdge{
+		Node:   cjf,
+		Cursor: order.Field.toCursor(cjf),
 	}
 }
 

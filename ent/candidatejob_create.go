@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -85,6 +87,14 @@ func (cjc *CandidateJobCreate) SetCandidateID(u uuid.UUID) *CandidateJobCreate {
 	return cjc
 }
 
+// SetNillableCandidateID sets the "candidate_id" field if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableCandidateID(u *uuid.UUID) *CandidateJobCreate {
+	if u != nil {
+		cjc.SetCandidateID(*u)
+	}
+	return cjc
+}
+
 // SetStatus sets the "status" field.
 func (cjc *CandidateJobCreate) SetStatus(c candidatejob.Status) *CandidateJobCreate {
 	cjc.mutation.SetStatus(c)
@@ -131,6 +141,40 @@ func (cjc *CandidateJobCreate) AddAttachmentEdges(a ...*Attachment) *CandidateJo
 // SetHiringJob sets the "hiring_job" edge to the HiringJob entity.
 func (cjc *CandidateJobCreate) SetHiringJob(h *HiringJob) *CandidateJobCreate {
 	return cjc.SetHiringJobID(h.ID)
+}
+
+// AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
+func (cjc *CandidateJobCreate) AddCandidateJobFeedbackIDs(ids ...uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.AddCandidateJobFeedbackIDs(ids...)
+	return cjc
+}
+
+// AddCandidateJobFeedback adds the "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (cjc *CandidateJobCreate) AddCandidateJobFeedback(c ...*CandidateJobFeedback) *CandidateJobCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cjc.AddCandidateJobFeedbackIDs(ids...)
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
+func (cjc *CandidateJobCreate) SetCandidateEdgeID(id uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetCandidateEdgeID(id)
+	return cjc
+}
+
+// SetNillableCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *CandidateJobCreate {
+	if id != nil {
+		cjc = cjc.SetCandidateEdgeID(*id)
+	}
+	return cjc
+}
+
+// SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
+func (cjc *CandidateJobCreate) SetCandidateEdge(c *Candidate) *CandidateJobCreate {
+	return cjc.SetCandidateEdgeID(c.ID)
 }
 
 // Mutation returns the CandidateJobMutation object of the builder.
@@ -229,9 +273,6 @@ func (cjc *CandidateJobCreate) check() error {
 	if _, ok := cjc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CandidateJob.created_at"`)}
 	}
-	if _, ok := cjc.mutation.CandidateID(); !ok {
-		return &ValidationError{Name: "candidate_id", err: errors.New(`ent: missing required field "CandidateJob.candidate_id"`)}
-	}
 	if _, ok := cjc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "CandidateJob.status"`)}
 	}
@@ -288,10 +329,6 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 		_spec.SetField(candidatejob.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
 	}
-	if value, ok := cjc.mutation.CandidateID(); ok {
-		_spec.SetField(candidatejob.FieldCandidateID, field.TypeUUID, value)
-		_node.CandidateID = value
-	}
 	if value, ok := cjc.mutation.Status(); ok {
 		_spec.SetField(candidatejob.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
@@ -333,6 +370,45 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.HiringJobID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cjc.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobFeedbackTable,
+			Columns: []string{candidatejob.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cjc.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CandidateEdgeTable,
+			Columns: []string{candidatejob.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CandidateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

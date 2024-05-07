@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -24,7 +25,9 @@ func (Candidate) Fields() []ent.Field {
 
 // Edges of the Candidate
 func (Candidate) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("candidate_job_edges", CandidateJob.Type),
+	}
 }
 
 func (Candidate) Mixin() []ent.Mixin {

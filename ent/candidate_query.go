@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,14 +20,16 @@ import (
 // CandidateQuery is the builder for querying Candidate entities.
 type CandidateQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Candidate
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Candidate) error
+	limit                      *int
+	offset                     *int
+	unique                     *bool
+	order                      []OrderFunc
+	fields                     []string
+	predicates                 []predicate.Candidate
+	withCandidateJobEdges      *CandidateJobQuery
+	modifiers                  []func(*sql.Selector)
+	loadTotal                  []func(context.Context, []*Candidate) error
+	withNamedCandidateJobEdges map[string]*CandidateJobQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +64,28 @@ func (cq *CandidateQuery) Unique(unique bool) *CandidateQuery {
 func (cq *CandidateQuery) Order(o ...OrderFunc) *CandidateQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryCandidateJobEdges chains the current query on the "candidate_job_edges" edge.
+func (cq *CandidateQuery) QueryCandidateJobEdges() *CandidateJobQuery {
+	query := &CandidateJobQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateJobEdgesTable, candidate.CandidateJobEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Candidate entity from the query.
@@ -238,16 +264,28 @@ func (cq *CandidateQuery) Clone() *CandidateQuery {
 		return nil
 	}
 	return &CandidateQuery{
-		config:     cq.config,
-		limit:      cq.limit,
-		offset:     cq.offset,
-		order:      append([]OrderFunc{}, cq.order...),
-		predicates: append([]predicate.Candidate{}, cq.predicates...),
+		config:                cq.config,
+		limit:                 cq.limit,
+		offset:                cq.offset,
+		order:                 append([]OrderFunc{}, cq.order...),
+		predicates:            append([]predicate.Candidate{}, cq.predicates...),
+		withCandidateJobEdges: cq.withCandidateJobEdges.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
 		unique: cq.unique,
 	}
+}
+
+// WithCandidateJobEdges tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithCandidateJobEdges(opts ...func(*CandidateJobQuery)) *CandidateQuery {
+	query := &CandidateJobQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCandidateJobEdges = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +359,11 @@ func (cq *CandidateQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Candidate, error) {
 	var (
-		nodes = []*Candidate{}
-		_spec = cq.querySpec()
+		nodes       = []*Candidate{}
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withCandidateJobEdges != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Candidate).scanValues(nil, columns)
@@ -330,6 +371,7 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Candidate{config: cq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(cq.modifiers) > 0 {
@@ -344,12 +386,54 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withCandidateJobEdges; query != nil {
+		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
+			func(n *Candidate) { n.Edges.CandidateJobEdges = []*CandidateJob{} },
+			func(n *Candidate, e *CandidateJob) { n.Edges.CandidateJobEdges = append(n.Edges.CandidateJobEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedCandidateJobEdges {
+		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
+			func(n *Candidate) { n.appendNamedCandidateJobEdges(name) },
+			func(n *Candidate, e *CandidateJob) { n.appendNamedCandidateJobEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range cq.loadTotal {
 		if err := cq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (cq *CandidateQuery) loadCandidateJobEdges(ctx context.Context, query *CandidateJobQuery, nodes []*Candidate, init func(*Candidate), assign func(*Candidate, *CandidateJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Candidate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(candidate.CandidateJobEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CandidateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (cq *CandidateQuery) sqlCount(ctx context.Context) (int, error) {
@@ -453,6 +537,20 @@ func (cq *CandidateQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedCandidateJobEdges tells the query-builder to eager-load the nodes that are connected to the "candidate_job_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithNamedCandidateJobEdges(name string, opts ...func(*CandidateJobQuery)) *CandidateQuery {
+	query := &CandidateJobQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedCandidateJobEdges == nil {
+		cq.withNamedCandidateJobEdges = make(map[string]*CandidateJobQuery)
+	}
+	cq.withNamedCandidateJobEdges[name] = query
+	return cq
 }
 
 // CandidateGroupBy is the group-by builder for Candidate entities.

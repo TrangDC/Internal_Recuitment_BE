@@ -35,6 +35,16 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			a.withCandidateJob = query
+		case "candidateJobFeedback":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobFeedbackQuery{config: a.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			a.withCandidateJobFeedback = query
 		}
 	}
 	return nil
@@ -181,6 +191,22 @@ func (c *CandidateQuery) CollectFields(ctx context.Context, satisfies ...string)
 
 func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "candidateJobEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedCandidateJobEdges(alias, func(wq *CandidateJobQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 
@@ -270,6 +296,28 @@ func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.Opera
 				return err
 			}
 			cj.withHiringJob = query
+		case "candidateJobFeedback":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobFeedbackQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.WithNamedCandidateJobFeedback(alias, func(wq *CandidateJobFeedbackQuery) {
+				*wq = *query
+			})
+		case "candidateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.withCandidateEdge = query
 		}
 	}
 	return nil
@@ -317,6 +365,107 @@ func newCandidateJobPaginateArgs(rv map[string]interface{}) *candidatejobPaginat
 		case *CandidateJobOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithCandidateJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (cjf *CandidateJobFeedbackQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateJobFeedbackQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return cjf, nil
+	}
+	if err := cjf.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return cjf, nil
+}
+
+func (cjf *CandidateJobFeedbackQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "createdByEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: cjf.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cjf.withCreatedByEdge = query
+		case "candidateJobEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: cjf.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cjf.withCandidateJobEdge = query
+		case "attachmentEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AttachmentQuery{config: cjf.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cjf.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type candidatejobfeedbackPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CandidateJobFeedbackPaginateOption
+}
+
+func newCandidateJobFeedbackPaginateArgs(rv map[string]interface{}) *candidatejobfeedbackPaginateArgs {
+	args := &candidatejobfeedbackPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &CandidateJobFeedbackOrder{Field: &CandidateJobFeedbackOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithCandidateJobFeedbackOrder(order))
+			}
+		case *CandidateJobFeedbackOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithCandidateJobFeedbackOrder(v))
 			}
 		}
 	}
@@ -668,6 +817,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedTeamEdges(alias, func(wq *TeamQuery) {
+				*wq = *query
+			})
+		case "candidateJobFeedback":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobFeedbackQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedCandidateJobFeedback(alias, func(wq *CandidateJobFeedbackQuery) {
 				*wq = *query
 			})
 		case "teamUsers":

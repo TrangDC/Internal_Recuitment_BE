@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -142,6 +143,21 @@ func (uc *UserCreate) AddTeamEdges(t ...*Team) *UserCreate {
 		ids[i] = t[i].ID
 	}
 	return uc.AddTeamEdgeIDs(ids...)
+}
+
+// AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
+func (uc *UserCreate) AddCandidateJobFeedbackIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCandidateJobFeedbackIDs(ids...)
+	return uc
+}
+
+// AddCandidateJobFeedback adds the "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (uc *UserCreate) AddCandidateJobFeedback(c ...*CandidateJobFeedback) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCandidateJobFeedbackIDs(ids...)
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
@@ -396,6 +412,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}

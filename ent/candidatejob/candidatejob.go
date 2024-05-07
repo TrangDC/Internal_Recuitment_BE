@@ -32,6 +32,10 @@ const (
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeHiringJob holds the string denoting the hiring_job edge name in mutations.
 	EdgeHiringJob = "hiring_job"
+	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
+	EdgeCandidateJobFeedback = "candidate_job_feedback"
+	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
+	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the candidatejob in the database.
 	Table = "candidate_jobs"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -48,6 +52,20 @@ const (
 	HiringJobInverseTable = "hiring_jobs"
 	// HiringJobColumn is the table column denoting the hiring_job relation/edge.
 	HiringJobColumn = "hiring_job_id"
+	// CandidateJobFeedbackTable is the table that holds the candidate_job_feedback relation/edge.
+	CandidateJobFeedbackTable = "candidate_job_feedbacks"
+	// CandidateJobFeedbackInverseTable is the table name for the CandidateJobFeedback entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatejobfeedback" package.
+	CandidateJobFeedbackInverseTable = "candidate_job_feedbacks"
+	// CandidateJobFeedbackColumn is the table column denoting the candidate_job_feedback relation/edge.
+	CandidateJobFeedbackColumn = "candidate_job_id"
+	// CandidateEdgeTable is the table that holds the candidate_edge relation/edge.
+	CandidateEdgeTable = "candidate_jobs"
+	// CandidateEdgeInverseTable is the table name for the Candidate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidate" package.
+	CandidateEdgeInverseTable = "candidates"
+	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
+	CandidateEdgeColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for candidatejob fields.

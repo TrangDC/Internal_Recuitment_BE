@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -23,22 +24,24 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit                *int
-	offset               *int
-	unique               *bool
-	order                []OrderFunc
-	fields               []string
-	predicates           []predicate.User
-	withAuditEdge        *AuditTrailQuery
-	withHiringOwner      *HiringJobQuery
-	withTeamEdges        *TeamQuery
-	withTeamUsers        *TeamManagerQuery
-	modifiers            []func(*sql.Selector)
-	loadTotal            []func(context.Context, []*User) error
-	withNamedAuditEdge   map[string]*AuditTrailQuery
-	withNamedHiringOwner map[string]*HiringJobQuery
-	withNamedTeamEdges   map[string]*TeamQuery
-	withNamedTeamUsers   map[string]*TeamManagerQuery
+	limit                         *int
+	offset                        *int
+	unique                        *bool
+	order                         []OrderFunc
+	fields                        []string
+	predicates                    []predicate.User
+	withAuditEdge                 *AuditTrailQuery
+	withHiringOwner               *HiringJobQuery
+	withTeamEdges                 *TeamQuery
+	withCandidateJobFeedback      *CandidateJobFeedbackQuery
+	withTeamUsers                 *TeamManagerQuery
+	modifiers                     []func(*sql.Selector)
+	loadTotal                     []func(context.Context, []*User) error
+	withNamedAuditEdge            map[string]*AuditTrailQuery
+	withNamedHiringOwner          map[string]*HiringJobQuery
+	withNamedTeamEdges            map[string]*TeamQuery
+	withNamedCandidateJobFeedback map[string]*CandidateJobFeedbackQuery
+	withNamedTeamUsers            map[string]*TeamManagerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -134,6 +137,28 @@ func (uq *UserQuery) QueryTeamEdges() *TeamQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(team.Table, team.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.TeamEdgesTable, user.TeamEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateJobFeedback chains the current query on the "candidate_job_feedback" edge.
+func (uq *UserQuery) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
+	query := &CandidateJobFeedbackQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateJobFeedbackTable, user.CandidateJobFeedbackColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -339,15 +364,16 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:          uq.config,
-		limit:           uq.limit,
-		offset:          uq.offset,
-		order:           append([]OrderFunc{}, uq.order...),
-		predicates:      append([]predicate.User{}, uq.predicates...),
-		withAuditEdge:   uq.withAuditEdge.Clone(),
-		withHiringOwner: uq.withHiringOwner.Clone(),
-		withTeamEdges:   uq.withTeamEdges.Clone(),
-		withTeamUsers:   uq.withTeamUsers.Clone(),
+		config:                   uq.config,
+		limit:                    uq.limit,
+		offset:                   uq.offset,
+		order:                    append([]OrderFunc{}, uq.order...),
+		predicates:               append([]predicate.User{}, uq.predicates...),
+		withAuditEdge:            uq.withAuditEdge.Clone(),
+		withHiringOwner:          uq.withHiringOwner.Clone(),
+		withTeamEdges:            uq.withTeamEdges.Clone(),
+		withCandidateJobFeedback: uq.withCandidateJobFeedback.Clone(),
+		withTeamUsers:            uq.withTeamUsers.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -385,6 +411,17 @@ func (uq *UserQuery) WithTeamEdges(opts ...func(*TeamQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withTeamEdges = query
+	return uq
+}
+
+// WithCandidateJobFeedback tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_feedback" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCandidateJobFeedback(opts ...func(*CandidateJobFeedbackQuery)) *UserQuery {
+	query := &CandidateJobFeedbackQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCandidateJobFeedback = query
 	return uq
 }
 
@@ -472,10 +509,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withAuditEdge != nil,
 			uq.withHiringOwner != nil,
 			uq.withTeamEdges != nil,
+			uq.withCandidateJobFeedback != nil,
 			uq.withTeamUsers != nil,
 		}
 	)
@@ -521,6 +559,15 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withCandidateJobFeedback; query != nil {
+		if err := uq.loadCandidateJobFeedback(ctx, query, nodes,
+			func(n *User) { n.Edges.CandidateJobFeedback = []*CandidateJobFeedback{} },
+			func(n *User, e *CandidateJobFeedback) {
+				n.Edges.CandidateJobFeedback = append(n.Edges.CandidateJobFeedback, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	if query := uq.withTeamUsers; query != nil {
 		if err := uq.loadTeamUsers(ctx, query, nodes,
 			func(n *User) { n.Edges.TeamUsers = []*TeamManager{} },
@@ -546,6 +593,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadTeamEdges(ctx, query, nodes,
 			func(n *User) { n.appendNamedTeamEdges(name) },
 			func(n *User, e *Team) { n.appendNamedTeamEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedCandidateJobFeedback {
+		if err := uq.loadCandidateJobFeedback(ctx, query, nodes,
+			func(n *User) { n.appendNamedCandidateJobFeedback(name) },
+			func(n *User, e *CandidateJobFeedback) { n.appendNamedCandidateJobFeedback(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -673,6 +727,33 @@ func (uq *UserQuery) loadTeamEdges(ctx context.Context, query *TeamQuery, nodes 
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadCandidateJobFeedback(ctx context.Context, query *CandidateJobFeedbackQuery, nodes []*User, init func(*User), assign func(*User, *CandidateJobFeedback)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateJobFeedback(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.CandidateJobFeedbackColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -846,6 +927,20 @@ func (uq *UserQuery) WithNamedTeamEdges(name string, opts ...func(*TeamQuery)) *
 		uq.withNamedTeamEdges = make(map[string]*TeamQuery)
 	}
 	uq.withNamedTeamEdges[name] = query
+	return uq
+}
+
+// WithNamedCandidateJobFeedback tells the query-builder to eager-load the nodes that are connected to the "candidate_job_feedback"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedCandidateJobFeedback(name string, opts ...func(*CandidateJobFeedbackQuery)) *UserQuery {
+	query := &CandidateJobFeedbackQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedCandidateJobFeedback == nil {
+		uq.withNamedCandidateJobFeedback = make(map[string]*CandidateJobFeedbackQuery)
+	}
+	uq.withNamedCandidateJobFeedback[name] = query
 	return uq
 }
 

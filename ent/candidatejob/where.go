@@ -423,31 +423,17 @@ func CandidateIDNotIn(vs ...uuid.UUID) predicate.CandidateJob {
 	})
 }
 
-// CandidateIDGT applies the GT predicate on the "candidate_id" field.
-func CandidateIDGT(v uuid.UUID) predicate.CandidateJob {
+// CandidateIDIsNil applies the IsNil predicate on the "candidate_id" field.
+func CandidateIDIsNil() predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCandidateID), v))
+		s.Where(sql.IsNull(s.C(FieldCandidateID)))
 	})
 }
 
-// CandidateIDGTE applies the GTE predicate on the "candidate_id" field.
-func CandidateIDGTE(v uuid.UUID) predicate.CandidateJob {
+// CandidateIDNotNil applies the NotNil predicate on the "candidate_id" field.
+func CandidateIDNotNil() predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCandidateID), v))
-	})
-}
-
-// CandidateIDLT applies the LT predicate on the "candidate_id" field.
-func CandidateIDLT(v uuid.UUID) predicate.CandidateJob {
-	return predicate.CandidateJob(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCandidateID), v))
-	})
-}
-
-// CandidateIDLTE applies the LTE predicate on the "candidate_id" field.
-func CandidateIDLTE(v uuid.UUID) predicate.CandidateJob {
-	return predicate.CandidateJob(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCandidateID), v))
+		s.Where(sql.NotNull(s.C(FieldCandidateID)))
 	})
 }
 
@@ -534,6 +520,62 @@ func HasHiringJobWith(preds ...predicate.HiringJob) predicate.CandidateJob {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(HiringJobInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, HiringJobTable, HiringJobColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateJobFeedback applies the HasEdge predicate on the "candidate_job_feedback" edge.
+func HasCandidateJobFeedback() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobFeedbackTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobFeedbackTable, CandidateJobFeedbackColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateJobFeedbackWith applies the HasEdge predicate on the "candidate_job_feedback" edge with a given conditions (other predicates).
+func HasCandidateJobFeedbackWith(preds ...predicate.CandidateJobFeedback) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobFeedbackInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobFeedbackTable, CandidateJobFeedbackColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateEdge applies the HasEdge predicate on the "candidate_edge" edge.
+func HasCandidateEdge() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateEdgeWith applies the HasEdge predicate on the "candidate_edge" edge with a given conditions (other predicates).
+func HasCandidateEdgeWith(preds ...predicate.Candidate) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

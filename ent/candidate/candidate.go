@@ -29,8 +29,17 @@ const (
 	FieldDob = "dob"
 	// FieldIsBlacklist holds the string denoting the is_blacklist field in the database.
 	FieldIsBlacklist = "is_blacklist"
+	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
+	EdgeCandidateJobEdges = "candidate_job_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
+	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
+	CandidateJobEdgesTable = "candidate_jobs"
+	// CandidateJobEdgesInverseTable is the table name for the CandidateJob entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatejob" package.
+	CandidateJobEdgesInverseTable = "candidate_jobs"
+	// CandidateJobEdgesColumn is the table column denoting the candidate_job_edges relation/edge.
+	CandidateJobEdgesColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for candidate fields.

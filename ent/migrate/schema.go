@@ -16,7 +16,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
 		{Name: "document_name", Type: field.TypeString, Size: 255},
-		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs"}},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
@@ -29,6 +29,12 @@ var (
 				Symbol:     "attachments_candidate_jobs_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_job_feedbacks_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateJobFeedbacksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -84,8 +90,8 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "candidate_id", Type: field.TypeUUID},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateJobsTable holds the schema information for the "candidate_jobs" table.
@@ -95,9 +101,45 @@ var (
 		PrimaryKey: []*schema.Column{CandidateJobsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "candidate_jobs_candidates_candidate_job_edges",
+				Columns:    []*schema.Column{CandidateJobsColumns[5]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "candidate_jobs_hiring_jobs_candidate_job_edges",
 				Columns:    []*schema.Column{CandidateJobsColumns[6]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateJobFeedbacksColumns holds the columns for the "candidate_job_feedbacks" table.
+	CandidateJobFeedbacksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "feedback", Type: field.TypeString, Size: 2147483647},
+		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateJobFeedbacksTable holds the schema information for the "candidate_job_feedbacks" table.
+	CandidateJobFeedbacksTable = &schema.Table{
+		Name:       "candidate_job_feedbacks",
+		Columns:    CandidateJobFeedbacksColumns,
+		PrimaryKey: []*schema.Column{CandidateJobFeedbacksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_job_feedbacks_candidate_jobs_candidate_job_feedback",
+				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[5]},
+				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "candidate_job_feedbacks_users_candidate_job_feedback",
+				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -214,6 +256,7 @@ var (
 		AuditTrailsTable,
 		CandidatesTable,
 		CandidateJobsTable,
+		CandidateJobFeedbacksTable,
 		HiringJobsTable,
 		TeamsTable,
 		TeamManagersTable,
@@ -223,8 +266,12 @@ var (
 
 func init() {
 	AttachmentsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	AttachmentsTable.ForeignKeys[1].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
-	CandidateJobsTable.ForeignKeys[0].RefTable = HiringJobsTable
+	CandidateJobsTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateJobsTable.ForeignKeys[1].RefTable = HiringJobsTable
+	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable

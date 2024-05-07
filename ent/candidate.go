@@ -33,6 +33,31 @@ type Candidate struct {
 	Dob time.Time `json:"dob,omitempty"`
 	// IsBlacklist holds the value of the "is_blacklist" field.
 	IsBlacklist bool `json:"is_blacklist,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CandidateQuery when eager-loading is set.
+	Edges CandidateEdges `json:"edges"`
+}
+
+// CandidateEdges holds the relations/edges for other nodes in the graph.
+type CandidateEdges struct {
+	// CandidateJobEdges holds the value of the candidate_job_edges edge.
+	CandidateJobEdges []*CandidateJob `json:"candidate_job_edges,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedCandidateJobEdges map[string][]*CandidateJob
+}
+
+// CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateJobEdgesOrErr() ([]*CandidateJob, error) {
+	if e.loadedTypes[0] {
+		return e.CandidateJobEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_job_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -122,6 +147,11 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryCandidateJobEdges queries the "candidate_job_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateJobEdges() *CandidateJobQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateJobEdges(c)
+}
+
 // Update returns a builder for updating this Candidate.
 // Note that you need to call Candidate.Unwrap() before calling this method if this Candidate
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -170,6 +200,30 @@ func (c *Candidate) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.IsBlacklist))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedCandidateJobEdges returns the CandidateJobEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateJobEdges(name string) ([]*CandidateJob, error) {
+	if c.Edges.namedCandidateJobEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateJobEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateJobEdges(name string, edges ...*CandidateJob) {
+	if c.Edges.namedCandidateJobEdges == nil {
+		c.Edges.namedCandidateJobEdges = make(map[string][]*CandidateJob)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateJobEdges[name] = []*CandidateJob{}
+	} else {
+		c.Edges.namedCandidateJobEdges[name] = append(c.Edges.namedCandidateJobEdges[name], edges...)
+	}
 }
 
 // Candidates is a parsable slice of Candidate.

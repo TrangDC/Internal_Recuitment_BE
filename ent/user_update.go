@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -136,6 +137,21 @@ func (uu *UserUpdate) AddTeamEdges(t ...*Team) *UserUpdate {
 	return uu.AddTeamEdgeIDs(ids...)
 }
 
+// AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
+func (uu *UserUpdate) AddCandidateJobFeedbackIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddCandidateJobFeedbackIDs(ids...)
+	return uu
+}
+
+// AddCandidateJobFeedback adds the "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (uu *UserUpdate) AddCandidateJobFeedback(c ...*CandidateJobFeedback) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCandidateJobFeedbackIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uu *UserUpdate) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddTeamUserIDs(ids...)
@@ -217,6 +233,27 @@ func (uu *UserUpdate) RemoveTeamEdges(t ...*Team) *UserUpdate {
 		ids[i] = t[i].ID
 	}
 	return uu.RemoveTeamEdgeIDs(ids...)
+}
+
+// ClearCandidateJobFeedback clears all "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (uu *UserUpdate) ClearCandidateJobFeedback() *UserUpdate {
+	uu.mutation.ClearCandidateJobFeedback()
+	return uu
+}
+
+// RemoveCandidateJobFeedbackIDs removes the "candidate_job_feedback" edge to CandidateJobFeedback entities by IDs.
+func (uu *UserUpdate) RemoveCandidateJobFeedbackIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveCandidateJobFeedbackIDs(ids...)
+	return uu
+}
+
+// RemoveCandidateJobFeedback removes "candidate_job_feedback" edges to CandidateJobFeedback entities.
+func (uu *UserUpdate) RemoveCandidateJobFeedback(c ...*CandidateJobFeedback) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCandidateJobFeedbackIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -542,6 +579,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.CandidateJobFeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCandidateJobFeedbackIDs(); len(nodes) > 0 && !uu.mutation.CandidateJobFeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.TeamUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -718,6 +809,21 @@ func (uuo *UserUpdateOne) AddTeamEdges(t ...*Team) *UserUpdateOne {
 	return uuo.AddTeamEdgeIDs(ids...)
 }
 
+// AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
+func (uuo *UserUpdateOne) AddCandidateJobFeedbackIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddCandidateJobFeedbackIDs(ids...)
+	return uuo
+}
+
+// AddCandidateJobFeedback adds the "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (uuo *UserUpdateOne) AddCandidateJobFeedback(c ...*CandidateJobFeedback) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCandidateJobFeedbackIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uuo *UserUpdateOne) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddTeamUserIDs(ids...)
@@ -799,6 +905,27 @@ func (uuo *UserUpdateOne) RemoveTeamEdges(t ...*Team) *UserUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return uuo.RemoveTeamEdgeIDs(ids...)
+}
+
+// ClearCandidateJobFeedback clears all "candidate_job_feedback" edges to the CandidateJobFeedback entity.
+func (uuo *UserUpdateOne) ClearCandidateJobFeedback() *UserUpdateOne {
+	uuo.mutation.ClearCandidateJobFeedback()
+	return uuo
+}
+
+// RemoveCandidateJobFeedbackIDs removes the "candidate_job_feedback" edge to CandidateJobFeedback entities by IDs.
+func (uuo *UserUpdateOne) RemoveCandidateJobFeedbackIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveCandidateJobFeedbackIDs(ids...)
+	return uuo
+}
+
+// RemoveCandidateJobFeedback removes "candidate_job_feedback" edges to CandidateJobFeedback entities.
+func (uuo *UserUpdateOne) RemoveCandidateJobFeedback(c ...*CandidateJobFeedback) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCandidateJobFeedbackIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -1151,6 +1278,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CandidateJobFeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCandidateJobFeedbackIDs(); len(nodes) > 0 && !uuo.mutation.CandidateJobFeedbackCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobFeedbackTable,
+			Columns: []string{user.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}

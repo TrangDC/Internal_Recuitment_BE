@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -113,6 +114,21 @@ func (cc *CandidateCreate) SetNillableID(u *uuid.UUID) *CandidateCreate {
 		cc.SetID(*u)
 	}
 	return cc
+}
+
+// AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
+func (cc *CandidateCreate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateJobEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateJobEdges adds the "candidate_job_edges" edges to the CandidateJob entity.
+func (cc *CandidateCreate) AddCandidateJobEdges(c ...*CandidateJob) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateJobEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -308,6 +324,25 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
 		_node.IsBlacklist = value
+	}
+	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

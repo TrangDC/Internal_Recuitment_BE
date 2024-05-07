@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -729,6 +730,34 @@ func IsBlacklistEQ(v bool) predicate.Candidate {
 func IsBlacklistNEQ(v bool) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldIsBlacklist), v))
+	})
+}
+
+// HasCandidateJobEdges applies the HasEdge predicate on the "candidate_job_edges" edge.
+func HasCandidateJobEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobEdgesTable, CandidateJobEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateJobEdgesWith applies the HasEdge predicate on the "candidate_job_edges" edge with a given conditions (other predicates).
+func HasCandidateJobEdgesWith(preds ...predicate.CandidateJob) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobEdgesTable, CandidateJobEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

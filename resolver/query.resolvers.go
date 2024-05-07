@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -113,6 +114,16 @@ func (r *queryResolver) GetAllCandidateJobs(ctx context.Context, pagination *ent
 		return nil, err
 	}
 	return result, nil
+}
+
+// GetCandidateJobFeedback is the resolver for the GetCandidateJobFeedback field.
+func (r *queryResolver) GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error) {
+	panic(fmt.Errorf("not implemented: GetCandidateJobFeedback - GetCandidateJobFeedback"))
+}
+
+// GetAllCandidateJobFeedbacks is the resolver for the GetAllCandidateJobFeedbacks field.
+func (r *queryResolver) GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error) {
+	panic(fmt.Errorf("not implemented: GetAllCandidateJobFeedbacks - GetAllCandidateJobFeedbacks"))
 }
 
 // Query returns graphql1.QueryResolver implementation.

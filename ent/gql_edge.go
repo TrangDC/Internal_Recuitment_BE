@@ -16,12 +16,32 @@ func (a *Attachment) CandidateJob(ctx context.Context) (*CandidateJob, error) {
 	return result, MaskNotFound(err)
 }
 
+func (a *Attachment) CandidateJobFeedback(ctx context.Context) (*CandidateJobFeedback, error) {
+	result, err := a.Edges.CandidateJobFeedbackOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateJobFeedback().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
 	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
 		result, err = at.QueryUserEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (c *Candidate) CandidateJobEdges(ctx context.Context) (result []*CandidateJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateJobEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateJobEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (cj *CandidateJob) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
@@ -42,6 +62,54 @@ func (cj *CandidateJob) HiringJob(ctx context.Context) (*HiringJob, error) {
 		result, err = cj.QueryHiringJob().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (cj *CandidateJob) CandidateJobFeedback(ctx context.Context) (result []*CandidateJobFeedback, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cj.NamedCandidateJobFeedback(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cj.Edges.CandidateJobFeedbackOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cj.QueryCandidateJobFeedback().All(ctx)
+	}
+	return result, err
+}
+
+func (cj *CandidateJob) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := cj.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cj.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (cjf *CandidateJobFeedback) CreatedByEdge(ctx context.Context) (*User, error) {
+	result, err := cjf.Edges.CreatedByEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cjf.QueryCreatedByEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (cjf *CandidateJobFeedback) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {
+	result, err := cjf.Edges.CandidateJobEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cjf.QueryCandidateJobEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (cjf *CandidateJobFeedback) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cjf.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cjf.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cjf.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (hj *HiringJob) OwnerEdge(ctx context.Context) (*User, error) {
@@ -156,6 +224,18 @@ func (u *User) TeamEdges(ctx context.Context) (result []*Team, err error) {
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryTeamEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) CandidateJobFeedback(ctx context.Context) (result []*CandidateJobFeedback, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateJobFeedback(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateJobFeedbackOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateJobFeedback().All(ctx)
 	}
 	return result, err
 }

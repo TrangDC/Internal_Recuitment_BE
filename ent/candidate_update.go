@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // CandidateUpdate is the builder for updating Candidate entities.
@@ -106,9 +108,45 @@ func (cu *CandidateUpdate) SetNillableIsBlacklist(b *bool) *CandidateUpdate {
 	return cu
 }
 
+// AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
+func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateJobEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateJobEdges adds the "candidate_job_edges" edges to the CandidateJob entity.
+func (cu *CandidateUpdate) AddCandidateJobEdges(c ...*CandidateJob) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateJobEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
+}
+
+// ClearCandidateJobEdges clears all "candidate_job_edges" edges to the CandidateJob entity.
+func (cu *CandidateUpdate) ClearCandidateJobEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateJobEdges()
+	return cu
+}
+
+// RemoveCandidateJobEdgeIDs removes the "candidate_job_edges" edge to CandidateJob entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateJobEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateJobEdges removes "candidate_job_edges" edges to CandidateJob entities.
+func (cu *CandidateUpdate) RemoveCandidateJobEdges(c ...*CandidateJob) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateJobEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -236,6 +274,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
 	}
+	if cu.mutation.CandidateJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateJobEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidate.Label}
@@ -333,9 +425,45 @@ func (cuo *CandidateUpdateOne) SetNillableIsBlacklist(b *bool) *CandidateUpdateO
 	return cuo
 }
 
+// AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateJobEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateJobEdges adds the "candidate_job_edges" edges to the CandidateJob entity.
+func (cuo *CandidateUpdateOne) AddCandidateJobEdges(c ...*CandidateJob) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateJobEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
+}
+
+// ClearCandidateJobEdges clears all "candidate_job_edges" edges to the CandidateJob entity.
+func (cuo *CandidateUpdateOne) ClearCandidateJobEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateJobEdges()
+	return cuo
+}
+
+// RemoveCandidateJobEdgeIDs removes the "candidate_job_edges" edge to CandidateJob entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateJobEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateJobEdges removes "candidate_job_edges" edges to CandidateJob entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateJobEdges(c ...*CandidateJob) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateJobEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -492,6 +620,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if value, ok := cuo.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
+	}
+	if cuo.mutation.CandidateJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateJobEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateJobEdgesTable,
+			Columns: []string{candidate.CandidateJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Candidate{config: cuo.config}
 	_spec.Assign = _node.assignValues

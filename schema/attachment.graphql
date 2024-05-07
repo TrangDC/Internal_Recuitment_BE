@@ -11,4 +11,5 @@ input NewAttachmentInput {
 
 enum AttachmentRelationType {
   candidate_jobs
+  candidate_job_feedbacks
 }

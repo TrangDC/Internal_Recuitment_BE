@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 
@@ -41,13 +42,18 @@ type CandidateJobEdges struct {
 	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
 	// HiringJob holds the value of the hiring_job edge.
 	HiringJob *HiringJob `json:"hiring_job,omitempty"`
+	// CandidateJobFeedback holds the value of the candidate_job_feedback edge.
+	CandidateJobFeedback []*CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
+	// CandidateEdge holds the value of the candidate_edge edge.
+	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [4]map[string]int
 
-	namedAttachmentEdges map[string][]*Attachment
+	namedAttachmentEdges      map[string][]*Attachment
+	namedCandidateJobFeedback map[string][]*CandidateJobFeedback
 }
 
 // AttachmentEdgesOrErr returns the AttachmentEdges value or an error if the edge
@@ -70,6 +76,28 @@ func (e CandidateJobEdges) HiringJobOrErr() (*HiringJob, error) {
 		return e.HiringJob, nil
 	}
 	return nil, &NotLoadedError{edge: "hiring_job"}
+}
+
+// CandidateJobFeedbackOrErr returns the CandidateJobFeedback value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateJobEdges) CandidateJobFeedbackOrErr() ([]*CandidateJobFeedback, error) {
+	if e.loadedTypes[2] {
+		return e.CandidateJobFeedback, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_job_feedback"}
+}
+
+// CandidateEdgeOrErr returns the CandidateEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CandidateJobEdges) CandidateEdgeOrErr() (*Candidate, error) {
+	if e.loadedTypes[3] {
+		if e.CandidateEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidate.Label}
+		}
+		return e.CandidateEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -155,6 +183,16 @@ func (cj *CandidateJob) QueryHiringJob() *HiringJobQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryHiringJob(cj)
 }
 
+// QueryCandidateJobFeedback queries the "candidate_job_feedback" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryCandidateJobFeedback(cj)
+}
+
+// QueryCandidateEdge queries the "candidate_edge" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryCandidateEdge() *CandidateQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryCandidateEdge(cj)
+}
+
 // Update returns a builder for updating this CandidateJob.
 // Note that you need to call CandidateJob.Unwrap() before calling this method if this CandidateJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -220,6 +258,30 @@ func (cj *CandidateJob) appendNamedAttachmentEdges(name string, edges ...*Attach
 		cj.Edges.namedAttachmentEdges[name] = []*Attachment{}
 	} else {
 		cj.Edges.namedAttachmentEdges[name] = append(cj.Edges.namedAttachmentEdges[name], edges...)
+	}
+}
+
+// NamedCandidateJobFeedback returns the CandidateJobFeedback named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (cj *CandidateJob) NamedCandidateJobFeedback(name string) ([]*CandidateJobFeedback, error) {
+	if cj.Edges.namedCandidateJobFeedback == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := cj.Edges.namedCandidateJobFeedback[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (cj *CandidateJob) appendNamedCandidateJobFeedback(name string, edges ...*CandidateJobFeedback) {
+	if cj.Edges.namedCandidateJobFeedback == nil {
+		cj.Edges.namedCandidateJobFeedback = make(map[string][]*CandidateJobFeedback)
+	}
+	if len(edges) == 0 {
+		cj.Edges.namedCandidateJobFeedback[name] = []*CandidateJobFeedback{}
+	} else {
+		cj.Edges.namedCandidateJobFeedback[name] = append(cj.Edges.namedCandidateJobFeedback[name], edges...)
 	}
 }
 

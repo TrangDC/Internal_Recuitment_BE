@@ -14,6 +14,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -38,6 +39,8 @@ type Client struct {
 	Candidate *CandidateClient
 	// CandidateJob is the client for interacting with the CandidateJob builders.
 	CandidateJob *CandidateJobClient
+	// CandidateJobFeedback is the client for interacting with the CandidateJobFeedback builders.
+	CandidateJobFeedback *CandidateJobFeedbackClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
@@ -63,6 +66,7 @@ func (c *Client) init() {
 	c.AuditTrail = NewAuditTrailClient(c.config)
 	c.Candidate = NewCandidateClient(c.config)
 	c.CandidateJob = NewCandidateJobClient(c.config)
+	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
@@ -98,16 +102,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Attachment:   NewAttachmentClient(cfg),
-		AuditTrail:   NewAuditTrailClient(cfg),
-		Candidate:    NewCandidateClient(cfg),
-		CandidateJob: NewCandidateJobClient(cfg),
-		HiringJob:    NewHiringJobClient(cfg),
-		Team:         NewTeamClient(cfg),
-		TeamManager:  NewTeamManagerClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		Attachment:           NewAttachmentClient(cfg),
+		AuditTrail:           NewAuditTrailClient(cfg),
+		Candidate:            NewCandidateClient(cfg),
+		CandidateJob:         NewCandidateJobClient(cfg),
+		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
+		HiringJob:            NewHiringJobClient(cfg),
+		Team:                 NewTeamClient(cfg),
+		TeamManager:          NewTeamManagerClient(cfg),
+		User:                 NewUserClient(cfg),
 	}, nil
 }
 
@@ -125,16 +130,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Attachment:   NewAttachmentClient(cfg),
-		AuditTrail:   NewAuditTrailClient(cfg),
-		Candidate:    NewCandidateClient(cfg),
-		CandidateJob: NewCandidateJobClient(cfg),
-		HiringJob:    NewHiringJobClient(cfg),
-		Team:         NewTeamClient(cfg),
-		TeamManager:  NewTeamManagerClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:                  ctx,
+		config:               cfg,
+		Attachment:           NewAttachmentClient(cfg),
+		AuditTrail:           NewAuditTrailClient(cfg),
+		Candidate:            NewCandidateClient(cfg),
+		CandidateJob:         NewCandidateJobClient(cfg),
+		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
+		HiringJob:            NewHiringJobClient(cfg),
+		Team:                 NewTeamClient(cfg),
+		TeamManager:          NewTeamManagerClient(cfg),
+		User:                 NewUserClient(cfg),
 	}, nil
 }
 
@@ -167,6 +173,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.AuditTrail.Use(hooks...)
 	c.Candidate.Use(hooks...)
 	c.CandidateJob.Use(hooks...)
+	c.CandidateJobFeedback.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
@@ -267,6 +274,22 @@ func (c *AttachmentClient) QueryCandidateJob(a *Attachment) *CandidateJobQuery {
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobTable, attachment.CandidateJobColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobFeedback queries the candidate_job_feedback edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateJobFeedback(a *Attachment) *CandidateJobFeedbackQuery {
+	query := &CandidateJobFeedbackQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackTable, attachment.CandidateJobFeedbackColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -470,6 +493,22 @@ func (c *CandidateClient) GetX(ctx context.Context, id uuid.UUID) *Candidate {
 	return obj
 }
 
+// QueryCandidateJobEdges queries the candidate_job_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateJobEdges(ca *Candidate) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateJobEdgesTable, candidate.CandidateJobEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateClient) Hooks() []Hook {
 	return c.hooks.Candidate
@@ -592,9 +631,179 @@ func (c *CandidateJobClient) QueryHiringJob(cj *CandidateJob) *HiringJobQuery {
 	return query
 }
 
+// QueryCandidateJobFeedback queries the candidate_job_feedback edge of a CandidateJob.
+func (c *CandidateJobClient) QueryCandidateJobFeedback(cj *CandidateJob) *CandidateJobFeedbackQuery {
+	query := &CandidateJobFeedbackQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.CandidateJobFeedbackTable, candidatejob.CandidateJobFeedbackColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateJob.
+func (c *CandidateJobClient) QueryCandidateEdge(cj *CandidateJob) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.CandidateEdgeTable, candidatejob.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateJobClient) Hooks() []Hook {
 	return c.hooks.CandidateJob
+}
+
+// CandidateJobFeedbackClient is a client for the CandidateJobFeedback schema.
+type CandidateJobFeedbackClient struct {
+	config
+}
+
+// NewCandidateJobFeedbackClient returns a client for the CandidateJobFeedback from the given config.
+func NewCandidateJobFeedbackClient(c config) *CandidateJobFeedbackClient {
+	return &CandidateJobFeedbackClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatejobfeedback.Hooks(f(g(h())))`.
+func (c *CandidateJobFeedbackClient) Use(hooks ...Hook) {
+	c.hooks.CandidateJobFeedback = append(c.hooks.CandidateJobFeedback, hooks...)
+}
+
+// Create returns a builder for creating a CandidateJobFeedback entity.
+func (c *CandidateJobFeedbackClient) Create() *CandidateJobFeedbackCreate {
+	mutation := newCandidateJobFeedbackMutation(c.config, OpCreate)
+	return &CandidateJobFeedbackCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateJobFeedback entities.
+func (c *CandidateJobFeedbackClient) CreateBulk(builders ...*CandidateJobFeedbackCreate) *CandidateJobFeedbackCreateBulk {
+	return &CandidateJobFeedbackCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) Update() *CandidateJobFeedbackUpdate {
+	mutation := newCandidateJobFeedbackMutation(c.config, OpUpdate)
+	return &CandidateJobFeedbackUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateJobFeedbackClient) UpdateOne(cjf *CandidateJobFeedback) *CandidateJobFeedbackUpdateOne {
+	mutation := newCandidateJobFeedbackMutation(c.config, OpUpdateOne, withCandidateJobFeedback(cjf))
+	return &CandidateJobFeedbackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateJobFeedbackClient) UpdateOneID(id uuid.UUID) *CandidateJobFeedbackUpdateOne {
+	mutation := newCandidateJobFeedbackMutation(c.config, OpUpdateOne, withCandidateJobFeedbackID(id))
+	return &CandidateJobFeedbackUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) Delete() *CandidateJobFeedbackDelete {
+	mutation := newCandidateJobFeedbackMutation(c.config, OpDelete)
+	return &CandidateJobFeedbackDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateJobFeedbackClient) DeleteOne(cjf *CandidateJobFeedback) *CandidateJobFeedbackDeleteOne {
+	return c.DeleteOneID(cjf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateJobFeedbackClient) DeleteOneID(id uuid.UUID) *CandidateJobFeedbackDeleteOne {
+	builder := c.Delete().Where(candidatejobfeedback.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateJobFeedbackDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) Query() *CandidateJobFeedbackQuery {
+	return &CandidateJobFeedbackQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateJobFeedback entity by its id.
+func (c *CandidateJobFeedbackClient) Get(ctx context.Context, id uuid.UUID) (*CandidateJobFeedback, error) {
+	return c.Query().Where(candidatejobfeedback.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateJobFeedbackClient) GetX(ctx context.Context, id uuid.UUID) *CandidateJobFeedback {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCreatedByEdge queries the created_by_edge edge of a CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) QueryCreatedByEdge(cjf *CandidateJobFeedback) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cjf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejobfeedback.Table, candidatejobfeedback.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejobfeedback.CreatedByEdgeTable, candidatejobfeedback.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cjf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobEdge queries the candidate_job_edge edge of a CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) QueryCandidateJobEdge(cjf *CandidateJobFeedback) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cjf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejobfeedback.Table, candidatejobfeedback.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejobfeedback.CandidateJobEdgeTable, candidatejobfeedback.CandidateJobEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cjf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateJobFeedback.
+func (c *CandidateJobFeedbackClient) QueryAttachmentEdges(cjf *CandidateJobFeedback) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cjf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejobfeedback.Table, candidatejobfeedback.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejobfeedback.AttachmentEdgesTable, candidatejobfeedback.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cjf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateJobFeedbackClient) Hooks() []Hook {
+	return c.hooks.CandidateJobFeedback
 }
 
 // HiringJobClient is a client for the HiringJob schema.
@@ -1121,6 +1330,22 @@ func (c *UserClient) QueryTeamEdges(u *User) *TeamQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(team.Table, team.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.TeamEdgesTable, user.TeamEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobFeedback queries the candidate_job_feedback edge of a User.
+func (c *UserClient) QueryCandidateJobFeedback(u *User) *CandidateJobFeedbackQuery {
+	query := &CandidateJobFeedbackQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateJobFeedbackTable, user.CandidateJobFeedbackColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

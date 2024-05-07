@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -149,6 +150,16 @@ func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id stri
 		return nil, err
 	}
 	return result, nil
+}
+
+// CreateCandidateJobFeedback is the resolver for the CreateCandidateJobFeedback field.
+func (r *mutationResolver) CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
+	panic(fmt.Errorf("not implemented: CreateCandidateJobFeedback - CreateCandidateJobFeedback"))
+}
+
+// UpdateCandidateJobFeedback is the resolver for the UpdateCandidateJobFeedback field.
+func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
+	panic(fmt.Errorf("not implemented: UpdateCandidateJobFeedback - UpdateCandidateJobFeedback"))
 }
 
 // Mutation returns graphql1.MutationResolver implementation.

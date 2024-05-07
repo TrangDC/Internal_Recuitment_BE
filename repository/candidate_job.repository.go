@@ -16,7 +16,6 @@ type CandidateJobRepository interface {
 	// mutation
 	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJob, error)
 	DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error
-	UpdateCandidateJobAttachment(ctx context.Context, record *ent.CandidateJob, input *ent.UpdateCandidateAttachment) (*ent.CandidateJob, error)
 	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, status ent.CandidateJobStatus) (*ent.CandidateJob, error)
 	// query
 	GetCandidateJob(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJob, error)
@@ -98,10 +97,6 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 
 func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, status ent.CandidateJobStatus) (*ent.CandidateJob, error) {
 	return rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(status.String())).Save(ctx)
-}
-
-func (rps candidateJobRepoImpl) UpdateCandidateJobAttachment(ctx context.Context, record *ent.CandidateJob, input *ent.UpdateCandidateAttachment) (*ent.CandidateJob, error) {
-	return rps.BuildUpdateOne(ctx, record).Save(ctx)
 }
 
 func (rps candidateJobRepoImpl) DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error {

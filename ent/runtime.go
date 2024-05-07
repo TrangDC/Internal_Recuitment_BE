@@ -8,6 +8,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/team"
@@ -139,6 +140,19 @@ func init() {
 	candidatejobDescID := candidatejobMixinFields0[0].Descriptor()
 	// candidatejob.DefaultID holds the default value on creation for the id field.
 	candidatejob.DefaultID = candidatejobDescID.Default.(func() uuid.UUID)
+	candidatejobfeedbackMixin := schema.CandidateJobFeedback{}.Mixin()
+	candidatejobfeedbackMixinFields0 := candidatejobfeedbackMixin[0].Fields()
+	_ = candidatejobfeedbackMixinFields0
+	candidatejobfeedbackFields := schema.CandidateJobFeedback{}.Fields()
+	_ = candidatejobfeedbackFields
+	// candidatejobfeedbackDescCreatedAt is the schema descriptor for created_at field.
+	candidatejobfeedbackDescCreatedAt := candidatejobfeedbackMixinFields0[1].Descriptor()
+	// candidatejobfeedback.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidatejobfeedback.DefaultCreatedAt = candidatejobfeedbackDescCreatedAt.Default.(func() time.Time)
+	// candidatejobfeedbackDescID is the schema descriptor for id field.
+	candidatejobfeedbackDescID := candidatejobfeedbackMixinFields0[0].Descriptor()
+	// candidatejobfeedback.DefaultID holds the default value on creation for the id field.
+	candidatejobfeedback.DefaultID = candidatejobfeedbackDescID.Default.(func() uuid.UUID)
 	hiringjobMixin := schema.HiringJob{}.Mixin()
 	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
 	_ = hiringjobMixinFields0

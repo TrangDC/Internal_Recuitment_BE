@@ -32,6 +32,8 @@ const (
 	FieldRelationID = "relation_id"
 	// EdgeCandidateJob holds the string denoting the candidate_job edge name in mutations.
 	EdgeCandidateJob = "candidate_job"
+	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
+	EdgeCandidateJobFeedback = "candidate_job_feedback"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
 	// CandidateJobTable is the table that holds the candidate_job relation/edge.
@@ -41,6 +43,13 @@ const (
 	CandidateJobInverseTable = "candidate_jobs"
 	// CandidateJobColumn is the table column denoting the candidate_job relation/edge.
 	CandidateJobColumn = "relation_id"
+	// CandidateJobFeedbackTable is the table that holds the candidate_job_feedback relation/edge.
+	CandidateJobFeedbackTable = "attachments"
+	// CandidateJobFeedbackInverseTable is the table name for the CandidateJobFeedback entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatejobfeedback" package.
+	CandidateJobFeedbackInverseTable = "candidate_job_feedbacks"
+	// CandidateJobFeedbackColumn is the table column denoting the candidate_job_feedback relation/edge.
+	CandidateJobFeedbackColumn = "relation_id"
 )
 
 // Columns holds all SQL columns for attachment fields.
@@ -79,7 +88,8 @@ type RelationType string
 
 // RelationType values.
 const (
-	RelationTypeCandidateJobs RelationType = "candidate_jobs"
+	RelationTypeCandidateJobs         RelationType = "candidate_jobs"
+	RelationTypeCandidateJobFeedbacks RelationType = "candidate_job_feedbacks"
 )
 
 func (rt RelationType) String() string {
@@ -89,7 +99,7 @@ func (rt RelationType) String() string {
 // RelationTypeValidator is a validator for the "relation_type" field enum values. It is called by the builders before save.
 func RelationTypeValidator(rt RelationType) error {
 	switch rt {
-	case RelationTypeCandidateJobs:
+	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks:
 		return nil
 	default:
 		return fmt.Errorf("attachment: invalid enum value for relation_type field: %q", rt)

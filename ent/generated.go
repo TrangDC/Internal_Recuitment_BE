@@ -74,6 +74,25 @@ type CandidateFreeWord struct {
 	Phone *string `json:"phone"`
 }
 
+type CandidateJobFeedbackFilter struct {
+	CandidateJobID string  `json:"candidate_job_id"`
+	CreatedBy      *string `json:"created_by"`
+}
+
+type CandidateJobFeedbackFreeWord struct {
+	Feedback *string `json:"feedback"`
+	UserName *string `json:"user_name"`
+}
+
+type CandidateJobFeedbackResponse struct {
+	Data *CandidateJobFeedback `json:"data"`
+}
+
+type CandidateJobFeedbackResponseGetAll struct {
+	Edges      []*CandidateJobFeedbackEdge `json:"edges"`
+	Pagination *Pagination                 `json:"pagination"`
+}
+
 type CandidateJobFilter struct {
 	Status      *CandidateJobStatus `json:"status"`
 	FromDate    *time.Time          `json:"from_date"`
@@ -135,6 +154,12 @@ type NewCandidateInput struct {
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
 	Dob   time.Time `json:"dob"`
+}
+
+type NewCandidateJobFeedbackInput struct {
+	CandidateJobID string                `json:"candidate_job_id"`
+	Feedback       string                `json:"feedback"`
+	Attachments    []*NewAttachmentInput `json:"attachments"`
 }
 
 type NewCandidateJobInput struct {
@@ -201,6 +226,11 @@ type UpdateCandidateInput struct {
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
 	Dob   time.Time `json:"dob"`
+}
+
+type UpdateCandidateJobFeedbackInput struct {
+	Feedback    string                `json:"feedback"`
+	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
 type UpdateHiringJobInput struct {
@@ -326,16 +356,18 @@ func (e AttachmentFolder) MarshalGQL(w io.Writer) {
 type AttachmentRelationType string
 
 const (
-	AttachmentRelationTypeCandidateJobs AttachmentRelationType = "candidate_jobs"
+	AttachmentRelationTypeCandidateJobs         AttachmentRelationType = "candidate_jobs"
+	AttachmentRelationTypeCandidateJobFeedbacks AttachmentRelationType = "candidate_job_feedbacks"
 )
 
 var AllAttachmentRelationType = []AttachmentRelationType{
 	AttachmentRelationTypeCandidateJobs,
+	AttachmentRelationTypeCandidateJobFeedbacks,
 }
 
 func (e AttachmentRelationType) IsValid() bool {
 	switch e {
-	case AttachmentRelationTypeCandidateJobs:
+	case AttachmentRelationTypeCandidateJobs, AttachmentRelationTypeCandidateJobFeedbacks:
 		return true
 	}
 	return false

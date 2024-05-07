@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -127,6 +128,25 @@ func (ac *AttachmentCreate) SetNillableCandidateJobID(id *uuid.UUID) *Attachment
 // SetCandidateJob sets the "candidate_job" edge to the CandidateJob entity.
 func (ac *AttachmentCreate) SetCandidateJob(c *CandidateJob) *AttachmentCreate {
 	return ac.SetCandidateJobID(c.ID)
+}
+
+// SetCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID.
+func (ac *AttachmentCreate) SetCandidateJobFeedbackID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateJobFeedbackID(id)
+	return ac
+}
+
+// SetNillableCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateJobFeedbackID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateJobFeedbackID(*id)
+	}
+	return ac
+}
+
+// SetCandidateJobFeedback sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
+func (ac *AttachmentCreate) SetCandidateJobFeedback(c *CandidateJobFeedback) *AttachmentCreate {
+	return ac.SetCandidateJobFeedbackID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -311,6 +331,26 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateJobFeedbackTable,
+			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobfeedback.FieldID,
 				},
 			},
 		}
