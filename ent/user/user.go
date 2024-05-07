@@ -33,8 +33,12 @@ const (
 	EdgeTeamEdges = "team_edges"
 	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
 	EdgeCandidateJobFeedback = "candidate_job_feedback"
+	// EdgeInterviewEdges holds the string denoting the interview_edges edge name in mutations.
+	EdgeInterviewEdges = "interview_edges"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
+	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
+	EdgeInterviewUsers = "interview_users"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// AuditEdgeTable is the table that holds the audit_edge relation/edge.
@@ -63,6 +67,11 @@ const (
 	CandidateJobFeedbackInverseTable = "candidate_job_feedbacks"
 	// CandidateJobFeedbackColumn is the table column denoting the candidate_job_feedback relation/edge.
 	CandidateJobFeedbackColumn = "created_by"
+	// InterviewEdgesTable is the table that holds the interview_edges relation/edge. The primary key declared below.
+	InterviewEdgesTable = "candidate_interviewers"
+	// InterviewEdgesInverseTable is the table name for the CandidateInterview entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateinterview" package.
+	InterviewEdgesInverseTable = "candidate_interviews"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.
@@ -70,6 +79,13 @@ const (
 	TeamUsersInverseTable = "team_managers"
 	// TeamUsersColumn is the table column denoting the team_users relation/edge.
 	TeamUsersColumn = "user_id"
+	// InterviewUsersTable is the table that holds the interview_users relation/edge.
+	InterviewUsersTable = "candidate_interviewers"
+	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateinterviewer" package.
+	InterviewUsersInverseTable = "candidate_interviewers"
+	// InterviewUsersColumn is the table column denoting the interview_users relation/edge.
+	InterviewUsersColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -87,6 +103,9 @@ var (
 	// TeamEdgesPrimaryKey and TeamEdgesColumn2 are the table columns denoting the
 	// primary key for the team_edges relation (M2M).
 	TeamEdgesPrimaryKey = []string{"user_id", "team_id"}
+	// InterviewEdgesPrimaryKey and InterviewEdgesColumn2 are the table columns denoting the
+	// primary key for the interview_edges relation (M2M).
+	InterviewEdgesPrimaryKey = []string{"user_id", "candidate_interview_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

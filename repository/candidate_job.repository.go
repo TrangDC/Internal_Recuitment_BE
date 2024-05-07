@@ -124,7 +124,7 @@ func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uui
 	query = query.Where(candidatejob.StatusIn(openStatus...))
 	isExist, _ := rps.BuildExist(ctx, query)
 	if isExist {
-		return fmt.Errorf("model.candidates.validation.status_not_valid")
+		return fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist")
 	}
 	return nil
 }

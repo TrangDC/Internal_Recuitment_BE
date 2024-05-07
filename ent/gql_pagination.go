@@ -13,6 +13,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -1167,6 +1169,624 @@ func (c *Candidate) ToEdge(order *CandidateOrder) *CandidateEdge {
 	return &CandidateEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// CandidateInterviewEdge is the edge representation of CandidateInterview.
+type CandidateInterviewEdge struct {
+	Node   *CandidateInterview `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// CandidateInterviewConnection is the connection containing edges to CandidateInterview.
+type CandidateInterviewConnection struct {
+	Edges      []*CandidateInterviewEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *CandidateInterviewConnection) build(nodes []*CandidateInterview, pager *candidateinterviewPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateInterview
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateInterview {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateInterview {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateInterviewEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateInterviewEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateInterviewPaginateOption enables pagination customization.
+type CandidateInterviewPaginateOption func(*candidateinterviewPager) error
+
+// WithCandidateInterviewOrder configures pagination ordering.
+func WithCandidateInterviewOrder(order *CandidateInterviewOrder) CandidateInterviewPaginateOption {
+	if order == nil {
+		order = DefaultCandidateInterviewOrder
+	}
+	o := *order
+	return func(pager *candidateinterviewPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateInterviewOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateInterviewFilter configures pagination filter.
+func WithCandidateInterviewFilter(filter func(*CandidateInterviewQuery) (*CandidateInterviewQuery, error)) CandidateInterviewPaginateOption {
+	return func(pager *candidateinterviewPager) error {
+		if filter == nil {
+			return errors.New("CandidateInterviewQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidateinterviewPager struct {
+	order  *CandidateInterviewOrder
+	filter func(*CandidateInterviewQuery) (*CandidateInterviewQuery, error)
+}
+
+func newCandidateInterviewPager(opts []CandidateInterviewPaginateOption) (*candidateinterviewPager, error) {
+	pager := &candidateinterviewPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateInterviewOrder
+	}
+	return pager, nil
+}
+
+func (p *candidateinterviewPager) applyFilter(query *CandidateInterviewQuery) (*CandidateInterviewQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidateinterviewPager) toCursor(ci *CandidateInterview) Cursor {
+	return p.order.Field.toCursor(ci)
+}
+
+func (p *candidateinterviewPager) applyCursors(query *CandidateInterviewQuery, after, before *Cursor) *CandidateInterviewQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateInterviewOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidateinterviewPager) applyOrder(query *CandidateInterviewQuery, reverse bool) *CandidateInterviewQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateInterviewOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateInterviewOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidateinterviewPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateInterviewOrder.Field {
+			b.Comma().Ident(DefaultCandidateInterviewOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateInterview.
+func (ci *CandidateInterviewQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateInterviewPaginateOption,
+) (*CandidateInterviewConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateInterviewPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ci, err = pager.applyFilter(ci); err != nil {
+		return nil, err
+	}
+	conn := &CandidateInterviewConnection{Edges: []*CandidateInterviewEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ci.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ci = pager.applyCursors(ci, after, before)
+	ci = pager.applyOrder(ci, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ci.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ci.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ci.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateInterviewOrderFieldCreatedAt orders CandidateInterview by created_at.
+	CandidateInterviewOrderFieldCreatedAt = &CandidateInterviewOrderField{
+		field: candidateinterview.FieldCreatedAt,
+		toCursor: func(ci *CandidateInterview) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.CreatedAt,
+			}
+		},
+	}
+	// CandidateInterviewOrderFieldUpdatedAt orders CandidateInterview by updated_at.
+	CandidateInterviewOrderFieldUpdatedAt = &CandidateInterviewOrderField{
+		field: candidateinterview.FieldUpdatedAt,
+		toCursor: func(ci *CandidateInterview) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.UpdatedAt,
+			}
+		},
+	}
+	// CandidateInterviewOrderFieldDeletedAt orders CandidateInterview by deleted_at.
+	CandidateInterviewOrderFieldDeletedAt = &CandidateInterviewOrderField{
+		field: candidateinterview.FieldDeletedAt,
+		toCursor: func(ci *CandidateInterview) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.DeletedAt,
+			}
+		},
+	}
+	// CandidateInterviewOrderFieldTitle orders CandidateInterview by title.
+	CandidateInterviewOrderFieldTitle = &CandidateInterviewOrderField{
+		field: candidateinterview.FieldTitle,
+		toCursor: func(ci *CandidateInterview) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.Title,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateInterviewOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidateinterview.FieldCreatedAt:
+		str = "CREATED_AT"
+	case candidateinterview.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case candidateinterview.FieldDeletedAt:
+		str = "DELETED_AT"
+	case candidateinterview.FieldTitle:
+		str = "TITLE"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateInterviewOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateInterviewOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateInterviewOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *CandidateInterviewOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *CandidateInterviewOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *CandidateInterviewOrderFieldDeletedAt
+	case "TITLE":
+		*f = *CandidateInterviewOrderFieldTitle
+	default:
+		return fmt.Errorf("%s is not a valid CandidateInterviewOrderField", str)
+	}
+	return nil
+}
+
+// CandidateInterviewOrderField defines the ordering field of CandidateInterview.
+type CandidateInterviewOrderField struct {
+	field    string
+	toCursor func(*CandidateInterview) Cursor
+}
+
+// CandidateInterviewOrder defines the ordering of CandidateInterview.
+type CandidateInterviewOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *CandidateInterviewOrderField `json:"field"`
+}
+
+// DefaultCandidateInterviewOrder is the default ordering of CandidateInterview.
+var DefaultCandidateInterviewOrder = &CandidateInterviewOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateInterviewOrderField{
+		field: candidateinterview.FieldID,
+		toCursor: func(ci *CandidateInterview) Cursor {
+			return Cursor{ID: ci.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateInterview into CandidateInterviewEdge.
+func (ci *CandidateInterview) ToEdge(order *CandidateInterviewOrder) *CandidateInterviewEdge {
+	if order == nil {
+		order = DefaultCandidateInterviewOrder
+	}
+	return &CandidateInterviewEdge{
+		Node:   ci,
+		Cursor: order.Field.toCursor(ci),
+	}
+}
+
+// CandidateInterviewerEdge is the edge representation of CandidateInterviewer.
+type CandidateInterviewerEdge struct {
+	Node   *CandidateInterviewer `json:"node"`
+	Cursor Cursor                `json:"cursor"`
+}
+
+// CandidateInterviewerConnection is the connection containing edges to CandidateInterviewer.
+type CandidateInterviewerConnection struct {
+	Edges      []*CandidateInterviewerEdge `json:"edges"`
+	PageInfo   PageInfo                    `json:"pageInfo"`
+	TotalCount int                         `json:"totalCount"`
+}
+
+func (c *CandidateInterviewerConnection) build(nodes []*CandidateInterviewer, pager *candidateinterviewerPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateInterviewer
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateInterviewer {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateInterviewer {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateInterviewerEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateInterviewerEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateInterviewerPaginateOption enables pagination customization.
+type CandidateInterviewerPaginateOption func(*candidateinterviewerPager) error
+
+// WithCandidateInterviewerOrder configures pagination ordering.
+func WithCandidateInterviewerOrder(order *CandidateInterviewerOrder) CandidateInterviewerPaginateOption {
+	if order == nil {
+		order = DefaultCandidateInterviewerOrder
+	}
+	o := *order
+	return func(pager *candidateinterviewerPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateInterviewerOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateInterviewerFilter configures pagination filter.
+func WithCandidateInterviewerFilter(filter func(*CandidateInterviewerQuery) (*CandidateInterviewerQuery, error)) CandidateInterviewerPaginateOption {
+	return func(pager *candidateinterviewerPager) error {
+		if filter == nil {
+			return errors.New("CandidateInterviewerQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidateinterviewerPager struct {
+	order  *CandidateInterviewerOrder
+	filter func(*CandidateInterviewerQuery) (*CandidateInterviewerQuery, error)
+}
+
+func newCandidateInterviewerPager(opts []CandidateInterviewerPaginateOption) (*candidateinterviewerPager, error) {
+	pager := &candidateinterviewerPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateInterviewerOrder
+	}
+	return pager, nil
+}
+
+func (p *candidateinterviewerPager) applyFilter(query *CandidateInterviewerQuery) (*CandidateInterviewerQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidateinterviewerPager) toCursor(ci *CandidateInterviewer) Cursor {
+	return p.order.Field.toCursor(ci)
+}
+
+func (p *candidateinterviewerPager) applyCursors(query *CandidateInterviewerQuery, after, before *Cursor) *CandidateInterviewerQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateInterviewerOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidateinterviewerPager) applyOrder(query *CandidateInterviewerQuery, reverse bool) *CandidateInterviewerQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateInterviewerOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateInterviewerOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidateinterviewerPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateInterviewerOrder.Field {
+			b.Comma().Ident(DefaultCandidateInterviewerOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateInterviewer.
+func (ci *CandidateInterviewerQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateInterviewerPaginateOption,
+) (*CandidateInterviewerConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateInterviewerPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ci, err = pager.applyFilter(ci); err != nil {
+		return nil, err
+	}
+	conn := &CandidateInterviewerConnection{Edges: []*CandidateInterviewerEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ci.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ci = pager.applyCursors(ci, after, before)
+	ci = pager.applyOrder(ci, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ci.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ci.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ci.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateInterviewerOrderFieldCreatedAt orders CandidateInterviewer by created_at.
+	CandidateInterviewerOrderFieldCreatedAt = &CandidateInterviewerOrderField{
+		field: candidateinterviewer.FieldCreatedAt,
+		toCursor: func(ci *CandidateInterviewer) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.CreatedAt,
+			}
+		},
+	}
+	// CandidateInterviewerOrderFieldUpdatedAt orders CandidateInterviewer by updated_at.
+	CandidateInterviewerOrderFieldUpdatedAt = &CandidateInterviewerOrderField{
+		field: candidateinterviewer.FieldUpdatedAt,
+		toCursor: func(ci *CandidateInterviewer) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.UpdatedAt,
+			}
+		},
+	}
+	// CandidateInterviewerOrderFieldDeletedAt orders CandidateInterviewer by deleted_at.
+	CandidateInterviewerOrderFieldDeletedAt = &CandidateInterviewerOrderField{
+		field: candidateinterviewer.FieldDeletedAt,
+		toCursor: func(ci *CandidateInterviewer) Cursor {
+			return Cursor{
+				ID:    ci.ID,
+				Value: ci.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateInterviewerOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidateinterviewer.FieldCreatedAt:
+		str = "CREATED_AT"
+	case candidateinterviewer.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case candidateinterviewer.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateInterviewerOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateInterviewerOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateInterviewerOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *CandidateInterviewerOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *CandidateInterviewerOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *CandidateInterviewerOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateInterviewerOrderField", str)
+	}
+	return nil
+}
+
+// CandidateInterviewerOrderField defines the ordering field of CandidateInterviewer.
+type CandidateInterviewerOrderField struct {
+	field    string
+	toCursor func(*CandidateInterviewer) Cursor
+}
+
+// CandidateInterviewerOrder defines the ordering of CandidateInterviewer.
+type CandidateInterviewerOrder struct {
+	Direction OrderDirection                  `json:"direction"`
+	Field     *CandidateInterviewerOrderField `json:"field"`
+}
+
+// DefaultCandidateInterviewerOrder is the default ordering of CandidateInterviewer.
+var DefaultCandidateInterviewerOrder = &CandidateInterviewerOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateInterviewerOrderField{
+		field: candidateinterviewer.FieldID,
+		toCursor: func(ci *CandidateInterviewer) Cursor {
+			return Cursor{ID: ci.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateInterviewer into CandidateInterviewerEdge.
+func (ci *CandidateInterviewer) ToEdge(order *CandidateInterviewerOrder) *CandidateInterviewerEdge {
+	if order == nil {
+		order = DefaultCandidateInterviewerOrder
+	}
+	return &CandidateInterviewerEdge{
+		Node:   ci,
+		Cursor: order.Field.toCursor(ci),
 	}
 }
 

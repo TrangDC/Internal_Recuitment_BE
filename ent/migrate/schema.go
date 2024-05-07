@@ -26,6 +26,12 @@ var (
 		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "attachments_candidate_interviews_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateInterviewsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "attachments_candidate_jobs_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
@@ -83,6 +89,70 @@ var (
 		Name:       "candidates",
 		Columns:    CandidatesColumns,
 		PrimaryKey: []*schema.Column{CandidatesColumns[0]},
+	}
+	// CandidateInterviewsColumns holds the columns for the "candidate_interviews" table.
+	CandidateInterviewsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "candidate_job_status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
+		{Name: "interview_date", Type: field.TypeTime, Nullable: true},
+		{Name: "start_from", Type: field.TypeTime, Nullable: true},
+		{Name: "end_at", Type: field.TypeTime, Nullable: true},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateInterviewsTable holds the schema information for the "candidate_interviews" table.
+	CandidateInterviewsTable = &schema.Table{
+		Name:       "candidate_interviews",
+		Columns:    CandidateInterviewsColumns,
+		PrimaryKey: []*schema.Column{CandidateInterviewsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_interviews_candidate_jobs_candidate_job_interview",
+				Columns:    []*schema.Column{CandidateInterviewsColumns[10]},
+				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateInterviewersColumns holds the columns for the "candidate_interviewers" table.
+	CandidateInterviewersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "candidate_interview_id", Type: field.TypeUUID},
+	}
+	// CandidateInterviewersTable holds the schema information for the "candidate_interviewers" table.
+	CandidateInterviewersTable = &schema.Table{
+		Name:       "candidate_interviewers",
+		Columns:    CandidateInterviewersColumns,
+		PrimaryKey: []*schema.Column{CandidateInterviewersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_interviewers_users_user_edge",
+				Columns:    []*schema.Column{CandidateInterviewersColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "candidate_interviewers_candidate_interviews_interview_edge",
+				Columns:    []*schema.Column{CandidateInterviewersColumns[5]},
+				RefColumns: []*schema.Column{CandidateInterviewsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "candidateinterviewer_user_id_candidate_interview_id",
+				Unique:  true,
+				Columns: []*schema.Column{CandidateInterviewersColumns[4], CandidateInterviewersColumns[5]},
+			},
+		},
 	}
 	// CandidateJobsColumns holds the columns for the "candidate_jobs" table.
 	CandidateJobsColumns = []*schema.Column{
@@ -255,6 +325,8 @@ var (
 		AttachmentsTable,
 		AuditTrailsTable,
 		CandidatesTable,
+		CandidateInterviewsTable,
+		CandidateInterviewersTable,
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
 		HiringJobsTable,
@@ -265,9 +337,13 @@ var (
 )
 
 func init() {
-	AttachmentsTable.ForeignKeys[0].RefTable = CandidateJobsTable
-	AttachmentsTable.ForeignKeys[1].RefTable = CandidateJobFeedbacksTable
+	AttachmentsTable.ForeignKeys[0].RefTable = CandidateInterviewsTable
+	AttachmentsTable.ForeignKeys[1].RefTable = CandidateJobsTable
+	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
+	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable
+	CandidateInterviewersTable.ForeignKeys[1].RefTable = CandidateInterviewsTable
 	CandidateJobsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateJobsTable.ForeignKeys[1].RefTable = HiringJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable

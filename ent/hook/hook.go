@@ -47,6 +47,32 @@ func (f CandidateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return f(ctx, mv)
 }
 
+// The CandidateInterviewFunc type is an adapter to allow the use of ordinary
+// function as CandidateInterview mutator.
+type CandidateInterviewFunc func(context.Context, *ent.CandidateInterviewMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateInterviewFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateInterviewMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateInterviewMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CandidateInterviewerFunc type is an adapter to allow the use of ordinary
+// function as CandidateInterviewer mutator.
+type CandidateInterviewerFunc func(context.Context, *ent.CandidateInterviewerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateInterviewerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateInterviewerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateInterviewerMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CandidateJobFunc type is an adapter to allow the use of ordinary
 // function as CandidateJob mutator.
 type CandidateJobFunc func(context.Context, *ent.CandidateJobMutation) (ent.Value, error)

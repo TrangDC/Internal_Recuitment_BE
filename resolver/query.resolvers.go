@@ -126,6 +126,16 @@ func (r *queryResolver) GetAllCandidateJobFeedbacks(ctx context.Context, paginat
 	panic(fmt.Errorf("not implemented: GetAllCandidateJobFeedbacks - GetAllCandidateJobFeedbacks"))
 }
 
+// GetCandidateInterview is the resolver for the GetCandidateInterview field.
+func (r *queryResolver) GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error) {
+	panic(fmt.Errorf("not implemented: GetCandidateInterview - GetCandidateInterview"))
+}
+
+// GetAllCandidateInterviews is the resolver for the GetAllCandidateInterviews field.
+func (r *queryResolver) GetAllCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+	panic(fmt.Errorf("not implemented: GetAllCandidateInterviews - GetAllCandidateInterviews"))
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

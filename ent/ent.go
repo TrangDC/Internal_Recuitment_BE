@@ -9,6 +9,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -42,6 +44,8 @@ func columnChecker(table string) func(string) error {
 		attachment.Table:           attachment.ValidColumn,
 		audittrail.Table:           audittrail.ValidColumn,
 		candidate.Table:            candidate.ValidColumn,
+		candidateinterview.Table:   candidateinterview.ValidColumn,
+		candidateinterviewer.Table: candidateinterviewer.ValidColumn,
 		candidatejob.Table:         candidatejob.ValidColumn,
 		candidatejobfeedback.Table: candidatejobfeedback.ValidColumn,
 		hiringjob.Table:            hiringjob.ValidColumn,

@@ -28,6 +28,7 @@ func (CandidateJob) Edges() []ent.Edge {
 		edge.From("hiring_job", HiringJob.Type).Ref("candidate_job_edges").Unique().Field("hiring_job_id"),
 		edge.To("candidate_job_feedback", CandidateJobFeedback.Type),
 		edge.From("candidate_edge", Candidate.Type).Ref("candidate_job_edges").Unique().Field("candidate_id"),
+		edge.To("candidate_job_interview", CandidateInterview.Type),
 	}
 }
 

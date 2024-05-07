@@ -36,6 +36,8 @@ const (
 	EdgeCandidateJobFeedback = "candidate_job_feedback"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
+	// EdgeCandidateJobInterview holds the string denoting the candidate_job_interview edge name in mutations.
+	EdgeCandidateJobInterview = "candidate_job_interview"
 	// Table holds the table name of the candidatejob in the database.
 	Table = "candidate_jobs"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -66,6 +68,13 @@ const (
 	CandidateEdgeInverseTable = "candidates"
 	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
 	CandidateEdgeColumn = "candidate_id"
+	// CandidateJobInterviewTable is the table that holds the candidate_job_interview relation/edge.
+	CandidateJobInterviewTable = "candidate_interviews"
+	// CandidateJobInterviewInverseTable is the table name for the CandidateInterview entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateinterview" package.
+	CandidateJobInterviewInverseTable = "candidate_interviews"
+	// CandidateJobInterviewColumn is the table column denoting the candidate_job_interview relation/edge.
+	CandidateJobInterviewColumn = "candidate_job_id"
 )
 
 // Columns holds all SQL columns for candidatejob fields.

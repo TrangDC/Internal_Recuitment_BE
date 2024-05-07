@@ -44,19 +44,25 @@ type UserEdges struct {
 	TeamEdges []*Team `json:"team_edges,omitempty"`
 	// CandidateJobFeedback holds the value of the candidate_job_feedback edge.
 	CandidateJobFeedback []*CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
+	// InterviewEdges holds the value of the interview_edges edge.
+	InterviewEdges []*CandidateInterview `json:"interview_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
+	// InterviewUsers holds the value of the interview_users edge.
+	InterviewUsers []*CandidateInterviewer `json:"interview_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
+	totalCount [7]map[string]int
 
 	namedAuditEdge            map[string][]*AuditTrail
 	namedHiringOwner          map[string][]*HiringJob
 	namedTeamEdges            map[string][]*Team
 	namedCandidateJobFeedback map[string][]*CandidateJobFeedback
+	namedInterviewEdges       map[string][]*CandidateInterview
 	namedTeamUsers            map[string][]*TeamManager
+	namedInterviewUsers       map[string][]*CandidateInterviewer
 }
 
 // AuditEdgeOrErr returns the AuditEdge value or an error if the edge
@@ -95,13 +101,31 @@ func (e UserEdges) CandidateJobFeedbackOrErr() ([]*CandidateJobFeedback, error) 
 	return nil, &NotLoadedError{edge: "candidate_job_feedback"}
 }
 
+// InterviewEdgesOrErr returns the InterviewEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) InterviewEdgesOrErr() ([]*CandidateInterview, error) {
+	if e.loadedTypes[4] {
+		return e.InterviewEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "interview_edges"}
+}
+
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.TeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "team_users"}
+}
+
+// InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
+	if e.loadedTypes[6] {
+		return e.InterviewUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "interview_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -197,9 +221,19 @@ func (u *User) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
 	return (&UserClient{config: u.config}).QueryCandidateJobFeedback(u)
 }
 
+// QueryInterviewEdges queries the "interview_edges" edge of the User entity.
+func (u *User) QueryInterviewEdges() *CandidateInterviewQuery {
+	return (&UserClient{config: u.config}).QueryInterviewEdges(u)
+}
+
 // QueryTeamUsers queries the "team_users" edge of the User entity.
 func (u *User) QueryTeamUsers() *TeamManagerQuery {
 	return (&UserClient{config: u.config}).QueryTeamUsers(u)
+}
+
+// QueryInterviewUsers queries the "interview_users" edge of the User entity.
+func (u *User) QueryInterviewUsers() *CandidateInterviewerQuery {
+	return (&UserClient{config: u.config}).QueryInterviewUsers(u)
 }
 
 // Update returns a builder for updating this User.
@@ -342,6 +376,30 @@ func (u *User) appendNamedCandidateJobFeedback(name string, edges ...*CandidateJ
 	}
 }
 
+// NamedInterviewEdges returns the InterviewEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedInterviewEdges(name string) ([]*CandidateInterview, error) {
+	if u.Edges.namedInterviewEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedInterviewEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedInterviewEdges(name string, edges ...*CandidateInterview) {
+	if u.Edges.namedInterviewEdges == nil {
+		u.Edges.namedInterviewEdges = make(map[string][]*CandidateInterview)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedInterviewEdges[name] = []*CandidateInterview{}
+	} else {
+		u.Edges.namedInterviewEdges[name] = append(u.Edges.namedInterviewEdges[name], edges...)
+	}
+}
+
 // NamedTeamUsers returns the TeamUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (u *User) NamedTeamUsers(name string) ([]*TeamManager, error) {
@@ -363,6 +421,30 @@ func (u *User) appendNamedTeamUsers(name string, edges ...*TeamManager) {
 		u.Edges.namedTeamUsers[name] = []*TeamManager{}
 	} else {
 		u.Edges.namedTeamUsers[name] = append(u.Edges.namedTeamUsers[name], edges...)
+	}
+}
+
+// NamedInterviewUsers returns the InterviewUsers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedInterviewUsers(name string) ([]*CandidateInterviewer, error) {
+	if u.Edges.namedInterviewUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedInterviewUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedInterviewUsers(name string, edges ...*CandidateInterviewer) {
+	if u.Edges.namedInterviewUsers == nil {
+		u.Edges.namedInterviewUsers = make(map[string][]*CandidateInterviewer)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedInterviewUsers[name] = []*CandidateInterviewer{}
+	} else {
+		u.Edges.namedInterviewUsers[name] = append(u.Edges.namedInterviewUsers[name], edges...)
 	}
 }
 

@@ -45,6 +45,16 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			a.withCandidateJobFeedback = query
+		case "candidateInterview":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewQuery{config: a.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			a.withCandidateInterview = query
 		}
 	}
 	return nil
@@ -259,6 +269,210 @@ func newCandidatePaginateArgs(rv map[string]interface{}) *candidatePaginateArgs 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ci *CandidateInterviewQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateInterviewQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ci, nil
+	}
+	if err := ci.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ci, nil
+}
+
+func (ci *CandidateInterviewQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "candidateJobEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.withCandidateJobEdge = query
+		case "attachmentEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AttachmentQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
+				*wq = *query
+			})
+		case "interviewerEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.WithNamedInterviewerEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "userInterviewers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewerQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.WithNamedUserInterviewers(alias, func(wq *CandidateInterviewerQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type candidateinterviewPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CandidateInterviewPaginateOption
+}
+
+func newCandidateInterviewPaginateArgs(rv map[string]interface{}) *candidateinterviewPaginateArgs {
+	args := &candidateinterviewPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &CandidateInterviewOrder{Field: &CandidateInterviewOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithCandidateInterviewOrder(order))
+			}
+		case *CandidateInterviewOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithCandidateInterviewOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ci *CandidateInterviewerQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateInterviewerQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ci, nil
+	}
+	if err := ci.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ci, nil
+}
+
+func (ci *CandidateInterviewerQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "userEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.withUserEdge = query
+		case "interviewEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewQuery{config: ci.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ci.withInterviewEdge = query
+		}
+	}
+	return nil
+}
+
+type candidateinterviewerPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CandidateInterviewerPaginateOption
+}
+
+func newCandidateInterviewerPaginateArgs(rv map[string]interface{}) *candidateinterviewerPaginateArgs {
+	args := &candidateinterviewerPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &CandidateInterviewerOrder{Field: &CandidateInterviewerOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithCandidateInterviewerOrder(order))
+			}
+		case *CandidateInterviewerOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithCandidateInterviewerOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (cj *CandidateJobQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateJobQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -318,6 +532,18 @@ func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.Opera
 				return err
 			}
 			cj.withCandidateEdge = query
+		case "candidateJobInterview":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.WithNamedCandidateJobInterview(alias, func(wq *CandidateInterviewQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -831,6 +1057,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedCandidateJobFeedback(alias, func(wq *CandidateJobFeedbackQuery) {
 				*wq = *query
 			})
+		case "interviewEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedInterviewEdges(alias, func(wq *CandidateInterviewQuery) {
+				*wq = *query
+			})
 		case "teamUsers":
 			var (
 				alias = field.Alias
@@ -841,6 +1079,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedTeamUsers(alias, func(wq *TeamManagerQuery) {
+				*wq = *query
+			})
+		case "interviewUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateInterviewerQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedInterviewUsers(alias, func(wq *CandidateInterviewerQuery) {
 				*wq = *query
 			})
 		}
