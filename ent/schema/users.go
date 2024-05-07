@@ -28,6 +28,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("hiring_owner", HiringJob.Type),
 		edge.To("team_edges", Team.Type).Through("team_users", TeamManager.Type),
 		edge.To("candidate_job_feedback", CandidateJobFeedback.Type),
+		edge.To("interview_edges", CandidateInterview.Type).Through("interview_users", CandidateInterviewer.Type),
 	}
 }
 

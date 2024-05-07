@@ -13,6 +13,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -37,6 +39,10 @@ type Client struct {
 	AuditTrail *AuditTrailClient
 	// Candidate is the client for interacting with the Candidate builders.
 	Candidate *CandidateClient
+	// CandidateInterview is the client for interacting with the CandidateInterview builders.
+	CandidateInterview *CandidateInterviewClient
+	// CandidateInterviewer is the client for interacting with the CandidateInterviewer builders.
+	CandidateInterviewer *CandidateInterviewerClient
 	// CandidateJob is the client for interacting with the CandidateJob builders.
 	CandidateJob *CandidateJobClient
 	// CandidateJobFeedback is the client for interacting with the CandidateJobFeedback builders.
@@ -65,6 +71,8 @@ func (c *Client) init() {
 	c.Attachment = NewAttachmentClient(c.config)
 	c.AuditTrail = NewAuditTrailClient(c.config)
 	c.Candidate = NewCandidateClient(c.config)
+	c.CandidateInterview = NewCandidateInterviewClient(c.config)
+	c.CandidateInterviewer = NewCandidateInterviewerClient(c.config)
 	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
@@ -107,6 +115,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Attachment:           NewAttachmentClient(cfg),
 		AuditTrail:           NewAuditTrailClient(cfg),
 		Candidate:            NewCandidateClient(cfg),
+		CandidateInterview:   NewCandidateInterviewClient(cfg),
+		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
@@ -135,6 +145,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Attachment:           NewAttachmentClient(cfg),
 		AuditTrail:           NewAuditTrailClient(cfg),
 		Candidate:            NewCandidateClient(cfg),
+		CandidateInterview:   NewCandidateInterviewClient(cfg),
+		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
@@ -172,6 +184,8 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Attachment.Use(hooks...)
 	c.AuditTrail.Use(hooks...)
 	c.Candidate.Use(hooks...)
+	c.CandidateInterview.Use(hooks...)
+	c.CandidateInterviewer.Use(hooks...)
 	c.CandidateJob.Use(hooks...)
 	c.CandidateJobFeedback.Use(hooks...)
 	c.HiringJob.Use(hooks...)
@@ -290,6 +304,22 @@ func (c *AttachmentClient) QueryCandidateJobFeedback(a *Attachment) *CandidateJo
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackTable, attachment.CandidateJobFeedbackColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateInterview queries the candidate_interview edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateInterview(a *Attachment) *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateInterviewTable, attachment.CandidateInterviewColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -514,6 +544,282 @@ func (c *CandidateClient) Hooks() []Hook {
 	return c.hooks.Candidate
 }
 
+// CandidateInterviewClient is a client for the CandidateInterview schema.
+type CandidateInterviewClient struct {
+	config
+}
+
+// NewCandidateInterviewClient returns a client for the CandidateInterview from the given config.
+func NewCandidateInterviewClient(c config) *CandidateInterviewClient {
+	return &CandidateInterviewClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidateinterview.Hooks(f(g(h())))`.
+func (c *CandidateInterviewClient) Use(hooks ...Hook) {
+	c.hooks.CandidateInterview = append(c.hooks.CandidateInterview, hooks...)
+}
+
+// Create returns a builder for creating a CandidateInterview entity.
+func (c *CandidateInterviewClient) Create() *CandidateInterviewCreate {
+	mutation := newCandidateInterviewMutation(c.config, OpCreate)
+	return &CandidateInterviewCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateInterview entities.
+func (c *CandidateInterviewClient) CreateBulk(builders ...*CandidateInterviewCreate) *CandidateInterviewCreateBulk {
+	return &CandidateInterviewCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateInterview.
+func (c *CandidateInterviewClient) Update() *CandidateInterviewUpdate {
+	mutation := newCandidateInterviewMutation(c.config, OpUpdate)
+	return &CandidateInterviewUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateInterviewClient) UpdateOne(ci *CandidateInterview) *CandidateInterviewUpdateOne {
+	mutation := newCandidateInterviewMutation(c.config, OpUpdateOne, withCandidateInterview(ci))
+	return &CandidateInterviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateInterviewClient) UpdateOneID(id uuid.UUID) *CandidateInterviewUpdateOne {
+	mutation := newCandidateInterviewMutation(c.config, OpUpdateOne, withCandidateInterviewID(id))
+	return &CandidateInterviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateInterview.
+func (c *CandidateInterviewClient) Delete() *CandidateInterviewDelete {
+	mutation := newCandidateInterviewMutation(c.config, OpDelete)
+	return &CandidateInterviewDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateInterviewClient) DeleteOne(ci *CandidateInterview) *CandidateInterviewDeleteOne {
+	return c.DeleteOneID(ci.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateInterviewClient) DeleteOneID(id uuid.UUID) *CandidateInterviewDeleteOne {
+	builder := c.Delete().Where(candidateinterview.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateInterviewDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateInterview.
+func (c *CandidateInterviewClient) Query() *CandidateInterviewQuery {
+	return &CandidateInterviewQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateInterview entity by its id.
+func (c *CandidateInterviewClient) Get(ctx context.Context, id uuid.UUID) (*CandidateInterview, error) {
+	return c.Query().Where(candidateinterview.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateInterviewClient) GetX(ctx context.Context, id uuid.UUID) *CandidateInterview {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCandidateJobEdge queries the candidate_job_edge edge of a CandidateInterview.
+func (c *CandidateInterviewClient) QueryCandidateJobEdge(ci *CandidateInterview) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateinterview.CandidateJobEdgeTable, candidateinterview.CandidateJobEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateInterview.
+func (c *CandidateInterviewClient) QueryAttachmentEdges(ci *CandidateInterview) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidateinterview.AttachmentEdgesTable, candidateinterview.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInterviewerEdges queries the interviewer_edges edge of a CandidateInterview.
+func (c *CandidateInterviewClient) QueryInterviewerEdges(ci *CandidateInterview) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, candidateinterview.InterviewerEdgesTable, candidateinterview.InterviewerEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserInterviewers queries the user_interviewers edge of a CandidateInterview.
+func (c *CandidateInterviewClient) QueryUserInterviewers(ci *CandidateInterview) *CandidateInterviewerQuery {
+	query := &CandidateInterviewerQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, id),
+			sqlgraph.To(candidateinterviewer.Table, candidateinterviewer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, candidateinterview.UserInterviewersTable, candidateinterview.UserInterviewersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateInterviewClient) Hooks() []Hook {
+	return c.hooks.CandidateInterview
+}
+
+// CandidateInterviewerClient is a client for the CandidateInterviewer schema.
+type CandidateInterviewerClient struct {
+	config
+}
+
+// NewCandidateInterviewerClient returns a client for the CandidateInterviewer from the given config.
+func NewCandidateInterviewerClient(c config) *CandidateInterviewerClient {
+	return &CandidateInterviewerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidateinterviewer.Hooks(f(g(h())))`.
+func (c *CandidateInterviewerClient) Use(hooks ...Hook) {
+	c.hooks.CandidateInterviewer = append(c.hooks.CandidateInterviewer, hooks...)
+}
+
+// Create returns a builder for creating a CandidateInterviewer entity.
+func (c *CandidateInterviewerClient) Create() *CandidateInterviewerCreate {
+	mutation := newCandidateInterviewerMutation(c.config, OpCreate)
+	return &CandidateInterviewerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateInterviewer entities.
+func (c *CandidateInterviewerClient) CreateBulk(builders ...*CandidateInterviewerCreate) *CandidateInterviewerCreateBulk {
+	return &CandidateInterviewerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateInterviewer.
+func (c *CandidateInterviewerClient) Update() *CandidateInterviewerUpdate {
+	mutation := newCandidateInterviewerMutation(c.config, OpUpdate)
+	return &CandidateInterviewerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateInterviewerClient) UpdateOne(ci *CandidateInterviewer) *CandidateInterviewerUpdateOne {
+	mutation := newCandidateInterviewerMutation(c.config, OpUpdateOne, withCandidateInterviewer(ci))
+	return &CandidateInterviewerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateInterviewerClient) UpdateOneID(id uuid.UUID) *CandidateInterviewerUpdateOne {
+	mutation := newCandidateInterviewerMutation(c.config, OpUpdateOne, withCandidateInterviewerID(id))
+	return &CandidateInterviewerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateInterviewer.
+func (c *CandidateInterviewerClient) Delete() *CandidateInterviewerDelete {
+	mutation := newCandidateInterviewerMutation(c.config, OpDelete)
+	return &CandidateInterviewerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateInterviewerClient) DeleteOne(ci *CandidateInterviewer) *CandidateInterviewerDeleteOne {
+	return c.DeleteOneID(ci.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateInterviewerClient) DeleteOneID(id uuid.UUID) *CandidateInterviewerDeleteOne {
+	builder := c.Delete().Where(candidateinterviewer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateInterviewerDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateInterviewer.
+func (c *CandidateInterviewerClient) Query() *CandidateInterviewerQuery {
+	return &CandidateInterviewerQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateInterviewer entity by its id.
+func (c *CandidateInterviewerClient) Get(ctx context.Context, id uuid.UUID) (*CandidateInterviewer, error) {
+	return c.Query().Where(candidateinterviewer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateInterviewerClient) GetX(ctx context.Context, id uuid.UUID) *CandidateInterviewer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUserEdge queries the user_edge edge of a CandidateInterviewer.
+func (c *CandidateInterviewerClient) QueryUserEdge(ci *CandidateInterviewer) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterviewer.Table, candidateinterviewer.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, candidateinterviewer.UserEdgeTable, candidateinterviewer.UserEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInterviewEdge queries the interview_edge edge of a CandidateInterviewer.
+func (c *CandidateInterviewerClient) QueryInterviewEdge(ci *CandidateInterviewer) *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterviewer.Table, candidateinterviewer.FieldID, id),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, candidateinterviewer.InterviewEdgeTable, candidateinterviewer.InterviewEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateInterviewerClient) Hooks() []Hook {
+	return c.hooks.CandidateInterviewer
+}
+
 // CandidateJobClient is a client for the CandidateJob schema.
 type CandidateJobClient struct {
 	config
@@ -656,6 +962,22 @@ func (c *CandidateJobClient) QueryCandidateEdge(cj *CandidateJob) *CandidateQuer
 			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.CandidateEdgeTable, candidatejob.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobInterview queries the candidate_job_interview edge of a CandidateJob.
+func (c *CandidateJobClient) QueryCandidateJobInterview(cj *CandidateJob) *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.CandidateJobInterviewTable, candidatejob.CandidateJobInterviewColumn),
 		)
 		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
 		return fromV, nil
@@ -1353,6 +1675,22 @@ func (c *UserClient) QueryCandidateJobFeedback(u *User) *CandidateJobFeedbackQue
 	return query
 }
 
+// QueryInterviewEdges queries the interview_edges edge of a User.
+func (c *UserClient) QueryInterviewEdges(u *User) *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.InterviewEdgesTable, user.InterviewEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryTeamUsers queries the team_users edge of a User.
 func (c *UserClient) QueryTeamUsers(u *User) *TeamManagerQuery {
 	query := &TeamManagerQuery{config: c.config}
@@ -1362,6 +1700,22 @@ func (c *UserClient) QueryTeamUsers(u *User) *TeamManagerQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(teammanager.Table, teammanager.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.TeamUsersTable, user.TeamUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInterviewUsers queries the interview_users edge of a User.
+func (c *UserClient) QueryInterviewUsers(u *User) *CandidateInterviewerQuery {
+	query := &CandidateInterviewerQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidateinterviewer.Table, candidateinterviewer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.InterviewUsersTable, user.InterviewUsersColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

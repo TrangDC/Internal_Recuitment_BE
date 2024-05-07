@@ -27,6 +27,7 @@ func (Attachment) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("candidate_job", CandidateJob.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 		edge.From("candidate_job_feedback", CandidateJobFeedback.Type).Ref("attachment_edges").Unique().Field("relation_id"),
+		edge.From("candidate_interview", CandidateInterview.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 	}
 }
 

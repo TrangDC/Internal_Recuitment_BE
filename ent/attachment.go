@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent/attachment"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 
@@ -44,11 +45,13 @@ type AttachmentEdges struct {
 	CandidateJob *CandidateJob `json:"candidate_job,omitempty"`
 	// CandidateJobFeedback holds the value of the candidate_job_feedback edge.
 	CandidateJobFeedback *CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
+	// CandidateInterview holds the value of the candidate_interview edge.
+	CandidateInterview *CandidateInterview `json:"candidate_interview,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 }
 
 // CandidateJobOrErr returns the CandidateJob value or an error if the edge
@@ -75,6 +78,19 @@ func (e AttachmentEdges) CandidateJobFeedbackOrErr() (*CandidateJobFeedback, err
 		return e.CandidateJobFeedback, nil
 	}
 	return nil, &NotLoadedError{edge: "candidate_job_feedback"}
+}
+
+// CandidateInterviewOrErr returns the CandidateInterview value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateInterviewOrErr() (*CandidateInterview, error) {
+	if e.loadedTypes[2] {
+		if e.CandidateInterview == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidateinterview.Label}
+		}
+		return e.CandidateInterview, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_interview"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -164,6 +180,11 @@ func (a *Attachment) QueryCandidateJob() *CandidateJobQuery {
 // QueryCandidateJobFeedback queries the "candidate_job_feedback" edge of the Attachment entity.
 func (a *Attachment) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
 	return (&AttachmentClient{config: a.config}).QueryCandidateJobFeedback(a)
+}
+
+// QueryCandidateInterview queries the "candidate_interview" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateInterview() *CandidateInterviewQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateInterview(a)
 }
 
 // Update returns a builder for updating this Attachment.

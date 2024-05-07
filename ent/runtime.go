@@ -7,6 +7,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -127,6 +129,36 @@ func init() {
 	candidateDescID := candidateMixinFields0[0].Descriptor()
 	// candidate.DefaultID holds the default value on creation for the id field.
 	candidate.DefaultID = candidateDescID.Default.(func() uuid.UUID)
+	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
+	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
+	_ = candidateinterviewMixinFields0
+	candidateinterviewFields := schema.CandidateInterview{}.Fields()
+	_ = candidateinterviewFields
+	// candidateinterviewDescCreatedAt is the schema descriptor for created_at field.
+	candidateinterviewDescCreatedAt := candidateinterviewMixinFields0[1].Descriptor()
+	// candidateinterview.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidateinterview.DefaultCreatedAt = candidateinterviewDescCreatedAt.Default.(func() time.Time)
+	// candidateinterviewDescTitle is the schema descriptor for title field.
+	candidateinterviewDescTitle := candidateinterviewFields[0].Descriptor()
+	// candidateinterview.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	candidateinterview.TitleValidator = candidateinterviewDescTitle.Validators[0].(func(string) error)
+	// candidateinterviewDescID is the schema descriptor for id field.
+	candidateinterviewDescID := candidateinterviewMixinFields0[0].Descriptor()
+	// candidateinterview.DefaultID holds the default value on creation for the id field.
+	candidateinterview.DefaultID = candidateinterviewDescID.Default.(func() uuid.UUID)
+	candidateinterviewerMixin := schema.CandidateInterviewer{}.Mixin()
+	candidateinterviewerMixinFields0 := candidateinterviewerMixin[0].Fields()
+	_ = candidateinterviewerMixinFields0
+	candidateinterviewerFields := schema.CandidateInterviewer{}.Fields()
+	_ = candidateinterviewerFields
+	// candidateinterviewerDescCreatedAt is the schema descriptor for created_at field.
+	candidateinterviewerDescCreatedAt := candidateinterviewerMixinFields0[1].Descriptor()
+	// candidateinterviewer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidateinterviewer.DefaultCreatedAt = candidateinterviewerDescCreatedAt.Default.(func() time.Time)
+	// candidateinterviewerDescID is the schema descriptor for id field.
+	candidateinterviewerDescID := candidateinterviewerMixinFields0[0].Descriptor()
+	// candidateinterviewer.DefaultID holds the default value on creation for the id field.
+	candidateinterviewer.DefaultID = candidateinterviewerDescID.Default.(func() uuid.UUID)
 	candidatejobMixin := schema.CandidateJob{}.Mixin()
 	candidatejobMixinFields0 := candidatejobMixin[0].Fields()
 	_ = candidatejobMixinFields0

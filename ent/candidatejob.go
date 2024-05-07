@@ -46,14 +46,17 @@ type CandidateJobEdges struct {
 	CandidateJobFeedback []*CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
 	// CandidateEdge holds the value of the candidate_edge edge.
 	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
+	// CandidateJobInterview holds the value of the candidate_job_interview edge.
+	CandidateJobInterview []*CandidateInterview `json:"candidate_job_interview,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [5]map[string]int
 
-	namedAttachmentEdges      map[string][]*Attachment
-	namedCandidateJobFeedback map[string][]*CandidateJobFeedback
+	namedAttachmentEdges       map[string][]*Attachment
+	namedCandidateJobFeedback  map[string][]*CandidateJobFeedback
+	namedCandidateJobInterview map[string][]*CandidateInterview
 }
 
 // AttachmentEdgesOrErr returns the AttachmentEdges value or an error if the edge
@@ -98,6 +101,15 @@ func (e CandidateJobEdges) CandidateEdgeOrErr() (*Candidate, error) {
 		return e.CandidateEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "candidate_edge"}
+}
+
+// CandidateJobInterviewOrErr returns the CandidateJobInterview value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateJobEdges) CandidateJobInterviewOrErr() ([]*CandidateInterview, error) {
+	if e.loadedTypes[4] {
+		return e.CandidateJobInterview, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_job_interview"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -193,6 +205,11 @@ func (cj *CandidateJob) QueryCandidateEdge() *CandidateQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryCandidateEdge(cj)
 }
 
+// QueryCandidateJobInterview queries the "candidate_job_interview" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryCandidateJobInterview() *CandidateInterviewQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryCandidateJobInterview(cj)
+}
+
 // Update returns a builder for updating this CandidateJob.
 // Note that you need to call CandidateJob.Unwrap() before calling this method if this CandidateJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -282,6 +299,30 @@ func (cj *CandidateJob) appendNamedCandidateJobFeedback(name string, edges ...*C
 		cj.Edges.namedCandidateJobFeedback[name] = []*CandidateJobFeedback{}
 	} else {
 		cj.Edges.namedCandidateJobFeedback[name] = append(cj.Edges.namedCandidateJobFeedback[name], edges...)
+	}
+}
+
+// NamedCandidateJobInterview returns the CandidateJobInterview named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (cj *CandidateJob) NamedCandidateJobInterview(name string) ([]*CandidateInterview, error) {
+	if cj.Edges.namedCandidateJobInterview == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := cj.Edges.namedCandidateJobInterview[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (cj *CandidateJob) appendNamedCandidateJobInterview(name string, edges ...*CandidateInterview) {
+	if cj.Edges.namedCandidateJobInterview == nil {
+		cj.Edges.namedCandidateJobInterview = make(map[string][]*CandidateInterview)
+	}
+	if len(edges) == 0 {
+		cj.Edges.namedCandidateJobInterview[name] = []*CandidateInterview{}
+	} else {
+		cj.Edges.namedCandidateJobInterview[name] = append(cj.Edges.namedCandidateJobInterview[name], edges...)
 	}
 }
 

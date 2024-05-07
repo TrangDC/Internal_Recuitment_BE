@@ -74,6 +74,30 @@ type CandidateFreeWord struct {
 	Phone *string `json:"phone"`
 }
 
+type CandidateInterviewFilter struct {
+	CandidateJobID string     `json:"candidate_job_id"`
+	InterviewDate  *time.Time `json:"interview_date"`
+	StartFrom      *time.Time `json:"start_from"`
+	EndAt          *time.Time `json:"end_at"`
+	Interviewer    []string   `json:"interviewer"`
+	FromDate       *time.Time `json:"from_date"`
+	ToDate         *time.Time `json:"to_date"`
+}
+
+type CandidateInterviewFreeWord struct {
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+}
+
+type CandidateInterviewResponse struct {
+	Data *CandidateInterview `json:"data"`
+}
+
+type CandidateInterviewResponseGetAll struct {
+	Edges      []*CandidateInterviewEdge `json:"edges"`
+	Pagination *Pagination               `json:"pagination"`
+}
+
 type CandidateJobFeedbackFilter struct {
 	CandidateJobID string  `json:"candidate_job_id"`
 	CreatedBy      *string `json:"created_by"`
@@ -156,6 +180,16 @@ type NewCandidateInput struct {
 	Dob   time.Time `json:"dob"`
 }
 
+type NewCandidateInterviewInput struct {
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	CandidateJobID string    `json:"candidate_job_id"`
+	InterviewDate  time.Time `json:"interview_date"`
+	StartFrom      time.Time `json:"start_from"`
+	EndAt          time.Time `json:"end_at"`
+	Interviewer    []string  `json:"interviewer"`
+}
+
 type NewCandidateJobFeedbackInput struct {
 	CandidateJobID string                `json:"candidate_job_id"`
 	Feedback       string                `json:"feedback"`
@@ -226,6 +260,16 @@ type UpdateCandidateInput struct {
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
 	Dob   time.Time `json:"dob"`
+}
+
+type UpdateCandidateInterviewInput struct {
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	CandidateJobID string    `json:"candidate_job_id"`
+	InterviewDate  time.Time `json:"interview_date"`
+	StartFrom      time.Time `json:"start_from"`
+	EndAt          time.Time `json:"end_at"`
+	Interviewer    []string  `json:"interviewer"`
 }
 
 type UpdateCandidateJobFeedbackInput struct {

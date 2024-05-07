@@ -113,7 +113,7 @@ func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJ
 		hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
 	)).First(ctx)
 	if err != nil {
-		return fmt.Errorf("model.candidate_job_feedback.validation.job_close")
+		return fmt.Errorf("model.candidate_job_feedbacks.validation.job_close")
 	}
 	return err
 }
@@ -123,7 +123,7 @@ func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, cand
 		candidatejob.DeletedAtIsNil(), candidatejob.IDEQ(candidateJobId),
 	)).First(ctx)
 	if err != nil {
-		return fmt.Errorf("model.candidate_job_feedback.validation.candidate_is_blacklist")
+		return fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist")
 	}
 	return err
 }

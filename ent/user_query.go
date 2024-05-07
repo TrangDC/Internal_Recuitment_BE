@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/audittrail"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
@@ -34,14 +36,18 @@ type UserQuery struct {
 	withHiringOwner               *HiringJobQuery
 	withTeamEdges                 *TeamQuery
 	withCandidateJobFeedback      *CandidateJobFeedbackQuery
+	withInterviewEdges            *CandidateInterviewQuery
 	withTeamUsers                 *TeamManagerQuery
+	withInterviewUsers            *CandidateInterviewerQuery
 	modifiers                     []func(*sql.Selector)
 	loadTotal                     []func(context.Context, []*User) error
 	withNamedAuditEdge            map[string]*AuditTrailQuery
 	withNamedHiringOwner          map[string]*HiringJobQuery
 	withNamedTeamEdges            map[string]*TeamQuery
 	withNamedCandidateJobFeedback map[string]*CandidateJobFeedbackQuery
+	withNamedInterviewEdges       map[string]*CandidateInterviewQuery
 	withNamedTeamUsers            map[string]*TeamManagerQuery
+	withNamedInterviewUsers       map[string]*CandidateInterviewerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -166,6 +172,28 @@ func (uq *UserQuery) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
 	return query
 }
 
+// QueryInterviewEdges chains the current query on the "interview_edges" edge.
+func (uq *UserQuery) QueryInterviewEdges() *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.InterviewEdgesTable, user.InterviewEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryTeamUsers chains the current query on the "team_users" edge.
 func (uq *UserQuery) QueryTeamUsers() *TeamManagerQuery {
 	query := &TeamManagerQuery{config: uq.config}
@@ -181,6 +209,28 @@ func (uq *UserQuery) QueryTeamUsers() *TeamManagerQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(teammanager.Table, teammanager.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.TeamUsersTable, user.TeamUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInterviewUsers chains the current query on the "interview_users" edge.
+func (uq *UserQuery) QueryInterviewUsers() *CandidateInterviewerQuery {
+	query := &CandidateInterviewerQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(candidateinterviewer.Table, candidateinterviewer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.InterviewUsersTable, user.InterviewUsersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -373,7 +423,9 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withHiringOwner:          uq.withHiringOwner.Clone(),
 		withTeamEdges:            uq.withTeamEdges.Clone(),
 		withCandidateJobFeedback: uq.withCandidateJobFeedback.Clone(),
+		withInterviewEdges:       uq.withInterviewEdges.Clone(),
 		withTeamUsers:            uq.withTeamUsers.Clone(),
+		withInterviewUsers:       uq.withInterviewUsers.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -425,6 +477,17 @@ func (uq *UserQuery) WithCandidateJobFeedback(opts ...func(*CandidateJobFeedback
 	return uq
 }
 
+// WithInterviewEdges tells the query-builder to eager-load the nodes that are connected to
+// the "interview_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithInterviewEdges(opts ...func(*CandidateInterviewQuery)) *UserQuery {
+	query := &CandidateInterviewQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withInterviewEdges = query
+	return uq
+}
+
 // WithTeamUsers tells the query-builder to eager-load the nodes that are connected to
 // the "team_users" edge. The optional arguments are used to configure the query builder of the edge.
 func (uq *UserQuery) WithTeamUsers(opts ...func(*TeamManagerQuery)) *UserQuery {
@@ -433,6 +496,17 @@ func (uq *UserQuery) WithTeamUsers(opts ...func(*TeamManagerQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withTeamUsers = query
+	return uq
+}
+
+// WithInterviewUsers tells the query-builder to eager-load the nodes that are connected to
+// the "interview_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithInterviewUsers(opts ...func(*CandidateInterviewerQuery)) *UserQuery {
+	query := &CandidateInterviewerQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withInterviewUsers = query
 	return uq
 }
 
@@ -509,12 +583,14 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			uq.withAuditEdge != nil,
 			uq.withHiringOwner != nil,
 			uq.withTeamEdges != nil,
 			uq.withCandidateJobFeedback != nil,
+			uq.withInterviewEdges != nil,
 			uq.withTeamUsers != nil,
+			uq.withInterviewUsers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -568,10 +644,24 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withInterviewEdges; query != nil {
+		if err := uq.loadInterviewEdges(ctx, query, nodes,
+			func(n *User) { n.Edges.InterviewEdges = []*CandidateInterview{} },
+			func(n *User, e *CandidateInterview) { n.Edges.InterviewEdges = append(n.Edges.InterviewEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := uq.withTeamUsers; query != nil {
 		if err := uq.loadTeamUsers(ctx, query, nodes,
 			func(n *User) { n.Edges.TeamUsers = []*TeamManager{} },
 			func(n *User, e *TeamManager) { n.Edges.TeamUsers = append(n.Edges.TeamUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withInterviewUsers; query != nil {
+		if err := uq.loadInterviewUsers(ctx, query, nodes,
+			func(n *User) { n.Edges.InterviewUsers = []*CandidateInterviewer{} },
+			func(n *User, e *CandidateInterviewer) { n.Edges.InterviewUsers = append(n.Edges.InterviewUsers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -603,10 +693,24 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	for name, query := range uq.withNamedInterviewEdges {
+		if err := uq.loadInterviewEdges(ctx, query, nodes,
+			func(n *User) { n.appendNamedInterviewEdges(name) },
+			func(n *User, e *CandidateInterview) { n.appendNamedInterviewEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range uq.withNamedTeamUsers {
 		if err := uq.loadTeamUsers(ctx, query, nodes,
 			func(n *User) { n.appendNamedTeamUsers(name) },
 			func(n *User, e *TeamManager) { n.appendNamedTeamUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedInterviewUsers {
+		if err := uq.loadInterviewUsers(ctx, query, nodes,
+			func(n *User) { n.appendNamedInterviewUsers(name) },
+			func(n *User, e *CandidateInterviewer) { n.appendNamedInterviewUsers(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -757,6 +861,64 @@ func (uq *UserQuery) loadCandidateJobFeedback(ctx context.Context, query *Candid
 	}
 	return nil
 }
+func (uq *UserQuery) loadInterviewEdges(ctx context.Context, query *CandidateInterviewQuery, nodes []*User, init func(*User), assign func(*User, *CandidateInterview)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.InterviewEdgesTable)
+		s.Join(joinT).On(s.C(candidateinterview.FieldID), joinT.C(user.InterviewEdgesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.InterviewEdgesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.InterviewEdgesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "interview_edges" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (uq *UserQuery) loadTeamUsers(ctx context.Context, query *TeamManagerQuery, nodes []*User, init func(*User), assign func(*User, *TeamManager)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
@@ -769,6 +931,33 @@ func (uq *UserQuery) loadTeamUsers(ctx context.Context, query *TeamManagerQuery,
 	}
 	query.Where(predicate.TeamManager(func(s *sql.Selector) {
 		s.Where(sql.InValues(user.TeamUsersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadInterviewUsers(ctx context.Context, query *CandidateInterviewerQuery, nodes []*User, init func(*User), assign func(*User, *CandidateInterviewer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateInterviewer(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.InterviewUsersColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -944,6 +1133,20 @@ func (uq *UserQuery) WithNamedCandidateJobFeedback(name string, opts ...func(*Ca
 	return uq
 }
 
+// WithNamedInterviewEdges tells the query-builder to eager-load the nodes that are connected to the "interview_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedInterviewEdges(name string, opts ...func(*CandidateInterviewQuery)) *UserQuery {
+	query := &CandidateInterviewQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedInterviewEdges == nil {
+		uq.withNamedInterviewEdges = make(map[string]*CandidateInterviewQuery)
+	}
+	uq.withNamedInterviewEdges[name] = query
+	return uq
+}
+
 // WithNamedTeamUsers tells the query-builder to eager-load the nodes that are connected to the "team_users"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
 func (uq *UserQuery) WithNamedTeamUsers(name string, opts ...func(*TeamManagerQuery)) *UserQuery {
@@ -955,6 +1158,20 @@ func (uq *UserQuery) WithNamedTeamUsers(name string, opts ...func(*TeamManagerQu
 		uq.withNamedTeamUsers = make(map[string]*TeamManagerQuery)
 	}
 	uq.withNamedTeamUsers[name] = query
+	return uq
+}
+
+// WithNamedInterviewUsers tells the query-builder to eager-load the nodes that are connected to the "interview_users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedInterviewUsers(name string, opts ...func(*CandidateInterviewerQuery)) *UserQuery {
+	query := &CandidateInterviewerQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedInterviewUsers == nil {
+		uq.withNamedInterviewUsers = make(map[string]*CandidateInterviewerQuery)
+	}
+	uq.withNamedInterviewUsers[name] = query
 	return uq
 }
 

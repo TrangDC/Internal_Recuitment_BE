@@ -753,6 +753,34 @@ func HasCandidateJobFeedbackWith(preds ...predicate.CandidateJobFeedback) predic
 	})
 }
 
+// HasInterviewEdges applies the HasEdge predicate on the "interview_edges" edge.
+func HasInterviewEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InterviewEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, InterviewEdgesTable, InterviewEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInterviewEdgesWith applies the HasEdge predicate on the "interview_edges" edge with a given conditions (other predicates).
+func HasInterviewEdgesWith(preds ...predicate.CandidateInterview) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InterviewEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, InterviewEdgesTable, InterviewEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasTeamUsers applies the HasEdge predicate on the "team_users" edge.
 func HasTeamUsers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -772,6 +800,34 @@ func HasTeamUsersWith(preds ...predicate.TeamManager) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(TeamUsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, TeamUsersTable, TeamUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasInterviewUsers applies the HasEdge predicate on the "interview_users" edge.
+func HasInterviewUsers() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InterviewUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, InterviewUsersTable, InterviewUsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInterviewUsersWith applies the HasEdge predicate on the "interview_users" edge with a given conditions (other predicates).
+func HasInterviewUsersWith(preds ...predicate.CandidateInterviewer) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InterviewUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, InterviewUsersTable, InterviewUsersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

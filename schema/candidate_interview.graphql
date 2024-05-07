@@ -1,0 +1,72 @@
+enum CandidateInterviewOrderField {
+  created_at
+  name
+  interview_date
+}
+
+type CandidateInterview {
+  id: ID!
+  title: String!
+  description: String
+  candidate_job_id: ID!
+  interview_date: Time!
+  start_from: Time!
+  end_at: Time!
+  interviewer: [User!]!
+  created_at: Time!
+  updated_at: Time!
+}
+
+input CandidateInterviewOrder {
+  field: CandidateInterviewOrderField!
+  direction: OrderDirection!
+}
+
+input NewCandidateInterviewInput {
+  title: String!
+  description: String!
+  candidate_job_id: ID!
+  interview_date: Time!
+  start_from: Time!
+  end_at: Time!
+  interviewer: [ID!]!
+}
+
+input UpdateCandidateInterviewInput {
+  title: String!
+  description: String!
+  candidate_job_id: ID!
+  interview_date: Time!
+  start_from: Time!
+  end_at: Time!
+  interviewer: [ID!]
+}
+
+input CandidateInterviewFilter {
+  candidate_job_id: ID!
+  interview_date: Time
+  start_from: Time
+  end_at: Time
+  interviewer: [ID!]
+  from_date: Time
+  to_date: Time
+}
+
+input CandidateInterviewFreeWord {
+  title: String
+  description: String
+}
+
+type CandidateInterviewResponse {
+  data: CandidateInterview
+}
+
+type CandidateInterviewEdge {
+  node: CandidateInterview!
+  cursor: Cursor!
+}
+
+type CandidateInterviewResponseGetAll {
+  edges: [CandidateInterviewEdge!]!
+  pagination: Pagination!
+}

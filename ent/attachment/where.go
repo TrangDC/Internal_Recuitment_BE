@@ -649,6 +649,34 @@ func HasCandidateJobFeedbackWith(preds ...predicate.CandidateJobFeedback) predic
 	})
 }
 
+// HasCandidateInterview applies the HasEdge predicate on the "candidate_interview" edge.
+func HasCandidateInterview() predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateInterviewTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewTable, CandidateInterviewColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateInterviewWith applies the HasEdge predicate on the "candidate_interview" edge with a given conditions (other predicates).
+func HasCandidateInterviewWith(preds ...predicate.CandidateInterview) predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateInterviewInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewTable, CandidateInterviewColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Attachment) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {

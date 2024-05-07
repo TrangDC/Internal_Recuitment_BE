@@ -162,6 +162,21 @@ func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id st
 	panic(fmt.Errorf("not implemented: UpdateCandidateJobFeedback - UpdateCandidateJobFeedback"))
 }
 
+// CreateCandidateInterview is the resolver for the CreateCandidateInterview field.
+func (r *mutationResolver) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
+	panic(fmt.Errorf("not implemented: CreateCandidateInterview - CreateCandidateInterview"))
+}
+
+// UpdateCandidateInterview is the resolver for the UpdateCandidateInterview field.
+func (r *mutationResolver) UpdateCandidateInterview(ctx context.Context, id string, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
+	panic(fmt.Errorf("not implemented: UpdateCandidateInterview - UpdateCandidateInterview"))
+}
+
+// DeleteCandidateInterview is the resolver for the DeleteCandidateInterview field.
+func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteCandidateInterview - DeleteCandidateInterview"))
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

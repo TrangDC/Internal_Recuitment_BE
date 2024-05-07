@@ -11,6 +11,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -36,6 +38,8 @@ const (
 	TypeAttachment           = "Attachment"
 	TypeAuditTrail           = "AuditTrail"
 	TypeCandidate            = "Candidate"
+	TypeCandidateInterview   = "CandidateInterview"
+	TypeCandidateInterviewer = "CandidateInterviewer"
 	TypeCandidateJob         = "CandidateJob"
 	TypeCandidateJobFeedback = "CandidateJobFeedback"
 	TypeHiringJob            = "HiringJob"
@@ -61,6 +65,8 @@ type AttachmentMutation struct {
 	clearedcandidate_job          bool
 	candidate_job_feedback        *uuid.UUID
 	clearedcandidate_job_feedback bool
+	candidate_interview           *uuid.UUID
+	clearedcandidate_interview    bool
 	done                          bool
 	oldValue                      func(context.Context) (*Attachment, error)
 	predicates                    []predicate.Attachment
@@ -539,6 +545,45 @@ func (m *AttachmentMutation) ResetCandidateJobFeedback() {
 	m.clearedcandidate_job_feedback = false
 }
 
+// SetCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by id.
+func (m *AttachmentMutation) SetCandidateInterviewID(id uuid.UUID) {
+	m.candidate_interview = &id
+}
+
+// ClearCandidateInterview clears the "candidate_interview" edge to the CandidateInterview entity.
+func (m *AttachmentMutation) ClearCandidateInterview() {
+	m.clearedcandidate_interview = true
+}
+
+// CandidateInterviewCleared reports if the "candidate_interview" edge to the CandidateInterview entity was cleared.
+func (m *AttachmentMutation) CandidateInterviewCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_interview
+}
+
+// CandidateInterviewID returns the "candidate_interview" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateInterviewID() (id uuid.UUID, exists bool) {
+	if m.candidate_interview != nil {
+		return *m.candidate_interview, true
+	}
+	return
+}
+
+// CandidateInterviewIDs returns the "candidate_interview" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateInterviewID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateInterviewIDs() (ids []uuid.UUID) {
+	if id := m.candidate_interview; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateInterview resets all changes to the "candidate_interview" edge.
+func (m *AttachmentMutation) ResetCandidateInterview() {
+	m.candidate_interview = nil
+	m.clearedcandidate_interview = false
+}
+
 // Where appends a list predicates to the AttachmentMutation builder.
 func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
 	m.predicates = append(m.predicates, ps...)
@@ -780,12 +825,15 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.candidate_job != nil {
 		edges = append(edges, attachment.EdgeCandidateJob)
 	}
 	if m.candidate_job_feedback != nil {
 		edges = append(edges, attachment.EdgeCandidateJobFeedback)
+	}
+	if m.candidate_interview != nil {
+		edges = append(edges, attachment.EdgeCandidateInterview)
 	}
 	return edges
 }
@@ -802,13 +850,17 @@ func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_job_feedback; id != nil {
 			return []ent.Value{*id}
 		}
+	case attachment.EdgeCandidateInterview:
+		if id := m.candidate_interview; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -820,12 +872,15 @@ func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcandidate_job {
 		edges = append(edges, attachment.EdgeCandidateJob)
 	}
 	if m.clearedcandidate_job_feedback {
 		edges = append(edges, attachment.EdgeCandidateJobFeedback)
+	}
+	if m.clearedcandidate_interview {
+		edges = append(edges, attachment.EdgeCandidateInterview)
 	}
 	return edges
 }
@@ -838,6 +893,8 @@ func (m *AttachmentMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_job
 	case attachment.EdgeCandidateJobFeedback:
 		return m.clearedcandidate_job_feedback
+	case attachment.EdgeCandidateInterview:
+		return m.clearedcandidate_interview
 	}
 	return false
 }
@@ -852,6 +909,9 @@ func (m *AttachmentMutation) ClearEdge(name string) error {
 	case attachment.EdgeCandidateJobFeedback:
 		m.ClearCandidateJobFeedback()
 		return nil
+	case attachment.EdgeCandidateInterview:
+		m.ClearCandidateInterview()
+		return nil
 	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
 }
@@ -865,6 +925,9 @@ func (m *AttachmentMutation) ResetEdge(name string) error {
 		return nil
 	case attachment.EdgeCandidateJobFeedback:
 		m.ResetCandidateJobFeedback()
+		return nil
+	case attachment.EdgeCandidateInterview:
+		m.ResetCandidateInterview()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
@@ -2631,30 +2694,1968 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Candidate edge %s", name)
 }
 
+// CandidateInterviewMutation represents an operation that mutates the CandidateInterview nodes in the graph.
+type CandidateInterviewMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	title                     *string
+	candidate_job_status      *candidateinterview.CandidateJobStatus
+	interview_date            *time.Time
+	start_from                *time.Time
+	end_at                    *time.Time
+	description               *string
+	clearedFields             map[string]struct{}
+	candidate_job_edge        *uuid.UUID
+	clearedcandidate_job_edge bool
+	attachment_edges          map[uuid.UUID]struct{}
+	removedattachment_edges   map[uuid.UUID]struct{}
+	clearedattachment_edges   bool
+	interviewer_edges         map[uuid.UUID]struct{}
+	removedinterviewer_edges  map[uuid.UUID]struct{}
+	clearedinterviewer_edges  bool
+	user_interviewers         map[uuid.UUID]struct{}
+	removeduser_interviewers  map[uuid.UUID]struct{}
+	cleareduser_interviewers  bool
+	done                      bool
+	oldValue                  func(context.Context) (*CandidateInterview, error)
+	predicates                []predicate.CandidateInterview
+}
+
+var _ ent.Mutation = (*CandidateInterviewMutation)(nil)
+
+// candidateinterviewOption allows management of the mutation configuration using functional options.
+type candidateinterviewOption func(*CandidateInterviewMutation)
+
+// newCandidateInterviewMutation creates new mutation for the CandidateInterview entity.
+func newCandidateInterviewMutation(c config, op Op, opts ...candidateinterviewOption) *CandidateInterviewMutation {
+	m := &CandidateInterviewMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateInterview,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateInterviewID sets the ID field of the mutation.
+func withCandidateInterviewID(id uuid.UUID) candidateinterviewOption {
+	return func(m *CandidateInterviewMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateInterview
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateInterview, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateInterview.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateInterview sets the old CandidateInterview of the mutation.
+func withCandidateInterview(node *CandidateInterview) candidateinterviewOption {
+	return func(m *CandidateInterviewMutation) {
+		m.oldValue = func(context.Context) (*CandidateInterview, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateInterviewMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateInterviewMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateInterview entities.
+func (m *CandidateInterviewMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateInterviewMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateInterviewMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateInterview.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateInterviewMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateInterviewMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateInterviewMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateInterviewMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateInterviewMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateInterviewMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidateinterview.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateInterviewMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidateinterview.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateInterviewMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateInterviewMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateInterviewMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidateinterview.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateInterviewMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidateinterview.FieldDeletedAt)
+}
+
+// SetTitle sets the "title" field.
+func (m *CandidateInterviewMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *CandidateInterviewMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *CandidateInterviewMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (m *CandidateInterviewMutation) SetCandidateJobStatus(cjs candidateinterview.CandidateJobStatus) {
+	m.candidate_job_status = &cjs
+}
+
+// CandidateJobStatus returns the value of the "candidate_job_status" field in the mutation.
+func (m *CandidateInterviewMutation) CandidateJobStatus() (r candidateinterview.CandidateJobStatus, exists bool) {
+	v := m.candidate_job_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateJobStatus returns the old "candidate_job_status" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldCandidateJobStatus(ctx context.Context) (v candidateinterview.CandidateJobStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateJobStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateJobStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateJobStatus: %w", err)
+	}
+	return oldValue.CandidateJobStatus, nil
+}
+
+// ResetCandidateJobStatus resets all changes to the "candidate_job_status" field.
+func (m *CandidateInterviewMutation) ResetCandidateJobStatus() {
+	m.candidate_job_status = nil
+}
+
+// SetCandidateJobID sets the "candidate_job_id" field.
+func (m *CandidateInterviewMutation) SetCandidateJobID(u uuid.UUID) {
+	m.candidate_job_edge = &u
+}
+
+// CandidateJobID returns the value of the "candidate_job_id" field in the mutation.
+func (m *CandidateInterviewMutation) CandidateJobID() (r uuid.UUID, exists bool) {
+	v := m.candidate_job_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateJobID returns the old "candidate_job_id" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldCandidateJobID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateJobID: %w", err)
+	}
+	return oldValue.CandidateJobID, nil
+}
+
+// ClearCandidateJobID clears the value of the "candidate_job_id" field.
+func (m *CandidateInterviewMutation) ClearCandidateJobID() {
+	m.candidate_job_edge = nil
+	m.clearedFields[candidateinterview.FieldCandidateJobID] = struct{}{}
+}
+
+// CandidateJobIDCleared returns if the "candidate_job_id" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) CandidateJobIDCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldCandidateJobID]
+	return ok
+}
+
+// ResetCandidateJobID resets all changes to the "candidate_job_id" field.
+func (m *CandidateInterviewMutation) ResetCandidateJobID() {
+	m.candidate_job_edge = nil
+	delete(m.clearedFields, candidateinterview.FieldCandidateJobID)
+}
+
+// SetInterviewDate sets the "interview_date" field.
+func (m *CandidateInterviewMutation) SetInterviewDate(t time.Time) {
+	m.interview_date = &t
+}
+
+// InterviewDate returns the value of the "interview_date" field in the mutation.
+func (m *CandidateInterviewMutation) InterviewDate() (r time.Time, exists bool) {
+	v := m.interview_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInterviewDate returns the old "interview_date" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldInterviewDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInterviewDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInterviewDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInterviewDate: %w", err)
+	}
+	return oldValue.InterviewDate, nil
+}
+
+// ClearInterviewDate clears the value of the "interview_date" field.
+func (m *CandidateInterviewMutation) ClearInterviewDate() {
+	m.interview_date = nil
+	m.clearedFields[candidateinterview.FieldInterviewDate] = struct{}{}
+}
+
+// InterviewDateCleared returns if the "interview_date" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) InterviewDateCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldInterviewDate]
+	return ok
+}
+
+// ResetInterviewDate resets all changes to the "interview_date" field.
+func (m *CandidateInterviewMutation) ResetInterviewDate() {
+	m.interview_date = nil
+	delete(m.clearedFields, candidateinterview.FieldInterviewDate)
+}
+
+// SetStartFrom sets the "start_from" field.
+func (m *CandidateInterviewMutation) SetStartFrom(t time.Time) {
+	m.start_from = &t
+}
+
+// StartFrom returns the value of the "start_from" field in the mutation.
+func (m *CandidateInterviewMutation) StartFrom() (r time.Time, exists bool) {
+	v := m.start_from
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartFrom returns the old "start_from" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldStartFrom(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartFrom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartFrom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartFrom: %w", err)
+	}
+	return oldValue.StartFrom, nil
+}
+
+// ClearStartFrom clears the value of the "start_from" field.
+func (m *CandidateInterviewMutation) ClearStartFrom() {
+	m.start_from = nil
+	m.clearedFields[candidateinterview.FieldStartFrom] = struct{}{}
+}
+
+// StartFromCleared returns if the "start_from" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) StartFromCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldStartFrom]
+	return ok
+}
+
+// ResetStartFrom resets all changes to the "start_from" field.
+func (m *CandidateInterviewMutation) ResetStartFrom() {
+	m.start_from = nil
+	delete(m.clearedFields, candidateinterview.FieldStartFrom)
+}
+
+// SetEndAt sets the "end_at" field.
+func (m *CandidateInterviewMutation) SetEndAt(t time.Time) {
+	m.end_at = &t
+}
+
+// EndAt returns the value of the "end_at" field in the mutation.
+func (m *CandidateInterviewMutation) EndAt() (r time.Time, exists bool) {
+	v := m.end_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndAt returns the old "end_at" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldEndAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndAt: %w", err)
+	}
+	return oldValue.EndAt, nil
+}
+
+// ClearEndAt clears the value of the "end_at" field.
+func (m *CandidateInterviewMutation) ClearEndAt() {
+	m.end_at = nil
+	m.clearedFields[candidateinterview.FieldEndAt] = struct{}{}
+}
+
+// EndAtCleared returns if the "end_at" field was cleared in this mutation.
+func (m *CandidateInterviewMutation) EndAtCleared() bool {
+	_, ok := m.clearedFields[candidateinterview.FieldEndAt]
+	return ok
+}
+
+// ResetEndAt resets all changes to the "end_at" field.
+func (m *CandidateInterviewMutation) ResetEndAt() {
+	m.end_at = nil
+	delete(m.clearedFields, candidateinterview.FieldEndAt)
+}
+
+// SetDescription sets the "description" field.
+func (m *CandidateInterviewMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CandidateInterviewMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CandidateInterviewMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by id.
+func (m *CandidateInterviewMutation) SetCandidateJobEdgeID(id uuid.UUID) {
+	m.candidate_job_edge = &id
+}
+
+// ClearCandidateJobEdge clears the "candidate_job_edge" edge to the CandidateJob entity.
+func (m *CandidateInterviewMutation) ClearCandidateJobEdge() {
+	m.clearedcandidate_job_edge = true
+}
+
+// CandidateJobEdgeCleared reports if the "candidate_job_edge" edge to the CandidateJob entity was cleared.
+func (m *CandidateInterviewMutation) CandidateJobEdgeCleared() bool {
+	return m.CandidateJobIDCleared() || m.clearedcandidate_job_edge
+}
+
+// CandidateJobEdgeID returns the "candidate_job_edge" edge ID in the mutation.
+func (m *CandidateInterviewMutation) CandidateJobEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_job_edge != nil {
+		return *m.candidate_job_edge, true
+	}
+	return
+}
+
+// CandidateJobEdgeIDs returns the "candidate_job_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateJobEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateInterviewMutation) CandidateJobEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_job_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateJobEdge resets all changes to the "candidate_job_edge" edge.
+func (m *CandidateInterviewMutation) ResetCandidateJobEdge() {
+	m.candidate_job_edge = nil
+	m.clearedcandidate_job_edge = false
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateInterviewMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateInterviewMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateInterviewMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateInterviewMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateInterviewMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateInterviewMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateInterviewMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// AddInterviewerEdgeIDs adds the "interviewer_edges" edge to the User entity by ids.
+func (m *CandidateInterviewMutation) AddInterviewerEdgeIDs(ids ...uuid.UUID) {
+	if m.interviewer_edges == nil {
+		m.interviewer_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.interviewer_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInterviewerEdges clears the "interviewer_edges" edge to the User entity.
+func (m *CandidateInterviewMutation) ClearInterviewerEdges() {
+	m.clearedinterviewer_edges = true
+}
+
+// InterviewerEdgesCleared reports if the "interviewer_edges" edge to the User entity was cleared.
+func (m *CandidateInterviewMutation) InterviewerEdgesCleared() bool {
+	return m.clearedinterviewer_edges
+}
+
+// RemoveInterviewerEdgeIDs removes the "interviewer_edges" edge to the User entity by IDs.
+func (m *CandidateInterviewMutation) RemoveInterviewerEdgeIDs(ids ...uuid.UUID) {
+	if m.removedinterviewer_edges == nil {
+		m.removedinterviewer_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.interviewer_edges, ids[i])
+		m.removedinterviewer_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInterviewerEdges returns the removed IDs of the "interviewer_edges" edge to the User entity.
+func (m *CandidateInterviewMutation) RemovedInterviewerEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedinterviewer_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InterviewerEdgesIDs returns the "interviewer_edges" edge IDs in the mutation.
+func (m *CandidateInterviewMutation) InterviewerEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.interviewer_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInterviewerEdges resets all changes to the "interviewer_edges" edge.
+func (m *CandidateInterviewMutation) ResetInterviewerEdges() {
+	m.interviewer_edges = nil
+	m.clearedinterviewer_edges = false
+	m.removedinterviewer_edges = nil
+}
+
+// AddUserInterviewerIDs adds the "user_interviewers" edge to the CandidateInterviewer entity by ids.
+func (m *CandidateInterviewMutation) AddUserInterviewerIDs(ids ...uuid.UUID) {
+	if m.user_interviewers == nil {
+		m.user_interviewers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.user_interviewers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserInterviewers clears the "user_interviewers" edge to the CandidateInterviewer entity.
+func (m *CandidateInterviewMutation) ClearUserInterviewers() {
+	m.cleareduser_interviewers = true
+}
+
+// UserInterviewersCleared reports if the "user_interviewers" edge to the CandidateInterviewer entity was cleared.
+func (m *CandidateInterviewMutation) UserInterviewersCleared() bool {
+	return m.cleareduser_interviewers
+}
+
+// RemoveUserInterviewerIDs removes the "user_interviewers" edge to the CandidateInterviewer entity by IDs.
+func (m *CandidateInterviewMutation) RemoveUserInterviewerIDs(ids ...uuid.UUID) {
+	if m.removeduser_interviewers == nil {
+		m.removeduser_interviewers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_interviewers, ids[i])
+		m.removeduser_interviewers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserInterviewers returns the removed IDs of the "user_interviewers" edge to the CandidateInterviewer entity.
+func (m *CandidateInterviewMutation) RemovedUserInterviewersIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_interviewers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserInterviewersIDs returns the "user_interviewers" edge IDs in the mutation.
+func (m *CandidateInterviewMutation) UserInterviewersIDs() (ids []uuid.UUID) {
+	for id := range m.user_interviewers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserInterviewers resets all changes to the "user_interviewers" edge.
+func (m *CandidateInterviewMutation) ResetUserInterviewers() {
+	m.user_interviewers = nil
+	m.cleareduser_interviewers = false
+	m.removeduser_interviewers = nil
+}
+
+// Where appends a list predicates to the CandidateInterviewMutation builder.
+func (m *CandidateInterviewMutation) Where(ps ...predicate.CandidateInterview) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateInterviewMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateInterview).
+func (m *CandidateInterviewMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateInterviewMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, candidateinterview.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidateinterview.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidateinterview.FieldDeletedAt)
+	}
+	if m.title != nil {
+		fields = append(fields, candidateinterview.FieldTitle)
+	}
+	if m.candidate_job_status != nil {
+		fields = append(fields, candidateinterview.FieldCandidateJobStatus)
+	}
+	if m.candidate_job_edge != nil {
+		fields = append(fields, candidateinterview.FieldCandidateJobID)
+	}
+	if m.interview_date != nil {
+		fields = append(fields, candidateinterview.FieldInterviewDate)
+	}
+	if m.start_from != nil {
+		fields = append(fields, candidateinterview.FieldStartFrom)
+	}
+	if m.end_at != nil {
+		fields = append(fields, candidateinterview.FieldEndAt)
+	}
+	if m.description != nil {
+		fields = append(fields, candidateinterview.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateInterviewMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidateinterview.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidateinterview.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidateinterview.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidateinterview.FieldTitle:
+		return m.Title()
+	case candidateinterview.FieldCandidateJobStatus:
+		return m.CandidateJobStatus()
+	case candidateinterview.FieldCandidateJobID:
+		return m.CandidateJobID()
+	case candidateinterview.FieldInterviewDate:
+		return m.InterviewDate()
+	case candidateinterview.FieldStartFrom:
+		return m.StartFrom()
+	case candidateinterview.FieldEndAt:
+		return m.EndAt()
+	case candidateinterview.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateInterviewMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidateinterview.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidateinterview.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidateinterview.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidateinterview.FieldTitle:
+		return m.OldTitle(ctx)
+	case candidateinterview.FieldCandidateJobStatus:
+		return m.OldCandidateJobStatus(ctx)
+	case candidateinterview.FieldCandidateJobID:
+		return m.OldCandidateJobID(ctx)
+	case candidateinterview.FieldInterviewDate:
+		return m.OldInterviewDate(ctx)
+	case candidateinterview.FieldStartFrom:
+		return m.OldStartFrom(ctx)
+	case candidateinterview.FieldEndAt:
+		return m.OldEndAt(ctx)
+	case candidateinterview.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateInterview field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateInterviewMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidateinterview.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidateinterview.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidateinterview.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidateinterview.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case candidateinterview.FieldCandidateJobStatus:
+		v, ok := value.(candidateinterview.CandidateJobStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateJobStatus(v)
+		return nil
+	case candidateinterview.FieldCandidateJobID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateJobID(v)
+		return nil
+	case candidateinterview.FieldInterviewDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInterviewDate(v)
+		return nil
+	case candidateinterview.FieldStartFrom:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartFrom(v)
+		return nil
+	case candidateinterview.FieldEndAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndAt(v)
+		return nil
+	case candidateinterview.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterview field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateInterviewMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateInterviewMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateInterviewMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateInterview numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateInterviewMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidateinterview.FieldUpdatedAt) {
+		fields = append(fields, candidateinterview.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidateinterview.FieldDeletedAt) {
+		fields = append(fields, candidateinterview.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidateinterview.FieldCandidateJobID) {
+		fields = append(fields, candidateinterview.FieldCandidateJobID)
+	}
+	if m.FieldCleared(candidateinterview.FieldInterviewDate) {
+		fields = append(fields, candidateinterview.FieldInterviewDate)
+	}
+	if m.FieldCleared(candidateinterview.FieldStartFrom) {
+		fields = append(fields, candidateinterview.FieldStartFrom)
+	}
+	if m.FieldCleared(candidateinterview.FieldEndAt) {
+		fields = append(fields, candidateinterview.FieldEndAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateInterviewMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateInterviewMutation) ClearField(name string) error {
+	switch name {
+	case candidateinterview.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidateinterview.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidateinterview.FieldCandidateJobID:
+		m.ClearCandidateJobID()
+		return nil
+	case candidateinterview.FieldInterviewDate:
+		m.ClearInterviewDate()
+		return nil
+	case candidateinterview.FieldStartFrom:
+		m.ClearStartFrom()
+		return nil
+	case candidateinterview.FieldEndAt:
+		m.ClearEndAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterview nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateInterviewMutation) ResetField(name string) error {
+	switch name {
+	case candidateinterview.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidateinterview.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidateinterview.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidateinterview.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case candidateinterview.FieldCandidateJobStatus:
+		m.ResetCandidateJobStatus()
+		return nil
+	case candidateinterview.FieldCandidateJobID:
+		m.ResetCandidateJobID()
+		return nil
+	case candidateinterview.FieldInterviewDate:
+		m.ResetInterviewDate()
+		return nil
+	case candidateinterview.FieldStartFrom:
+		m.ResetStartFrom()
+		return nil
+	case candidateinterview.FieldEndAt:
+		m.ResetEndAt()
+		return nil
+	case candidateinterview.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterview field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateInterviewMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.candidate_job_edge != nil {
+		edges = append(edges, candidateinterview.EdgeCandidateJobEdge)
+	}
+	if m.attachment_edges != nil {
+		edges = append(edges, candidateinterview.EdgeAttachmentEdges)
+	}
+	if m.interviewer_edges != nil {
+		edges = append(edges, candidateinterview.EdgeInterviewerEdges)
+	}
+	if m.user_interviewers != nil {
+		edges = append(edges, candidateinterview.EdgeUserInterviewers)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateInterviewMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidateinterview.EdgeCandidateJobEdge:
+		if id := m.candidate_job_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case candidateinterview.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateinterview.EdgeInterviewerEdges:
+		ids := make([]ent.Value, 0, len(m.interviewer_edges))
+		for id := range m.interviewer_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateinterview.EdgeUserInterviewers:
+		ids := make([]ent.Value, 0, len(m.user_interviewers))
+		for id := range m.user_interviewers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateInterviewMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidateinterview.EdgeAttachmentEdges)
+	}
+	if m.removedinterviewer_edges != nil {
+		edges = append(edges, candidateinterview.EdgeInterviewerEdges)
+	}
+	if m.removeduser_interviewers != nil {
+		edges = append(edges, candidateinterview.EdgeUserInterviewers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateInterviewMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidateinterview.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateinterview.EdgeInterviewerEdges:
+		ids := make([]ent.Value, 0, len(m.removedinterviewer_edges))
+		for id := range m.removedinterviewer_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateinterview.EdgeUserInterviewers:
+		ids := make([]ent.Value, 0, len(m.removeduser_interviewers))
+		for id := range m.removeduser_interviewers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateInterviewMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedcandidate_job_edge {
+		edges = append(edges, candidateinterview.EdgeCandidateJobEdge)
+	}
+	if m.clearedattachment_edges {
+		edges = append(edges, candidateinterview.EdgeAttachmentEdges)
+	}
+	if m.clearedinterviewer_edges {
+		edges = append(edges, candidateinterview.EdgeInterviewerEdges)
+	}
+	if m.cleareduser_interviewers {
+		edges = append(edges, candidateinterview.EdgeUserInterviewers)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateInterviewMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidateinterview.EdgeCandidateJobEdge:
+		return m.clearedcandidate_job_edge
+	case candidateinterview.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	case candidateinterview.EdgeInterviewerEdges:
+		return m.clearedinterviewer_edges
+	case candidateinterview.EdgeUserInterviewers:
+		return m.cleareduser_interviewers
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateInterviewMutation) ClearEdge(name string) error {
+	switch name {
+	case candidateinterview.EdgeCandidateJobEdge:
+		m.ClearCandidateJobEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterview unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateInterviewMutation) ResetEdge(name string) error {
+	switch name {
+	case candidateinterview.EdgeCandidateJobEdge:
+		m.ResetCandidateJobEdge()
+		return nil
+	case candidateinterview.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	case candidateinterview.EdgeInterviewerEdges:
+		m.ResetInterviewerEdges()
+		return nil
+	case candidateinterview.EdgeUserInterviewers:
+		m.ResetUserInterviewers()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterview edge %s", name)
+}
+
+// CandidateInterviewerMutation represents an operation that mutates the CandidateInterviewer nodes in the graph.
+type CandidateInterviewerMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	deleted_at            *time.Time
+	clearedFields         map[string]struct{}
+	user_edge             *uuid.UUID
+	cleareduser_edge      bool
+	interview_edge        *uuid.UUID
+	clearedinterview_edge bool
+	done                  bool
+	oldValue              func(context.Context) (*CandidateInterviewer, error)
+	predicates            []predicate.CandidateInterviewer
+}
+
+var _ ent.Mutation = (*CandidateInterviewerMutation)(nil)
+
+// candidateinterviewerOption allows management of the mutation configuration using functional options.
+type candidateinterviewerOption func(*CandidateInterviewerMutation)
+
+// newCandidateInterviewerMutation creates new mutation for the CandidateInterviewer entity.
+func newCandidateInterviewerMutation(c config, op Op, opts ...candidateinterviewerOption) *CandidateInterviewerMutation {
+	m := &CandidateInterviewerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateInterviewer,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateInterviewerID sets the ID field of the mutation.
+func withCandidateInterviewerID(id uuid.UUID) candidateinterviewerOption {
+	return func(m *CandidateInterviewerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateInterviewer
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateInterviewer, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateInterviewer.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateInterviewer sets the old CandidateInterviewer of the mutation.
+func withCandidateInterviewer(node *CandidateInterviewer) candidateinterviewerOption {
+	return func(m *CandidateInterviewerMutation) {
+		m.oldValue = func(context.Context) (*CandidateInterviewer, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateInterviewerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateInterviewerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateInterviewer entities.
+func (m *CandidateInterviewerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateInterviewerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateInterviewerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateInterviewer.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateInterviewerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateInterviewerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateInterviewer entity.
+// If the CandidateInterviewer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateInterviewerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateInterviewerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateInterviewerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateInterviewer entity.
+// If the CandidateInterviewer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateInterviewerMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidateinterviewer.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateInterviewerMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidateinterviewer.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateInterviewerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidateinterviewer.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateInterviewerMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateInterviewerMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateInterviewer entity.
+// If the CandidateInterviewer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewerMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateInterviewerMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidateinterviewer.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateInterviewerMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidateinterviewer.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateInterviewerMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidateinterviewer.FieldDeletedAt)
+}
+
+// SetCandidateInterviewID sets the "candidate_interview_id" field.
+func (m *CandidateInterviewerMutation) SetCandidateInterviewID(u uuid.UUID) {
+	m.interview_edge = &u
+}
+
+// CandidateInterviewID returns the value of the "candidate_interview_id" field in the mutation.
+func (m *CandidateInterviewerMutation) CandidateInterviewID() (r uuid.UUID, exists bool) {
+	v := m.interview_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateInterviewID returns the old "candidate_interview_id" field's value of the CandidateInterviewer entity.
+// If the CandidateInterviewer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewerMutation) OldCandidateInterviewID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateInterviewID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateInterviewID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateInterviewID: %w", err)
+	}
+	return oldValue.CandidateInterviewID, nil
+}
+
+// ResetCandidateInterviewID resets all changes to the "candidate_interview_id" field.
+func (m *CandidateInterviewerMutation) ResetCandidateInterviewID() {
+	m.interview_edge = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *CandidateInterviewerMutation) SetUserID(u uuid.UUID) {
+	m.user_edge = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *CandidateInterviewerMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the CandidateInterviewer entity.
+// If the CandidateInterviewer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewerMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *CandidateInterviewerMutation) ResetUserID() {
+	m.user_edge = nil
+}
+
+// SetUserEdgeID sets the "user_edge" edge to the User entity by id.
+func (m *CandidateInterviewerMutation) SetUserEdgeID(id uuid.UUID) {
+	m.user_edge = &id
+}
+
+// ClearUserEdge clears the "user_edge" edge to the User entity.
+func (m *CandidateInterviewerMutation) ClearUserEdge() {
+	m.cleareduser_edge = true
+}
+
+// UserEdgeCleared reports if the "user_edge" edge to the User entity was cleared.
+func (m *CandidateInterviewerMutation) UserEdgeCleared() bool {
+	return m.cleareduser_edge
+}
+
+// UserEdgeID returns the "user_edge" edge ID in the mutation.
+func (m *CandidateInterviewerMutation) UserEdgeID() (id uuid.UUID, exists bool) {
+	if m.user_edge != nil {
+		return *m.user_edge, true
+	}
+	return
+}
+
+// UserEdgeIDs returns the "user_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateInterviewerMutation) UserEdgeIDs() (ids []uuid.UUID) {
+	if id := m.user_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserEdge resets all changes to the "user_edge" edge.
+func (m *CandidateInterviewerMutation) ResetUserEdge() {
+	m.user_edge = nil
+	m.cleareduser_edge = false
+}
+
+// SetInterviewEdgeID sets the "interview_edge" edge to the CandidateInterview entity by id.
+func (m *CandidateInterviewerMutation) SetInterviewEdgeID(id uuid.UUID) {
+	m.interview_edge = &id
+}
+
+// ClearInterviewEdge clears the "interview_edge" edge to the CandidateInterview entity.
+func (m *CandidateInterviewerMutation) ClearInterviewEdge() {
+	m.clearedinterview_edge = true
+}
+
+// InterviewEdgeCleared reports if the "interview_edge" edge to the CandidateInterview entity was cleared.
+func (m *CandidateInterviewerMutation) InterviewEdgeCleared() bool {
+	return m.clearedinterview_edge
+}
+
+// InterviewEdgeID returns the "interview_edge" edge ID in the mutation.
+func (m *CandidateInterviewerMutation) InterviewEdgeID() (id uuid.UUID, exists bool) {
+	if m.interview_edge != nil {
+		return *m.interview_edge, true
+	}
+	return
+}
+
+// InterviewEdgeIDs returns the "interview_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// InterviewEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateInterviewerMutation) InterviewEdgeIDs() (ids []uuid.UUID) {
+	if id := m.interview_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetInterviewEdge resets all changes to the "interview_edge" edge.
+func (m *CandidateInterviewerMutation) ResetInterviewEdge() {
+	m.interview_edge = nil
+	m.clearedinterview_edge = false
+}
+
+// Where appends a list predicates to the CandidateInterviewerMutation builder.
+func (m *CandidateInterviewerMutation) Where(ps ...predicate.CandidateInterviewer) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateInterviewerMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateInterviewer).
+func (m *CandidateInterviewerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateInterviewerMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, candidateinterviewer.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidateinterviewer.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidateinterviewer.FieldDeletedAt)
+	}
+	if m.interview_edge != nil {
+		fields = append(fields, candidateinterviewer.FieldCandidateInterviewID)
+	}
+	if m.user_edge != nil {
+		fields = append(fields, candidateinterviewer.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateInterviewerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidateinterviewer.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidateinterviewer.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidateinterviewer.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidateinterviewer.FieldCandidateInterviewID:
+		return m.CandidateInterviewID()
+	case candidateinterviewer.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateInterviewerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidateinterviewer.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidateinterviewer.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidateinterviewer.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidateinterviewer.FieldCandidateInterviewID:
+		return m.OldCandidateInterviewID(ctx)
+	case candidateinterviewer.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateInterviewer field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateInterviewerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidateinterviewer.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidateinterviewer.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidateinterviewer.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidateinterviewer.FieldCandidateInterviewID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateInterviewID(v)
+		return nil
+	case candidateinterviewer.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterviewer field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateInterviewerMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateInterviewerMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateInterviewerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateInterviewer numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateInterviewerMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidateinterviewer.FieldUpdatedAt) {
+		fields = append(fields, candidateinterviewer.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidateinterviewer.FieldDeletedAt) {
+		fields = append(fields, candidateinterviewer.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateInterviewerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateInterviewerMutation) ClearField(name string) error {
+	switch name {
+	case candidateinterviewer.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidateinterviewer.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterviewer nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateInterviewerMutation) ResetField(name string) error {
+	switch name {
+	case candidateinterviewer.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidateinterviewer.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidateinterviewer.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidateinterviewer.FieldCandidateInterviewID:
+		m.ResetCandidateInterviewID()
+		return nil
+	case candidateinterviewer.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterviewer field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateInterviewerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user_edge != nil {
+		edges = append(edges, candidateinterviewer.EdgeUserEdge)
+	}
+	if m.interview_edge != nil {
+		edges = append(edges, candidateinterviewer.EdgeInterviewEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateInterviewerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidateinterviewer.EdgeUserEdge:
+		if id := m.user_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case candidateinterviewer.EdgeInterviewEdge:
+		if id := m.interview_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateInterviewerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateInterviewerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateInterviewerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser_edge {
+		edges = append(edges, candidateinterviewer.EdgeUserEdge)
+	}
+	if m.clearedinterview_edge {
+		edges = append(edges, candidateinterviewer.EdgeInterviewEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateInterviewerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidateinterviewer.EdgeUserEdge:
+		return m.cleareduser_edge
+	case candidateinterviewer.EdgeInterviewEdge:
+		return m.clearedinterview_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateInterviewerMutation) ClearEdge(name string) error {
+	switch name {
+	case candidateinterviewer.EdgeUserEdge:
+		m.ClearUserEdge()
+		return nil
+	case candidateinterviewer.EdgeInterviewEdge:
+		m.ClearInterviewEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterviewer unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateInterviewerMutation) ResetEdge(name string) error {
+	switch name {
+	case candidateinterviewer.EdgeUserEdge:
+		m.ResetUserEdge()
+		return nil
+	case candidateinterviewer.EdgeInterviewEdge:
+		m.ResetInterviewEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateInterviewer edge %s", name)
+}
+
 // CandidateJobMutation represents an operation that mutates the CandidateJob nodes in the graph.
 type CandidateJobMutation struct {
 	config
-	op                            Op
-	typ                           string
-	id                            *uuid.UUID
-	created_at                    *time.Time
-	updated_at                    *time.Time
-	deleted_at                    *time.Time
-	status                        *candidatejob.Status
-	clearedFields                 map[string]struct{}
-	attachment_edges              map[uuid.UUID]struct{}
-	removedattachment_edges       map[uuid.UUID]struct{}
-	clearedattachment_edges       bool
-	hiring_job                    *uuid.UUID
-	clearedhiring_job             bool
-	candidate_job_feedback        map[uuid.UUID]struct{}
-	removedcandidate_job_feedback map[uuid.UUID]struct{}
-	clearedcandidate_job_feedback bool
-	candidate_edge                *uuid.UUID
-	clearedcandidate_edge         bool
-	done                          bool
-	oldValue                      func(context.Context) (*CandidateJob, error)
-	predicates                    []predicate.CandidateJob
+	op                             Op
+	typ                            string
+	id                             *uuid.UUID
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	deleted_at                     *time.Time
+	status                         *candidatejob.Status
+	clearedFields                  map[string]struct{}
+	attachment_edges               map[uuid.UUID]struct{}
+	removedattachment_edges        map[uuid.UUID]struct{}
+	clearedattachment_edges        bool
+	hiring_job                     *uuid.UUID
+	clearedhiring_job              bool
+	candidate_job_feedback         map[uuid.UUID]struct{}
+	removedcandidate_job_feedback  map[uuid.UUID]struct{}
+	clearedcandidate_job_feedback  bool
+	candidate_edge                 *uuid.UUID
+	clearedcandidate_edge          bool
+	candidate_job_interview        map[uuid.UUID]struct{}
+	removedcandidate_job_interview map[uuid.UUID]struct{}
+	clearedcandidate_job_interview bool
+	done                           bool
+	oldValue                       func(context.Context) (*CandidateJob, error)
+	predicates                     []predicate.CandidateJob
 }
 
 var _ ent.Mutation = (*CandidateJobMutation)(nil)
@@ -3202,6 +5203,60 @@ func (m *CandidateJobMutation) ResetCandidateEdge() {
 	m.clearedcandidate_edge = false
 }
 
+// AddCandidateJobInterviewIDs adds the "candidate_job_interview" edge to the CandidateInterview entity by ids.
+func (m *CandidateJobMutation) AddCandidateJobInterviewIDs(ids ...uuid.UUID) {
+	if m.candidate_job_interview == nil {
+		m.candidate_job_interview = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_job_interview[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateJobInterview clears the "candidate_job_interview" edge to the CandidateInterview entity.
+func (m *CandidateJobMutation) ClearCandidateJobInterview() {
+	m.clearedcandidate_job_interview = true
+}
+
+// CandidateJobInterviewCleared reports if the "candidate_job_interview" edge to the CandidateInterview entity was cleared.
+func (m *CandidateJobMutation) CandidateJobInterviewCleared() bool {
+	return m.clearedcandidate_job_interview
+}
+
+// RemoveCandidateJobInterviewIDs removes the "candidate_job_interview" edge to the CandidateInterview entity by IDs.
+func (m *CandidateJobMutation) RemoveCandidateJobInterviewIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_job_interview == nil {
+		m.removedcandidate_job_interview = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_job_interview, ids[i])
+		m.removedcandidate_job_interview[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateJobInterview returns the removed IDs of the "candidate_job_interview" edge to the CandidateInterview entity.
+func (m *CandidateJobMutation) RemovedCandidateJobInterviewIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_job_interview {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateJobInterviewIDs returns the "candidate_job_interview" edge IDs in the mutation.
+func (m *CandidateJobMutation) CandidateJobInterviewIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_job_interview {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateJobInterview resets all changes to the "candidate_job_interview" edge.
+func (m *CandidateJobMutation) ResetCandidateJobInterview() {
+	m.candidate_job_interview = nil
+	m.clearedcandidate_job_interview = false
+	m.removedcandidate_job_interview = nil
+}
+
 // Where appends a list predicates to the CandidateJobMutation builder.
 func (m *CandidateJobMutation) Where(ps ...predicate.CandidateJob) {
 	m.predicates = append(m.predicates, ps...)
@@ -3432,7 +5487,7 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateJobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.attachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -3444,6 +5499,9 @@ func (m *CandidateJobMutation) AddedEdges() []string {
 	}
 	if m.candidate_edge != nil {
 		edges = append(edges, candidatejob.EdgeCandidateEdge)
+	}
+	if m.candidate_job_interview != nil {
+		edges = append(edges, candidatejob.EdgeCandidateJobInterview)
 	}
 	return edges
 }
@@ -3472,18 +5530,27 @@ func (m *CandidateJobMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case candidatejob.EdgeCandidateJobInterview:
+		ids := make([]ent.Value, 0, len(m.candidate_job_interview))
+		for id := range m.candidate_job_interview {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateJobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedattachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
 	if m.removedcandidate_job_feedback != nil {
 		edges = append(edges, candidatejob.EdgeCandidateJobFeedback)
+	}
+	if m.removedcandidate_job_interview != nil {
+		edges = append(edges, candidatejob.EdgeCandidateJobInterview)
 	}
 	return edges
 }
@@ -3504,13 +5571,19 @@ func (m *CandidateJobMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidatejob.EdgeCandidateJobInterview:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_job_interview))
+		for id := range m.removedcandidate_job_interview {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateJobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedattachment_edges {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -3522,6 +5595,9 @@ func (m *CandidateJobMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_edge {
 		edges = append(edges, candidatejob.EdgeCandidateEdge)
+	}
+	if m.clearedcandidate_job_interview {
+		edges = append(edges, candidatejob.EdgeCandidateJobInterview)
 	}
 	return edges
 }
@@ -3538,6 +5614,8 @@ func (m *CandidateJobMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_job_feedback
 	case candidatejob.EdgeCandidateEdge:
 		return m.clearedcandidate_edge
+	case candidatejob.EdgeCandidateJobInterview:
+		return m.clearedcandidate_job_interview
 	}
 	return false
 }
@@ -3571,6 +5649,9 @@ func (m *CandidateJobMutation) ResetEdge(name string) error {
 		return nil
 	case candidatejob.EdgeCandidateEdge:
 		m.ResetCandidateEdge()
+		return nil
+	case candidatejob.EdgeCandidateJobInterview:
+		m.ResetCandidateJobInterview()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob edge %s", name)
@@ -7470,9 +9551,15 @@ type UserMutation struct {
 	candidate_job_feedback        map[uuid.UUID]struct{}
 	removedcandidate_job_feedback map[uuid.UUID]struct{}
 	clearedcandidate_job_feedback bool
+	interview_edges               map[uuid.UUID]struct{}
+	removedinterview_edges        map[uuid.UUID]struct{}
+	clearedinterview_edges        bool
 	team_users                    map[uuid.UUID]struct{}
 	removedteam_users             map[uuid.UUID]struct{}
 	clearedteam_users             bool
+	interview_users               map[uuid.UUID]struct{}
+	removedinterview_users        map[uuid.UUID]struct{}
+	clearedinterview_users        bool
 	done                          bool
 	oldValue                      func(context.Context) (*User, error)
 	predicates                    []predicate.User
@@ -8040,6 +10127,60 @@ func (m *UserMutation) ResetCandidateJobFeedback() {
 	m.removedcandidate_job_feedback = nil
 }
 
+// AddInterviewEdgeIDs adds the "interview_edges" edge to the CandidateInterview entity by ids.
+func (m *UserMutation) AddInterviewEdgeIDs(ids ...uuid.UUID) {
+	if m.interview_edges == nil {
+		m.interview_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.interview_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInterviewEdges clears the "interview_edges" edge to the CandidateInterview entity.
+func (m *UserMutation) ClearInterviewEdges() {
+	m.clearedinterview_edges = true
+}
+
+// InterviewEdgesCleared reports if the "interview_edges" edge to the CandidateInterview entity was cleared.
+func (m *UserMutation) InterviewEdgesCleared() bool {
+	return m.clearedinterview_edges
+}
+
+// RemoveInterviewEdgeIDs removes the "interview_edges" edge to the CandidateInterview entity by IDs.
+func (m *UserMutation) RemoveInterviewEdgeIDs(ids ...uuid.UUID) {
+	if m.removedinterview_edges == nil {
+		m.removedinterview_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.interview_edges, ids[i])
+		m.removedinterview_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInterviewEdges returns the removed IDs of the "interview_edges" edge to the CandidateInterview entity.
+func (m *UserMutation) RemovedInterviewEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedinterview_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InterviewEdgesIDs returns the "interview_edges" edge IDs in the mutation.
+func (m *UserMutation) InterviewEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.interview_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInterviewEdges resets all changes to the "interview_edges" edge.
+func (m *UserMutation) ResetInterviewEdges() {
+	m.interview_edges = nil
+	m.clearedinterview_edges = false
+	m.removedinterview_edges = nil
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by ids.
 func (m *UserMutation) AddTeamUserIDs(ids ...uuid.UUID) {
 	if m.team_users == nil {
@@ -8092,6 +10233,60 @@ func (m *UserMutation) ResetTeamUsers() {
 	m.team_users = nil
 	m.clearedteam_users = false
 	m.removedteam_users = nil
+}
+
+// AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by ids.
+func (m *UserMutation) AddInterviewUserIDs(ids ...uuid.UUID) {
+	if m.interview_users == nil {
+		m.interview_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.interview_users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInterviewUsers clears the "interview_users" edge to the CandidateInterviewer entity.
+func (m *UserMutation) ClearInterviewUsers() {
+	m.clearedinterview_users = true
+}
+
+// InterviewUsersCleared reports if the "interview_users" edge to the CandidateInterviewer entity was cleared.
+func (m *UserMutation) InterviewUsersCleared() bool {
+	return m.clearedinterview_users
+}
+
+// RemoveInterviewUserIDs removes the "interview_users" edge to the CandidateInterviewer entity by IDs.
+func (m *UserMutation) RemoveInterviewUserIDs(ids ...uuid.UUID) {
+	if m.removedinterview_users == nil {
+		m.removedinterview_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.interview_users, ids[i])
+		m.removedinterview_users[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInterviewUsers returns the removed IDs of the "interview_users" edge to the CandidateInterviewer entity.
+func (m *UserMutation) RemovedInterviewUsersIDs() (ids []uuid.UUID) {
+	for id := range m.removedinterview_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InterviewUsersIDs returns the "interview_users" edge IDs in the mutation.
+func (m *UserMutation) InterviewUsersIDs() (ids []uuid.UUID) {
+	for id := range m.interview_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInterviewUsers resets all changes to the "interview_users" edge.
+func (m *UserMutation) ResetInterviewUsers() {
+	m.interview_users = nil
+	m.clearedinterview_users = false
+	m.removedinterview_users = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -8312,7 +10507,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -8325,8 +10520,14 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.candidate_job_feedback != nil {
 		edges = append(edges, user.EdgeCandidateJobFeedback)
 	}
+	if m.interview_edges != nil {
+		edges = append(edges, user.EdgeInterviewEdges)
+	}
 	if m.team_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
+	}
+	if m.interview_users != nil {
+		edges = append(edges, user.EdgeInterviewUsers)
 	}
 	return edges
 }
@@ -8359,9 +10560,21 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeInterviewEdges:
+		ids := make([]ent.Value, 0, len(m.interview_edges))
+		for id := range m.interview_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.team_users))
 		for id := range m.team_users {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeInterviewUsers:
+		ids := make([]ent.Value, 0, len(m.interview_users))
+		for id := range m.interview_users {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8371,7 +10584,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -8384,8 +10597,14 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedcandidate_job_feedback != nil {
 		edges = append(edges, user.EdgeCandidateJobFeedback)
 	}
+	if m.removedinterview_edges != nil {
+		edges = append(edges, user.EdgeInterviewEdges)
+	}
 	if m.removedteam_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
+	}
+	if m.removedinterview_users != nil {
+		edges = append(edges, user.EdgeInterviewUsers)
 	}
 	return edges
 }
@@ -8418,9 +10637,21 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeInterviewEdges:
+		ids := make([]ent.Value, 0, len(m.removedinterview_edges))
+		for id := range m.removedinterview_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.removedteam_users))
 		for id := range m.removedteam_users {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeInterviewUsers:
+		ids := make([]ent.Value, 0, len(m.removedinterview_users))
+		for id := range m.removedinterview_users {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8430,7 +10661,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 7)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -8443,8 +10674,14 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedcandidate_job_feedback {
 		edges = append(edges, user.EdgeCandidateJobFeedback)
 	}
+	if m.clearedinterview_edges {
+		edges = append(edges, user.EdgeInterviewEdges)
+	}
 	if m.clearedteam_users {
 		edges = append(edges, user.EdgeTeamUsers)
+	}
+	if m.clearedinterview_users {
+		edges = append(edges, user.EdgeInterviewUsers)
 	}
 	return edges
 }
@@ -8461,8 +10698,12 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedteam_edges
 	case user.EdgeCandidateJobFeedback:
 		return m.clearedcandidate_job_feedback
+	case user.EdgeInterviewEdges:
+		return m.clearedinterview_edges
 	case user.EdgeTeamUsers:
 		return m.clearedteam_users
+	case user.EdgeInterviewUsers:
+		return m.clearedinterview_users
 	}
 	return false
 }
@@ -8491,8 +10732,14 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeCandidateJobFeedback:
 		m.ResetCandidateJobFeedback()
 		return nil
+	case user.EdgeInterviewEdges:
+		m.ResetInterviewEdges()
+		return nil
 	case user.EdgeTeamUsers:
 		m.ResetTeamUsers()
+		return nil
+	case user.EdgeInterviewUsers:
+		m.ResetInterviewUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
@@ -175,6 +176,21 @@ func (cjc *CandidateJobCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *Candid
 // SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
 func (cjc *CandidateJobCreate) SetCandidateEdge(c *Candidate) *CandidateJobCreate {
 	return cjc.SetCandidateEdgeID(c.ID)
+}
+
+// AddCandidateJobInterviewIDs adds the "candidate_job_interview" edge to the CandidateInterview entity by IDs.
+func (cjc *CandidateJobCreate) AddCandidateJobInterviewIDs(ids ...uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.AddCandidateJobInterviewIDs(ids...)
+	return cjc
+}
+
+// AddCandidateJobInterview adds the "candidate_job_interview" edges to the CandidateInterview entity.
+func (cjc *CandidateJobCreate) AddCandidateJobInterview(c ...*CandidateInterview) *CandidateJobCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cjc.AddCandidateJobInterviewIDs(ids...)
 }
 
 // Mutation returns the CandidateJobMutation object of the builder.
@@ -409,6 +425,25 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CandidateID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cjc.mutation.CandidateJobInterviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobInterviewTable,
+			Columns: []string{candidatejob.CandidateJobInterviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
