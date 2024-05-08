@@ -1,6 +1,4 @@
 type Mutation {
-  CreatePreRequest(input: String!): String!
-
   # Team
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!

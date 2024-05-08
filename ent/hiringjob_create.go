@@ -426,9 +426,6 @@ func (hjc *HiringJobCreate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "HiringJob.currency": %w`, err)}
 		}
 	}
-	if len(hjc.mutation.CandidateJobEdgesIDs()) == 0 {
-		return &ValidationError{Name: "candidate_job_edges", err: errors.New(`ent: missing required edge "HiringJob.candidate_job_edges"`)}
-	}
 	return nil
 }
 
