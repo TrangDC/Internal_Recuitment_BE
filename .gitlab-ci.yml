@@ -9,15 +9,6 @@ include: "/.gitlab/.gitlab-ci.template.yml"
     - if: $PIPELINE_NAME == "CD" && $ENVIRONMENT == "development"
     - when: never
 
-.stag:
-  variables:
-    CONTAINER_APP_NAME: techvify-stag-trec-backend
-    RESOURCE_GROUP: techvify-stag-container-rg
-    POSTGRES_CONNECTION_STRING: ${STAG_POSTGRES_CONNECTION_STRING}
-  rules:
-    - if: $PIPELINE_NAME == "CD" && $ENVIRONMENT == "development"
-    - when: never
-
 .prod:
   variables:
     CONTAINER_APP_NAME: techvify-prod-trec-backend
@@ -45,26 +36,6 @@ migrate-apply-dev:
 deploy-dev:
   extends:
     - .dev
-    - .deploy
-
-#############################################
-## STAG ENVIRONMENT
-#############################################
-migrate-dry-run-stag:
-  extends:
-    - .stag
-    - .migrate-dry-run
-
-migrate-apply-stag:
-  extends:
-    - .stag
-    - .migrate-apply
-  needs:
-    - migrate-dry-run-stag
-
-deploy-stag:
-  extends:
-    - .stag
     - .deploy
 
 #############################################
