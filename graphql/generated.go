@@ -251,7 +251,6 @@ type ComplexityRoot struct {
 		CreateCandidateJob           func(childComplexity int, input ent.NewCandidateJobInput) int
 		CreateCandidateJobFeedback   func(childComplexity int, input ent.NewCandidateJobFeedbackInput) int
 		CreateHiringJob              func(childComplexity int, input ent.NewHiringJobInput) int
-		CreatePreRequest             func(childComplexity int, input string) int
 		CreateTeam                   func(childComplexity int, input ent.NewTeamInput, note string) int
 		DeleteCandidate              func(childComplexity int, id string) int
 		DeleteCandidateInterview     func(childComplexity int, id string) int
@@ -296,7 +295,6 @@ type ComplexityRoot struct {
 		GetCandidateJob             func(childComplexity int, id string) int
 		GetCandidateJobFeedback     func(childComplexity int, id string) int
 		GetHiringJob                func(childComplexity int, id string) int
-		GetPreRequest               func(childComplexity int) int
 		GetTeam                     func(childComplexity int, id string) int
 		SelectionUsers              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
@@ -399,7 +397,6 @@ type HiringJobResolver interface {
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
 }
 type MutationResolver interface {
-	CreatePreRequest(ctx context.Context, input string) (string, error)
 	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
 	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
 	DeleteTeam(ctx context.Context, id string, note string) (bool, error)
@@ -422,7 +419,6 @@ type MutationResolver interface {
 	DeleteCandidateInterview(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
-	GetPreRequest(ctx context.Context) (string, error)
 	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
 	GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
 	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
@@ -1258,18 +1254,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateHiringJob(childComplexity, args["input"].(ent.NewHiringJobInput)), true
 
-	case "Mutation.CreatePreRequest":
-		if e.complexity.Mutation.CreatePreRequest == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_CreatePreRequest_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreatePreRequest(childComplexity, args["input"].(string)), true
-
 	case "Mutation.CreateTeam":
 		if e.complexity.Mutation.CreateTeam == nil {
 			break
@@ -1654,13 +1638,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetHiringJob(childComplexity, args["id"].(string)), true
-
-	case "Query.GetPreRequest":
-		if e.complexity.Query.GetPreRequest == nil {
-			break
-		}
-
-		return e.complexity.Query.GetPreRequest(childComplexity), true
 
 	case "Query.GetTeam":
 		if e.complexity.Query.GetTeam == nil {
@@ -2484,8 +2461,6 @@ type HiringJobResponseGetAll {
 # Path: schema/hiring_job.graphql
 `, BuiltIn: false},
 	{Name: "../schema/mutation.graphql", Input: `type Mutation {
-  CreatePreRequest(input: String!): String!
-
   # Team
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
@@ -2520,8 +2495,6 @@ type HiringJobResponseGetAll {
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
-	GetPreRequest: String!
-
 	#Team
 	GetTeam(id: ID!): TeamResponse!
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
@@ -2736,21 +2709,6 @@ func (ec *executionContext) field_Mutation_CreateHiringJob_args(ctx context.Cont
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewHiringJobInput2trecᚋentᚐNewHiringJobInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_CreatePreRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8666,61 +8624,6 @@ func (ec *executionContext) fieldContext_HiringJobResponseGetAll_pagination(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_CreatePreRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_CreatePreRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreatePreRequest(rctx, fc.Args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_CreatePreRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_CreatePreRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_CreateTeam(ctx, field)
 	if err != nil {
@@ -10174,50 +10077,6 @@ func (ec *executionContext) fieldContext_Pagination_total(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_GetPreRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetPreRequest(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPreRequest(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_GetPreRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17540,15 +17399,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "CreatePreRequest":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_CreatePreRequest(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "CreateTeam":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -17844,29 +17694,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "GetPreRequest":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_GetPreRequest(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "GetTeam":
 			field := field
 
