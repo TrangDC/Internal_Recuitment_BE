@@ -40,8 +40,8 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, id string, note strin
 }
 
 // CreateHiringJob is the resolver for the CreateHiringJob field.
-func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput) (*ent.HiringJobResponse, error) {
-	result, err := r.serviceRegistry.HiringJob().CreateHiringJob(ctx, &input)
+func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
+	result, err := r.serviceRegistry.HiringJob().CreateHiringJob(ctx, &input, note)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +49,8 @@ func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHir
 }
 
 // UpdateHiringJob is the resolver for the UpdateHiringJob field.
-func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput) (*ent.HiringJobResponse, error) {
-	result, err := r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id))
+func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error) {
+	result, err := r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id), note)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +58,8 @@ func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input
 }
 
 // DeleteHiringJob is the resolver for the DeleteHiringJob field.
-func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.HiringJob().DeleteHiringJob(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.HiringJob().DeleteHiringJob(ctx, uuid.MustParse(id), note)
 	if err != nil {
 		return false, err
 	}
@@ -67,8 +67,8 @@ func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string) (bool
 }
 
 // UpdateHiringJobStatus is the resolver for the UpdateHiringJobStatus field.
-func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus) (*ent.HiringJobResponse, error) {
-	result, err := r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id))
+func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus, note string) (*ent.HiringJobResponse, error) {
+	result, err := r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id), note)
 	if err != nil {
 		return nil, err
 	}

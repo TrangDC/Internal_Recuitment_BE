@@ -5,10 +5,13 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/user"
+
+	"github.com/google/uuid"
 )
 
 type UserRepository interface {
 	// query
+	GetUser(ctx context.Context, id uuid.UUID) (*ent.User, error)
 	BuildQuery() *ent.UserQuery
 	BuildCount(ctx context.Context, query *ent.UserQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.UserQuery) ([]*ent.User, error)
@@ -63,4 +66,9 @@ func (rps *userRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.User) *e
 
 func (rps *userRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.UserUpdateOne) (*ent.User, error) {
 	return update.Save(ctx)
+}
+
+func (rps *userRepoImpl) GetUser(ctx context.Context, id uuid.UUID) (*ent.User, error) {
+	query := rps.BuildQuery().Where(user.IDEQ(id))
+	return rps.BuildGet(ctx, query)
 }

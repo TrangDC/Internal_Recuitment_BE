@@ -854,16 +854,18 @@ func (e AuditTrailAction) MarshalGQL(w io.Writer) {
 type ProjectModule string
 
 const (
-	ProjectModuleTeams ProjectModule = "teams"
+	ProjectModuleTeams      ProjectModule = "teams"
+	ProjectModuleHiringJobs ProjectModule = "hiring_jobs"
 )
 
 var AllProjectModule = []ProjectModule{
 	ProjectModuleTeams,
+	ProjectModuleHiringJobs,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleTeams:
+	case ProjectModuleTeams, ProjectModuleHiringJobs:
 		return true
 	}
 	return false

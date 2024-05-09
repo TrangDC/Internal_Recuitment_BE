@@ -62,6 +62,7 @@ type Base64Response {
 
 enum projectModule {
   teams
+  hiring_jobs
 }
 
 enum auditTrailAction {

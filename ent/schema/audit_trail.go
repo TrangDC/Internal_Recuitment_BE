@@ -18,7 +18,7 @@ func (AuditTrail) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("created_by", uuid.UUID{}).Optional().Annotations(),
 		field.UUID("recordId", uuid.UUID{}).Annotations(),
-		field.Enum("module").Values("teams").Annotations(),
+		field.Enum("module").Values("teams", "hiring_jobs").Annotations(),
 		field.Enum("actionType").Optional().Values("create", "update", "delete").Default("create").Annotations(),
 		field.String("note").Optional().MaxLen(500).Annotations(),
 		field.Text("record_changes").Optional().Annotations(),

@@ -39,7 +39,7 @@ func NewHiringJobRepository(client *ent.Client) HiringJobRepository {
 
 // Base function
 func (rps *hiringJobRepoImpl) BuildCreate() *ent.HiringJobCreate {
-	return rps.client.HiringJob.Create()
+	return rps.client.HiringJob.Create().SetUpdatedAt(time.Now())
 }
 
 func (rps *hiringJobRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.HiringJobCreate) ([]*ent.HiringJob, error) {
