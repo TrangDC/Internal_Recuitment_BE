@@ -1,5 +1,5 @@
 ALTER TYPE attachment_model_enum ADD VALUE 'candidate_job_feedbacks';
-ALTER TABLE attachments ALTER COLUMN relation_type TYPE attachment_model_enum USING relation_type::text::employee_attachment_enum;
+ALTER TABLE attachments ALTER COLUMN relation_type TYPE attachment_model_enum USING relation_type::text::attachment_model_enum;
 
 CREATE TABLE candidate_feedbacks (
   id UUID PRIMARY KEY NOT NULL,

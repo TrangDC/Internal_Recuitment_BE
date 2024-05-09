@@ -6,7 +6,7 @@ CREATE TABLE candidate_interviews (
   interview_date TIMESTAMP NOT NULL,
   start_from TIMESTAMP,
   end_at TIMESTAMP,
-  description TEXT
+  description TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP,
   deleted_at TIMESTAMP
