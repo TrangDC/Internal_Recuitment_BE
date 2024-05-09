@@ -30,4 +30,7 @@ type Mutation {
   CreateCandidateInterview(input: NewCandidateInterviewInput!): CandidateInterviewResponse!
   UpdateCandidateInterview(id: ID!, input: UpdateCandidateInterviewInput!): CandidateInterviewResponse!
   DeleteCandidateInterview(id: ID!): Boolean!
+
+  #import
+  ImportCandidate(file: Upload!): Boolean!
 }

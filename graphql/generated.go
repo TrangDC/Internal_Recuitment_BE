@@ -257,6 +257,7 @@ type ComplexityRoot struct {
 		DeleteCandidateJob           func(childComplexity int, id string) int
 		DeleteHiringJob              func(childComplexity int, id string, note string) int
 		DeleteTeam                   func(childComplexity int, id string, note string) int
+		ImportCandidate              func(childComplexity int, file graphql.Upload) int
 		SetBlackListCandidate        func(childComplexity int, id string, isBlackList bool) int
 		UpdateCandidate              func(childComplexity int, id string, input ent.UpdateCandidateInput) int
 		UpdateCandidateInterview     func(childComplexity int, id string, input ent.UpdateCandidateInterviewInput) int
@@ -282,6 +283,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		ExportSampleCandidate       func(childComplexity int, lang ent.I18nLanguage) int
 		GetAllAuditTrails           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
 		GetAllCandidateInterviews   func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
 		GetAllCandidateJobFeedbacks func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
@@ -417,6 +419,7 @@ type MutationResolver interface {
 	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
 	UpdateCandidateInterview(ctx context.Context, id string, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
 	DeleteCandidateInterview(ctx context.Context, id string) (bool, error)
+	ImportCandidate(ctx context.Context, file graphql.Upload) (bool, error)
 }
 type QueryResolver interface {
 	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
@@ -434,6 +437,7 @@ type QueryResolver interface {
 	GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
 	GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error)
 	GetAllCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
+	ExportSampleCandidate(ctx context.Context, lang ent.I18nLanguage) (*ent.Base64Response, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *ent.Team) (string, error)
@@ -1326,6 +1330,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string), args["note"].(string)), true
 
+	case "Mutation.ImportCandidate":
+		if e.complexity.Mutation.ImportCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ImportCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ImportCandidate(childComplexity, args["file"].(graphql.Upload)), true
+
 	case "Mutation.SetBlackListCandidate":
 		if e.complexity.Mutation.SetBlackListCandidate == nil {
 			break
@@ -1482,6 +1498,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pagination.Total(childComplexity), true
+
+	case "Query.ExportSampleCandidate":
+		if e.complexity.Query.ExportSampleCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ExportSampleCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ExportSampleCandidate(childComplexity, args["lang"].(ent.I18nLanguage)), true
 
 	case "Query.GetAllAuditTrails":
 		if e.complexity.Query.GetAllAuditTrails == nil {
@@ -2221,7 +2249,6 @@ input NewCandidateInput{
 }
 
 input UpdateCandidateInput {
-  id: ID!
   name: String!
   email: String!
   phone: String!
@@ -2336,7 +2363,7 @@ type AttachmentResponse {
 }
 
 type Base64Response {
-  data: Base64
+  data: Base64!
 }
 
 enum projectModule {
@@ -2349,7 +2376,11 @@ enum auditTrailAction {
   update
   delete
 }
-`, BuiltIn: false},
+
+enum I18nLanguage {
+  en
+  vi
+}`, BuiltIn: false},
 	{Name: "../schema/hiring_job.graphql", Input: `enum LocationEnum {
   ha_noi
   ho_chi_minh
@@ -2493,6 +2524,9 @@ type HiringJobResponseGetAll {
   CreateCandidateInterview(input: NewCandidateInterviewInput!): CandidateInterviewResponse!
   UpdateCandidateInterview(id: ID!, input: UpdateCandidateInterviewInput!): CandidateInterviewResponse!
   DeleteCandidateInterview(id: ID!): Boolean!
+
+  #import
+  ImportCandidate(file: Upload!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
@@ -2526,6 +2560,9 @@ type HiringJobResponseGetAll {
 	#CandidateInterview
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
+
+	#Export 
+	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 }
 `, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderField {
@@ -2844,6 +2881,21 @@ func (ec *executionContext) field_Mutation_DeleteTeam_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_ImportCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 graphql.Upload
+	if tmp, ok := rawArgs["file"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
+		arg0, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["file"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_SetBlackListCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3084,6 +3136,21 @@ func (ec *executionContext) field_Mutation_UpdateTeam_args(ctx context.Context, 
 		}
 	}
 	args["note"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ExportSampleCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.I18nLanguage
+	if tmp, ok := rawArgs["lang"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lang"))
+		arg0, err = ec.unmarshalNI18nLanguage2trecᚋentᚐI18nLanguage(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lang"] = arg0
 	return args, nil
 }
 
@@ -4910,11 +4977,14 @@ func (ec *executionContext) _Base64Response_data(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOBase642ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNBase642string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Base64Response_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9817,6 +9887,61 @@ func (ec *executionContext) fieldContext_Mutation_DeleteCandidateInterview(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_ImportCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ImportCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ImportCandidate(rctx, fc.Args["file"].(graphql.Upload))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ImportCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ImportCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -11014,6 +11139,65 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateInterviews(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllCandidateInterviews_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_ExportSampleCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ExportSampleCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExportSampleCandidate(rctx, fc.Args["lang"].(ent.I18nLanguage))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Base64Response)
+	fc.Result = res
+	return ec.marshalNBase64Response2ᚖtrecᚋentᚐBase64Response(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ExportSampleCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_Base64Response_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Base64Response", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ExportSampleCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -15296,21 +15480,13 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "email", "phone", "dob"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "name":
 			var err error
 
@@ -16175,6 +16351,9 @@ func (ec *executionContext) _Base64Response(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = ec._Base64Response_data(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17616,6 +17795,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "ImportCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ImportCandidate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18063,6 +18251,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllCandidateInterviews(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "ExportSampleCandidate":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ExportSampleCandidate(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -18893,6 +19104,35 @@ func (ec *executionContext) marshalNAuditTrailResponseGetAll2ᚖtrecᚋentᚐAud
 	return ec._AuditTrailResponseGetAll(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNBase642string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBase642string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNBase64Response2trecᚋentᚐBase64Response(ctx context.Context, sel ast.SelectionSet, v ent.Base64Response) graphql.Marshaler {
+	return ec._Base64Response(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBase64Response2ᚖtrecᚋentᚐBase64Response(ctx context.Context, sel ast.SelectionSet, v *ent.Base64Response) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Base64Response(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19517,6 +19757,16 @@ func (ec *executionContext) marshalNHiringJobStatus2trecᚋentᚐHiringJobStatus
 	return v
 }
 
+func (ec *executionContext) unmarshalNI18nLanguage2trecᚋentᚐI18nLanguage(ctx context.Context, v interface{}) (ent.I18nLanguage, error) {
+	var res ent.I18nLanguage
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNI18nLanguage2trecᚋentᚐI18nLanguage(ctx context.Context, sel ast.SelectionSet, v ent.I18nLanguage) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19839,6 +20089,21 @@ func (ec *executionContext) unmarshalNUpdateHiringJobInput2trecᚋentᚐUpdateHi
 func (ec *executionContext) unmarshalNUpdateTeamInput2trecᚋentᚐUpdateTeamInput(ctx context.Context, v interface{}) (ent.UpdateTeamInput, error) {
 	res, err := ec.unmarshalInputUpdateTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
+	res := graphql.MarshalUpload(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNUser2trecᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
@@ -20325,22 +20590,6 @@ func (ec *executionContext) unmarshalOAuditTrailOrder2ᚖtrecᚋentᚐAuditTrail
 	}
 	res, err := ec.unmarshalInputAuditTrailOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOBase642ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOBase642ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalString(*v)
-	return res
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

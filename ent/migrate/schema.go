@@ -222,7 +222,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "description", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "amount", Type: field.TypeInt, Default: 0},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "opened", "closed"}, Default: "opened"},
 		{Name: "location", Type: field.TypeEnum, Enums: []string{"ha_noi", "ho_chi_minh", "da_nang", "japan"}},

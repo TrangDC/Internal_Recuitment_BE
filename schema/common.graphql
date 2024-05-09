@@ -57,7 +57,7 @@ type AttachmentResponse {
 }
 
 type Base64Response {
-  data: Base64
+  data: Base64!
 }
 
 enum projectModule {
@@ -69,4 +69,9 @@ enum auditTrailAction {
   create
   update
   delete
+}
+
+enum I18nLanguage {
+  en
+  vi
 }

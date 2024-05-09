@@ -1,0 +1,15 @@
+{
+  "model": {
+    "candidates": {
+      "model_name": "Candidates",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "dob": "Date Of Birth",
+      "is_blacklist": "Blacklist"
+    }
+  },
+  "excel": {
+    "id": "No."
+  }
+}

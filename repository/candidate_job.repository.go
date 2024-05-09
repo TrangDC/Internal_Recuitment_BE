@@ -54,7 +54,7 @@ func (rps candidateJobRepoImpl) BuildDelete() *ent.CandidateJobUpdate {
 }
 
 func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
-	return rps.client.CandidateJob.Query().WithAttachmentEdges(
+	return rps.client.CandidateJob.Query().Where(candidatejob.DeletedAtIsNil()).WithAttachmentEdges(
 		func(query *ent.AttachmentQuery) {
 			query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobs))
 		},

@@ -17,6 +17,7 @@ type CandidateRepository interface {
 	UpdateCandidate(ctx context.Context, record *ent.Candidate, input *ent.UpdateCandidateInput) (*ent.Candidate, error)
 	DeleteCandidate(ctx context.Context, record *ent.Candidate) error
 	SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) error
+	BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error)
 	// query
 	GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error)
 	BuildQuery() *ent.CandidateQuery
@@ -41,8 +42,12 @@ func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
 	return rps.client.Candidate.Create()
 }
 
-func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateCreate) ([]*ent.Candidate, error) {
-	return rps.client.Candidate.CreateBulk(input...).Save(ctx)
+func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error) {
+	var createBulk []*ent.CandidateCreate
+	for _, v := range input {
+		createBulk = append(createBulk, rps.BuildCreate().SetName(strings.TrimSpace(v.Name)).SetEmail(strings.TrimSpace(v.Email)).SetPhone(strings.TrimSpace(v.Phone)).SetDob(v.Dob))
+	}
+	return rps.client.Candidate.CreateBulk(createBulk...).Save(ctx)
 }
 
 func (rps candidateRepoImpl) BuildUpdate() *ent.CandidateUpdate {
@@ -54,7 +59,7 @@ func (rps candidateRepoImpl) BuildDelete() *ent.CandidateUpdate {
 }
 
 func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
-	return rps.client.Candidate.Query()
+	return rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil())
 }
 
 func (rps candidateRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateQuery) (*ent.Candidate, error) {

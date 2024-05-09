@@ -23,7 +23,6 @@ input NewCandidateInput{
 }
 
 input UpdateCandidateInput {
-  id: ID!
   name: String!
   email: String!
   phone: String!

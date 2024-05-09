@@ -57,7 +57,7 @@ func (rps CandidateJobFeedbackRepoImpl) BuildDelete() *ent.CandidateJobFeedbackU
 }
 
 func (rps CandidateJobFeedbackRepoImpl) BuildQuery() *ent.CandidateJobFeedbackQuery {
-	return rps.client.CandidateJobFeedback.Query().WithAttachmentEdges(
+	return rps.client.CandidateJobFeedback.Query().Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
 		func(query *ent.AttachmentQuery) {
 			query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
 		},

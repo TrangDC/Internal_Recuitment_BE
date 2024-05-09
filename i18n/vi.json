@@ -1,0 +1,15 @@
+{
+  "model": {
+    "candidates": {
+      "model_name": "Danh Sách Ứng Viên",
+      "name": "Tên Ứng Viên",
+      "email": "Email Cá Nhân",
+      "phone": "Điện Thoại",
+      "dob": "Ngày Sinh",
+      "is_blacklist": "Danh Sách Đen"
+    }
+  },
+  "excel": {
+    "id": "STT"
+  }
+}

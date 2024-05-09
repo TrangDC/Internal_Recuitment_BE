@@ -221,21 +221,7 @@ func init() {
 	// hiringjobDescDescription is the schema descriptor for description field.
 	hiringjobDescDescription := hiringjobFields[1].Descriptor()
 	// hiringjob.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	hiringjob.DescriptionValidator = func() func(string) error {
-		validators := hiringjobDescDescription.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(description string) error {
-			for _, fn := range fns {
-				if err := fn(description); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	hiringjob.DescriptionValidator = hiringjobDescDescription.Validators[0].(func(string) error)
 	// hiringjobDescAmount is the schema descriptor for amount field.
 	hiringjobDescAmount := hiringjobFields[2].Descriptor()
 	// hiringjob.DefaultAmount holds the default value on creation for the amount field.
