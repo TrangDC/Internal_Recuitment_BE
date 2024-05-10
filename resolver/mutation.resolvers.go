@@ -76,8 +76,8 @@ func (r *mutationResolver) UpdateHiringJobStatus(ctx context.Context, id string,
 }
 
 // CreateCandidate is the resolver for the CreateCandidate field.
-func (r *mutationResolver) CreateCandidate(ctx context.Context, input ent.NewCandidateInput) (*ent.CandidateResponse, error) {
-	result, err := r.serviceRegistry.Candidate().CreateCandidate(ctx, &input)
+func (r *mutationResolver) CreateCandidate(ctx context.Context, input ent.NewCandidateInput, note string) (*ent.CandidateResponse, error) {
+	result, err := r.serviceRegistry.Candidate().CreateCandidate(ctx, &input, note)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +85,8 @@ func (r *mutationResolver) CreateCandidate(ctx context.Context, input ent.NewCan
 }
 
 // UpdateCandidate is the resolver for the UpdateCandidate field.
-func (r *mutationResolver) UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput) (*ent.CandidateResponse, error) {
-	result, err := r.serviceRegistry.Candidate().UpdateCandidate(ctx, &input, uuid.MustParse(id))
+func (r *mutationResolver) UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput, note string) (*ent.CandidateResponse, error) {
+	result, err := r.serviceRegistry.Candidate().UpdateCandidate(ctx, &input, uuid.MustParse(id), note)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +94,8 @@ func (r *mutationResolver) UpdateCandidate(ctx context.Context, id string, input
 }
 
 // DeleteCandidate is the resolver for the DeleteCandidate field.
-func (r *mutationResolver) DeleteCandidate(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.Candidate().DeleteCandidate(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteCandidate(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.Candidate().DeleteCandidate(ctx, uuid.MustParse(id), note)
 	if err != nil {
 		return false, err
 	}
@@ -103,8 +103,8 @@ func (r *mutationResolver) DeleteCandidate(ctx context.Context, id string) (bool
 }
 
 // SetBlackListCandidate is the resolver for the SetBlackListCandidate field.
-func (r *mutationResolver) SetBlackListCandidate(ctx context.Context, id string, isBlackList bool) (bool, error) {
-	err := r.serviceRegistry.Candidate().SetBlackListCandidate(ctx, uuid.MustParse(id), isBlackList)
+func (r *mutationResolver) SetBlackListCandidate(ctx context.Context, id string, isBlackList bool, note string) (bool, error) {
+	err := r.serviceRegistry.Candidate().SetBlackListCandidate(ctx, uuid.MustParse(id), isBlackList, note)
 	if err != nil {
 		return false, err
 	}

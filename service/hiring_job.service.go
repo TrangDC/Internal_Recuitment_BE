@@ -42,30 +42,30 @@ func NewHiringJobService(repoRegistry repository.Repository, logger *zap.Logger)
 }
 
 func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
-	var hiringJob *ent.HiringJob
+	var record *ent.HiringJob
 	err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		hiringJob, err = repoRegistry.HiringJob().CreateHiringJob(ctx, input)
+		record, err = repoRegistry.HiringJob().CreateHiringJob(ctx, input)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	svc.getAdditionalInfo(ctx, hiringJob)
-	recordChanges := svc.recordJobCreateDelete(hiringJob, audittrail.ActionTypeCreate)
+	svc.getAdditionalInfo(ctx, record)
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringJob.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.HiringJobResponse{
-		Data: hiringJob,
+		Data: record,
 	}, nil
 }
 
@@ -79,7 +79,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 		err = repoRegistry.HiringJob().DeleteHiringJob(ctx, record)
 		return err
 	})
-	recordChanges := svc.recordJobCreateDelete(record, audittrail.ActionTypeDelete)
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeDelete, note)
 	if err != nil {
@@ -110,7 +110,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	svc.getAdditionalInfo(ctx, result)
-	recordChanges := svc.recordJobUpdate(record, result)
+	recordChanges := svc.recordUpdate(record, result)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
 	if err != nil {
@@ -137,7 +137,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordJobUpdate(record, result)
+	recordChanges := svc.recordUpdate(record, result)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
 	if err != nil {
@@ -236,7 +236,7 @@ func (svc *hiringJobSvcImpl) filter(hiringJobQuery *ent.HiringJobQuery, input *e
 	}
 }
 
-func (svc *hiringJobSvcImpl) recordJobCreateDelete(record *ent.HiringJob, auditTrailType audittrail.ActionType) models.AuditTrailData {
+func (svc *hiringJobSvcImpl) recordCreateDelete(record *ent.HiringJob, auditTrailType audittrail.ActionType) models.AuditTrailData {
 	auditTrail := models.AuditTrailData{
 		Module: "models.hiring_jobs.model_name",
 		Create: []interface{}{},
@@ -279,7 +279,7 @@ func (svc *hiringJobSvcImpl) recordJobCreateDelete(record *ent.HiringJob, auditT
 	return auditTrail
 }
 
-func (svc *hiringJobSvcImpl) recordJobUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) models.AuditTrailData {
+func (svc *hiringJobSvcImpl) recordUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) models.AuditTrailData {
 	auditTrail := models.AuditTrailData{
 		Module: "models.hiring_jobs.model_name",
 		Create: []interface{}{},

@@ -246,20 +246,20 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateCandidate              func(childComplexity int, input ent.NewCandidateInput) int
+		CreateCandidate              func(childComplexity int, input ent.NewCandidateInput, note string) int
 		CreateCandidateInterview     func(childComplexity int, input ent.NewCandidateInterviewInput) int
 		CreateCandidateJob           func(childComplexity int, input ent.NewCandidateJobInput) int
 		CreateCandidateJobFeedback   func(childComplexity int, input ent.NewCandidateJobFeedbackInput) int
 		CreateHiringJob              func(childComplexity int, input ent.NewHiringJobInput, note string) int
 		CreateTeam                   func(childComplexity int, input ent.NewTeamInput, note string) int
-		DeleteCandidate              func(childComplexity int, id string) int
+		DeleteCandidate              func(childComplexity int, id string, note string) int
 		DeleteCandidateInterview     func(childComplexity int, id string) int
 		DeleteCandidateJob           func(childComplexity int, id string) int
 		DeleteHiringJob              func(childComplexity int, id string, note string) int
 		DeleteTeam                   func(childComplexity int, id string, note string) int
 		ImportCandidate              func(childComplexity int, file graphql.Upload) int
-		SetBlackListCandidate        func(childComplexity int, id string, isBlackList bool) int
-		UpdateCandidate              func(childComplexity int, id string, input ent.UpdateCandidateInput) int
+		SetBlackListCandidate        func(childComplexity int, id string, isBlackList bool, note string) int
+		UpdateCandidate              func(childComplexity int, id string, input ent.UpdateCandidateInput, note string) int
 		UpdateCandidateInterview     func(childComplexity int, id string, input ent.UpdateCandidateInterviewInput) int
 		UpdateCandidateJobAttachment func(childComplexity int, id string, input ent.UpdateCandidateAttachment) int
 		UpdateCandidateJobFeedback   func(childComplexity int, id string, input ent.UpdateCandidateJobFeedbackInput) int
@@ -406,10 +406,10 @@ type MutationResolver interface {
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string, note string) (bool, error)
 	UpdateHiringJobStatus(ctx context.Context, id string, status ent.HiringJobStatus, note string) (*ent.HiringJobResponse, error)
-	CreateCandidate(ctx context.Context, input ent.NewCandidateInput) (*ent.CandidateResponse, error)
-	UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput) (*ent.CandidateResponse, error)
-	DeleteCandidate(ctx context.Context, id string) (bool, error)
-	SetBlackListCandidate(ctx context.Context, id string, isBlackList bool) (bool, error)
+	CreateCandidate(ctx context.Context, input ent.NewCandidateInput, note string) (*ent.CandidateResponse, error)
+	UpdateCandidate(ctx context.Context, id string, input ent.UpdateCandidateInput, note string) (*ent.CandidateResponse, error)
+	DeleteCandidate(ctx context.Context, id string, note string) (bool, error)
+	SetBlackListCandidate(ctx context.Context, id string, isBlackList bool, note string) (bool, error)
 	CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error)
 	UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment) (*ent.CandidateJobResponse, error)
 	DeleteCandidateJob(ctx context.Context, id string) (bool, error)
@@ -1208,7 +1208,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateCandidate(childComplexity, args["input"].(ent.NewCandidateInput)), true
+		return e.complexity.Mutation.CreateCandidate(childComplexity, args["input"].(ent.NewCandidateInput), args["note"].(string)), true
 
 	case "Mutation.CreateCandidateInterview":
 		if e.complexity.Mutation.CreateCandidateInterview == nil {
@@ -1280,7 +1280,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteCandidate(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteCandidate(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.DeleteCandidateInterview":
 		if e.complexity.Mutation.DeleteCandidateInterview == nil {
@@ -1352,7 +1352,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetBlackListCandidate(childComplexity, args["id"].(string), args["is_black_list"].(bool)), true
+		return e.complexity.Mutation.SetBlackListCandidate(childComplexity, args["id"].(string), args["is_black_list"].(bool), args["note"].(string)), true
 
 	case "Mutation.UpdateCandidate":
 		if e.complexity.Mutation.UpdateCandidate == nil {
@@ -1364,7 +1364,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateCandidate(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateInput)), true
+		return e.complexity.Mutation.UpdateCandidate(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateInput), args["note"].(string)), true
 
 	case "Mutation.UpdateCandidateInterview":
 		if e.complexity.Mutation.UpdateCandidateInterview == nil {
@@ -2369,6 +2369,7 @@ type Base64Response {
 enum projectModule {
   teams
   hiring_jobs
+  candidates
 }
 
 enum auditTrailAction {
@@ -2505,10 +2506,10 @@ type HiringJobResponseGetAll {
   UpdateHiringJobStatus(id: ID!, status: HiringJobStatus!, note: String!): HiringJobResponse!
 
   # Candidate
-  CreateCandidate(input: NewCandidateInput!): CandidateResponse!
-  UpdateCandidate(id: ID!, input: UpdateCandidateInput!): CandidateResponse!
-  DeleteCandidate(id: ID!): Boolean!
-  SetBlackListCandidate(id: ID!, is_black_list: Boolean!): Boolean!
+  CreateCandidate(input: NewCandidateInput!, note: String!): CandidateResponse!
+  UpdateCandidate(id: ID!, input: UpdateCandidateInput!, note: String!): CandidateResponse!
+  DeleteCandidate(id: ID!, note: String!): Boolean!
+  SetBlackListCandidate(id: ID!, is_black_list: Boolean!, note: String!): Boolean!
 
   # CandidateJob
   CreateCandidateJob(input: NewCandidateJobInput!): CandidateJobResponse!
@@ -2737,6 +2738,15 @@ func (ec *executionContext) field_Mutation_CreateCandidate_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -2830,6 +2840,15 @@ func (ec *executionContext) field_Mutation_DeleteCandidate_args(ctx context.Cont
 		}
 	}
 	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -2917,6 +2936,15 @@ func (ec *executionContext) field_Mutation_SetBlackListCandidate_args(ctx contex
 		}
 	}
 	args["is_black_list"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
 	return args, nil
 }
 
@@ -3037,6 +3065,15 @@ func (ec *executionContext) field_Mutation_UpdateCandidate_args(ctx context.Cont
 		}
 	}
 	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
 	return args, nil
 }
 
@@ -9150,7 +9187,7 @@ func (ec *executionContext) _Mutation_CreateCandidate(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCandidate(rctx, fc.Args["input"].(ent.NewCandidateInput))
+		return ec.resolvers.Mutation().CreateCandidate(rctx, fc.Args["input"].(ent.NewCandidateInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9209,7 +9246,7 @@ func (ec *executionContext) _Mutation_UpdateCandidate(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateCandidate(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateInput))
+		return ec.resolvers.Mutation().UpdateCandidate(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9268,7 +9305,7 @@ func (ec *executionContext) _Mutation_DeleteCandidate(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteCandidate(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteCandidate(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9323,7 +9360,7 @@ func (ec *executionContext) _Mutation_SetBlackListCandidate(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetBlackListCandidate(rctx, fc.Args["id"].(string), fc.Args["is_black_list"].(bool))
+		return ec.resolvers.Mutation().SetBlackListCandidate(rctx, fc.Args["id"].(string), fc.Args["is_black_list"].(bool), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

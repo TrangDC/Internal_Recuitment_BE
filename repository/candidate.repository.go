@@ -16,8 +16,8 @@ type CandidateRepository interface {
 	CreateCandidate(ctx context.Context, input *ent.NewCandidateInput) (*ent.Candidate, error)
 	UpdateCandidate(ctx context.Context, record *ent.Candidate, input *ent.UpdateCandidateInput) (*ent.Candidate, error)
 	DeleteCandidate(ctx context.Context, record *ent.Candidate) error
-	SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) error
 	BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error)
+	SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error)
 	// query
 	GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error)
 	BuildQuery() *ent.CandidateQuery
@@ -39,7 +39,7 @@ func NewCandidateRepository(client *ent.Client) CandidateRepository {
 
 // Base function
 func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
-	return rps.client.Candidate.Create()
+	return rps.client.Candidate.Create().SetUpdatedAt(time.Now())
 }
 
 func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error) {
@@ -92,7 +92,7 @@ func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.New
 		SetName(strings.TrimSpace(input.Name)).
 		SetEmail(strings.TrimSpace(input.Email)).
 		SetPhone(strings.TrimSpace(input.Phone)).
-		SetDob(input.Dob).SetUpdatedAt(time.Now().UTC()).
+		SetDob(input.Dob).
 		Save(ctx)
 }
 
@@ -101,7 +101,7 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		SetName(strings.TrimSpace(input.Name)).
 		SetEmail(strings.TrimSpace(input.Email)).
 		SetPhone(strings.TrimSpace(input.Phone)).
-		SetDob(input.Dob).SetUpdatedAt(time.Now().UTC()).
+		SetDob(input.Dob).
 		Save(ctx)
 }
 
@@ -110,9 +110,8 @@ func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Ca
 	return err
 }
 
-func (rps candidateRepoImpl) SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) error {
-	_, err := rps.BuildUpdateOne(ctx, record).SetIsBlacklist(isBlackList).Save(ctx)
-	return err
+func (rps candidateRepoImpl) SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error) {
+	return rps.BuildUpdateOne(ctx, record).SetIsBlacklist(isBlackList).Save(ctx)
 }
 
 // query
