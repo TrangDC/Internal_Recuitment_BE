@@ -13,6 +13,7 @@ import (
 	"trec/internal/azurestorage"
 	"trec/internal/pg"
 	"trec/middleware"
+	"trec/models"
 	"trec/resolver"
 	"trec/rest"
 	"trec/service"
@@ -33,7 +34,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewServerCmd(configs *config.Configurations, logger *zap.Logger) *cobra.Command {
+func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n models.I18n) *cobra.Command {
 	return &cobra.Command{
 		Use:   "api",
 		Short: "run api server",
@@ -102,7 +103,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger) *cobra.Com
 					os.Exit(1)
 				}
 			}
-			serviceRegistry := service.NewService(azureADOAuthClient, objectStorageClient, entClient, logger)
+			serviceRegistry := service.NewService(azureADOAuthClient, objectStorageClient, i18n, entClient, logger)
 			restController := rest.NewRestController(serviceRegistry, configs.AzureADOAuth.ClientRedirectUrl, logger)
 
 			// GraphQL schema resolver handler.

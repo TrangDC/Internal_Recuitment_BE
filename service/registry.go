@@ -4,6 +4,7 @@ import (
 	"trec/ent"
 	"trec/internal/azuread"
 	"trec/internal/azurestorage"
+	"trec/models"
 	"trec/repository"
 
 	"go.uber.org/zap"
@@ -19,36 +20,48 @@ type Service interface {
 	AuditTrail() AuditTrailService
 	Candidate() CandidateService
 	CandidateJob() CandidateJobService
+	CandidateJobFeedback() CandidateJobFeedbackService
+	CandidateInterview() CandidateInterviewService
 	Attachment() AttachmentService
+	ExportData() ExportDataService
+	ImportData() ImportDataService
 }
 
 // serviceImpl is the implementation of Service.
 type serviceImpl struct {
-	authService         AuthService
-	storageService      StorageService
-	userService         UserService
-	teamService         TeamService
-	hiringJobService    HiringJobService
-	auditTrailService   AuditTrailService
-	candidateService    CandidateService
-	candidateJobService CandidateJobService
-	attachmentService   AttachmentService
+	authService                 AuthService
+	storageService              StorageService
+	userService                 UserService
+	teamService                 TeamService
+	hiringJobService            HiringJobService
+	auditTrailService           AuditTrailService
+	candidateService            CandidateService
+	candidateJobService         CandidateJobService
+	candidateJobFeedbackService CandidateJobFeedbackService
+	candidateInterviewService   CandidateInterviewService
+	attachmentService           AttachmentService
+	exportDataService           ExportDataService
+	importDataService           ImportDataService
 }
 
 // NewService creates a new Service.
-func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestorage.AzureStorage, entClient *ent.Client, logger *zap.Logger) Service {
+func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestorage.AzureStorage, i18n models.I18n, entClient *ent.Client, logger *zap.Logger) Service {
 	repoRegistry := repository.NewRepository(entClient)
 
 	return &serviceImpl{
-		authService:         NewAuthService(azureADOAuthClient, logger),
-		storageService:      NewStorageService(azureStorage, logger),
-		userService:         NewUserService(repoRegistry, logger),
-		teamService:         NewTeamService(repoRegistry, logger),
-		hiringJobService:    NewHiringJobService(repoRegistry, logger),
-		auditTrailService:   NewAuditTrailService(repoRegistry, logger),
-		candidateService:    NewCandidateService(repoRegistry, logger),
-		candidateJobService: NewCandidateJobService(repoRegistry, logger),
-		attachmentService:   NewAttachmentService(repoRegistry, logger),
+		authService:                 NewAuthService(azureADOAuthClient, logger),
+		storageService:              NewStorageService(azureStorage, logger),
+		userService:                 NewUserService(repoRegistry, logger),
+		teamService:                 NewTeamService(repoRegistry, logger),
+		hiringJobService:            NewHiringJobService(repoRegistry, logger),
+		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
+		candidateService:            NewCandidateService(repoRegistry, logger),
+		candidateJobService:         NewCandidateJobService(repoRegistry, logger),
+		candidateJobFeedbackService: NewCandidateJobFeedbackService(repoRegistry, logger),
+		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, logger),
+		attachmentService:           NewAttachmentService(repoRegistry, logger),
+		exportDataService:           NewExportDataService(repoRegistry, i18n, logger),
+		importDataService:           NewImportDataService(repoRegistry, logger),
 	}
 }
 
@@ -92,7 +105,27 @@ func (i serviceImpl) CandidateJob() CandidateJobService {
 	return i.candidateJobService
 }
 
+// CandidateJobFeedback returns the CandidateJobService.
+func (i serviceImpl) CandidateJobFeedback() CandidateJobFeedbackService {
+	return i.candidateJobFeedbackService
+}
+
+// CandidateInterview returns the CandidateJobService.
+func (i serviceImpl) CandidateInterview() CandidateInterviewService {
+	return i.candidateInterviewService
+}
+
 // Attachment returns the AttachmentService.
 func (i serviceImpl) Attachment() AttachmentService {
 	return i.attachmentService
+}
+
+// ExportData returns the ExportDataService.
+func (i serviceImpl) ExportData() ExportDataService {
+	return i.exportDataService
+}
+
+// ImportData returns the ImportDataService.
+func (i serviceImpl) ImportData() ImportDataService {
+	return i.importDataService
 }

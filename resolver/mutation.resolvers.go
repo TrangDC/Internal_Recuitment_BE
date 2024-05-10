@@ -5,10 +5,10 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
 )
 
@@ -149,40 +149,59 @@ func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id stri
 
 // CreateCandidateJobFeedback is the resolver for the CreateCandidateJobFeedback field.
 func (r *mutationResolver) CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
-	panic(fmt.Errorf("not implemented: CreateCandidateJobFeedback - CreateCandidateJobFeedback"))
+	result, err := r.serviceRegistry.CandidateJobFeedback().CreateCandidateJobFeedback(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateCandidateJobFeedback is the resolver for the UpdateCandidateJobFeedback field.
 func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateCandidateJobFeedback - UpdateCandidateJobFeedback"))
+	result, err := r.serviceRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, uuid.MustParse(id), &input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // CreateCandidateInterview is the resolver for the CreateCandidateInterview field.
 func (r *mutationResolver) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
-	panic(fmt.Errorf("not implemented: CreateCandidateInterview - CreateCandidateInterview"))
+	result, err := r.serviceRegistry.CandidateInterview().CreateCandidateInterview(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateCandidateInterview is the resolver for the UpdateCandidateInterview field.
 func (r *mutationResolver) UpdateCandidateInterview(ctx context.Context, id string, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateCandidateInterview - UpdateCandidateInterview"))
+	result, err := r.serviceRegistry.CandidateInterview().UpdateCandidateInterview(ctx, uuid.MustParse(id), input)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // DeleteCandidateInterview is the resolver for the DeleteCandidateInterview field.
 func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteCandidateInterview - DeleteCandidateInterview"))
+	err := r.serviceRegistry.CandidateInterview().DeleteCandidateInterview(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// ImportCandidate is the resolver for the ImportCandidate field.
+func (r *mutationResolver) ImportCandidate(ctx context.Context, file graphql.Upload) (bool, error) {
+	err := r.serviceRegistry.ImportData().ImportCandidate(ctx, file)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) CreatePreRequest(ctx context.Context, input string) (string, error) {
-	return "", nil
-}

@@ -114,7 +114,7 @@ func (rps *teamRepoImpl) GetTeam(ctx context.Context, id uuid.UUID) (*ent.Team, 
 
 // common function
 func (rps *teamRepoImpl) ValidName(ctx context.Context, teamId uuid.UUID, name string) error {
-	query := rps.BuildQuery().Where(team.SlugEQ(util.SlugGeneration(name)))
+	query := rps.BuildQuery().Where(team.NameEqualFold(strings.TrimSpace(name)))
 	if teamId != uuid.Nil {
 		query = query.Where(team.IDNEQ(teamId))
 	}

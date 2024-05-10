@@ -55,7 +55,7 @@ func (rps *hiringJobRepoImpl) BuildDelete() *ent.HiringJobUpdate {
 }
 
 func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
-	return rps.client.HiringJob.Query()
+	return rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil())
 }
 
 func (rps *hiringJobRepoImpl) BuildGet(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error) {
@@ -132,7 +132,7 @@ func (rps *hiringJobRepoImpl) GetHiringJob(ctx context.Context, hiringJobId uuid
 
 // common function
 func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error {
-	query := rps.BuildQuery().Where(hiringjob.SlugEQ(util.SlugGeneration(name)))
+	query := rps.BuildQuery().Where(hiringjob.NameEqualFold(strings.TrimSpace(name)))
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}

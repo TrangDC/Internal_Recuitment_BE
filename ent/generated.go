@@ -53,7 +53,7 @@ type AuthenticationToken struct {
 }
 
 type Base64Response struct {
-	Data *string `json:"data"`
+	Data string `json:"data"`
 }
 
 type CandidateFilter struct {
@@ -255,7 +255,6 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateInput struct {
-	ID    string    `json:"id"`
 	Name  string    `json:"name"`
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
@@ -715,6 +714,47 @@ func (e *HiringJobStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e HiringJobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type I18nLanguage string
+
+const (
+	I18nLanguageEn I18nLanguage = "en"
+	I18nLanguageVi I18nLanguage = "vi"
+)
+
+var AllI18nLanguage = []I18nLanguage{
+	I18nLanguageEn,
+	I18nLanguageVi,
+}
+
+func (e I18nLanguage) IsValid() bool {
+	switch e {
+	case I18nLanguageEn, I18nLanguageVi:
+		return true
+	}
+	return false
+}
+
+func (e I18nLanguage) String() string {
+	return string(e)
+}
+
+func (e *I18nLanguage) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = I18nLanguage(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid I18nLanguage", str)
+	}
+	return nil
+}
+
+func (e I18nLanguage) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -113,22 +112,49 @@ func (r *queryResolver) GetAllCandidateJobs(ctx context.Context, pagination *ent
 
 // GetCandidateJobFeedback is the resolver for the GetCandidateJobFeedback field.
 func (r *queryResolver) GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error) {
-	panic(fmt.Errorf("not implemented: GetCandidateJobFeedback - GetCandidateJobFeedback"))
+	result, err := r.serviceRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetAllCandidateJobFeedbacks is the resolver for the GetAllCandidateJobFeedbacks field.
 func (r *queryResolver) GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error) {
-	panic(fmt.Errorf("not implemented: GetAllCandidateJobFeedbacks - GetAllCandidateJobFeedbacks"))
+	result, err := r.serviceRegistry.CandidateJobFeedback().GetCandidateJobFeedbacks(ctx, pagination, freeWord, &filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetCandidateInterview is the resolver for the GetCandidateInterview field.
 func (r *queryResolver) GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error) {
-	panic(fmt.Errorf("not implemented: GetCandidateInterview - GetCandidateInterview"))
+	result, err := r.serviceRegistry.CandidateInterview().GetCandidateInterview(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetAllCandidateInterviews is the resolver for the GetAllCandidateInterviews field.
 func (r *queryResolver) GetAllCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
-	panic(fmt.Errorf("not implemented: GetAllCandidateInterviews - GetAllCandidateInterviews"))
+	result, err := r.serviceRegistry.CandidateInterview().GetCandidateInterviews(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// ExportSampleCandidate is the resolver for the ExportSampleCandidate field.
+func (r *queryResolver) ExportSampleCandidate(ctx context.Context, lang ent.I18nLanguage) (*ent.Base64Response, error) {
+	result, err := r.serviceRegistry.ExportData().ExportSampleCandidates(ctx, lang)
+	if err != nil {
+		return nil, err
+	}
+	return &ent.Base64Response{
+		Data: result,
+	}, nil
 }
 
 // Query returns graphql1.QueryResolver implementation.
