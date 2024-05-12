@@ -22,7 +22,7 @@ input UpdateCandidateJobFeedbackInput {
 }
 
 enum CandidateJobFeedbackOrderField {
-  CREATED_AT
+  created_at
 }
 
 input CandidateJobFeedbackOrder {

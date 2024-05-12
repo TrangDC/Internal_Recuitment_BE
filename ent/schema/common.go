@@ -19,9 +19,9 @@ type CommonMixin struct {
 func (CommonMixin) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Annotations(entgql.OrderField("ID")),
-		field.Time("created_at").Default(time.Now).Immutable().Annotations(entgql.OrderField("CREATED_AT")),
-		field.Time("updated_at").Optional().Annotations(entgql.OrderField("UPDATED_AT")),
-		field.Time("deleted_at").Optional().Annotations(entgql.OrderField("DELETED_AT")),
+		field.Time("created_at").Default(time.Now).Immutable().Annotations(entgql.OrderField("created_at")),
+		field.Time("updated_at").Optional().Annotations(entgql.OrderField("updated_at")),
+		field.Time("deleted_at").Optional().Annotations(entgql.OrderField("deleted_at")),
 	}
 }
 

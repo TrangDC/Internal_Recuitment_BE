@@ -6,7 +6,9 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/hiringjob"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -38,7 +40,7 @@ func NewCandidateJobRepository(client *ent.Client) CandidateJobRepository {
 
 // Base function
 func (rps candidateJobRepoImpl) BuildCreate() *ent.CandidateJobCreate {
-	return rps.client.CandidateJob.Create()
+	return rps.client.CandidateJob.Create().SetUpdatedAt(time.Now())
 }
 
 func (rps candidateJobRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateJobCreate) ([]*ent.CandidateJob, error) {
@@ -87,6 +89,14 @@ func (rps candidateJobRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *
 
 // mutation
 func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJob, error) {
+	_, err := rps.client.Candidate.Update().Where(candidate.IDEQ(uuid.MustParse(input.CandidateID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = rps.client.HiringJob.Update().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return rps.BuildCreate().
 		SetHiringJobID(uuid.MustParse(input.HiringJobID)).
 		SetUpdatedAt(time.Now().UTC()).

@@ -13,6 +13,7 @@ enum CandidateOrderField {
   name
   dob
   created_at
+  last_apply_date
 }
 
 input NewCandidateInput{
@@ -46,6 +47,7 @@ input CandidateFreeWord {
   email: String
   phone: String
 }
+
 input CandidateOrder {
   direction: OrderDirection!
   field: CandidateOrderField!
@@ -59,6 +61,7 @@ type Candidate {
   dob: Time!
   status: CandidateStatusEnum!
   is_black_list: Boolean!
+  last_apply_date: Time
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

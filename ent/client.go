@@ -1367,15 +1367,15 @@ func (c *TeamClient) QueryUserEdges(t *Team) *UserQuery {
 	return query
 }
 
-// QueryHiringTeam queries the hiring_team edge of a Team.
-func (c *TeamClient) QueryHiringTeam(t *Team) *HiringJobQuery {
+// QueryTeamJobEdges queries the team_job_edges edge of a Team.
+func (c *TeamClient) QueryTeamJobEdges(t *Team) *HiringJobQuery {
 	query := &HiringJobQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(team.Table, team.FieldID, id),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, team.HiringTeamTable, team.HiringTeamColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.TeamJobEdgesTable, team.TeamJobEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

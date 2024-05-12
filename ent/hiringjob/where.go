@@ -159,6 +159,13 @@ func SalaryTo(v int) predicate.HiringJob {
 	})
 }
 
+// LastApplyDate applies equality check predicate on the "last_apply_date" field. It's identical to LastApplyDateEQ.
+func LastApplyDate(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastApplyDate), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -1109,6 +1116,84 @@ func CurrencyNotIn(vs ...Currency) predicate.HiringJob {
 	}
 	return predicate.HiringJob(func(s *sql.Selector) {
 		s.Where(sql.NotIn(s.C(FieldCurrency), v...))
+	})
+}
+
+// LastApplyDateEQ applies the EQ predicate on the "last_apply_date" field.
+func LastApplyDateEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateNEQ applies the NEQ predicate on the "last_apply_date" field.
+func LastApplyDateNEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateIn applies the In predicate on the "last_apply_date" field.
+func LastApplyDateIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLastApplyDate), v...))
+	})
+}
+
+// LastApplyDateNotIn applies the NotIn predicate on the "last_apply_date" field.
+func LastApplyDateNotIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLastApplyDate), v...))
+	})
+}
+
+// LastApplyDateGT applies the GT predicate on the "last_apply_date" field.
+func LastApplyDateGT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateGTE applies the GTE predicate on the "last_apply_date" field.
+func LastApplyDateGTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateLT applies the LT predicate on the "last_apply_date" field.
+func LastApplyDateLT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateLTE applies the LTE predicate on the "last_apply_date" field.
+func LastApplyDateLTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLastApplyDate), v))
+	})
+}
+
+// LastApplyDateIsNil applies the IsNil predicate on the "last_apply_date" field.
+func LastApplyDateIsNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldLastApplyDate)))
+	})
+}
+
+// LastApplyDateNotNil applies the NotNil predicate on the "last_apply_date" field.
+func LastApplyDateNotNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldLastApplyDate)))
 	})
 }
 

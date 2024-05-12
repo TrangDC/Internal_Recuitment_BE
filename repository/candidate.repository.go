@@ -45,7 +45,11 @@ func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
 func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error) {
 	var createBulk []*ent.CandidateCreate
 	for _, v := range input {
-		createBulk = append(createBulk, rps.BuildCreate().SetName(strings.TrimSpace(v.Name)).SetEmail(strings.TrimSpace(v.Email)).SetPhone(strings.TrimSpace(v.Phone)).SetDob(v.Dob))
+		createBulk = append(createBulk, rps.BuildCreate().
+			SetName(strings.TrimSpace(v.Name)).
+			SetEmail(strings.TrimSpace(v.Email)).
+			SetPhone(strings.TrimSpace(v.Phone)).
+			SetDob(v.Dob))
 	}
 	return rps.client.Candidate.CreateBulk(createBulk...).Save(ctx)
 }

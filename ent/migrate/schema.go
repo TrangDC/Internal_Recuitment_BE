@@ -83,6 +83,7 @@ var (
 		{Name: "phone", Type: field.TypeString, Size: 255},
 		{Name: "dob", Type: field.TypeTime},
 		{Name: "is_blacklist", Type: field.TypeBool, Default: false},
+		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
 	CandidatesTable = &schema.Table{
@@ -230,6 +231,7 @@ var (
 		{Name: "salary_from", Type: field.TypeInt, Default: 0},
 		{Name: "salary_to", Type: field.TypeInt, Default: 0},
 		{Name: "currency", Type: field.TypeEnum, Enums: []string{"vnd", "usd", "jpy"}},
+		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -240,14 +242,14 @@ var (
 		PrimaryKey: []*schema.Column{HiringJobsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "hiring_jobs_teams_hiring_team",
-				Columns:    []*schema.Column{HiringJobsColumns[14]},
+				Symbol:     "hiring_jobs_teams_team_job_edges",
+				Columns:    []*schema.Column{HiringJobsColumns[15]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "hiring_jobs_users_hiring_owner",
-				Columns:    []*schema.Column{HiringJobsColumns[15]},
+				Columns:    []*schema.Column{HiringJobsColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -42,7 +43,7 @@ func NewTeamRepository(client *ent.Client) TeamRepository {
 
 // Base functions
 func (rps *teamRepoImpl) BuildCreate() *ent.TeamCreate {
-	return rps.client.Team.Create()
+	return rps.client.Team.Create().SetUpdatedAt(time.Now())
 }
 
 func (rps *teamRepoImpl) BuildUpdate() *ent.TeamUpdate {
@@ -57,6 +58,10 @@ func (rps *teamRepoImpl) BuildQuery() *ent.TeamQuery {
 	return rps.client.Team.Query().Where(team.DeletedAtIsNil()).WithUserEdges(
 		func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
+		},
+	).WithTeamJobEdges(
+		func(query *ent.HiringJobQuery) {
+			query.Where(hiringjob.DeletedAtIsNil()).Order(ent.Desc(hiringjob.FieldLastApplyDate))
 		},
 	)
 }
@@ -104,11 +109,7 @@ func (rps *teamRepoImpl) DeleteTeam(ctx context.Context, model *ent.Team, member
 
 // query
 func (rps *teamRepoImpl) GetTeam(ctx context.Context, id uuid.UUID) (*ent.Team, error) {
-	query := rps.BuildQuery().Where(team.IDEQ(id)).WithUserEdges(
-		func(query *ent.UserQuery) {
-			query.Where(user.DeletedAtIsNil())
-		},
-	)
+	query := rps.BuildQuery().Where(team.IDEQ(id))
 	return rps.BuildGet(ctx, query)
 }
 

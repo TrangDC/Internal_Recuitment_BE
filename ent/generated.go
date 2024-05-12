@@ -241,6 +241,11 @@ type TeamFreeWord struct {
 	Name *string `json:"name"`
 }
 
+type TeamOrderBy struct {
+	Direction OrderDirection   `json:"direction"`
+	Field     TeamOrderByField `json:"field"`
+}
+
 type TeamResponse struct {
 	Data *Team `json:"data"`
 }
@@ -845,6 +850,92 @@ func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TeamOrderByAdditionalField string
+
+const (
+	TeamOrderByAdditionalFieldOpeningRequests TeamOrderByAdditionalField = "opening_requests"
+	TeamOrderByAdditionalFieldNewestApplied   TeamOrderByAdditionalField = "newest_applied"
+)
+
+var AllTeamOrderByAdditionalField = []TeamOrderByAdditionalField{
+	TeamOrderByAdditionalFieldOpeningRequests,
+	TeamOrderByAdditionalFieldNewestApplied,
+}
+
+func (e TeamOrderByAdditionalField) IsValid() bool {
+	switch e {
+	case TeamOrderByAdditionalFieldOpeningRequests, TeamOrderByAdditionalFieldNewestApplied:
+		return true
+	}
+	return false
+}
+
+func (e TeamOrderByAdditionalField) String() string {
+	return string(e)
+}
+
+func (e *TeamOrderByAdditionalField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TeamOrderByAdditionalField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TeamOrderByAdditionalField", str)
+	}
+	return nil
+}
+
+func (e TeamOrderByAdditionalField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TeamOrderByField string
+
+const (
+	TeamOrderByFieldName            TeamOrderByField = "name"
+	TeamOrderByFieldCreatedAt       TeamOrderByField = "created_at"
+	TeamOrderByFieldOpeningRequests TeamOrderByField = "opening_requests"
+	TeamOrderByFieldNewestApplied   TeamOrderByField = "newest_applied"
+)
+
+var AllTeamOrderByField = []TeamOrderByField{
+	TeamOrderByFieldName,
+	TeamOrderByFieldCreatedAt,
+	TeamOrderByFieldOpeningRequests,
+	TeamOrderByFieldNewestApplied,
+}
+
+func (e TeamOrderByField) IsValid() bool {
+	switch e {
+	case TeamOrderByFieldName, TeamOrderByFieldCreatedAt, TeamOrderByFieldOpeningRequests, TeamOrderByFieldNewestApplied:
+		return true
+	}
+	return false
+}
+
+func (e TeamOrderByField) String() string {
+	return string(e)
+}
+
+func (e *TeamOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TeamOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TeamOrderByField", str)
+	}
+	return nil
+}
+
+func (e TeamOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

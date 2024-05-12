@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"trec/internal/util"
 	"trec/models"
@@ -41,9 +40,6 @@ func (svc *exportDataSvcImpl) ExportSampleCandidates(ctx context.Context, lang e
 		i18nObject = svc.i18n.Vi
 	}
 	file := svc.candidateHeader(i18nObject)
-	if err := file.SaveAs("Book1.xlsx"); err != nil {
-		fmt.Println(err)
-	}
 	excelBytes, err := file.WriteToBuffer()
 	if err != nil {
 		svc.logger.Error("error while convert excel to base64", zap.Error(err))
@@ -63,7 +59,6 @@ func (svc exportDataSvcImpl) candidateHeader(i18nObj models.I18nObject) *exceliz
 	setCellValue(file, sheetName, "C4", i18nObj.Model.Candidates.Email)
 	setCellValue(file, sheetName, "D4", i18nObj.Model.Candidates.Dob)
 	setCellValue(file, sheetName, "E4", i18nObj.Model.Candidates.Phone)
-	setCellValue(file, sheetName, "F4", i18nObj.Model.Candidates.IsBlacklist)
 	return file
 }
 

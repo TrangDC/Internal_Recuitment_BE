@@ -25,8 +25,8 @@ const (
 	FieldName = "name"
 	// EdgeUserEdges holds the string denoting the user_edges edge name in mutations.
 	EdgeUserEdges = "user_edges"
-	// EdgeHiringTeam holds the string denoting the hiring_team edge name in mutations.
-	EdgeHiringTeam = "hiring_team"
+	// EdgeTeamJobEdges holds the string denoting the team_job_edges edge name in mutations.
+	EdgeTeamJobEdges = "team_job_edges"
 	// EdgeUserTeams holds the string denoting the user_teams edge name in mutations.
 	EdgeUserTeams = "user_teams"
 	// Table holds the table name of the team in the database.
@@ -36,13 +36,13 @@ const (
 	// UserEdgesInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserEdgesInverseTable = "users"
-	// HiringTeamTable is the table that holds the hiring_team relation/edge.
-	HiringTeamTable = "hiring_jobs"
-	// HiringTeamInverseTable is the table name for the HiringJob entity.
+	// TeamJobEdgesTable is the table that holds the team_job_edges relation/edge.
+	TeamJobEdgesTable = "hiring_jobs"
+	// TeamJobEdgesInverseTable is the table name for the HiringJob entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
-	HiringTeamInverseTable = "hiring_jobs"
-	// HiringTeamColumn is the table column denoting the hiring_team relation/edge.
-	HiringTeamColumn = "team_id"
+	TeamJobEdgesInverseTable = "hiring_jobs"
+	// TeamJobEdgesColumn is the table column denoting the team_job_edges relation/edge.
+	TeamJobEdgesColumn = "team_id"
 	// UserTeamsTable is the table that holds the user_teams relation/edge.
 	UserTeamsTable = "team_managers"
 	// UserTeamsInverseTable is the table name for the TeamManager entity.

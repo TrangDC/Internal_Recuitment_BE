@@ -33,6 +33,8 @@ type Candidate struct {
 	Dob time.Time `json:"dob,omitempty"`
 	// IsBlacklist holds the value of the "is_blacklist" field.
 	IsBlacklist bool `json:"is_blacklist,omitempty"`
+	// LastApplyDate holds the value of the "last_apply_date" field.
+	LastApplyDate time.Time `json:"last_apply_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateQuery when eager-loading is set.
 	Edges CandidateEdges `json:"edges"`
@@ -69,7 +71,7 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone:
 			values[i] = new(sql.NullString)
-		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob:
+		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate:
 			values[i] = new(sql.NullTime)
 		case candidate.FieldID:
 			values[i] = new(uuid.UUID)
@@ -142,6 +144,12 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.IsBlacklist = value.Bool
 			}
+		case candidate.FieldLastApplyDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_apply_date", values[i])
+			} else if value.Valid {
+				c.LastApplyDate = value.Time
+			}
 		}
 	}
 	return nil
@@ -198,6 +206,9 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_blacklist=")
 	builder.WriteString(fmt.Sprintf("%v", c.IsBlacklist))
+	builder.WriteString(", ")
+	builder.WriteString("last_apply_date=")
+	builder.WriteString(c.LastApplyDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

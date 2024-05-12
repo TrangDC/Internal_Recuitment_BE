@@ -107,19 +107,19 @@ func (tc *TeamCreate) AddUserEdges(u ...*User) *TeamCreate {
 	return tc.AddUserEdgeIDs(ids...)
 }
 
-// AddHiringTeamIDs adds the "hiring_team" edge to the HiringJob entity by IDs.
-func (tc *TeamCreate) AddHiringTeamIDs(ids ...uuid.UUID) *TeamCreate {
-	tc.mutation.AddHiringTeamIDs(ids...)
+// AddTeamJobEdgeIDs adds the "team_job_edges" edge to the HiringJob entity by IDs.
+func (tc *TeamCreate) AddTeamJobEdgeIDs(ids ...uuid.UUID) *TeamCreate {
+	tc.mutation.AddTeamJobEdgeIDs(ids...)
 	return tc
 }
 
-// AddHiringTeam adds the "hiring_team" edges to the HiringJob entity.
-func (tc *TeamCreate) AddHiringTeam(h ...*HiringJob) *TeamCreate {
+// AddTeamJobEdges adds the "team_job_edges" edges to the HiringJob entity.
+func (tc *TeamCreate) AddTeamJobEdges(h ...*HiringJob) *TeamCreate {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return tc.AddHiringTeamIDs(ids...)
+	return tc.AddTeamJobEdgeIDs(ids...)
 }
 
 // AddUserTeamIDs adds the "user_teams" edge to the TeamManager entity by IDs.
@@ -327,12 +327,12 @@ func (tc *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tc.mutation.HiringTeamIDs(); len(nodes) > 0 {
+	if nodes := tc.mutation.TeamJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   team.HiringTeamTable,
-			Columns: []string{team.HiringTeamColumn},
+			Table:   team.TeamJobEdgesTable,
+			Columns: []string{team.TeamJobEdgesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

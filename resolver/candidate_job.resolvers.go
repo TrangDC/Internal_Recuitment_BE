@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -27,25 +26,15 @@ func (r *candidateJobResolver) HiringJobID(ctx context.Context, obj *ent.Candida
 
 // Status is the resolver for the status field.
 func (r *candidateJobResolver) Status(ctx context.Context, obj *ent.CandidateJob) (ent.CandidateJobStatus, error) {
-	return ent.CandidateJobStatusNew, nil
+	return ent.CandidateJobStatus(obj.Status), nil
 }
 
 // Attachments is the resolver for the attachments field.
 func (r *candidateJobResolver) Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error) {
-	panic(fmt.Errorf("not implemented: Attachments - attachments"))
+	return obj.Edges.AttachmentEdges, nil
 }
 
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 
 type candidateJobResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *candidateJobResolver) Attachment(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error) {
-	return obj.Edges.AttachmentEdges, nil
-}
