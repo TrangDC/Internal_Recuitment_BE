@@ -896,16 +896,18 @@ type ProjectModule string
 const (
 	ProjectModuleTeams      ProjectModule = "teams"
 	ProjectModuleHiringJobs ProjectModule = "hiring_jobs"
+	ProjectModuleCandidates ProjectModule = "candidates"
 )
 
 var AllProjectModule = []ProjectModule{
 	ProjectModuleTeams,
 	ProjectModuleHiringJobs,
+	ProjectModuleCandidates,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleTeams, ProjectModuleHiringJobs:
+	case ProjectModuleTeams, ProjectModuleHiringJobs, ProjectModuleCandidates:
 		return true
 	}
 	return false

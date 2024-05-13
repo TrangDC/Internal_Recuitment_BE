@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"reflect"
 	"strings"
+	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/predicate"
 	"trec/internal/util"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -17,10 +22,10 @@ import (
 
 type CandidateService interface {
 	// mutation
-	CreateCandidate(ctx context.Context, input *ent.NewCandidateInput) (*ent.CandidateResponse, error)
-	UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID) (*ent.CandidateResponse, error)
-	DeleteCandidate(ctx context.Context, id uuid.UUID) error
-	SetBlackListCandidate(ctx context.Context, id uuid.UUID, isBlackList bool) error
+	CreateCandidate(ctx context.Context, input *ent.NewCandidateInput, note string) (*ent.CandidateResponse, error)
+	UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID, note string) (*ent.CandidateResponse, error)
+	DeleteCandidate(ctx context.Context, id uuid.UUID, note string) error
+	SetBlackListCandidate(ctx context.Context, id uuid.UUID, isBlackList bool, note string) error
 	// query
 	GetCandidate(ctx context.Context, id uuid.UUID) (*ent.CandidateResponse, error)
 	GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
@@ -37,33 +42,56 @@ func NewCandidateService(repoRegistry repository.Repository, logger *zap.Logger)
 	}
 }
 
-func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.NewCandidateInput) (*ent.CandidateResponse, error) {
-	var candidate *ent.Candidate
+func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.NewCandidateInput, note string) (*ent.CandidateResponse, error) {
+	var record *ent.Candidate
 	err := svc.repoRegistry.Candidate().ValidEmail(ctx, uuid.Nil, input.Email)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidate, err = repoRegistry.Candidate().CreateCandidate(ctx, input)
+		record, err = repoRegistry.Candidate().CreateCandidate(ctx, input)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	result, err := svc.repoRegistry.Candidate().GetCandidate(ctx, candidate.ID)
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.CandidateResponse{
-		Data: result,
+		Data: record,
 	}, nil
 }
 
-func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID) (*ent.CandidateResponse, error) {
-	candidate, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, note string) error {
+	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		err = repoRegistry.Candidate().DeleteCandidate(ctx, record)
+		return err
+	})
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return nil
+}
+
+func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID, note string) (*ent.CandidateResponse, error) {
+	var result *ent.Candidate
+	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
@@ -74,14 +102,16 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidate, err = repoRegistry.Candidate().UpdateCandidate(ctx, candidate, input)
+		result, err = repoRegistry.Candidate().UpdateCandidate(ctx, record, input)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	result, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+	recordChanges := svc.recordUpdate(record, result)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -91,13 +121,25 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 	}, nil
 }
 
-func (svc *candidateSvcImpl) SetBlackListCandidate(ctx context.Context, id uuid.UUID, isBlackList bool) error {
-	candidate, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+func (svc *candidateSvcImpl) SetBlackListCandidate(ctx context.Context, id uuid.UUID, isBlackList bool, note string) error {
+	var result *ent.Candidate
+	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	return svc.repoRegistry.Candidate().SetBlackListCandidate(ctx, candidate, isBlackList)
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		result, err = repoRegistry.Candidate().SetBlackListCandidate(ctx, record, isBlackList)
+		return err
+	})
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	recordChanges := svc.recordUpdate(record, result)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	return nil
 }
 
 func (svc *candidateSvcImpl) GetCandidate(ctx context.Context, id uuid.UUID) (*ent.CandidateResponse, error) {
@@ -109,23 +151,6 @@ func (svc *candidateSvcImpl) GetCandidate(ctx context.Context, id uuid.UUID) (*e
 	return &ent.CandidateResponse{
 		Data: result,
 	}, nil
-}
-
-func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID) error {
-	candidate, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
-	}
-	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		err = repoRegistry.Candidate().DeleteCandidate(ctx, candidate)
-		return err
-	})
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	return nil
 }
 
 func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error) {
@@ -218,4 +243,75 @@ func (svc *candidateSvcImpl) filter(candidateQuery *ent.CandidateQuery, input *e
 			candidateQuery.Where(candidate.CreatedAtGTE(*input.FromDate), candidate.CreatedAtLTE(*input.ToDate))
 		}
 	}
+}
+
+func (svc *candidateSvcImpl) recordCreateDelete(record *ent.Candidate, auditTrailType audittrail.ActionType) models.AuditTrailData {
+	auditTrail := models.AuditTrailData{
+		Module: "models.candidates.model_name",
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	result := []interface{}{}
+	value := reflect.ValueOf(interface{}(record)).Elem()
+	recordType := reflect.TypeOf(record).Elem()
+	for i := 1; i < value.NumField(); i++ {
+		field := recordType.Field(i)
+		valueField := value.Field(i).Interface()
+		fieldName := dto.FormatCandidateField(field.Name)
+		switch fieldName {
+		case "":
+			continue
+		case "model.candidates.is_blacklist":
+			valueField = dto.IsBlacklistI18n(record.IsBlacklist)
+		}
+		result = append(result, models.AuditTrailCreateDelete{
+			Field: fieldName,
+			Value: valueField,
+		})
+	}
+	if auditTrailType == audittrail.ActionTypeCreate {
+		auditTrail.Create = append(auditTrail.Create, result...)
+	}
+	if auditTrailType == audittrail.ActionTypeDelete {
+		auditTrail.Delete = append(auditTrail.Delete, result...)
+	}
+	return auditTrail
+}
+
+func (svc *candidateSvcImpl) recordUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) models.AuditTrailData {
+	auditTrail := models.AuditTrailData{
+		Module: "models.candidates.model_name",
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	result := []interface{}{}
+	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
+	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
+	recordType := reflect.TypeOf(oldRecord).Elem()
+	for i := 1; i < oldValue.NumField(); i++ {
+		field := recordType.Field(i)
+		oldValueField := oldValue.Field(i).Interface()
+		newValueField := newValue.Field(i).Interface()
+		fieldName := dto.FormatCandidateField(field.Name)
+		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
+			switch fieldName {
+			case "":
+				continue
+			case "model.candidates.is_blacklist":
+				oldValueField = dto.IsBlacklistI18n(oldRecord.IsBlacklist)
+				newValueField = dto.IsBlacklistI18n(newRecord.IsBlacklist)
+			}
+			result = append(result, models.AuditTrailUpdate{
+				Field: fieldName,
+				Value: models.ValueChange{
+					OldValue: oldValueField,
+					NewValue: newValueField,
+				},
+			})
+		}
+	}
+	auditTrail.Update = append(auditTrail.Update, result...)
+	return auditTrail
 }
