@@ -29,6 +29,7 @@ type CandidateJobService interface {
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
 	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum
+	GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error)
 }
 
 type candidateJobSvcImpl struct {
@@ -201,6 +202,51 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 			Page:    page,
 			PerPage: perPage,
 		},
+	}
+	return result, nil
+}
+
+func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
+	var result *ent.CandidateJobGroupByStatusResponse
+	var edges *ent.CandidateJobGroupByStatus
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID)))
+	if orderBy != nil {
+		order := ent.Desc(orderBy.Field.String())
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			order = ent.Asc(orderBy.Field.String())
+		}
+		query = query.Order(order)
+	}
+	candidateJobs, err := svc.repoRegistry.CandidateJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = &ent.CandidateJobGroupByStatus{
+		Hired: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusHired
+		}),
+		Kiv: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusKiv
+		}),
+		OfferLost: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusOfferLost
+		}),
+		Offering: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusOffering
+		}),
+		ExStaff: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusExStaff
+		}),
+		Applied: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusApplied
+		}),
+		Interviewing: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusInterviewing
+		}),
+	}
+	result = &ent.CandidateJobGroupByStatusResponse{
+		Data: edges,
 	}
 	return result, nil
 }

@@ -24,18 +24,23 @@ enum HiringJobStatus {
   closed
 }
 
-enum HiringJobOrderField {
+enum HiringJobOrderByField {
   name
   created_at
   amount
   salary_from
   salary_to
   last_apply_date
+  total_candidates_recruited
 }
 
-input HiringJobOrder {
+enum HiringJobOrderByAdditionalField {
+  total_candidates_recruited
+}
+
+input HiringJobOrderBy {
   direction: OrderDirection!
-  field: HiringJobOrderField!
+  field: HiringJobOrderByField!
 }
 
 input HiringJobFilter {
@@ -89,6 +94,7 @@ type HiringJob {
   team: Team!
   user: User!
   status: HiringJobStatus!
+  total_candidates_recruited: Int!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

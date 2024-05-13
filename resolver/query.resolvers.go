@@ -48,7 +48,7 @@ func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.Hirin
 }
 
 // GetAllHiringJobs is the resolver for the GetAllHiringJobs field.
-func (r *queryResolver) GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error) {
+func (r *queryResolver) GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error) {
 	result, err := r.serviceRegistry.HiringJob().GetHiringJobs(ctx, pagination, freeWord, filter, orderBy)
 	if err != nil {
 		return nil, err
@@ -104,6 +104,15 @@ func (r *queryResolver) GetCandidateJob(ctx context.Context, id string) (*ent.Ca
 // GetAllCandidateJobs is the resolver for the GetAllCandidateJobs field.
 func (r *queryResolver) GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error) {
 	result, err := r.serviceRegistry.CandidateJob().GetCandidateJobs(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetCandidateJobGroupByStatus is the resolver for the GetCandidateJobGroupByStatus field.
+func (r *queryResolver) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
+	result, err := r.serviceRegistry.CandidateJob().GetCandidateJobGroupByStatus(ctx, filter, orderBy)
 	if err != nil {
 		return nil, err
 	}

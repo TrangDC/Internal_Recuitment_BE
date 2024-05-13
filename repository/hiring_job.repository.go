@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/internal/util"
 
@@ -55,7 +56,11 @@ func (rps *hiringJobRepoImpl) BuildDelete() *ent.HiringJobUpdate {
 }
 
 func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
-	return rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil())
+	return rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil()).WithCandidateJobEdges(
+		func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.DeletedAtIsNil(), candidatejob.StatusEQ(candidatejob.StatusHired))
+		},
+	)
 }
 
 func (rps *hiringJobRepoImpl) BuildGet(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error) {

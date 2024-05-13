@@ -44,6 +44,11 @@ func (r *hiringJobResolver) Status(ctx context.Context, obj *ent.HiringJob) (ent
 	return ent.HiringJobStatus(obj.Status), nil
 }
 
+// TotalCandidatesRecruited is the resolver for the total_candidates_recruited field.
+func (r *hiringJobResolver) TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error) {
+	return len(obj.Edges.CandidateJobEdges), nil
+}
+
 // HiringJob returns graphql1.HiringJobResolver implementation.
 func (r *Resolver) HiringJob() graphql1.HiringJobResolver { return &hiringJobResolver{r} }
 
