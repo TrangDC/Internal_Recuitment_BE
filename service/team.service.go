@@ -245,15 +245,13 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 		perPage = *pagination.PerPage
 	}
 	if ent.TeamOrderByAdditionalField.IsValid(ent.TeamOrderByAdditionalField(orderBy.Field.String())) {
-		count, teams, err = svc.getTeamListByOpeningRqOrder(ctx, query, page, perPage, orderBy)
+		count, teams, err = svc.getTeamListByAdditionOrder(ctx, query, page, perPage, orderBy)
 		if err != nil {
-			svc.logger.Error(err.Error(), zap.Error(err))
 			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 		}
 	} else {
 		count, teams, err = svc.getTeamsListByNormalOrder(ctx, query, page, perPage, orderBy)
 		if err != nil {
-			svc.logger.Error(err.Error(), zap.Error(err))
 			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 		}
 	}
@@ -340,7 +338,7 @@ func (svc teamSvcImpl) getTeamsListByNormalOrder(ctx context.Context, query *ent
 	return count, teams, nil
 }
 
-func (svc teamSvcImpl) getTeamListByOpeningRqOrder(ctx context.Context, query *ent.TeamQuery, page int, perPage int, orderBy ent.TeamOrderBy) (int, []*ent.Team, error) {
+func (svc teamSvcImpl) getTeamListByAdditionOrder(ctx context.Context, query *ent.TeamQuery, page int, perPage int, orderBy ent.TeamOrderBy) (int, []*ent.Team, error) {
 	teams, err := svc.repoRegistry.Team().BuildList(ctx, query.Order(ent.Desc(ent.TeamOrderFieldCreatedAt.String())))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

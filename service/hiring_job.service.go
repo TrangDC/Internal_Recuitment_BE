@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"sort"
 	"strings"
 	"trec/dto"
 	"trec/ent"
@@ -27,7 +28,7 @@ type HiringJobService interface {
 	DeleteHiringJob(ctx context.Context, id uuid.UUID, note string) error
 	// query
 	GetHiringJob(ctx context.Context, id uuid.UUID) (*ent.HiringJobResponse, error)
-	GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error)
+	GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
 }
 type hiringJobSvcImpl struct {
 	repoRegistry repository.Repository
@@ -160,35 +161,33 @@ func (svc *hiringJobSvcImpl) GetHiringJob(ctx context.Context, id uuid.UUID) (*e
 	}, nil
 }
 
-func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy *ent.HiringJobOrder) (*ent.HiringJobResponseGetAll, error) {
+func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error) {
 	var result *ent.HiringJobResponseGetAll
 	var edges []*ent.HiringJobEdge
 	var page int
 	var perPage int
+	var err error
+	var count int
+	var hiringJobs []*ent.HiringJob
 	query := svc.repoRegistry.HiringJob().BuildQuery()
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
-	count, err := svc.repoRegistry.HiringJob().BuildCount(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	order := ent.Desc(hiringjob.FieldCreatedAt)
-	if orderBy != nil {
-		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
-		}
-	}
-	query = query.Order(order)
 	if pagination != nil {
 		page = *pagination.Page
 		perPage = *pagination.PerPage
-		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
-	hiringJobs, err := svc.repoRegistry.HiringJob().BuildList(ctx, query)
+	if ent.HiringJobOrderByAdditionalField.IsValid(ent.HiringJobOrderByAdditionalField(orderBy.Field.String())) {
+		count, hiringJobs, err = svc.getListByAdditionalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	} else {
+		count, hiringJobs, err = svc.getListByNormalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	}
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) *ent.HiringJobEdge {
@@ -208,6 +207,60 @@ func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.
 		},
 	}
 	return result, nil
+}
+
+func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
+	count, err := svc.repoRegistry.HiringJob().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	order := ent.Desc(strings.ToLower(orderBy.Field.String()))
+	if orderBy.Direction == ent.OrderDirectionAsc {
+		order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+	}
+	query = query.Order(order)
+	if page != 0 && perPage != 0 {
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	hiringJobs, err := svc.repoRegistry.HiringJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	return count, hiringJobs, nil
+}
+
+func (svc hiringJobSvcImpl) getListByAdditionalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
+	hiringJobs, err := svc.repoRegistry.HiringJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	count := len(hiringJobs)
+	switch orderBy.Field {
+	case ent.HiringJobOrderByFieldTotalCandidatesRecruited:
+		sort.Slice(hiringJobs, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return len(hiringJobs[i].Edges.CandidateJobEdges) < len(hiringJobs[j].Edges.CandidateJobEdges)
+			} else {
+				return len(hiringJobs[i].Edges.CandidateJobEdges) > len(hiringJobs[j].Edges.CandidateJobEdges)
+			}
+		})
+	}
+	// Split slice by page and perPage
+	if page != 0 && perPage != 0 {
+		start := (page - 1) * perPage
+		end := start + perPage
+		if start > len(hiringJobs) {
+			return count, nil, nil
+		}
+		if start <= len(hiringJobs) && end > len(hiringJobs) {
+			return count, hiringJobs[start:], nil
+		}
+		hiringJobs = hiringJobs[start:end]
+	}
+	return count, hiringJobs, nil
 }
 
 // common function

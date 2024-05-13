@@ -131,6 +131,24 @@ type CandidateJobFreeWord struct {
 	HiringJob *string `json:"hiring_job"`
 }
 
+type CandidateJobGroupByStatus struct {
+	Hired        []*CandidateJob `json:"hired"`
+	Kiv          []*CandidateJob `json:"kiv"`
+	OfferLost    []*CandidateJob `json:"offer_lost"`
+	ExStaff      []*CandidateJob `json:"ex_staff"`
+	Applied      []*CandidateJob `json:"applied"`
+	Interviewing []*CandidateJob `json:"interviewing"`
+	Offering     []*CandidateJob `json:"offering"`
+}
+
+type CandidateJobGroupByStatusFilter struct {
+	HiringJobID string `json:"hiring_job_id"`
+}
+
+type CandidateJobGroupByStatusResponse struct {
+	Data *CandidateJobGroupByStatus `json:"data"`
+}
+
 type CandidateJobResponse struct {
 	Data *CandidateJob `json:"data"`
 }
@@ -157,6 +175,11 @@ type HiringJobFilter struct {
 
 type HiringJobFreeWord struct {
 	Name *string `json:"name"`
+}
+
+type HiringJobOrderBy struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     HiringJobOrderByField `json:"field"`
 }
 
 type HiringJobResponse struct {
@@ -676,6 +699,96 @@ func (e *CurrencyEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CurrencyEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HiringJobOrderByAdditionalField string
+
+const (
+	HiringJobOrderByAdditionalFieldTotalCandidatesRecruited HiringJobOrderByAdditionalField = "total_candidates_recruited"
+)
+
+var AllHiringJobOrderByAdditionalField = []HiringJobOrderByAdditionalField{
+	HiringJobOrderByAdditionalFieldTotalCandidatesRecruited,
+}
+
+func (e HiringJobOrderByAdditionalField) IsValid() bool {
+	switch e {
+	case HiringJobOrderByAdditionalFieldTotalCandidatesRecruited:
+		return true
+	}
+	return false
+}
+
+func (e HiringJobOrderByAdditionalField) String() string {
+	return string(e)
+}
+
+func (e *HiringJobOrderByAdditionalField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringJobOrderByAdditionalField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringJobOrderByAdditionalField", str)
+	}
+	return nil
+}
+
+func (e HiringJobOrderByAdditionalField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HiringJobOrderByField string
+
+const (
+	HiringJobOrderByFieldName                     HiringJobOrderByField = "name"
+	HiringJobOrderByFieldCreatedAt                HiringJobOrderByField = "created_at"
+	HiringJobOrderByFieldAmount                   HiringJobOrderByField = "amount"
+	HiringJobOrderByFieldSalaryFrom               HiringJobOrderByField = "salary_from"
+	HiringJobOrderByFieldSalaryTo                 HiringJobOrderByField = "salary_to"
+	HiringJobOrderByFieldLastApplyDate            HiringJobOrderByField = "last_apply_date"
+	HiringJobOrderByFieldTotalCandidatesRecruited HiringJobOrderByField = "total_candidates_recruited"
+)
+
+var AllHiringJobOrderByField = []HiringJobOrderByField{
+	HiringJobOrderByFieldName,
+	HiringJobOrderByFieldCreatedAt,
+	HiringJobOrderByFieldAmount,
+	HiringJobOrderByFieldSalaryFrom,
+	HiringJobOrderByFieldSalaryTo,
+	HiringJobOrderByFieldLastApplyDate,
+	HiringJobOrderByFieldTotalCandidatesRecruited,
+}
+
+func (e HiringJobOrderByField) IsValid() bool {
+	switch e {
+	case HiringJobOrderByFieldName, HiringJobOrderByFieldCreatedAt, HiringJobOrderByFieldAmount, HiringJobOrderByFieldSalaryFrom, HiringJobOrderByFieldSalaryTo, HiringJobOrderByFieldLastApplyDate, HiringJobOrderByFieldTotalCandidatesRecruited:
+		return true
+	}
+	return false
+}
+
+func (e HiringJobOrderByField) String() string {
+	return string(e)
+}
+
+func (e *HiringJobOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringJobOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringJobOrderByField", str)
+	}
+	return nil
+}
+
+func (e HiringJobOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -22,6 +22,10 @@ enum CandidateJobStatus {
   new
 }
 
+input CandidateJobGroupByStatusFilter{
+  hiring_job_id: ID!
+}
+
 type CandidateJob {
   id: ID!
   candidate_id: ID!
@@ -30,6 +34,16 @@ type CandidateJob {
   attachments: [Attachment!]
   created_at: Time!
   updated_at: Time!
+}
+
+type CandidateJobGroupByStatus {
+  hired: [CandidateJob!]
+  kiv: [CandidateJob!]
+  offer_lost: [CandidateJob!]
+  ex_staff: [CandidateJob!]
+  applied: [CandidateJob!]
+  interviewing: [CandidateJob!]
+  offering: [CandidateJob!]
 }
 
 input NewCandidateJobInput {
@@ -45,6 +59,9 @@ input UpdateCandidateAttachment {
 
 type CandidateJobResponse {
   data: CandidateJob
+}
+type CandidateJobGroupByStatusResponse {
+  data: CandidateJobGroupByStatus
 }
 
 type CandidateJobEdge {
@@ -73,6 +90,7 @@ input CandidateJobOrder {
 
 enum CandidateJobOrderField {
   created_at
+  updated_at
 }
 
 input CandidateJobFreeWord {
