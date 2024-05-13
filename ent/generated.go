@@ -386,18 +386,18 @@ func (e AttachmentAction) MarshalGQL(w io.Writer) {
 type AttachmentFolder string
 
 const (
-	AttachmentFolderEmployee AttachmentFolder = "employee"
-	AttachmentFolderContract AttachmentFolder = "contract"
+	AttachmentFolderCandidate         AttachmentFolder = "candidate"
+	AttachmentFolderCandidateFeedback AttachmentFolder = "candidate_feedback"
 )
 
 var AllAttachmentFolder = []AttachmentFolder{
-	AttachmentFolderEmployee,
-	AttachmentFolderContract,
+	AttachmentFolderCandidate,
+	AttachmentFolderCandidateFeedback,
 }
 
 func (e AttachmentFolder) IsValid() bool {
 	switch e {
-	case AttachmentFolderEmployee, AttachmentFolderContract:
+	case AttachmentFolderCandidate, AttachmentFolderCandidateFeedback:
 		return true
 	}
 	return false

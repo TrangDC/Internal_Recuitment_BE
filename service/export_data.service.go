@@ -15,7 +15,7 @@ import (
 )
 
 type ExportDataService interface {
-	ExportSampleCandidates(ctx context.Context, lang ent.I18nLanguage) (string, error)
+	ExportSampleCandidates(ctx context.Context, lang ent.I18nLanguage) (*ent.Base64Response, error)
 }
 type exportDataSvcImpl struct {
 	repoRegistry repository.Repository
@@ -31,7 +31,7 @@ func NewExportDataService(repoRegistry repository.Repository, i18n models.I18n, 
 	}
 }
 
-func (svc *exportDataSvcImpl) ExportSampleCandidates(ctx context.Context, lang ent.I18nLanguage) (string, error) {
+func (svc *exportDataSvcImpl) ExportSampleCandidates(ctx context.Context, lang ent.I18nLanguage) (*ent.Base64Response, error) {
 	var i18nObject models.I18nObject
 	switch lang {
 	case ent.I18nLanguageEn:
@@ -43,10 +43,12 @@ func (svc *exportDataSvcImpl) ExportSampleCandidates(ctx context.Context, lang e
 	excelBytes, err := file.WriteToBuffer()
 	if err != nil {
 		svc.logger.Error("error while convert excel to base64", zap.Error(err))
-		return "", util.WrapGQLError(ctx, "excel.convert.error", http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, util.WrapGQLError(ctx, "excel.convert.error", http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	excelBase64 := base64.StdEncoding.EncodeToString(excelBytes.Bytes())
-	return excelBase64, nil
+	return &ent.Base64Response{
+		Data: excelBase64,
+	}, nil
 }
 
 func (svc exportDataSvcImpl) candidateHeader(i18nObj models.I18nObject) *excelize.File {
