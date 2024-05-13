@@ -262,6 +262,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateAttachmentSasurl       func(childComplexity int, input ent.AttachmentInput) int
 		CreateCandidate              func(childComplexity int, input ent.NewCandidateInput, note string) int
 		CreateCandidateInterview     func(childComplexity int, input ent.NewCandidateInterviewInput) int
 		CreateCandidateJob           func(childComplexity int, input ent.NewCandidateJobInput) int
@@ -418,6 +419,7 @@ type HiringJobResolver interface {
 	TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error)
 }
 type MutationResolver interface {
+	CreateAttachmentSasurl(ctx context.Context, input ent.AttachmentInput) (*ent.AttachmentResponse, error)
 	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
 	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
 	DeleteTeam(ctx context.Context, id string, note string) (bool, error)
@@ -1288,6 +1290,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJobResponseGetAll.Pagination(childComplexity), true
+
+	case "Mutation.CreateAttachmentSASURL":
+		if e.complexity.Mutation.CreateAttachmentSasurl == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateAttachmentSASURL_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAttachmentSasurl(childComplexity, args["input"].(ent.AttachmentInput)), true
 
 	case "Mutation.CreateCandidate":
 		if e.complexity.Mutation.CreateCandidate == nil {
@@ -2477,8 +2491,8 @@ enum AttachmentAction {
 }
 
 enum AttachmentFolder{
-  employee
-  contract
+  candidate
+  candidate_feedback
 }
 
 input AttachmentInput {
@@ -2634,6 +2648,9 @@ type HiringJobResponseGetAll {
 # Path: schema/hiring_job.graphql
 `, BuiltIn: false},
 	{Name: "../schema/mutation.graphql", Input: `type Mutation {
+  #Attachment
+  CreateAttachmentSASURL(input: AttachmentInput!): AttachmentResponse!
+
   # Team
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
@@ -2829,6 +2846,21 @@ func (ec *executionContext) dir_validation_args(ctx context.Context, rawArgs map
 		}
 	}
 	args["constraints"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateAttachmentSASURL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.AttachmentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAttachmentInput2trecᚋentᚐAttachmentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -9490,6 +9522,71 @@ func (ec *executionContext) fieldContext_HiringJobResponseGetAll_pagination(ctx 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateAttachmentSASURL(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateAttachmentSASURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAttachmentSasurl(rctx, fc.Args["input"].(ent.AttachmentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.AttachmentResponse)
+	fc.Result = res
+	return ec.marshalNAttachmentResponse2ᚖtrecᚋentᚐAttachmentResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateAttachmentSASURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fileName":
+				return ec.fieldContext_AttachmentResponse_fileName(ctx, field)
+			case "url":
+				return ec.fieldContext_AttachmentResponse_url(ctx, field)
+			case "action":
+				return ec.fieldContext_AttachmentResponse_action(ctx, field)
+			case "id":
+				return ec.fieldContext_AttachmentResponse_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AttachmentResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateAttachmentSASURL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -18611,6 +18708,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "CreateAttachmentSASURL":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateAttachmentSASURL(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "CreateTeam":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -20033,6 +20139,25 @@ func (ec *executionContext) unmarshalNAttachmentFolder2trecᚋentᚐAttachmentFo
 
 func (ec *executionContext) marshalNAttachmentFolder2trecᚋentᚐAttachmentFolder(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentFolder) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNAttachmentInput2trecᚋentᚐAttachmentInput(ctx context.Context, v interface{}) (ent.AttachmentInput, error) {
+	res, err := ec.unmarshalInputAttachmentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAttachmentResponse2trecᚋentᚐAttachmentResponse(ctx context.Context, sel ast.SelectionSet, v ent.AttachmentResponse) graphql.Marshaler {
+	return ec._AttachmentResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAttachmentResponse2ᚖtrecᚋentᚐAttachmentResponse(ctx context.Context, sel ast.SelectionSet, v *ent.AttachmentResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AttachmentResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAuditTrail2ᚖtrecᚋentᚐAuditTrail(ctx context.Context, sel ast.SelectionSet, v *ent.AuditTrail) graphql.Marshaler {

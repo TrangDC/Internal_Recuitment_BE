@@ -38,8 +38,8 @@ enum AttachmentAction {
 }
 
 enum AttachmentFolder{
-  employee
-  contract
+  candidate
+  candidate_feedback
 }
 
 input AttachmentInput {
