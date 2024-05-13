@@ -108,6 +108,26 @@ func (cu *CandidateUpdate) SetNillableIsBlacklist(b *bool) *CandidateUpdate {
 	return cu
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (cu *CandidateUpdate) SetLastApplyDate(t time.Time) *CandidateUpdate {
+	cu.mutation.SetLastApplyDate(t)
+	return cu
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableLastApplyDate(t *time.Time) *CandidateUpdate {
+	if t != nil {
+		cu.SetLastApplyDate(*t)
+	}
+	return cu
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (cu *CandidateUpdate) ClearLastApplyDate() *CandidateUpdate {
+	cu.mutation.ClearLastApplyDate()
+	return cu
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
 	cu.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -274,6 +294,12 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
 	}
+	if value, ok := cu.mutation.LastApplyDate(); ok {
+		_spec.SetField(candidate.FieldLastApplyDate, field.TypeTime, value)
+	}
+	if cu.mutation.LastApplyDateCleared() {
+		_spec.ClearField(candidate.FieldLastApplyDate, field.TypeTime)
+	}
 	if cu.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -422,6 +448,26 @@ func (cuo *CandidateUpdateOne) SetNillableIsBlacklist(b *bool) *CandidateUpdateO
 	if b != nil {
 		cuo.SetIsBlacklist(*b)
 	}
+	return cuo
+}
+
+// SetLastApplyDate sets the "last_apply_date" field.
+func (cuo *CandidateUpdateOne) SetLastApplyDate(t time.Time) *CandidateUpdateOne {
+	cuo.mutation.SetLastApplyDate(t)
+	return cuo
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableLastApplyDate(t *time.Time) *CandidateUpdateOne {
+	if t != nil {
+		cuo.SetLastApplyDate(*t)
+	}
+	return cuo
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (cuo *CandidateUpdateOne) ClearLastApplyDate() *CandidateUpdateOne {
+	cuo.mutation.ClearLastApplyDate()
 	return cuo
 }
 
@@ -620,6 +666,12 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if value, ok := cuo.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
+	}
+	if value, ok := cuo.mutation.LastApplyDate(); ok {
+		_spec.SetField(candidate.FieldLastApplyDate, field.TypeTime, value)
+	}
+	if cuo.mutation.LastApplyDateCleared() {
+		_spec.ClearField(candidate.FieldLastApplyDate, field.TypeTime)
 	}
 	if cuo.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

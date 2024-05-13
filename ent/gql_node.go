@@ -245,7 +245,7 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Candidate",
-		Fields: make([]*Field, 8),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -311,6 +311,14 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[7] = &Field{
 		Type:  "bool",
 		Name:  "is_blacklist",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.LastApplyDate); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "time.Time",
+		Name:  "last_apply_date",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -730,7 +738,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     hj.ID,
 		Type:   "HiringJob",
-		Fields: make([]*Field, 15),
+		Fields: make([]*Field, 16),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -854,6 +862,14 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "currency",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(hj.LastApplyDate); err != nil {
+		return nil, err
+	}
+	node.Fields[15] = &Field{
+		Type:  "time.Time",
+		Name:  "last_apply_date",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "User",
 		Name: "owner_edge",
@@ -947,9 +963,9 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1] = &Edge{
 		Type: "HiringJob",
-		Name: "hiring_team",
+		Name: "team_job_edges",
 	}
-	err = t.QueryHiringTeam().
+	err = t.QueryTeamJobEdges().
 		Select(hiringjob.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {

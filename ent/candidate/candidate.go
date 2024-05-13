@@ -29,6 +29,8 @@ const (
 	FieldDob = "dob"
 	// FieldIsBlacklist holds the string denoting the is_blacklist field in the database.
 	FieldIsBlacklist = "is_blacklist"
+	// FieldLastApplyDate holds the string denoting the last_apply_date field in the database.
+	FieldLastApplyDate = "last_apply_date"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// Table holds the table name of the candidate in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldPhone,
 	FieldDob,
 	FieldIsBlacklist,
+	FieldLastApplyDate,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

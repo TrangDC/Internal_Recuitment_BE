@@ -232,14 +232,14 @@ func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {
 	return result, err
 }
 
-func (t *Team) HiringTeam(ctx context.Context) (result []*HiringJob, err error) {
+func (t *Team) TeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedHiringTeam(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = t.NamedTeamJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = t.Edges.HiringTeamOrErr()
+		result, err = t.Edges.TeamJobEdgesOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = t.QueryHiringTeam().All(ctx)
+		result, err = t.QueryTeamJobEdges().All(ctx)
 	}
 	return result, err
 }

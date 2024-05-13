@@ -28,6 +28,7 @@ type CandidateJobService interface {
 	// query
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
 	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
+	GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum
 }
 
 type candidateJobSvcImpl struct {
@@ -202,6 +203,36 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 		},
 	}
 	return result, nil
+}
+
+// resolver
+func (svc *candidateJobSvcImpl) GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum {
+	var candidateJobs []*ent.CandidateJob
+	var err error
+	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(s)
+	})
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.CandidateIDEQ(id)).Order(ent.Desc(candidatejob.FieldUpdatedAt)).Limit(1)
+	candidateJobs, err = svc.repoRegistry.CandidateJob().BuildList(ctx, query.Clone().Where(
+		candidatejob.StatusIn(openStatus...),
+	))
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return ent.CandidateStatusEnumNew
+	}
+	if len(candidateJobs) == 0 {
+		candidateJobs, err = svc.repoRegistry.CandidateJob().BuildList(ctx, query.Clone().Where(
+			candidatejob.StatusNotIn(openStatus...),
+		))
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return ent.CandidateStatusEnumNew
+		}
+		if len(candidateJobs) == 0 {
+			return ent.CandidateStatusEnumNew
+		}
+	}
+	return ent.CandidateStatusEnum(candidateJobs[0].Status)
 }
 
 // common function

@@ -225,6 +225,26 @@ func (hju *HiringJobUpdate) SetCurrency(h hiringjob.Currency) *HiringJobUpdate {
 	return hju
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (hju *HiringJobUpdate) SetLastApplyDate(t time.Time) *HiringJobUpdate {
+	hju.mutation.SetLastApplyDate(t)
+	return hju
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableLastApplyDate(t *time.Time) *HiringJobUpdate {
+	if t != nil {
+		hju.SetLastApplyDate(*t)
+	}
+	return hju
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (hju *HiringJobUpdate) ClearLastApplyDate() *HiringJobUpdate {
+	hju.mutation.ClearLastApplyDate()
+	return hju
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hju *HiringJobUpdate) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdate {
 	hju.mutation.SetOwnerEdgeID(id)
@@ -484,6 +504,12 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := hju.mutation.Currency(); ok {
 		_spec.SetField(hiringjob.FieldCurrency, field.TypeEnum, value)
+	}
+	if value, ok := hju.mutation.LastApplyDate(); ok {
+		_spec.SetField(hiringjob.FieldLastApplyDate, field.TypeTime, value)
+	}
+	if hju.mutation.LastApplyDateCleared() {
+		_spec.ClearField(hiringjob.FieldLastApplyDate, field.TypeTime)
 	}
 	if hju.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -821,6 +847,26 @@ func (hjuo *HiringJobUpdateOne) SetCurrency(h hiringjob.Currency) *HiringJobUpda
 	return hjuo
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (hjuo *HiringJobUpdateOne) SetLastApplyDate(t time.Time) *HiringJobUpdateOne {
+	hjuo.mutation.SetLastApplyDate(t)
+	return hjuo
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableLastApplyDate(t *time.Time) *HiringJobUpdateOne {
+	if t != nil {
+		hjuo.SetLastApplyDate(*t)
+	}
+	return hjuo
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (hjuo *HiringJobUpdateOne) ClearLastApplyDate() *HiringJobUpdateOne {
+	hjuo.mutation.ClearLastApplyDate()
+	return hjuo
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjuo *HiringJobUpdateOne) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdateOne {
 	hjuo.mutation.SetOwnerEdgeID(id)
@@ -1110,6 +1156,12 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 	}
 	if value, ok := hjuo.mutation.Currency(); ok {
 		_spec.SetField(hiringjob.FieldCurrency, field.TypeEnum, value)
+	}
+	if value, ok := hjuo.mutation.LastApplyDate(); ok {
+		_spec.SetField(hiringjob.FieldLastApplyDate, field.TypeTime, value)
+	}
+	if hjuo.mutation.LastApplyDateCleared() {
+		_spec.ClearField(hiringjob.FieldLastApplyDate, field.TypeTime)
 	}
 	if hjuo.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

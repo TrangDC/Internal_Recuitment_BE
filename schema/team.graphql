@@ -1,11 +1,18 @@
-enum TeamOrderField {
-  NAME
-  CREATED_AT
+enum TeamOrderByField {
+  name
+  created_at
+  opening_requests
+  newest_applied
 }
 
-input TeamOrder {
+enum TeamOrderByAdditionalField {
+  opening_requests
+  newest_applied
+}
+
+input TeamOrderBy {
   direction: OrderDirection!
-  field: TeamOrderField!
+  field: TeamOrderByField!
 }
 
 input TeamFilter {
@@ -31,6 +38,7 @@ type Team {
   name: String!
   slug: String!
   members: [User!]!
+  opening_requests: Int!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

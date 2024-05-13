@@ -46,6 +46,8 @@ const (
 	FieldSalaryTo = "salary_to"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
+	// FieldLastApplyDate holds the string denoting the last_apply_date field in the database.
+	FieldLastApplyDate = "last_apply_date"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
@@ -95,6 +97,7 @@ var Columns = []string{
 	FieldSalaryFrom,
 	FieldSalaryTo,
 	FieldCurrency,
+	FieldLastApplyDate,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

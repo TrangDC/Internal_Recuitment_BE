@@ -1,5 +1,5 @@
 enum AuditTrailOrderField {
-  CREATED_AT
+  created_at
 }
 
 input AuditTrailFilter  {

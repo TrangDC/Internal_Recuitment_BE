@@ -1,6 +1,6 @@
 enum UserOrderField {
-  NAME
-  CREATED_AT
+  name
+  created_at
 }
 
 input UserOrder {

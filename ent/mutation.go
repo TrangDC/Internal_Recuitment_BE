@@ -1879,6 +1879,7 @@ type CandidateMutation struct {
 	phone                      *string
 	dob                        *time.Time
 	is_blacklist               *bool
+	last_apply_date            *time.Time
 	clearedFields              map[string]struct{}
 	candidate_job_edges        map[uuid.UUID]struct{}
 	removedcandidate_job_edges map[uuid.UUID]struct{}
@@ -2306,6 +2307,55 @@ func (m *CandidateMutation) ResetIsBlacklist() {
 	m.is_blacklist = nil
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (m *CandidateMutation) SetLastApplyDate(t time.Time) {
+	m.last_apply_date = &t
+}
+
+// LastApplyDate returns the value of the "last_apply_date" field in the mutation.
+func (m *CandidateMutation) LastApplyDate() (r time.Time, exists bool) {
+	v := m.last_apply_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastApplyDate returns the old "last_apply_date" field's value of the Candidate entity.
+// If the Candidate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateMutation) OldLastApplyDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastApplyDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastApplyDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastApplyDate: %w", err)
+	}
+	return oldValue.LastApplyDate, nil
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (m *CandidateMutation) ClearLastApplyDate() {
+	m.last_apply_date = nil
+	m.clearedFields[candidate.FieldLastApplyDate] = struct{}{}
+}
+
+// LastApplyDateCleared returns if the "last_apply_date" field was cleared in this mutation.
+func (m *CandidateMutation) LastApplyDateCleared() bool {
+	_, ok := m.clearedFields[candidate.FieldLastApplyDate]
+	return ok
+}
+
+// ResetLastApplyDate resets all changes to the "last_apply_date" field.
+func (m *CandidateMutation) ResetLastApplyDate() {
+	m.last_apply_date = nil
+	delete(m.clearedFields, candidate.FieldLastApplyDate)
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by ids.
 func (m *CandidateMutation) AddCandidateJobEdgeIDs(ids ...uuid.UUID) {
 	if m.candidate_job_edges == nil {
@@ -2379,7 +2429,7 @@ func (m *CandidateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, candidate.FieldCreatedAt)
 	}
@@ -2403,6 +2453,9 @@ func (m *CandidateMutation) Fields() []string {
 	}
 	if m.is_blacklist != nil {
 		fields = append(fields, candidate.FieldIsBlacklist)
+	}
+	if m.last_apply_date != nil {
+		fields = append(fields, candidate.FieldLastApplyDate)
 	}
 	return fields
 }
@@ -2428,6 +2481,8 @@ func (m *CandidateMutation) Field(name string) (ent.Value, bool) {
 		return m.Dob()
 	case candidate.FieldIsBlacklist:
 		return m.IsBlacklist()
+	case candidate.FieldLastApplyDate:
+		return m.LastApplyDate()
 	}
 	return nil, false
 }
@@ -2453,6 +2508,8 @@ func (m *CandidateMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDob(ctx)
 	case candidate.FieldIsBlacklist:
 		return m.OldIsBlacklist(ctx)
+	case candidate.FieldLastApplyDate:
+		return m.OldLastApplyDate(ctx)
 	}
 	return nil, fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -2518,6 +2575,13 @@ func (m *CandidateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsBlacklist(v)
 		return nil
+	case candidate.FieldLastApplyDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastApplyDate(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -2554,6 +2618,9 @@ func (m *CandidateMutation) ClearedFields() []string {
 	if m.FieldCleared(candidate.FieldDeletedAt) {
 		fields = append(fields, candidate.FieldDeletedAt)
 	}
+	if m.FieldCleared(candidate.FieldLastApplyDate) {
+		fields = append(fields, candidate.FieldLastApplyDate)
+	}
 	return fields
 }
 
@@ -2573,6 +2640,9 @@ func (m *CandidateMutation) ClearField(name string) error {
 		return nil
 	case candidate.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case candidate.FieldLastApplyDate:
+		m.ClearLastApplyDate()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate nullable field %s", name)
@@ -2605,6 +2675,9 @@ func (m *CandidateMutation) ResetField(name string) error {
 		return nil
 	case candidate.FieldIsBlacklist:
 		m.ResetIsBlacklist()
+		return nil
+	case candidate.FieldLastApplyDate:
+		m.ResetLastApplyDate()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
@@ -6554,6 +6627,7 @@ type HiringJobMutation struct {
 	salary_to                  *int
 	addsalary_to               *int
 	currency                   *hiringjob.Currency
+	last_apply_date            *time.Time
 	clearedFields              map[string]struct{}
 	owner_edge                 *uuid.UUID
 	clearedowner_edge          bool
@@ -7323,6 +7397,55 @@ func (m *HiringJobMutation) ResetCurrency() {
 	m.currency = nil
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (m *HiringJobMutation) SetLastApplyDate(t time.Time) {
+	m.last_apply_date = &t
+}
+
+// LastApplyDate returns the value of the "last_apply_date" field in the mutation.
+func (m *HiringJobMutation) LastApplyDate() (r time.Time, exists bool) {
+	v := m.last_apply_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastApplyDate returns the old "last_apply_date" field's value of the HiringJob entity.
+// If the HiringJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobMutation) OldLastApplyDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastApplyDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastApplyDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastApplyDate: %w", err)
+	}
+	return oldValue.LastApplyDate, nil
+}
+
+// ClearLastApplyDate clears the value of the "last_apply_date" field.
+func (m *HiringJobMutation) ClearLastApplyDate() {
+	m.last_apply_date = nil
+	m.clearedFields[hiringjob.FieldLastApplyDate] = struct{}{}
+}
+
+// LastApplyDateCleared returns if the "last_apply_date" field was cleared in this mutation.
+func (m *HiringJobMutation) LastApplyDateCleared() bool {
+	_, ok := m.clearedFields[hiringjob.FieldLastApplyDate]
+	return ok
+}
+
+// ResetLastApplyDate resets all changes to the "last_apply_date" field.
+func (m *HiringJobMutation) ResetLastApplyDate() {
+	m.last_apply_date = nil
+	delete(m.clearedFields, hiringjob.FieldLastApplyDate)
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by id.
 func (m *HiringJobMutation) SetOwnerEdgeID(id uuid.UUID) {
 	m.owner_edge = &id
@@ -7474,7 +7597,7 @@ func (m *HiringJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringJobMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, hiringjob.FieldCreatedAt)
 	}
@@ -7520,6 +7643,9 @@ func (m *HiringJobMutation) Fields() []string {
 	if m.currency != nil {
 		fields = append(fields, hiringjob.FieldCurrency)
 	}
+	if m.last_apply_date != nil {
+		fields = append(fields, hiringjob.FieldLastApplyDate)
+	}
 	return fields
 }
 
@@ -7558,6 +7684,8 @@ func (m *HiringJobMutation) Field(name string) (ent.Value, bool) {
 		return m.SalaryTo()
 	case hiringjob.FieldCurrency:
 		return m.Currency()
+	case hiringjob.FieldLastApplyDate:
+		return m.LastApplyDate()
 	}
 	return nil, false
 }
@@ -7597,6 +7725,8 @@ func (m *HiringJobMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSalaryTo(ctx)
 	case hiringjob.FieldCurrency:
 		return m.OldCurrency(ctx)
+	case hiringjob.FieldLastApplyDate:
+		return m.OldLastApplyDate(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -7711,6 +7841,13 @@ func (m *HiringJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCurrency(v)
 		return nil
+	case hiringjob.FieldLastApplyDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastApplyDate(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -7792,6 +7929,9 @@ func (m *HiringJobMutation) ClearedFields() []string {
 	if m.FieldCleared(hiringjob.FieldTeamID) {
 		fields = append(fields, hiringjob.FieldTeamID)
 	}
+	if m.FieldCleared(hiringjob.FieldLastApplyDate) {
+		fields = append(fields, hiringjob.FieldLastApplyDate)
+	}
 	return fields
 }
 
@@ -7817,6 +7957,9 @@ func (m *HiringJobMutation) ClearField(name string) error {
 		return nil
 	case hiringjob.FieldTeamID:
 		m.ClearTeamID()
+		return nil
+	case hiringjob.FieldLastApplyDate:
+		m.ClearLastApplyDate()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob nullable field %s", name)
@@ -7870,6 +8013,9 @@ func (m *HiringJobMutation) ResetField(name string) error {
 		return nil
 	case hiringjob.FieldCurrency:
 		m.ResetCurrency()
+		return nil
+	case hiringjob.FieldLastApplyDate:
+		m.ResetLastApplyDate()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
@@ -7998,27 +8144,27 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 // TeamMutation represents an operation that mutates the Team nodes in the graph.
 type TeamMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	slug               *string
-	name               *string
-	clearedFields      map[string]struct{}
-	user_edges         map[uuid.UUID]struct{}
-	removeduser_edges  map[uuid.UUID]struct{}
-	cleareduser_edges  bool
-	hiring_team        map[uuid.UUID]struct{}
-	removedhiring_team map[uuid.UUID]struct{}
-	clearedhiring_team bool
-	user_teams         map[uuid.UUID]struct{}
-	removeduser_teams  map[uuid.UUID]struct{}
-	cleareduser_teams  bool
-	done               bool
-	oldValue           func(context.Context) (*Team, error)
-	predicates         []predicate.Team
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	deleted_at            *time.Time
+	slug                  *string
+	name                  *string
+	clearedFields         map[string]struct{}
+	user_edges            map[uuid.UUID]struct{}
+	removeduser_edges     map[uuid.UUID]struct{}
+	cleareduser_edges     bool
+	team_job_edges        map[uuid.UUID]struct{}
+	removedteam_job_edges map[uuid.UUID]struct{}
+	clearedteam_job_edges bool
+	user_teams            map[uuid.UUID]struct{}
+	removeduser_teams     map[uuid.UUID]struct{}
+	cleareduser_teams     bool
+	done                  bool
+	oldValue              func(context.Context) (*Team, error)
+	predicates            []predicate.Team
 }
 
 var _ ent.Mutation = (*TeamMutation)(nil)
@@ -8385,58 +8531,58 @@ func (m *TeamMutation) ResetUserEdges() {
 	m.removeduser_edges = nil
 }
 
-// AddHiringTeamIDs adds the "hiring_team" edge to the HiringJob entity by ids.
-func (m *TeamMutation) AddHiringTeamIDs(ids ...uuid.UUID) {
-	if m.hiring_team == nil {
-		m.hiring_team = make(map[uuid.UUID]struct{})
+// AddTeamJobEdgeIDs adds the "team_job_edges" edge to the HiringJob entity by ids.
+func (m *TeamMutation) AddTeamJobEdgeIDs(ids ...uuid.UUID) {
+	if m.team_job_edges == nil {
+		m.team_job_edges = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.hiring_team[ids[i]] = struct{}{}
+		m.team_job_edges[ids[i]] = struct{}{}
 	}
 }
 
-// ClearHiringTeam clears the "hiring_team" edge to the HiringJob entity.
-func (m *TeamMutation) ClearHiringTeam() {
-	m.clearedhiring_team = true
+// ClearTeamJobEdges clears the "team_job_edges" edge to the HiringJob entity.
+func (m *TeamMutation) ClearTeamJobEdges() {
+	m.clearedteam_job_edges = true
 }
 
-// HiringTeamCleared reports if the "hiring_team" edge to the HiringJob entity was cleared.
-func (m *TeamMutation) HiringTeamCleared() bool {
-	return m.clearedhiring_team
+// TeamJobEdgesCleared reports if the "team_job_edges" edge to the HiringJob entity was cleared.
+func (m *TeamMutation) TeamJobEdgesCleared() bool {
+	return m.clearedteam_job_edges
 }
 
-// RemoveHiringTeamIDs removes the "hiring_team" edge to the HiringJob entity by IDs.
-func (m *TeamMutation) RemoveHiringTeamIDs(ids ...uuid.UUID) {
-	if m.removedhiring_team == nil {
-		m.removedhiring_team = make(map[uuid.UUID]struct{})
+// RemoveTeamJobEdgeIDs removes the "team_job_edges" edge to the HiringJob entity by IDs.
+func (m *TeamMutation) RemoveTeamJobEdgeIDs(ids ...uuid.UUID) {
+	if m.removedteam_job_edges == nil {
+		m.removedteam_job_edges = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.hiring_team, ids[i])
-		m.removedhiring_team[ids[i]] = struct{}{}
+		delete(m.team_job_edges, ids[i])
+		m.removedteam_job_edges[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedHiringTeam returns the removed IDs of the "hiring_team" edge to the HiringJob entity.
-func (m *TeamMutation) RemovedHiringTeamIDs() (ids []uuid.UUID) {
-	for id := range m.removedhiring_team {
+// RemovedTeamJobEdges returns the removed IDs of the "team_job_edges" edge to the HiringJob entity.
+func (m *TeamMutation) RemovedTeamJobEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedteam_job_edges {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// HiringTeamIDs returns the "hiring_team" edge IDs in the mutation.
-func (m *TeamMutation) HiringTeamIDs() (ids []uuid.UUID) {
-	for id := range m.hiring_team {
+// TeamJobEdgesIDs returns the "team_job_edges" edge IDs in the mutation.
+func (m *TeamMutation) TeamJobEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.team_job_edges {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetHiringTeam resets all changes to the "hiring_team" edge.
-func (m *TeamMutation) ResetHiringTeam() {
-	m.hiring_team = nil
-	m.clearedhiring_team = false
-	m.removedhiring_team = nil
+// ResetTeamJobEdges resets all changes to the "team_job_edges" edge.
+func (m *TeamMutation) ResetTeamJobEdges() {
+	m.team_job_edges = nil
+	m.clearedteam_job_edges = false
+	m.removedteam_job_edges = nil
 }
 
 // AddUserTeamIDs adds the "user_teams" edge to the TeamManager entity by ids.
@@ -8698,8 +8844,8 @@ func (m *TeamMutation) AddedEdges() []string {
 	if m.user_edges != nil {
 		edges = append(edges, team.EdgeUserEdges)
 	}
-	if m.hiring_team != nil {
-		edges = append(edges, team.EdgeHiringTeam)
+	if m.team_job_edges != nil {
+		edges = append(edges, team.EdgeTeamJobEdges)
 	}
 	if m.user_teams != nil {
 		edges = append(edges, team.EdgeUserTeams)
@@ -8717,9 +8863,9 @@ func (m *TeamMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case team.EdgeHiringTeam:
-		ids := make([]ent.Value, 0, len(m.hiring_team))
-		for id := range m.hiring_team {
+	case team.EdgeTeamJobEdges:
+		ids := make([]ent.Value, 0, len(m.team_job_edges))
+		for id := range m.team_job_edges {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8739,8 +8885,8 @@ func (m *TeamMutation) RemovedEdges() []string {
 	if m.removeduser_edges != nil {
 		edges = append(edges, team.EdgeUserEdges)
 	}
-	if m.removedhiring_team != nil {
-		edges = append(edges, team.EdgeHiringTeam)
+	if m.removedteam_job_edges != nil {
+		edges = append(edges, team.EdgeTeamJobEdges)
 	}
 	if m.removeduser_teams != nil {
 		edges = append(edges, team.EdgeUserTeams)
@@ -8758,9 +8904,9 @@ func (m *TeamMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case team.EdgeHiringTeam:
-		ids := make([]ent.Value, 0, len(m.removedhiring_team))
-		for id := range m.removedhiring_team {
+	case team.EdgeTeamJobEdges:
+		ids := make([]ent.Value, 0, len(m.removedteam_job_edges))
+		for id := range m.removedteam_job_edges {
 			ids = append(ids, id)
 		}
 		return ids
@@ -8780,8 +8926,8 @@ func (m *TeamMutation) ClearedEdges() []string {
 	if m.cleareduser_edges {
 		edges = append(edges, team.EdgeUserEdges)
 	}
-	if m.clearedhiring_team {
-		edges = append(edges, team.EdgeHiringTeam)
+	if m.clearedteam_job_edges {
+		edges = append(edges, team.EdgeTeamJobEdges)
 	}
 	if m.cleareduser_teams {
 		edges = append(edges, team.EdgeUserTeams)
@@ -8795,8 +8941,8 @@ func (m *TeamMutation) EdgeCleared(name string) bool {
 	switch name {
 	case team.EdgeUserEdges:
 		return m.cleareduser_edges
-	case team.EdgeHiringTeam:
-		return m.clearedhiring_team
+	case team.EdgeTeamJobEdges:
+		return m.clearedteam_job_edges
 	case team.EdgeUserTeams:
 		return m.cleareduser_teams
 	}
@@ -8818,8 +8964,8 @@ func (m *TeamMutation) ResetEdge(name string) error {
 	case team.EdgeUserEdges:
 		m.ResetUserEdges()
 		return nil
-	case team.EdgeHiringTeam:
-		m.ResetHiringTeam()
+	case team.EdgeTeamJobEdges:
+		m.ResetTeamJobEdges()
 		return nil
 	case team.EdgeUserTeams:
 		m.ResetUserTeams()

@@ -31,7 +31,7 @@ func NewAuditTrailRepository(client *ent.Client) AuditTrailRepository {
 
 // Base functions
 func (rps *auditTrailRepoImpl) BuildCreate() *ent.AuditTrailCreate {
-	return rps.client.AuditTrail.Create()
+	return rps.client.AuditTrail.Create().SetUpdatedAt(time.Now())
 }
 
 func (rps *auditTrailRepoImpl) BuildUpdate() *ent.AuditTrailUpdate {

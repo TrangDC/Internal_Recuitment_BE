@@ -102,6 +102,20 @@ func (cc *CandidateCreate) SetNillableIsBlacklist(b *bool) *CandidateCreate {
 	return cc
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (cc *CandidateCreate) SetLastApplyDate(t time.Time) *CandidateCreate {
+	cc.mutation.SetLastApplyDate(t)
+	return cc
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableLastApplyDate(t *time.Time) *CandidateCreate {
+	if t != nil {
+		cc.SetLastApplyDate(*t)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	cc.mutation.SetID(u)
@@ -324,6 +338,10 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
 		_node.IsBlacklist = value
+	}
+	if value, ok := cc.mutation.LastApplyDate(); ok {
+		_spec.SetField(candidate.FieldLastApplyDate, field.TypeTime, value)
+		_node.LastApplyDate = value
 	}
 	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

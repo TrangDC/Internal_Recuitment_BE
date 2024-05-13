@@ -186,6 +186,20 @@ func (hjc *HiringJobCreate) SetCurrency(h hiringjob.Currency) *HiringJobCreate {
 	return hjc
 }
 
+// SetLastApplyDate sets the "last_apply_date" field.
+func (hjc *HiringJobCreate) SetLastApplyDate(t time.Time) *HiringJobCreate {
+	hjc.mutation.SetLastApplyDate(t)
+	return hjc
+}
+
+// SetNillableLastApplyDate sets the "last_apply_date" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableLastApplyDate(t *time.Time) *HiringJobCreate {
+	if t != nil {
+		hjc.SetLastApplyDate(*t)
+	}
+	return hjc
+}
+
 // SetID sets the "id" field.
 func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetID(u)
@@ -513,6 +527,10 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 	if value, ok := hjc.mutation.Currency(); ok {
 		_spec.SetField(hiringjob.FieldCurrency, field.TypeEnum, value)
 		_node.Currency = value
+	}
+	if value, ok := hjc.mutation.LastApplyDate(); ok {
+		_spec.SetField(hiringjob.FieldLastApplyDate, field.TypeTime, value)
+		_node.LastApplyDate = value
 	}
 	if nodes := hjc.mutation.OwnerEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

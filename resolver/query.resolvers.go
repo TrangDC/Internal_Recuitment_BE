@@ -21,7 +21,7 @@ func (r *queryResolver) GetTeam(ctx context.Context, id string) (*ent.TeamRespon
 }
 
 // GetAllTeams is the resolver for the GetAllTeams field.
-func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error) {
+func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error) {
 	result, err := r.serviceRegistry.Team().GetTeams(ctx, pagination, freeWord, filter, orderBy)
 	if err != nil {
 		return nil, err

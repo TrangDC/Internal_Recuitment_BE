@@ -487,11 +487,11 @@ func (f AttachmentOrderField) String() string {
 	var str string
 	switch f.field {
 	case attachment.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case attachment.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case attachment.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -508,11 +508,11 @@ func (f *AttachmentOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("AttachmentOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *AttachmentOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *AttachmentOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *AttachmentOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid AttachmentOrderField", str)
@@ -789,11 +789,11 @@ func (f AuditTrailOrderField) String() string {
 	var str string
 	switch f.field {
 	case audittrail.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case audittrail.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case audittrail.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -810,11 +810,11 @@ func (f *AuditTrailOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("AuditTrailOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *AuditTrailOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *AuditTrailOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *AuditTrailOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid AuditTrailOrderField", str)
@@ -1094,6 +1094,16 @@ var (
 			}
 		},
 	}
+	// CandidateOrderFieldLastApplyDate orders Candidate by last_apply_date.
+	CandidateOrderFieldLastApplyDate = &CandidateOrderField{
+		field: candidate.FieldLastApplyDate,
+		toCursor: func(c *Candidate) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.LastApplyDate,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -1101,13 +1111,15 @@ func (f CandidateOrderField) String() string {
 	var str string
 	switch f.field {
 	case candidate.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case candidate.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case candidate.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	case candidate.FieldName:
-		str = "NAME"
+		str = "name"
+	case candidate.FieldLastApplyDate:
+		str = "last_apply_date"
 	}
 	return str
 }
@@ -1124,14 +1136,16 @@ func (f *CandidateOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CandidateOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *CandidateOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *CandidateOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *CandidateOrderFieldDeletedAt
-	case "NAME":
+	case "name":
 		*f = *CandidateOrderFieldName
+	case "last_apply_date":
+		*f = *CandidateOrderFieldLastApplyDate
 	default:
 		return fmt.Errorf("%s is not a valid CandidateOrderField", str)
 	}
@@ -1417,13 +1431,13 @@ func (f CandidateInterviewOrderField) String() string {
 	var str string
 	switch f.field {
 	case candidateinterview.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case candidateinterview.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case candidateinterview.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	case candidateinterview.FieldTitle:
-		str = "TITLE"
+		str = "title"
 	}
 	return str
 }
@@ -1440,13 +1454,13 @@ func (f *CandidateInterviewOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CandidateInterviewOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *CandidateInterviewOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *CandidateInterviewOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *CandidateInterviewOrderFieldDeletedAt
-	case "TITLE":
+	case "title":
 		*f = *CandidateInterviewOrderFieldTitle
 	default:
 		return fmt.Errorf("%s is not a valid CandidateInterviewOrderField", str)
@@ -1723,11 +1737,11 @@ func (f CandidateInterviewerOrderField) String() string {
 	var str string
 	switch f.field {
 	case candidateinterviewer.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case candidateinterviewer.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case candidateinterviewer.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -1744,11 +1758,11 @@ func (f *CandidateInterviewerOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CandidateInterviewerOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *CandidateInterviewerOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *CandidateInterviewerOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *CandidateInterviewerOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid CandidateInterviewerOrderField", str)
@@ -2025,11 +2039,11 @@ func (f CandidateJobOrderField) String() string {
 	var str string
 	switch f.field {
 	case candidatejob.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case candidatejob.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case candidatejob.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -2046,11 +2060,11 @@ func (f *CandidateJobOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CandidateJobOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *CandidateJobOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *CandidateJobOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *CandidateJobOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid CandidateJobOrderField", str)
@@ -2327,11 +2341,11 @@ func (f CandidateJobFeedbackOrderField) String() string {
 	var str string
 	switch f.field {
 	case candidatejobfeedback.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case candidatejobfeedback.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case candidatejobfeedback.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -2348,11 +2362,11 @@ func (f *CandidateJobFeedbackOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CandidateJobFeedbackOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *CandidateJobFeedbackOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *CandidateJobFeedbackOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *CandidateJobFeedbackOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid CandidateJobFeedbackOrderField", str)
@@ -2672,6 +2686,16 @@ var (
 			}
 		},
 	}
+	// HiringJobOrderFieldLastApplyDate orders HiringJob by last_apply_date.
+	HiringJobOrderFieldLastApplyDate = &HiringJobOrderField{
+		field: hiringjob.FieldLastApplyDate,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.LastApplyDate,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -2679,21 +2703,23 @@ func (f HiringJobOrderField) String() string {
 	var str string
 	switch f.field {
 	case hiringjob.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case hiringjob.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case hiringjob.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	case hiringjob.FieldSlug:
 		str = "SLUG"
 	case hiringjob.FieldName:
-		str = "NAME"
+		str = "name"
 	case hiringjob.FieldAmount:
-		str = "AMOUNT"
+		str = "amount"
 	case hiringjob.FieldSalaryFrom:
-		str = "SALARY_FROM"
+		str = "salary_from"
 	case hiringjob.FieldSalaryTo:
-		str = "SALARY_TO"
+		str = "salary_to"
+	case hiringjob.FieldLastApplyDate:
+		str = "last_apply_date"
 	}
 	return str
 }
@@ -2710,22 +2736,24 @@ func (f *HiringJobOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("HiringJobOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *HiringJobOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *HiringJobOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *HiringJobOrderFieldDeletedAt
 	case "SLUG":
 		*f = *HiringJobOrderFieldSlug
-	case "NAME":
+	case "name":
 		*f = *HiringJobOrderFieldName
-	case "AMOUNT":
+	case "amount":
 		*f = *HiringJobOrderFieldAmount
-	case "SALARY_FROM":
+	case "salary_from":
 		*f = *HiringJobOrderFieldSalaryFrom
-	case "SALARY_TO":
+	case "salary_to":
 		*f = *HiringJobOrderFieldSalaryTo
+	case "last_apply_date":
+		*f = *HiringJobOrderFieldLastApplyDate
 	default:
 		return fmt.Errorf("%s is not a valid HiringJobOrderField", str)
 	}
@@ -3021,15 +3049,15 @@ func (f TeamOrderField) String() string {
 	var str string
 	switch f.field {
 	case team.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case team.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case team.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	case team.FieldSlug:
 		str = "SLUG"
 	case team.FieldName:
-		str = "NAME"
+		str = "name"
 	}
 	return str
 }
@@ -3046,15 +3074,15 @@ func (f *TeamOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("TeamOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *TeamOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *TeamOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *TeamOrderFieldDeletedAt
 	case "SLUG":
 		*f = *TeamOrderFieldSlug
-	case "NAME":
+	case "name":
 		*f = *TeamOrderFieldName
 	default:
 		return fmt.Errorf("%s is not a valid TeamOrderField", str)
@@ -3331,11 +3359,11 @@ func (f TeamManagerOrderField) String() string {
 	var str string
 	switch f.field {
 	case teammanager.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case teammanager.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case teammanager.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	}
 	return str
 }
@@ -3352,11 +3380,11 @@ func (f *TeamManagerOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("TeamManagerOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *TeamManagerOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *TeamManagerOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *TeamManagerOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid TeamManagerOrderField", str)
@@ -3653,15 +3681,15 @@ func (f UserOrderField) String() string {
 	var str string
 	switch f.field {
 	case user.FieldCreatedAt:
-		str = "CREATED_AT"
+		str = "created_at"
 	case user.FieldUpdatedAt:
-		str = "UPDATED_AT"
+		str = "updated_at"
 	case user.FieldDeletedAt:
-		str = "DELETED_AT"
+		str = "deleted_at"
 	case user.FieldName:
-		str = "NAME"
+		str = "name"
 	case user.FieldWorkEmail:
-		str = "WORK_EMAIL"
+		str = "work_email"
 	}
 	return str
 }
@@ -3678,15 +3706,15 @@ func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("UserOrderField %T must be a string", v)
 	}
 	switch str {
-	case "CREATED_AT":
+	case "created_at":
 		*f = *UserOrderFieldCreatedAt
-	case "UPDATED_AT":
+	case "updated_at":
 		*f = *UserOrderFieldUpdatedAt
-	case "DELETED_AT":
+	case "deleted_at":
 		*f = *UserOrderFieldDeletedAt
-	case "NAME":
+	case "name":
 		*f = *UserOrderFieldName
-	case "WORK_EMAIL":
+	case "work_email":
 		*f = *UserOrderFieldWorkEmail
 	default:
 		return fmt.Errorf("%s is not a valid UserOrderField", str)

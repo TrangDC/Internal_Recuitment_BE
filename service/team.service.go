@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 	"trec/ent"
 	"trec/ent/audittrail"
@@ -26,7 +27,7 @@ type TeamService interface {
 	// query
 	GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error)
 	GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
-		filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error)
+		filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error)
 }
 
 type teamSvcImpl struct {
@@ -39,16 +40,6 @@ func NewTeamService(repoRegistry repository.Repository, logger *zap.Logger) Team
 		repoRegistry: repoRegistry,
 		logger:       logger,
 	}
-}
-
-func (svc *teamSvcImpl) formatTeamField(input string) string {
-	switch input {
-	case "Name":
-		return "model.teams.name"
-	case "Members":
-		return "model.teams.members"
-	}
-	return ""
 }
 
 func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
@@ -191,6 +182,10 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	if len(team.Edges.TeamJobEdges) != 0 {
+		svc.logger.Error("model.teams.validation.cannot_delete_team", zap.Error(err))
+		return util.WrapGQLError(ctx, "model.teams.validation.cannot_delete_team", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	record := models.AuditTrailData{
 		Module: "model.teams.model_name",
 		Create: make([]interface{}, 0),
@@ -234,37 +229,33 @@ func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.Tea
 	}, nil
 }
 
-func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy *ent.TeamOrder) (*ent.TeamResponseGetAll, error) {
+func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error) {
 	var result *ent.TeamResponseGetAll
 	var edges []*ent.TeamEdge
 	var page int
 	var perPage int
+	var teams []*ent.Team
+	var count int
+	var err error
 	query := svc.repoRegistry.Team().BuildQuery()
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
-	count, err := svc.repoRegistry.Team().BuildCount(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	if orderBy != nil {
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			query = query.Order(ent.Asc(strings.ToLower(orderBy.Field.String())))
-		} else {
-			query = query.Order(ent.Desc(strings.ToLower(orderBy.Field.String())))
-		}
-	} else {
-		query = query.Order(ent.Desc(team.FieldCreatedAt))
-	}
 	if pagination != nil {
 		page = *pagination.Page
 		perPage = *pagination.PerPage
-		query = query.Limit(*pagination.PerPage).Offset((*pagination.Page - 1) * *pagination.PerPage)
 	}
-	teams, err := svc.repoRegistry.Team().BuildList(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	if ent.TeamOrderByAdditionalField.IsValid(ent.TeamOrderByAdditionalField(orderBy.Field.String())) {
+		count, teams, err = svc.getTeamListByOpeningRqOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	} else {
+		count, teams, err = svc.getTeamsListByNormalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
 	}
 	edges = lo.Map(teams, func(team *ent.Team, index int) *ent.TeamEdge {
 		return &ent.TeamEdge{
@@ -315,6 +306,85 @@ func (svc *teamSvcImpl) updateMembers(record *ent.Team, memberIds []uuid.UUID) (
 		return !lo.Contains(memberIds, memberId)
 	})
 	return newMemberIds, removeMemberIds
+}
+
+func (svc *teamSvcImpl) formatTeamField(input string) string {
+	switch input {
+	case "Name":
+		return "model.teams.name"
+	case "Members":
+		return "model.teams.members"
+	}
+	return ""
+}
+
+func (svc teamSvcImpl) getTeamsListByNormalOrder(ctx context.Context, query *ent.TeamQuery, page int, perPage int, orderBy ent.TeamOrderBy) (int, []*ent.Team, error) {
+	count, err := svc.repoRegistry.Team().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	if orderBy.Direction == ent.OrderDirectionAsc {
+		query = query.Order(ent.Asc(strings.ToLower(orderBy.Field.String())))
+	} else {
+		query = query.Order(ent.Desc(strings.ToLower(orderBy.Field.String())))
+	}
+	if perPage != 0 && page != 0 {
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	teams, err := svc.repoRegistry.Team().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	return count, teams, nil
+}
+
+func (svc teamSvcImpl) getTeamListByOpeningRqOrder(ctx context.Context, query *ent.TeamQuery, page int, perPage int, orderBy ent.TeamOrderBy) (int, []*ent.Team, error) {
+	teams, err := svc.repoRegistry.Team().BuildList(ctx, query.Order(ent.Desc(ent.TeamOrderFieldCreatedAt.String())))
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return 0, nil, err
+	}
+	count := len(teams)
+	switch orderBy.Field {
+	case ent.TeamOrderByFieldOpeningRequests:
+		sort.Slice(teams, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return len(teams[i].Edges.TeamJobEdges) < len(teams[j].Edges.TeamJobEdges)
+			} else {
+				return len(teams[i].Edges.TeamJobEdges) > len(teams[j].Edges.TeamJobEdges)
+			}
+		})
+	case ent.TeamOrderByFieldNewestApplied:
+		blankTeams := lo.Filter(teams, func(team *ent.Team, index int) bool {
+			return len(team.Edges.TeamJobEdges) == 0
+		})
+		teams = lo.Filter(teams, func(team *ent.Team, index int) bool {
+			return len(team.Edges.TeamJobEdges) != 0
+		})
+		sort.Slice(teams, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return (teams[i].Edges.TeamJobEdges[0].LastApplyDate.After(teams[j].Edges.TeamJobEdges[0].LastApplyDate))
+			} else {
+				return teams[i].Edges.TeamJobEdges[0].LastApplyDate.Before(teams[j].Edges.TeamJobEdges[0].LastApplyDate)
+			}
+		})
+		teams = append(teams, blankTeams...)
+	}
+	// Split slice by page and perPage
+	if page != 0 && perPage != 0 {
+		start := (page - 1) * perPage
+		end := start + perPage
+		if start > len(teams) {
+			return count, nil, nil
+		}
+		if start <= len(teams) && end > len(teams) {
+			return count, teams[start:], nil
+		}
+		teams = teams[start:end]
+	}
+	return count, teams, nil
 }
 
 // Path: service/team.service.go

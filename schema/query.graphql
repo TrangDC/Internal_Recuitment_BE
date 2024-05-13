@@ -1,7 +1,7 @@
 type Query {
 	#Team
 	GetTeam(id: ID!): TeamResponse!
-	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrder): TeamResponseGetAll!
+	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
 
 	#User
 	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
@@ -30,6 +30,6 @@ type Query {
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 
-	#Export 
+	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 }
