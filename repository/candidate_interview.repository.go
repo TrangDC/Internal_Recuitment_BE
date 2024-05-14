@@ -112,6 +112,10 @@ func (rps *candidateInterviewRepoImpl) GetCandidateInterview(ctx context.Context
 		func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
 		},
+	).WithCandidateJobEdge(
+		func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.DeletedAtIsNil())
+		},
 	)
 	return rps.BuildGet(ctx, query)
 }
@@ -156,9 +160,7 @@ func (rps candidateInterviewRepoImpl) ValidJob(ctx context.Context, candidateJob
 }
 
 func (rps candidateInterviewRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(false), candidate.HasCandidateJobEdgesWith(
-		candidatejob.DeletedAtIsNil(), candidatejob.IDEQ(candidateJobId),
-	)).First(ctx)
+	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(false)).First(ctx)
 	if err != nil {
 		return fmt.Errorf("model.candidate_interviews.validation.candidate_is_blacklist")
 	}

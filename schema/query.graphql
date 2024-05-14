@@ -4,7 +4,7 @@ type Query {
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
 
 	#User
-	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
+	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseSelectionGetAll!
 
 	#HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!

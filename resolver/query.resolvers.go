@@ -22,7 +22,7 @@ func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.Paginat
 }
 
 // SelectionUsers is the resolver for the SelectionUsers field.
-func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseSelectionGetAll, error) {
 	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
 }
 
