@@ -34,6 +34,11 @@ func (r *candidateJobResolver) Attachments(ctx context.Context, obj *ent.Candida
 	return obj.Edges.AttachmentEdges, nil
 }
 
+// Candidate is the resolver for the candidate field.
+func (r *candidateJobResolver) Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error) {
+	return obj.Edges.CandidateEdge, nil
+}
+
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 

@@ -52,8 +52,14 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		var err error
 		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().CreateCandidateJobFeedback(ctx, input)
-		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		if err != nil {
+			return err
+		}
+		if input.Attachments != nil {
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		}
 		return err
 	})
 	if err != nil {
@@ -87,8 +93,14 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		var err error
 		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, candidateJobFeedback, input)
-		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		if err != nil {
+			return err
+		}
+		if input.Attachments != nil {
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		}
 		return err
 	})
 	if err != nil {

@@ -32,6 +32,7 @@ type CandidateJob {
   hiring_job_id: ID!
   status: CandidateJobStatus!
   attachments: [Attachment!]
+  candidate: Candidate!
   created_at: Time!
   updated_at: Time!
 }

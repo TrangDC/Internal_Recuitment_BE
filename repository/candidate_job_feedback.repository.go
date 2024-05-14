@@ -93,6 +93,7 @@ func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.C
 	id := ctx.Value(middleware.Key{})
 	return rps.BuildCreate().
 		SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
+		SetFeedback(input.Feedback).
 		SetUpdatedAt(time.Now().UTC()).
 		SetCreatedBy(id.(uuid.UUID)).
 		Save(ctx)
