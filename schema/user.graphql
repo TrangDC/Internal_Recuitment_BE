@@ -8,23 +8,29 @@ input UserOrder {
   field: UserOrderField!
 }
 
+type UserSelection {
+  id: ID!
+  name: String!
+  work_email: String!
+}
+
 type User {
   id: ID!
   name: String!
   work_email: String!
 }
 
-type UserResponse {
-  data: User
+type UserSelectionResponse {
+  data: UserSelection
 }
 
-type UserEdge {
-  node: User!
+type UserSelectionEdge {
+  node: UserSelection!
   cursor: Cursor!
 }
 
-type UserResponseGetAll {
-  edges: [UserEdge!]!
+type UserResponseSelectionGetAll {
+  edges: [UserSelectionEdge!]!
   pagination: Pagination!
 }
 

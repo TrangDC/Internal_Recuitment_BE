@@ -44,7 +44,7 @@ func NewCandidateInterviewService(repoRegistry repository.Repository, logger *za
 func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var memberIds []uuid.UUID
-	err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.MustParse(input.CandidateJobID), input.Title, uuid.Nil)
+	err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, input.Title, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -80,11 +80,14 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
+	}
 	memberIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
 	})
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
-	err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, input.Title, uuid.Nil)
+	err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, input.Title, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -122,16 +125,19 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterview(ctx context.Context,
 }
 
 func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Context, id uuid.UUID) error {
-	candidateInterview, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
+	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	memberIds := lo.Map(candidateInterview.Edges.InterviewerEdges, func(user *ent.User, index int) uuid.UUID {
+	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
+		return util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotDelete)
+	}
+	memberIds := lo.Map(record.Edges.InterviewerEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err = repoRegistry.CandidateInterview().DeleteCandidateInterview(ctx, candidateInterview, memberIds)
+		_, err = repoRegistry.CandidateInterview().DeleteCandidateInterview(ctx, record, memberIds)
 		return err
 	})
 	if err != nil {

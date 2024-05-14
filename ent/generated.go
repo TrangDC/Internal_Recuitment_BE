@@ -333,13 +333,24 @@ type UserFreeWord struct {
 	Name *string `json:"name"`
 }
 
-type UserResponse struct {
-	Data *User `json:"data"`
+type UserResponseSelectionGetAll struct {
+	Edges      []*UserSelectionEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
-type UserResponseGetAll struct {
-	Edges      []*UserEdge `json:"edges"`
-	Pagination *Pagination `json:"pagination"`
+type UserSelection struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	WorkEmail string `json:"work_email"`
+}
+
+type UserSelectionEdge struct {
+	Node   *UserSelection `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+type UserSelectionResponse struct {
+	Data *UserSelection `json:"data"`
 }
 
 type AttachmentAction string

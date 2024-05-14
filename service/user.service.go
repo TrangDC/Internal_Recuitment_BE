@@ -17,7 +17,7 @@ import (
 
 type UserService interface {
 	// query
-	Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseSelectionGetAll, error)
 }
 
 type userSvcImpl struct {
@@ -32,9 +32,9 @@ func NewUserService(repoRegistry repository.Repository, logger *zap.Logger) User
 	}
 }
 
-func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
-	var result *ent.UserResponseGetAll
-	var edges []*ent.UserEdge
+func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseSelectionGetAll, error) {
+	var result *ent.UserResponseSelectionGetAll
+	var edges []*ent.UserSelectionEdge
 	var page int
 	var perPage int
 	query := svc.repoRegistry.User().BuildQuery()
@@ -64,15 +64,19 @@ func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.Paginati
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	edges = lo.Map(users, func(user *ent.User, index int) *ent.UserEdge {
-		return &ent.UserEdge{
-			Node: user,
+	edges = lo.Map(users, func(user *ent.User, index int) *ent.UserSelectionEdge {
+		return &ent.UserSelectionEdge{
+			Node: &ent.UserSelection{
+				ID:        user.ID.String(),
+				Name:      user.Name,
+				WorkEmail: user.WorkEmail,
+			},
 			Cursor: ent.Cursor{
 				Value: user.ID.String(),
 			},
 		}
 	})
-	result = &ent.UserResponseGetAll{
+	result = &ent.UserResponseSelectionGetAll{
 		Edges: edges,
 		Pagination: &ent.Pagination{
 			Total:   count,
