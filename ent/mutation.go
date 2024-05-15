@@ -9696,6 +9696,7 @@ type UserMutation struct {
 	deleted_at                    *time.Time
 	name                          *string
 	work_email                    *string
+	status                        *user.Status
 	oid                           *string
 	clearedFields                 map[string]struct{}
 	audit_edge                    map[uuid.UUID]struct{}
@@ -10032,6 +10033,42 @@ func (m *UserMutation) OldWorkEmail(ctx context.Context) (v string, err error) {
 // ResetWorkEmail resets all changes to the "work_email" field.
 func (m *UserMutation) ResetWorkEmail() {
 	m.work_email = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *UserMutation) SetStatus(u user.Status) {
+	m.status = &u
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *UserMutation) Status() (r user.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStatus(ctx context.Context) (v user.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *UserMutation) ResetStatus() {
+	m.status = nil
 }
 
 // SetOid sets the "oid" field.
@@ -10467,7 +10504,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -10482,6 +10519,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.work_email != nil {
 		fields = append(fields, user.FieldWorkEmail)
+	}
+	if m.status != nil {
+		fields = append(fields, user.FieldStatus)
 	}
 	if m.oid != nil {
 		fields = append(fields, user.FieldOid)
@@ -10504,6 +10544,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case user.FieldWorkEmail:
 		return m.WorkEmail()
+	case user.FieldStatus:
+		return m.Status()
 	case user.FieldOid:
 		return m.Oid()
 	}
@@ -10525,6 +10567,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case user.FieldWorkEmail:
 		return m.OldWorkEmail(ctx)
+	case user.FieldStatus:
+		return m.OldStatus(ctx)
 	case user.FieldOid:
 		return m.OldOid(ctx)
 	}
@@ -10570,6 +10614,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWorkEmail(v)
+		return nil
+	case user.FieldStatus:
+		v, ok := value.(user.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	case user.FieldOid:
 		v, ok := value.(string)
@@ -10656,6 +10707,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldWorkEmail:
 		m.ResetWorkEmail()
+		return nil
+	case user.FieldStatus:
+		m.ResetStatus()
 		return nil
 	case user.FieldOid:
 		m.ResetOid()

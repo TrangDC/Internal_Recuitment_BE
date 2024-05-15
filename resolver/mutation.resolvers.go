@@ -23,6 +23,11 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input ent.
 	return r.serviceRegistry.User().UpdateUser(ctx, &input, uuid.MustParse(id), note)
 }
 
+// UpdateUserStatus is the resolver for the UpdateUserStatus field.
+func (r *mutationResolver) UpdateUserStatus(ctx context.Context, id string, input ent.UpdateUserStatusInput, note string) (*ent.UserResponse, error) {
+	return r.serviceRegistry.User().UpdateUserStatus(ctx, input, uuid.MustParse(id), note)
+}
+
 // CreateTeam is the resolver for the CreateTeam field.
 func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
 	return r.serviceRegistry.Team().CreateTeam(ctx, input, note)

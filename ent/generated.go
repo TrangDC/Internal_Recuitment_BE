@@ -346,8 +346,13 @@ type UpdateTeamInput struct {
 }
 
 type UpdateUserInput struct {
-	Name      string `json:"name"`
-	WorkEmail string `json:"work_email"`
+	Name      string     `json:"name"`
+	WorkEmail string     `json:"work_email"`
+	Status    UserStatus `json:"status"`
+}
+
+type UpdateUserStatusInput struct {
+	Status UserStatus `json:"status"`
 }
 
 type UserFilter struct {
@@ -1134,6 +1139,47 @@ func (e *TeamOrderByField) UnmarshalGQL(v interface{}) error {
 }
 
 func (e TeamOrderByField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type UserStatus string
+
+const (
+	UserStatusActive   UserStatus = "active"
+	UserStatusInactive UserStatus = "inactive"
+)
+
+var AllUserStatus = []UserStatus{
+	UserStatusActive,
+	UserStatusInactive,
+}
+
+func (e UserStatus) IsValid() bool {
+	switch e {
+	case UserStatusActive, UserStatusInactive:
+		return true
+	}
+	return false
+}
+
+func (e UserStatus) String() string {
+	return string(e)
+}
+
+func (e *UserStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserStatus", str)
+	}
+	return nil
+}
+
+func (e UserStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

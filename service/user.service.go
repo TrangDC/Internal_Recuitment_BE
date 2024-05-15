@@ -20,6 +20,7 @@ type UserService interface {
 	CreateUser(ctx context.Context, input *ent.NewUserInput, note string) (*ent.UserResponse, error)
 	UpdateUser(ctx context.Context, input *ent.UpdateUserInput, id uuid.UUID, note string) (*ent.UserResponse, error)
 	DeleteUser(ctx context.Context, id uuid.UUID, note string) error
+	UpdateUserStatus(ctx context.Context, input ent.UpdateUserStatusInput, id uuid.UUID, note string) (*ent.UserResponse, error)
 	// query
 	Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error)
 	GetUser(ctx context.Context, id uuid.UUID) (*ent.UserResponse, error)
@@ -90,6 +91,26 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.User().UpdateUser(ctx, record, input)
+		return err
+	})
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return &ent.UserResponse{
+		Data: result,
+	}, nil
+}
+
+func (svc *userSvcImpl) UpdateUserStatus(ctx context.Context, input ent.UpdateUserStatusInput, id uuid.UUID, note string) (*ent.UserResponse, error) {
+	var result *ent.User
+	record, err := svc.repoRegistry.User().GetUser(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		result, err = repoRegistry.User().UpdateUserStatus(ctx, record, user.Status(input.Status))
 		return err
 	})
 	if err != nil {

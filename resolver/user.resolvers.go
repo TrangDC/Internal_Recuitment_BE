@@ -14,6 +14,11 @@ func (r *userResolver) ID(ctx context.Context, obj *ent.User) (string, error) {
 	return obj.ID.String(), nil
 }
 
+// Status is the resolver for the status field.
+func (r *userResolver) Status(ctx context.Context, obj *ent.User) (ent.UserStatus, error) {
+	return ent.UserStatus(obj.Status), nil
+}
+
 // User returns graphql1.UserResolver implementation.
 func (r *Resolver) User() graphql1.UserResolver { return &userResolver{r} }
 

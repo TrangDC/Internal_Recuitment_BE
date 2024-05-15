@@ -314,6 +314,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "work_email", Type: field.TypeString, Size: 255},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
 	}
 	// UsersTable holds the schema information for the "users" table.

@@ -88,6 +88,20 @@ func (uu *UserUpdate) SetWorkEmail(s string) *UserUpdate {
 	return uu
 }
 
+// SetStatus sets the "status" field.
+func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
+	uu.mutation.SetStatus(u)
+	return uu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStatus(u *user.Status) *UserUpdate {
+	if u != nil {
+		uu.SetStatus(*u)
+	}
+	return uu
+}
+
 // SetOid sets the "oid" field.
 func (uu *UserUpdate) SetOid(s string) *UserUpdate {
 	uu.mutation.SetOid(s)
@@ -423,6 +437,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "work_email", err: fmt.Errorf(`ent: validator failed for field "User.work_email": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
+		}
+	}
 	if v, ok := uu.mutation.Oid(); ok {
 		if err := user.OidValidator(v); err != nil {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
@@ -466,6 +485,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.WorkEmail(); ok {
 		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Status(); ok {
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)
@@ -961,6 +983,20 @@ func (uuo *UserUpdateOne) SetWorkEmail(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetStatus sets the "status" field.
+func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
+	uuo.mutation.SetStatus(u)
+	return uuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStatus(u *user.Status) *UserUpdateOne {
+	if u != nil {
+		uuo.SetStatus(*u)
+	}
+	return uuo
+}
+
 // SetOid sets the "oid" field.
 func (uuo *UserUpdateOne) SetOid(s string) *UserUpdateOne {
 	uuo.mutation.SetOid(s)
@@ -1309,6 +1345,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "work_email", err: fmt.Errorf(`ent: validator failed for field "User.work_email": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
+		}
+	}
 	if v, ok := uuo.mutation.Oid(); ok {
 		if err := user.OidValidator(v); err != nil {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
@@ -1369,6 +1410,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.WorkEmail(); ok {
 		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Status(); ok {
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)

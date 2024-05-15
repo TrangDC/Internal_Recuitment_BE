@@ -4,6 +4,7 @@ type Mutation {
 
   # User
   UpdateUser(id: ID!, input: UpdateUserInput!, note: String!): UserResponse!
+  UpdateUserStatus(id: ID!, input: UpdateUserStatusInput!, note: String!): UserResponse!
 
   # Team
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!

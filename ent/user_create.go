@@ -82,6 +82,20 @@ func (uc *UserCreate) SetWorkEmail(s string) *UserCreate {
 	return uc
 }
 
+// SetStatus sets the "status" field.
+func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
+	uc.mutation.SetStatus(u)
+	return uc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStatus(u *user.Status) *UserCreate {
+	if u != nil {
+		uc.SetStatus(*u)
+	}
+	return uc
+}
+
 // SetOid sets the "oid" field.
 func (uc *UserCreate) SetOid(s string) *UserCreate {
 	uc.mutation.SetOid(s)
@@ -288,6 +302,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := uc.mutation.Status(); !ok {
+		v := user.DefaultStatus
+		uc.mutation.SetStatus(v)
+	}
 	if _, ok := uc.mutation.ID(); !ok {
 		v := user.DefaultID()
 		uc.mutation.SetID(v)
@@ -313,6 +331,14 @@ func (uc *UserCreate) check() error {
 	if v, ok := uc.mutation.WorkEmail(); ok {
 		if err := user.WorkEmailValidator(v); err != nil {
 			return &ValidationError{Name: "work_email", err: fmt.Errorf(`ent: validator failed for field "User.work_email": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
+	}
+	if v, ok := uc.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Oid(); !ok {
@@ -378,6 +404,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.WorkEmail(); ok {
 		_spec.SetField(user.FieldWorkEmail, field.TypeString, value)
 		_node.WorkEmail = value
+	}
+	if value, ok := uc.mutation.Status(); ok {
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if value, ok := uc.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)

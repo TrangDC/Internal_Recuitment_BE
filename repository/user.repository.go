@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/team"
 	"trec/ent/user"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, input *ent.NewUserInput) (*ent.User, error)
 	UpdateUser(ctx context.Context, record *ent.User, input *ent.UpdateUserInput) (*ent.User, error)
 	DeleteUser(ctx context.Context, record *ent.User) error
+	UpdateUserStatus(ctx context.Context, record *ent.User, status user.Status) (*ent.User, error)
 	// query
 	GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error)
 	BuildQuery() *ent.UserQuery
@@ -49,7 +51,11 @@ func (rps *userRepoImpl) BuildDelete() *ent.UserUpdate {
 }
 
 func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
-	return rps.client.User.Query().Where(user.DeletedAtIsNil())
+	return rps.client.User.Query().Where(user.DeletedAtIsNil()).WithTeamEdges(
+		func(query *ent.TeamQuery) {
+			query.Where(team.DeletedAtIsNil())
+		},
+	)
 }
 
 func (rps *userRepoImpl) BuildParanoidQuery() *ent.UserQuery {
@@ -92,7 +98,12 @@ func (rps *userRepoImpl) UpdateUser(ctx context.Context, record *ent.User, input
 	return rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetWorkEmail(strings.TrimSpace(input.WorkEmail)).
+		SetStatus(user.Status(input.Status)).
 		Save(ctx)
+}
+
+func (rps *userRepoImpl) UpdateUserStatus(ctx context.Context, record *ent.User, status user.Status) (*ent.User, error) {
+	return rps.BuildUpdateOne(ctx, record).SetStatus(status).Save(ctx)
 }
 
 func (rps *userRepoImpl) DeleteUser(ctx context.Context, record *ent.User) error {

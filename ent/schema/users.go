@@ -17,6 +17,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.String("work_email").MaxLen(255).Annotations(entgql.OrderField("work_email")),
+		field.Enum("status").Values("active", "inactive").Default("active"),
 		field.String("oid").Unique().MaxLen(255),
 	}
 }

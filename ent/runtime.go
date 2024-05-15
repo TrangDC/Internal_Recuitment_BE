@@ -320,7 +320,7 @@ func init() {
 	// user.WorkEmailValidator is a validator for the "work_email" field. It is called by the builders before save.
 	user.WorkEmailValidator = userDescWorkEmail.Validators[0].(func(string) error)
 	// userDescOid is the schema descriptor for oid field.
-	userDescOid := userFields[2].Descriptor()
+	userDescOid := userFields[3].Descriptor()
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
 	// userDescID is the schema descriptor for id field.

@@ -3,6 +3,11 @@ enum UserOrderField {
   created_at
 }
 
+enum UserStatus {
+  active
+  inactive
+}
+
 input UserOrder {
   direction: OrderDirection!
   field: UserOrderField!
@@ -18,6 +23,7 @@ type User {
   id: ID!
   name: String!
   work_email: String!
+  status: UserStatus!
 }
 
 type UserSelectionEdge {
@@ -49,6 +55,7 @@ input NewUserInput {
 input UpdateUserInput {
   name: String!
   work_email: String!
+  status: UserStatus!
 }
 
 type UserResponse {
@@ -63,4 +70,8 @@ type UserEdge {
 type UserResponseGetAll {
   edges: [UserEdge!]!
   pagination: Pagination!
+}
+
+input UpdateUserStatusInput {
+  status: UserStatus!
 }
