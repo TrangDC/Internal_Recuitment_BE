@@ -34,17 +34,20 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
 		}
-		_, err = db.Query("WITH upsert AS ( UPDATE users SET name = $2, work_email = $3 WHERE oid = $1 RETURNING * ) "+
-			"INSERT INTO users (oid, name, work_email) SELECT $1, $2, $3 WHERE NOT EXISTS ( SELECT 1 FROM upsert );", tokenData.ObjectID,
-			tokenData.Name,
-			tokenData.PreferredUsername)
-		if err != nil {
-			logger.Error("", zap.Error(err))
-			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
-			return
-		}
 		var id uuid.UUID
 		_ = db.QueryRow("SELECT id FROM users WHERE oid = $1 AND deleted_at IS NULL", tokenData.ObjectID).Scan(&id)
+		if id == uuid.Nil {
+			_, err = db.Query("WITH upsert AS ( UPDATE users SET name = $2, work_email = $3 WHERE oid = $1 RETURNING * ) "+
+				"INSERT INTO users (oid, name, work_email) SELECT $1, $2, $3 WHERE NOT EXISTS ( SELECT 1 FROM upsert );", tokenData.ObjectID,
+				tokenData.Name,
+				tokenData.PreferredUsername)
+			if err != nil {
+				logger.Error("", zap.Error(err))
+				c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
+				return
+			}
+			_ = db.QueryRow("SELECT id FROM users WHERE oid = $1 AND deleted_at IS NULL", tokenData.ObjectID).Scan(&id)
+		}
 		ctx = context.WithValue(ctx, Key{}, id)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
