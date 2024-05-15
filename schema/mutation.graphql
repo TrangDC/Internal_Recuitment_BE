@@ -2,6 +2,9 @@ type Mutation {
   #Attachment
   CreateAttachmentSASURL(input: AttachmentInput!): AttachmentResponse!
 
+  # User
+  UpdateUser(id: ID!, input: UpdateUserInput!, note: String!): UserResponse!
+
   # Team
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
