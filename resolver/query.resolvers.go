@@ -21,8 +21,18 @@ func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.Paginat
 	return r.serviceRegistry.Team().GetTeams(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// GetUser is the resolver for the GetUser field.UserSelectionResponseGetAll
+func (r *queryResolver) GetUser(ctx context.Context, id string) (*ent.UserResponse, error) {
+	return r.serviceRegistry.User().GetUser(ctx, uuid.MustParse(id))
+}
+
+// GetAllUsers is the resolver for the GetAllUsers field.
+func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
+	return r.serviceRegistry.User().GetUsers(ctx, pagination, filter, freeWord, orderBy)
+}
+
 // SelectionUsers is the resolver for the SelectionUsers field.
-func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseSelectionGetAll, error) {
+func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error) {
 	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
 }
 

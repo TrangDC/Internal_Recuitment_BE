@@ -245,6 +245,11 @@ type NewTeamInput struct {
 	Members []string `json:"members"`
 }
 
+type NewUserInput struct {
+	Name      string `json:"name"`
+	WorkEmail string `json:"work_email"`
+}
+
 type Pagination struct {
 	Page    int `json:"page"`
 	PerPage int `json:"perPage"`
@@ -322,6 +327,11 @@ type UpdateTeamInput struct {
 	Members []string `json:"members"`
 }
 
+type UpdateUserInput struct {
+	Name      string `json:"name"`
+	WorkEmail string `json:"work_email"`
+}
+
 type UserFilter struct {
 	Name      *string  `json:"name"`
 	Ids       []string `json:"ids"`
@@ -333,9 +343,13 @@ type UserFreeWord struct {
 	Name *string `json:"name"`
 }
 
-type UserResponseSelectionGetAll struct {
-	Edges      []*UserSelectionEdge `json:"edges"`
-	Pagination *Pagination          `json:"pagination"`
+type UserResponse struct {
+	Data *User `json:"data"`
+}
+
+type UserResponseGetAll struct {
+	Edges      []*UserEdge `json:"edges"`
+	Pagination *Pagination `json:"pagination"`
 }
 
 type UserSelection struct {
@@ -349,8 +363,9 @@ type UserSelectionEdge struct {
 	Cursor Cursor         `json:"cursor"`
 }
 
-type UserSelectionResponse struct {
-	Data *UserSelection `json:"data"`
+type UserSelectionResponseGetAll struct {
+	Edges      []*UserSelectionEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
 type AttachmentAction string

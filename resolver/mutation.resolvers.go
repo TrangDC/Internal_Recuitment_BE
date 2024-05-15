@@ -17,6 +17,11 @@ func (r *mutationResolver) CreateAttachmentSasurl(ctx context.Context, input ent
 	return r.serviceRegistry.Storage().CreateAttachmentSASURL(ctx, input)
 }
 
+// UpdateUser is the resolver for the UpdateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input ent.UpdateUserInput, note string) (*ent.UserResponse, error) {
+	return r.serviceRegistry.User().UpdateUser(ctx, &input, uuid.MustParse(id), note)
+}
+
 // CreateTeam is the resolver for the CreateTeam field.
 func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
 	return r.serviceRegistry.Team().CreateTeam(ctx, input, note)

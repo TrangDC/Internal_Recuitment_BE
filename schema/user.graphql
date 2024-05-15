@@ -20,16 +20,12 @@ type User {
   work_email: String!
 }
 
-type UserSelectionResponse {
-  data: UserSelection
-}
-
 type UserSelectionEdge {
   node: UserSelection!
   cursor: Cursor!
 }
 
-type UserResponseSelectionGetAll {
+type UserSelectionResponseGetAll {
   edges: [UserSelectionEdge!]!
   pagination: Pagination!
 }
@@ -43,4 +39,28 @@ input UserFilter {
 
 input UserFreeWord {
   name: String
+}
+
+input NewUserInput {
+  name: String!
+  work_email: String!
+}
+
+input UpdateUserInput {
+  name: String!
+  work_email: String!
+}
+
+type UserResponse {
+  data: User
+}
+
+type UserEdge {
+  node: User!
+  cursor: Cursor!
+}
+
+type UserResponseGetAll {
+  edges: [UserEdge!]!
+  pagination: Pagination!
 }
