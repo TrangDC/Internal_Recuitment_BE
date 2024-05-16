@@ -247,7 +247,7 @@ func (svc *candidateSvcImpl) filter(candidateQuery *ent.CandidateQuery, input *e
 
 func (svc *candidateSvcImpl) recordCreateDelete(record *ent.Candidate, auditTrailType audittrail.ActionType) models.AuditTrailData {
 	auditTrail := models.AuditTrailData{
-		Module: "models.candidates.model_name",
+		Module: "model.candidates.model_name",
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: []interface{}{},
@@ -281,7 +281,7 @@ func (svc *candidateSvcImpl) recordCreateDelete(record *ent.Candidate, auditTrai
 
 func (svc *candidateSvcImpl) recordUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) models.AuditTrailData {
 	auditTrail := models.AuditTrailData{
-		Module: "models.candidates.model_name",
+		Module: "model.candidates.model_name",
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: []interface{}{},
