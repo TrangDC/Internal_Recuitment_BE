@@ -291,7 +291,7 @@ func (svc *hiringJobSvcImpl) filter(hiringJobQuery *ent.HiringJobQuery, input *e
 
 func (svc *hiringJobSvcImpl) recordCreateDelete(record *ent.HiringJob, auditTrailType audittrail.ActionType) models.AuditTrailData {
 	auditTrail := models.AuditTrailData{
-		Module: "models.hiring_jobs.model_name",
+		Module: "model.hiring_jobs.model_name",
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: []interface{}{},
