@@ -74,6 +74,17 @@ type CandidateFreeWord struct {
 	Phone *string `json:"phone"`
 }
 
+type CandidateInterviewCalendarFilter struct {
+	InterviewDate *time.Time `json:"interview_date"`
+	StartFrom     *time.Time `json:"start_from"`
+	EndAt         *time.Time `json:"end_at"`
+	Interviewer   []string   `json:"interviewer"`
+	FromDate      *time.Time `json:"from_date"`
+	ToDate        *time.Time `json:"to_date"`
+	TeamID        *string    `json:"team_id"`
+	HiringJobID   *string    `json:"hiring_job_id"`
+}
+
 type CandidateInterviewFilter struct {
 	CandidateJobID string     `json:"candidate_job_id"`
 	InterviewDate  *time.Time `json:"interview_date"`

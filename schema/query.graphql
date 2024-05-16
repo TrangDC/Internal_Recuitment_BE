@@ -32,7 +32,7 @@ type Query {
 	#CandidateInterview
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
-
+	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
-}
+	}

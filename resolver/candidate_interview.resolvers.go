@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -22,6 +23,11 @@ func (r *candidateInterviewResolver) CandidateJobID(ctx context.Context, obj *en
 // Interviewer is the resolver for the interviewer field.
 func (r *candidateInterviewResolver) Interviewer(ctx context.Context, obj *ent.CandidateInterview) ([]*ent.User, error) {
 	return obj.Edges.InterviewerEdges, nil
+}
+
+// CandidateJob is the resolver for the candidate_job field.
+func (r *candidateInterviewResolver) CandidateJob(ctx context.Context, obj *ent.CandidateInterview) (*ent.CandidateJob, error) {
+	panic(fmt.Errorf("not implemented: CandidateJob - candidate_job"))
 }
 
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.

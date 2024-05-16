@@ -128,6 +128,7 @@ type ComplexityRoot struct {
 	}
 
 	CandidateInterview struct {
+		CandidateJob   func(childComplexity int) int
 		CandidateJobID func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		Description    func(childComplexity int) int
@@ -302,25 +303,26 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ExportSampleCandidate        func(childComplexity int, lang ent.I18nLanguage) int
-		GetAllAuditTrails            func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
-		GetAllCandidateInterviews    func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
-		GetAllCandidateJobFeedbacks  func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
-		GetAllCandidateJobs          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
-		GetAllCandidates             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		GetAllHiringJobs             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
-		GetAllTeams                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
-		GetAllUsers                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
-		GetAuditTrail                func(childComplexity int, id string) int
-		GetCandidate                 func(childComplexity int, id string) int
-		GetCandidateInterview        func(childComplexity int, id string) int
-		GetCandidateJob              func(childComplexity int, id string) int
-		GetCandidateJobFeedback      func(childComplexity int, id string) int
-		GetCandidateJobGroupByStatus func(childComplexity int, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) int
-		GetHiringJob                 func(childComplexity int, id string) int
-		GetTeam                      func(childComplexity int, id string) int
-		GetUser                      func(childComplexity int, id string) int
-		SelectionUsers               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		ExportSampleCandidate             func(childComplexity int, lang ent.I18nLanguage) int
+		GetAllAuditTrails                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllCandidateInterview4Calendar func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateInterviews         func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateJobFeedbacks       func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
+		GetAllCandidateJobs               func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
+		GetAllCandidates                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		GetAllHiringJobs                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		GetAllTeams                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
+		GetAllUsers                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		GetAuditTrail                     func(childComplexity int, id string) int
+		GetCandidate                      func(childComplexity int, id string) int
+		GetCandidateInterview             func(childComplexity int, id string) int
+		GetCandidateJob                   func(childComplexity int, id string) int
+		GetCandidateJobFeedback           func(childComplexity int, id string) int
+		GetCandidateJobGroupByStatus      func(childComplexity int, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) int
+		GetHiringJob                      func(childComplexity int, id string) int
+		GetTeam                           func(childComplexity int, id string) int
+		GetUser                           func(childComplexity int, id string) int
+		SelectionUsers                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
 	Team struct {
@@ -409,6 +411,7 @@ type CandidateInterviewResolver interface {
 	CandidateJobID(ctx context.Context, obj *ent.CandidateInterview) (string, error)
 
 	Interviewer(ctx context.Context, obj *ent.CandidateInterview) ([]*ent.User, error)
+	CandidateJob(ctx context.Context, obj *ent.CandidateInterview) (*ent.CandidateJob, error)
 }
 type CandidateJobResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJob) (string, error)
@@ -483,6 +486,7 @@ type QueryResolver interface {
 	GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
 	GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error)
 	GetAllCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
+	GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
 	ExportSampleCandidate(ctx context.Context, lang ent.I18nLanguage) (*ent.Base64Response, error)
 }
 type TeamResolver interface {
@@ -796,6 +800,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateEdge.Node(childComplexity), true
+
+	case "CandidateInterview.candidate_job":
+		if e.complexity.CandidateInterview.CandidateJob == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.CandidateJob(childComplexity), true
 
 	case "CandidateInterview.candidate_job_id":
 		if e.complexity.CandidateInterview.CandidateJobID == nil {
@@ -1671,6 +1682,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAuditTrails(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.AuditTrailFilter), args["freeWord"].(*ent.AuditTrailFreeWord), args["orderBy"].(*ent.AuditTrailOrder)), true
 
+	case "Query.GetAllCandidateInterview4Calendar":
+		if e.complexity.Query.GetAllCandidateInterview4Calendar == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllCandidateInterview4Calendar_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllCandidateInterview4Calendar(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.CandidateInterviewCalendarFilter), args["freeWord"].(*ent.CandidateInterviewFreeWord), args["orderBy"].(*ent.CandidateInterviewOrder)), true
+
 	case "Query.GetAllCandidateInterviews":
 		if e.complexity.Query.GetAllCandidateInterviews == nil {
 			break
@@ -2085,6 +2108,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAuditTrailOrder,
 		ec.unmarshalInputCandidateFilter,
 		ec.unmarshalInputCandidateFreeWord,
+		ec.unmarshalInputCandidateInterviewCalendarFilter,
 		ec.unmarshalInputCandidateInterviewFilter,
 		ec.unmarshalInputCandidateInterviewFreeWord,
 		ec.unmarshalInputCandidateInterviewOrder,
@@ -2272,6 +2296,7 @@ type CandidateInterview {
   start_from: Time!
   end_at: Time!
   interviewer: [User!]!
+  candidate_job: CandidateJob!
   created_at: Time!
   updated_at: Time!
 }
@@ -2309,6 +2334,17 @@ input CandidateInterviewFilter {
   interviewer: [ID!]
   from_date: Time
   to_date: Time
+}
+
+input CandidateInterviewCalendarFilter {
+  interview_date: Time
+  start_from: Time
+  end_at: Time
+  interviewer: [ID!]
+  from_date: Time
+  to_date: Time
+  team_id: ID
+  hiring_job_id: ID
 }
 
 input CandidateInterviewFreeWord {
@@ -2844,10 +2880,10 @@ type HiringJobResponseGetAll {
 	#CandidateInterview
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
-
+	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
-}
+	}
 `, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderByField {
   name
@@ -3592,6 +3628,48 @@ func (ec *executionContext) field_Query_GetAllAuditTrails_args(ctx context.Conte
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOAuditTrailOrder2ᚖtrecᚋentᚐAuditTrailOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllCandidateInterview4Calendar_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.CandidateInterviewCalendarFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOCandidateInterviewCalendarFilter2ᚖtrecᚋentᚐCandidateInterviewCalendarFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.CandidateInterviewFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOCandidateInterviewFreeWord2ᚖtrecᚋentᚐCandidateInterviewFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.CandidateInterviewOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOCandidateInterviewOrder2ᚖtrecᚋentᚐCandidateInterviewOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6432,6 +6510,68 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateInterview_candidate_job(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateInterview().CandidateJob(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJob)
+	fc.Result = res
+	return ec.marshalNCandidateJob2ᚖtrecᚋentᚐCandidateJob(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateInterview",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJob_id(ctx, field)
+			case "candidate_id":
+				return ec.fieldContext_CandidateJob_candidate_id(ctx, field)
+			case "hiring_job_id":
+				return ec.fieldContext_CandidateJob_hiring_job_id(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateJob_status(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJob_attachments(ctx, field)
+			case "candidate":
+				return ec.fieldContext_CandidateJob_candidate(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJob_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateInterview_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateInterview_created_at(ctx, field)
 	if err != nil {
@@ -6575,6 +6715,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewEdge_node(ctx context
 				return ec.fieldContext_CandidateInterview_end_at(ctx, field)
 			case "interviewer":
 				return ec.fieldContext_CandidateInterview_interviewer(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -6682,6 +6824,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewResponse_data(ctx con
 				return ec.fieldContext_CandidateInterview_end_at(ctx, field)
 			case "interviewer":
 				return ec.fieldContext_CandidateInterview_interviewer(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -12572,6 +12716,67 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateInterviews(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetAllCandidateInterview4Calendar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllCandidateInterview4Calendar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllCandidateInterview4Calendar(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.CandidateInterviewCalendarFilter), fc.Args["freeWord"].(*ent.CandidateInterviewFreeWord), fc.Args["orderBy"].(*ent.CandidateInterviewOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateInterviewResponseGetAll)
+	fc.Result = res
+	return ec.marshalNCandidateInterviewResponseGetAll2ᚖtrecᚋentᚐCandidateInterviewResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllCandidateInterview4Calendar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_CandidateInterviewResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_CandidateInterviewResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateInterviewResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllCandidateInterview4Calendar_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_ExportSampleCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_ExportSampleCandidate(ctx, field)
 	if err != nil {
@@ -16178,6 +16383,90 @@ func (ec *executionContext) unmarshalInputCandidateFreeWord(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCandidateInterviewCalendarFilter(ctx context.Context, obj interface{}) (ent.CandidateInterviewCalendarFilter, error) {
+	var it ent.CandidateInterviewCalendarFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"interview_date", "start_from", "end_at", "interviewer", "from_date", "to_date", "team_id", "hiring_job_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "interview_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interview_date"))
+			it.InterviewDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "start_from":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_from"))
+			it.StartFrom, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_at":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_at"))
+			it.EndAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "interviewer":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interviewer"))
+			it.Interviewer, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_date"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "team_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
+			it.TeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hiring_job_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
+			it.HiringJobID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCandidateInterviewFilter(ctx context.Context, obj interface{}) (ent.CandidateInterviewFilter, error) {
 	var it ent.CandidateInterviewFilter
 	asMap := map[string]interface{}{}
@@ -18525,6 +18814,26 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 				return innerFunc(ctx)
 
 			})
+		case "candidate_job":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateInterview_candidate_job(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._CandidateInterview_created_at(ctx, field, obj)
@@ -20361,6 +20670,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllCandidateInterviews(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetAllCandidateInterview4Calendar":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllCandidateInterview4Calendar(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -23018,6 +23350,14 @@ func (ec *executionContext) marshalOCandidateInterview2ᚖtrecᚋentᚐCandidate
 		return graphql.Null
 	}
 	return ec._CandidateInterview(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCandidateInterviewCalendarFilter2ᚖtrecᚋentᚐCandidateInterviewCalendarFilter(ctx context.Context, v interface{}) (*ent.CandidateInterviewCalendarFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateInterviewCalendarFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOCandidateInterviewFreeWord2ᚖtrecᚋentᚐCandidateInterviewFreeWord(ctx context.Context, v interface{}) (*ent.CandidateInterviewFreeWord, error) {

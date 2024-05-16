@@ -298,23 +298,23 @@ func (svc *candidateJobSvcImpl) GetCandidateStatus(ctx context.Context, id uuid.
 
 // common function
 func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuery, input *ent.CandidateJobFreeWord) {
-	var predidacate []predicate.CandidateJob
+	var predicate []predicate.CandidateJob
 	if input != nil {
 		if input.Team != nil {
-			predidacate = append(predidacate, candidatejob.HasHiringJobWith(
+			predicate = append(predicate, candidatejob.HasHiringJobWith(
 				hiringjob.HasTeamEdgeWith(
 					team.NameEqualFold(strings.TrimSpace(*input.Team)),
 				),
 			))
 		}
 		if input.HiringJob != nil {
-			predidacate = append(predidacate, candidatejob.HasHiringJobWith(
+			predicate = append(predicate, candidatejob.HasHiringJobWith(
 				hiringjob.NameEqualFold(strings.TrimSpace(*input.HiringJob)),
 			))
 		}
 	}
-	if len(predidacate) > 0 {
-		candidateJobQuery.Where(candidatejob.Or(predidacate...))
+	if len(predicate) > 0 {
+		candidateJobQuery.Where(candidatejob.Or(predicate...))
 	}
 }
 
