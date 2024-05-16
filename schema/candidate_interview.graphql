@@ -13,6 +13,7 @@ type CandidateInterview {
   start_from: Time!
   end_at: Time!
   interviewer: [User!]!
+  candidate_job: CandidateJob!
   created_at: Time!
   updated_at: Time!
 }
@@ -50,6 +51,17 @@ input CandidateInterviewFilter {
   interviewer: [ID!]
   from_date: Time
   to_date: Time
+}
+
+input CandidateInterviewCalendarFilter {
+  interview_date: Time
+  start_from: Time
+  end_at: Time
+  interviewer: [ID!]
+  from_date: Time
+  to_date: Time
+  team_id: ID
+  hiring_job_id: ID
 }
 
 input CandidateInterviewFreeWord {

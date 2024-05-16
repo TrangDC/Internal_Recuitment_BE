@@ -2,13 +2,19 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"trec/ent"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
+	"trec/ent/team"
+	user "trec/ent/user"
 	"trec/internal/util"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -25,6 +31,7 @@ type CandidateInterviewService interface {
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
 	GetCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
+	GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
 }
 
 type candidateInterviewSvcImpl struct {
@@ -152,16 +159,78 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 	var edges []*ent.CandidateInterviewEdge
 	var page int
 	var perPage int
-	candidate, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(filter.CandidateJobID))
+	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(filter.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_not_found", http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(
 		candidateinterview.CandidateJobIDEQ(uuid.MustParse(filter.CandidateJobID)),
-		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(candidate.Status.String())),
+		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(candidateJob.Status.String())),
 	)
-	svc.filter(query, filter)
+	var newFilter models.CandidateInterviewFilter
+	jsonString, _ := json.Marshal(filter)
+	json.Unmarshal(jsonString, &newFilter)
+	svc.filter(query, newFilter)
+	svc.freeWord(query, freeWord)
+	count, err := svc.repoRegistry.CandidateInterview().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	order := ent.Desc(candidatejob.FieldCreatedAt)
+	if orderBy != nil {
+		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+		}
+	}
+	query = query.Order(order)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = lo.Map(candidateInterviews, func(candidateInterview *ent.CandidateInterview, index int) *ent.CandidateInterviewEdge {
+		return &ent.CandidateInterviewEdge{
+			Node: candidateInterview,
+			Cursor: ent.Cursor{
+				Value: candidateInterview.ID.String(),
+			},
+		}
+	})
+	result = &ent.CandidateInterviewResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+	var result *ent.CandidateInterviewResponseGetAll
+	var edges []*ent.CandidateInterviewEdge
+	var page int
+	var perPage int
+	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(
+		candidateinterview.HasCandidateJobEdgeWith(
+			candidatejob.DeletedAtIsNil(), candidatejob.HasCandidateEdgeWith(
+				candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
+			),
+		),
+	)
+	var newFilter models.CandidateInterviewFilter
+	jsonString, _ := json.Marshal(filter)
+	json.Unmarshal(jsonString, &newFilter)
+	svc.filter(query, newFilter)
 	svc.freeWord(query, freeWord)
 	count, err := svc.repoRegistry.CandidateInterview().BuildCount(ctx, query)
 	if err != nil {
@@ -221,12 +290,33 @@ func (svc *candidateInterviewSvcImpl) freeWord(candidateInterviewQuery *ent.Cand
 	}
 }
 
-func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.CandidateInterviewQuery, input ent.CandidateInterviewFilter) {
+func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.CandidateInterviewQuery, input models.CandidateInterviewFilter) {
 	if input.InterviewDate != nil {
 		candidateInterviewQuery.Where(candidateinterview.InterviewDateEQ(*input.InterviewDate))
 	}
 	if input.StartFrom != nil && input.EndAt != nil {
 		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.StartFromGTE(*input.StartFrom), candidateinterview.EndAtLTE(*input.EndAt)))
+	}
+	if input.FromDate != nil && input.ToDate != nil {
+		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.CreatedAtGTE(*input.FromDate), candidateinterview.CreatedAtLTE(*input.ToDate)))
+	}
+	if input.Interviewer != nil {
+		userIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
+			return uuid.MustParse(member)
+		})
+		candidateInterviewQuery.Where(candidateinterview.HasInterviewerEdgesWith(user.IDIn(userIds...)))
+	}
+	if input.TeamId != nil {
+		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(
+			candidatejob.HasHiringJobWith(
+				hiringjob.HasTeamEdgeWith(
+					team.IDEQ(uuid.MustParse(*input.TeamId)),
+				),
+			),
+		))
+	}
+	if input.HiringJobId != nil {
+		candidateInterviewQuery.Where(candidateinterview.CandidateJobIDEQ(uuid.MustParse(*input.HiringJobId)))
 	}
 }
 

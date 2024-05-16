@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -99,6 +100,11 @@ func (r *queryResolver) GetCandidateInterview(ctx context.Context, id string) (*
 // GetAllCandidateInterviews is the resolver for the GetAllCandidateInterviews field.
 func (r *queryResolver) GetAllCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
 	return r.serviceRegistry.CandidateInterview().GetCandidateInterviews(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// GetAllCandidateInterview4Calendar is the resolver for the GetAllCandidateInterview4Calendar field.
+func (r *queryResolver) GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+	panic(fmt.Errorf("not implemented: GetAllCandidateInterview4Calendar - GetAllCandidateInterview4Calendar"))
 }
 
 // ExportSampleCandidate is the resolver for the ExportSampleCandidate field.
