@@ -301,14 +301,14 @@ func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuer
 	var predicate []predicate.CandidateJob
 	if input != nil {
 		if input.Team != nil {
-			predicate = append(predicate, candidatejob.HasHiringJobWith(
+			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
 				hiringjob.HasTeamEdgeWith(
 					team.NameEqualFold(strings.TrimSpace(*input.Team)),
 				),
 			))
 		}
 		if input.HiringJob != nil {
-			predicate = append(predicate, candidatejob.HasHiringJobWith(
+			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
 				hiringjob.NameEqualFold(strings.TrimSpace(*input.HiringJob)),
 			))
 		}
@@ -323,7 +323,7 @@ func (svc *candidateJobSvcImpl) filter(candidateJobQuery *ent.CandidateJobQuery,
 		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
 	}
 	if input.TeamID != nil {
-		candidateJobQuery.Where(candidatejob.HasHiringJobWith(
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
 			hiringjob.HasTeamEdgeWith(
 				team.IDEQ(uuid.MustParse(*input.TeamID)),
 			),

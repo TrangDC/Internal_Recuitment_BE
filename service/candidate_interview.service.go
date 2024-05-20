@@ -31,7 +31,7 @@ type CandidateInterviewService interface {
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
 	GetCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
-	GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
+	GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter *ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
 }
 
 type candidateInterviewSvcImpl struct {
@@ -51,7 +51,10 @@ func NewCandidateInterviewService(repoRegistry repository.Repository, logger *za
 func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var memberIds []uuid.UUID
-	err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, input.Title, uuid.MustParse(input.CandidateJobID))
+	var inputValidate models.CandidateInterviewInputValidate
+	jsonString, _ := json.Marshal(input)
+	json.Unmarshal(jsonString, &inputValidate)
+	candidateJobStatus, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -60,7 +63,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		return uuid.MustParse(member)
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateInterview, err = repoRegistry.CandidateInterview().CreateCandidateInterview(ctx, input, memberIds)
+		candidateInterview, err = repoRegistry.CandidateInterview().CreateCandidateInterview(ctx, input, memberIds, candidateJobStatus)
 		if err != nil {
 			return err
 		}
@@ -82,6 +85,9 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
+	var inputValidate models.CandidateInterviewInputValidate
+	jsonString, _ := json.Marshal(input)
+	json.Unmarshal(jsonString, &inputValidate)
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -94,13 +100,54 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		return uuid.MustParse(member)
 	})
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
-	err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, input.Title, uuid.MustParse(input.CandidateJobID))
+	_, err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterview(ctx, record, input, newMemberIds, removeMemberIds)
+		if err != nil {
+			return err
+		}
+		return err
+	})
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return &ent.CandidateInterviewResponse{
+		Data: result,
+	}, nil
+}
+
+func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error) {
+	var candidateInterview *ent.CandidateInterview
+	var inputValidate models.CandidateInterviewInputValidate
+	jsonString, _ := json.Marshal(input)
+	json.Unmarshal(jsonString, &inputValidate)
+	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
+	}
+	inputValidate.CandidateJobId = record.CandidateJobID
+	inputValidate.Title = record.Title
+	_, err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input)
 		if err != nil {
 			return err
 		}
@@ -215,7 +262,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 	return result, nil
 }
 
-func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter *ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
 	var result *ent.CandidateInterviewResponseGetAll
 	var edges []*ent.CandidateInterviewEdge
 	var page int
@@ -308,7 +355,7 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 	}
 	if input.TeamId != nil {
 		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(
-			candidatejob.HasHiringJobWith(
+			candidatejob.HasHiringJobEdgeWith(
 				hiringjob.HasTeamEdgeWith(
 					team.IDEQ(uuid.MustParse(*input.TeamId)),
 				),

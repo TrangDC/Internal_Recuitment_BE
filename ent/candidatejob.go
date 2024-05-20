@@ -40,8 +40,8 @@ type CandidateJob struct {
 type CandidateJobEdges struct {
 	// AttachmentEdges holds the value of the attachment_edges edge.
 	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
-	// HiringJob holds the value of the hiring_job edge.
-	HiringJob *HiringJob `json:"hiring_job,omitempty"`
+	// HiringJobEdge holds the value of the hiring_job_edge edge.
+	HiringJobEdge *HiringJob `json:"hiring_job_edge,omitempty"`
 	// CandidateJobFeedback holds the value of the candidate_job_feedback edge.
 	CandidateJobFeedback []*CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
 	// CandidateEdge holds the value of the candidate_edge edge.
@@ -68,17 +68,17 @@ func (e CandidateJobEdges) AttachmentEdgesOrErr() ([]*Attachment, error) {
 	return nil, &NotLoadedError{edge: "attachment_edges"}
 }
 
-// HiringJobOrErr returns the HiringJob value or an error if the edge
+// HiringJobEdgeOrErr returns the HiringJobEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CandidateJobEdges) HiringJobOrErr() (*HiringJob, error) {
+func (e CandidateJobEdges) HiringJobEdgeOrErr() (*HiringJob, error) {
 	if e.loadedTypes[1] {
-		if e.HiringJob == nil {
+		if e.HiringJobEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: hiringjob.Label}
 		}
-		return e.HiringJob, nil
+		return e.HiringJobEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "hiring_job"}
+	return nil, &NotLoadedError{edge: "hiring_job_edge"}
 }
 
 // CandidateJobFeedbackOrErr returns the CandidateJobFeedback value or an error if the edge
@@ -190,9 +190,9 @@ func (cj *CandidateJob) QueryAttachmentEdges() *AttachmentQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryAttachmentEdges(cj)
 }
 
-// QueryHiringJob queries the "hiring_job" edge of the CandidateJob entity.
-func (cj *CandidateJob) QueryHiringJob() *HiringJobQuery {
-	return (&CandidateJobClient{config: cj.config}).QueryHiringJob(cj)
+// QueryHiringJobEdge queries the "hiring_job_edge" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryHiringJobEdge() *HiringJobQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryHiringJobEdge(cj)
 }
 
 // QueryCandidateJobFeedback queries the "candidate_job_feedback" edge of the CandidateJob entity.

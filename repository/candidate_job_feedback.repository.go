@@ -110,7 +110,7 @@ func (rps CandidateJobFeedbackRepoImpl) GetCandidateJobFeedback(ctx context.Cont
 
 // common
 func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.HasHiringJobWith(
+	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.HasHiringJobEdgeWith(
 		hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
 	)).First(ctx)
 	if err != nil {

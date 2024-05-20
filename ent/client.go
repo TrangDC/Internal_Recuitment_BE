@@ -921,15 +921,15 @@ func (c *CandidateJobClient) QueryAttachmentEdges(cj *CandidateJob) *AttachmentQ
 	return query
 }
 
-// QueryHiringJob queries the hiring_job edge of a CandidateJob.
-func (c *CandidateJobClient) QueryHiringJob(cj *CandidateJob) *HiringJobQuery {
+// QueryHiringJobEdge queries the hiring_job_edge edge of a CandidateJob.
+func (c *CandidateJobClient) QueryHiringJobEdge(cj *CandidateJob) *HiringJobQuery {
 	query := &HiringJobQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cj.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.HiringJobTable, candidatejob.HiringJobColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.HiringJobEdgeTable, candidatejob.HiringJobEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
 		return fromV, nil

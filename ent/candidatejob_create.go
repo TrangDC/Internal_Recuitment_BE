@@ -139,9 +139,23 @@ func (cjc *CandidateJobCreate) AddAttachmentEdges(a ...*Attachment) *CandidateJo
 	return cjc.AddAttachmentEdgeIDs(ids...)
 }
 
-// SetHiringJob sets the "hiring_job" edge to the HiringJob entity.
-func (cjc *CandidateJobCreate) SetHiringJob(h *HiringJob) *CandidateJobCreate {
-	return cjc.SetHiringJobID(h.ID)
+// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
+func (cjc *CandidateJobCreate) SetHiringJobEdgeID(id uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetHiringJobEdgeID(id)
+	return cjc
+}
+
+// SetNillableHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableHiringJobEdgeID(id *uuid.UUID) *CandidateJobCreate {
+	if id != nil {
+		cjc = cjc.SetHiringJobEdgeID(*id)
+	}
+	return cjc
+}
+
+// SetHiringJobEdge sets the "hiring_job_edge" edge to the HiringJob entity.
+func (cjc *CandidateJobCreate) SetHiringJobEdge(h *HiringJob) *CandidateJobCreate {
+	return cjc.SetHiringJobEdgeID(h.ID)
 }
 
 // AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
@@ -368,12 +382,12 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cjc.mutation.HiringJobIDs(); len(nodes) > 0 {
+	if nodes := cjc.mutation.HiringJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   candidatejob.HiringJobTable,
-			Columns: []string{candidatejob.HiringJobColumn},
+			Table:   candidatejob.HiringJobEdgeTable,
+			Columns: []string{candidatejob.HiringJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

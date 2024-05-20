@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -27,7 +26,15 @@ func (r *candidateInterviewResolver) Interviewer(ctx context.Context, obj *ent.C
 
 // CandidateJob is the resolver for the candidate_job field.
 func (r *candidateInterviewResolver) CandidateJob(ctx context.Context, obj *ent.CandidateInterview) (*ent.CandidateJob, error) {
-	panic(fmt.Errorf("not implemented: CandidateJob - candidate_job"))
+	return obj.Edges.CandidateJobEdge, nil
+}
+
+// EditAble is the resolver for the edit_able field.
+func (r *candidateInterviewResolver) EditAble(ctx context.Context, obj *ent.CandidateInterview) (bool, error) {
+	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(obj.Edges.CandidateJobEdge.Status.String())) {
+		return true, nil
+	}
+	return false, nil
 }
 
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.

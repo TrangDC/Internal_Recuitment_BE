@@ -500,7 +500,7 @@ func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.Opera
 			cj.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
 				*wq = *query
 			})
-		case "hiringJob":
+		case "hiringJobEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -509,7 +509,7 @@ func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.Opera
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			cj.withHiringJob = query
+			cj.withHiringJobEdge = query
 		case "candidateJobFeedback":
 			var (
 				alias = field.Alias

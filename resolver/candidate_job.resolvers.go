@@ -39,6 +39,11 @@ func (r *candidateJobResolver) Candidate(ctx context.Context, obj *ent.Candidate
 	return obj.Edges.CandidateEdge, nil
 }
 
+// HiringJob is the resolver for the hiring_job field.
+func (r *candidateJobResolver) HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error) {
+	return obj.Edges.HiringJobEdge, nil
+}
+
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 
