@@ -10,6 +10,7 @@ import (
 	"trec/ent"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/ent/predicate"
 	"trec/internal/util"
 	"trec/models"
@@ -161,6 +162,9 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 	query := svc.repoRegistry.Candidate().BuildQuery()
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
+	if filter.JobID != nil {
+		query = query.Where(candidate.HasCandidateJobEdgesWith(candidatejob.ID(uuid.MustParse(*filter.JobID))))
+	}
 	count, err := svc.repoRegistry.Candidate().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

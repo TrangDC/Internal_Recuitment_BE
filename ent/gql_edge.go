@@ -124,10 +124,10 @@ func (cj *CandidateJob) AttachmentEdges(ctx context.Context) (result []*Attachme
 	return result, err
 }
 
-func (cj *CandidateJob) HiringJob(ctx context.Context) (*HiringJob, error) {
-	result, err := cj.Edges.HiringJobOrErr()
+func (cj *CandidateJob) HiringJobEdge(ctx context.Context) (*HiringJob, error) {
+	result, err := cj.Edges.HiringJobEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = cj.QueryHiringJob().Only(ctx)
+		result, err = cj.QueryHiringJobEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

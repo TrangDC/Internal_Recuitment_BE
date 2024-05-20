@@ -61,7 +61,11 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.AttachmentQuery) {
 			query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobs))
 		},
-	).WithCandidateEdge()
+	).WithCandidateEdge().WithHiringJobEdge(
+		func(query *ent.HiringJobQuery) {
+			query.WithTeamEdge().WithOwnerEdge()
+		},
+	)
 }
 
 func (rps candidateJobRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {

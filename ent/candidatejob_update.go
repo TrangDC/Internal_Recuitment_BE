@@ -143,9 +143,23 @@ func (cju *CandidateJobUpdate) AddAttachmentEdges(a ...*Attachment) *CandidateJo
 	return cju.AddAttachmentEdgeIDs(ids...)
 }
 
-// SetHiringJob sets the "hiring_job" edge to the HiringJob entity.
-func (cju *CandidateJobUpdate) SetHiringJob(h *HiringJob) *CandidateJobUpdate {
-	return cju.SetHiringJobID(h.ID)
+// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
+func (cju *CandidateJobUpdate) SetHiringJobEdgeID(id uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.SetHiringJobEdgeID(id)
+	return cju
+}
+
+// SetNillableHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableHiringJobEdgeID(id *uuid.UUID) *CandidateJobUpdate {
+	if id != nil {
+		cju = cju.SetHiringJobEdgeID(*id)
+	}
+	return cju
+}
+
+// SetHiringJobEdge sets the "hiring_job_edge" edge to the HiringJob entity.
+func (cju *CandidateJobUpdate) SetHiringJobEdge(h *HiringJob) *CandidateJobUpdate {
+	return cju.SetHiringJobEdgeID(h.ID)
 }
 
 // AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
@@ -223,9 +237,9 @@ func (cju *CandidateJobUpdate) RemoveAttachmentEdges(a ...*Attachment) *Candidat
 	return cju.RemoveAttachmentEdgeIDs(ids...)
 }
 
-// ClearHiringJob clears the "hiring_job" edge to the HiringJob entity.
-func (cju *CandidateJobUpdate) ClearHiringJob() *CandidateJobUpdate {
-	cju.mutation.ClearHiringJob()
+// ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
+func (cju *CandidateJobUpdate) ClearHiringJobEdge() *CandidateJobUpdate {
+	cju.mutation.ClearHiringJobEdge()
 	return cju
 }
 
@@ -434,12 +448,12 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cju.mutation.HiringJobCleared() {
+	if cju.mutation.HiringJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   candidatejob.HiringJobTable,
-			Columns: []string{candidatejob.HiringJobColumn},
+			Table:   candidatejob.HiringJobEdgeTable,
+			Columns: []string{candidatejob.HiringJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -450,12 +464,12 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cju.mutation.HiringJobIDs(); len(nodes) > 0 {
+	if nodes := cju.mutation.HiringJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   candidatejob.HiringJobTable,
-			Columns: []string{candidatejob.HiringJobColumn},
+			Table:   candidatejob.HiringJobEdgeTable,
+			Columns: []string{candidatejob.HiringJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -740,9 +754,23 @@ func (cjuo *CandidateJobUpdateOne) AddAttachmentEdges(a ...*Attachment) *Candida
 	return cjuo.AddAttachmentEdgeIDs(ids...)
 }
 
-// SetHiringJob sets the "hiring_job" edge to the HiringJob entity.
-func (cjuo *CandidateJobUpdateOne) SetHiringJob(h *HiringJob) *CandidateJobUpdateOne {
-	return cjuo.SetHiringJobID(h.ID)
+// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
+func (cjuo *CandidateJobUpdateOne) SetHiringJobEdgeID(id uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.SetHiringJobEdgeID(id)
+	return cjuo
+}
+
+// SetNillableHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableHiringJobEdgeID(id *uuid.UUID) *CandidateJobUpdateOne {
+	if id != nil {
+		cjuo = cjuo.SetHiringJobEdgeID(*id)
+	}
+	return cjuo
+}
+
+// SetHiringJobEdge sets the "hiring_job_edge" edge to the HiringJob entity.
+func (cjuo *CandidateJobUpdateOne) SetHiringJobEdge(h *HiringJob) *CandidateJobUpdateOne {
+	return cjuo.SetHiringJobEdgeID(h.ID)
 }
 
 // AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by IDs.
@@ -820,9 +848,9 @@ func (cjuo *CandidateJobUpdateOne) RemoveAttachmentEdges(a ...*Attachment) *Cand
 	return cjuo.RemoveAttachmentEdgeIDs(ids...)
 }
 
-// ClearHiringJob clears the "hiring_job" edge to the HiringJob entity.
-func (cjuo *CandidateJobUpdateOne) ClearHiringJob() *CandidateJobUpdateOne {
-	cjuo.mutation.ClearHiringJob()
+// ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
+func (cjuo *CandidateJobUpdateOne) ClearHiringJobEdge() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearHiringJobEdge()
 	return cjuo
 }
 
@@ -1061,12 +1089,12 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cjuo.mutation.HiringJobCleared() {
+	if cjuo.mutation.HiringJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   candidatejob.HiringJobTable,
-			Columns: []string{candidatejob.HiringJobColumn},
+			Table:   candidatejob.HiringJobEdgeTable,
+			Columns: []string{candidatejob.HiringJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1077,12 +1105,12 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cjuo.mutation.HiringJobIDs(); len(nodes) > 0 {
+	if nodes := cjuo.mutation.HiringJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   candidatejob.HiringJobTable,
-			Columns: []string{candidatejob.HiringJobColumn},
+			Table:   candidatejob.HiringJobEdgeTable,
+			Columns: []string{candidatejob.HiringJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

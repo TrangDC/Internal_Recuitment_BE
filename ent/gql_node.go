@@ -604,9 +604,9 @@ func (cj *CandidateJob) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1] = &Edge{
 		Type: "HiringJob",
-		Name: "hiring_job",
+		Name: "hiring_job_edge",
 	}
-	err = cj.QueryHiringJob().
+	err = cj.QueryHiringJobEdge().
 		Select(hiringjob.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {

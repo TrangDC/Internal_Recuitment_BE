@@ -4716,8 +4716,8 @@ type CandidateJobMutation struct {
 	attachment_edges               map[uuid.UUID]struct{}
 	removedattachment_edges        map[uuid.UUID]struct{}
 	clearedattachment_edges        bool
-	hiring_job                     *uuid.UUID
-	clearedhiring_job              bool
+	hiring_job_edge                *uuid.UUID
+	clearedhiring_job_edge         bool
 	candidate_job_feedback         map[uuid.UUID]struct{}
 	removedcandidate_job_feedback  map[uuid.UUID]struct{}
 	clearedcandidate_job_feedback  bool
@@ -4971,12 +4971,12 @@ func (m *CandidateJobMutation) ResetDeletedAt() {
 
 // SetHiringJobID sets the "hiring_job_id" field.
 func (m *CandidateJobMutation) SetHiringJobID(u uuid.UUID) {
-	m.hiring_job = &u
+	m.hiring_job_edge = &u
 }
 
 // HiringJobID returns the value of the "hiring_job_id" field in the mutation.
 func (m *CandidateJobMutation) HiringJobID() (r uuid.UUID, exists bool) {
-	v := m.hiring_job
+	v := m.hiring_job_edge
 	if v == nil {
 		return
 	}
@@ -5002,7 +5002,7 @@ func (m *CandidateJobMutation) OldHiringJobID(ctx context.Context) (v uuid.UUID,
 
 // ClearHiringJobID clears the value of the "hiring_job_id" field.
 func (m *CandidateJobMutation) ClearHiringJobID() {
-	m.hiring_job = nil
+	m.hiring_job_edge = nil
 	m.clearedFields[candidatejob.FieldHiringJobID] = struct{}{}
 }
 
@@ -5014,7 +5014,7 @@ func (m *CandidateJobMutation) HiringJobIDCleared() bool {
 
 // ResetHiringJobID resets all changes to the "hiring_job_id" field.
 func (m *CandidateJobMutation) ResetHiringJobID() {
-	m.hiring_job = nil
+	m.hiring_job_edge = nil
 	delete(m.clearedFields, candidatejob.FieldHiringJobID)
 }
 
@@ -5157,30 +5157,43 @@ func (m *CandidateJobMutation) ResetAttachmentEdges() {
 	m.removedattachment_edges = nil
 }
 
-// ClearHiringJob clears the "hiring_job" edge to the HiringJob entity.
-func (m *CandidateJobMutation) ClearHiringJob() {
-	m.clearedhiring_job = true
+// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by id.
+func (m *CandidateJobMutation) SetHiringJobEdgeID(id uuid.UUID) {
+	m.hiring_job_edge = &id
 }
 
-// HiringJobCleared reports if the "hiring_job" edge to the HiringJob entity was cleared.
-func (m *CandidateJobMutation) HiringJobCleared() bool {
-	return m.HiringJobIDCleared() || m.clearedhiring_job
+// ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
+func (m *CandidateJobMutation) ClearHiringJobEdge() {
+	m.clearedhiring_job_edge = true
 }
 
-// HiringJobIDs returns the "hiring_job" edge IDs in the mutation.
+// HiringJobEdgeCleared reports if the "hiring_job_edge" edge to the HiringJob entity was cleared.
+func (m *CandidateJobMutation) HiringJobEdgeCleared() bool {
+	return m.HiringJobIDCleared() || m.clearedhiring_job_edge
+}
+
+// HiringJobEdgeID returns the "hiring_job_edge" edge ID in the mutation.
+func (m *CandidateJobMutation) HiringJobEdgeID() (id uuid.UUID, exists bool) {
+	if m.hiring_job_edge != nil {
+		return *m.hiring_job_edge, true
+	}
+	return
+}
+
+// HiringJobEdgeIDs returns the "hiring_job_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// HiringJobID instead. It exists only for internal usage by the builders.
-func (m *CandidateJobMutation) HiringJobIDs() (ids []uuid.UUID) {
-	if id := m.hiring_job; id != nil {
+// HiringJobEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateJobMutation) HiringJobEdgeIDs() (ids []uuid.UUID) {
+	if id := m.hiring_job_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetHiringJob resets all changes to the "hiring_job" edge.
-func (m *CandidateJobMutation) ResetHiringJob() {
-	m.hiring_job = nil
-	m.clearedhiring_job = false
+// ResetHiringJobEdge resets all changes to the "hiring_job_edge" edge.
+func (m *CandidateJobMutation) ResetHiringJobEdge() {
+	m.hiring_job_edge = nil
+	m.clearedhiring_job_edge = false
 }
 
 // AddCandidateJobFeedbackIDs adds the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ids.
@@ -5359,7 +5372,7 @@ func (m *CandidateJobMutation) Fields() []string {
 	if m.deleted_at != nil {
 		fields = append(fields, candidatejob.FieldDeletedAt)
 	}
-	if m.hiring_job != nil {
+	if m.hiring_job_edge != nil {
 		fields = append(fields, candidatejob.FieldHiringJobID)
 	}
 	if m.candidate_edge != nil {
@@ -5564,8 +5577,8 @@ func (m *CandidateJobMutation) AddedEdges() []string {
 	if m.attachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
-	if m.hiring_job != nil {
-		edges = append(edges, candidatejob.EdgeHiringJob)
+	if m.hiring_job_edge != nil {
+		edges = append(edges, candidatejob.EdgeHiringJobEdge)
 	}
 	if m.candidate_job_feedback != nil {
 		edges = append(edges, candidatejob.EdgeCandidateJobFeedback)
@@ -5589,8 +5602,8 @@ func (m *CandidateJobMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case candidatejob.EdgeHiringJob:
-		if id := m.hiring_job; id != nil {
+	case candidatejob.EdgeHiringJobEdge:
+		if id := m.hiring_job_edge; id != nil {
 			return []ent.Value{*id}
 		}
 	case candidatejob.EdgeCandidateJobFeedback:
@@ -5660,8 +5673,8 @@ func (m *CandidateJobMutation) ClearedEdges() []string {
 	if m.clearedattachment_edges {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
-	if m.clearedhiring_job {
-		edges = append(edges, candidatejob.EdgeHiringJob)
+	if m.clearedhiring_job_edge {
+		edges = append(edges, candidatejob.EdgeHiringJobEdge)
 	}
 	if m.clearedcandidate_job_feedback {
 		edges = append(edges, candidatejob.EdgeCandidateJobFeedback)
@@ -5681,8 +5694,8 @@ func (m *CandidateJobMutation) EdgeCleared(name string) bool {
 	switch name {
 	case candidatejob.EdgeAttachmentEdges:
 		return m.clearedattachment_edges
-	case candidatejob.EdgeHiringJob:
-		return m.clearedhiring_job
+	case candidatejob.EdgeHiringJobEdge:
+		return m.clearedhiring_job_edge
 	case candidatejob.EdgeCandidateJobFeedback:
 		return m.clearedcandidate_job_feedback
 	case candidatejob.EdgeCandidateEdge:
@@ -5697,8 +5710,8 @@ func (m *CandidateJobMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *CandidateJobMutation) ClearEdge(name string) error {
 	switch name {
-	case candidatejob.EdgeHiringJob:
-		m.ClearHiringJob()
+	case candidatejob.EdgeHiringJobEdge:
+		m.ClearHiringJobEdge()
 		return nil
 	case candidatejob.EdgeCandidateEdge:
 		m.ClearCandidateEdge()
@@ -5714,8 +5727,8 @@ func (m *CandidateJobMutation) ResetEdge(name string) error {
 	case candidatejob.EdgeAttachmentEdges:
 		m.ResetAttachmentEdges()
 		return nil
-	case candidatejob.EdgeHiringJob:
-		m.ResetHiringJob()
+	case candidatejob.EdgeHiringJobEdge:
+		m.ResetHiringJobEdge()
 		return nil
 	case candidatejob.EdgeCandidateJobFeedback:
 		m.ResetCandidateJobFeedback()

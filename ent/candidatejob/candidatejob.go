@@ -30,8 +30,8 @@ const (
 	FieldStatus = "status"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
-	// EdgeHiringJob holds the string denoting the hiring_job edge name in mutations.
-	EdgeHiringJob = "hiring_job"
+	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
+	EdgeHiringJobEdge = "hiring_job_edge"
 	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
 	EdgeCandidateJobFeedback = "candidate_job_feedback"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
@@ -47,13 +47,13 @@ const (
 	AttachmentEdgesInverseTable = "attachments"
 	// AttachmentEdgesColumn is the table column denoting the attachment_edges relation/edge.
 	AttachmentEdgesColumn = "relation_id"
-	// HiringJobTable is the table that holds the hiring_job relation/edge.
-	HiringJobTable = "candidate_jobs"
-	// HiringJobInverseTable is the table name for the HiringJob entity.
+	// HiringJobEdgeTable is the table that holds the hiring_job_edge relation/edge.
+	HiringJobEdgeTable = "candidate_jobs"
+	// HiringJobEdgeInverseTable is the table name for the HiringJob entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
-	HiringJobInverseTable = "hiring_jobs"
-	// HiringJobColumn is the table column denoting the hiring_job relation/edge.
-	HiringJobColumn = "hiring_job_id"
+	HiringJobEdgeInverseTable = "hiring_jobs"
+	// HiringJobEdgeColumn is the table column denoting the hiring_job_edge relation/edge.
+	HiringJobEdgeColumn = "hiring_job_id"
 	// CandidateJobFeedbackTable is the table that holds the candidate_job_feedback relation/edge.
 	CandidateJobFeedbackTable = "candidate_job_feedbacks"
 	// CandidateJobFeedbackInverseTable is the table name for the CandidateJobFeedback entity.

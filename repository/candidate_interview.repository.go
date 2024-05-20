@@ -11,14 +11,16 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/user"
+	"trec/models"
 
 	"github.com/google/uuid"
 )
 
 type CandidateInterviewRepository interface {
-	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
-	UpdateCandidateInterview(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
-	DeleteCandidateInterview(ctx context.Context, model *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
+	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID, status string) (*ent.CandidateInterview, error)
+	UpdateCandidateInterview(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
+	UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterview, error)
+	DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
 
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error)
@@ -29,9 +31,8 @@ type CandidateInterviewRepository interface {
 	// common function
 	ValidTitle(ctx context.Context, candidateJobId uuid.UUID, candidateInterviewId uuid.UUID, title string, status string) error
 	ValidateStatus(ctx context.Context, candidateJobId uuid.UUID) (string, error)
-	ValidJob(ctx context.Context, candidateJobId uuid.UUID) error
 	ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error
-	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, title string, candidateJobId uuid.UUID) error
+	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error)
 }
 
 type candidateInterviewRepoImpl struct {
@@ -90,19 +91,38 @@ func (rps *candidateInterviewRepoImpl) BuildSaveUpdateOne(ctx context.Context, u
 }
 
 // mutation
-func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID) (*ent.CandidateInterview, error) {
-	create := rps.BuildCreate().SetTitle(strings.TrimSpace(input.Title)).AddUserInterviewerIDs(memberIds...)
+func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID, status string) (*ent.CandidateInterview, error) {
+	create := rps.BuildCreate().SetTitle(strings.TrimSpace(input.Title)).
+		AddInterviewerEdgeIDs(memberIds...).
+		SetDescription(input.Description).
+		SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
+		SetInterviewDate(input.InterviewDate).
+		SetStartFrom(input.StartFrom).
+		SetEndAt(input.EndAt).
+		SetCandidateJobStatus(candidateinterview.CandidateJobStatus(status))
 	return create.Save(ctx)
 }
 
 func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
 	update := rps.BuildUpdateOne(ctx, model).SetTitle(strings.TrimSpace(input.Title)).
-		AddUserInterviewerIDs(newMemberIds...).RemoveUserInterviewerIDs(removeMemberIds...)
+		SetDescription(input.Description).SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
+		SetInterviewDate(input.InterviewDate).
+		SetStartFrom(input.StartFrom).
+		SetEndAt(input.EndAt).
+		AddInterviewerEdgeIDs(newMemberIds...).RemoveInterviewerEdgeIDs(removeMemberIds...)
+	return rps.BuildSaveUpdateOne(ctx, update)
+}
+
+func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterview, error) {
+	update := rps.BuildUpdateOne(ctx, model).
+		SetInterviewDate(input.InterviewDate).
+		SetStartFrom(input.StartFrom).
+		SetEndAt(input.EndAt)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
 func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Context, model *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveUserInterviewerIDs(memberIds...)
+	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveInterviewerEdgeIDs(memberIds...)
 	return update.Save(ctx)
 }
 
@@ -139,50 +159,51 @@ func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidate
 }
 
 func (rps *candidateInterviewRepoImpl) ValidateStatus(ctx context.Context, candidateJobId uuid.UUID) (string, error) {
-	record, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil()).First(ctx)
+	record, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil()).WithHiringJobEdge(
+		func(query *ent.HiringJobQuery) {
+			query.Where(hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened))
+		},
+	).First(ctx)
 	if err != nil {
 		return "", fmt.Errorf("model.candidate_interviews.validation.candidate_job_not_found")
 	}
 	if ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(record.Status.String())) {
 		return "", fmt.Errorf("model.candidate_interviews.validation.candidate_job_status_ended")
 	}
+	if record.Edges.HiringJobEdge == nil {
+		return "", fmt.Errorf("model.candidate_interviews.validation.job_close")
+	}
 	return record.Status.String(), nil
 }
 
-func (rps candidateInterviewRepoImpl) ValidJob(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.HasHiringJobWith(
-		hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
-	)).First(ctx)
-	if err != nil {
-		return fmt.Errorf("model.candidate_interviews.validation.job_close")
-	}
-	return err
-}
-
 func (rps candidateInterviewRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(false)).First(ctx)
+	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(false), candidate.HasCandidateJobEdgesWith(
+		candidatejob.ID(candidateJobId),
+	)).First(ctx)
 	if err != nil {
 		return fmt.Errorf("model.candidate_interviews.validation.candidate_is_blacklist")
 	}
 	return err
 }
 
-func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, title string, candidateJobId uuid.UUID) error {
-	err := rps.ValidCandidate(ctx, candidateJobId)
+func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error) {
+	err := rps.ValidCandidate(ctx, input.CandidateJobId)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = rps.ValidJob(ctx, candidateJobId)
+	status, err := rps.ValidateStatus(ctx, input.CandidateJobId)
 	if err != nil {
-		return err
+		return "", err
 	}
-	status, err := rps.ValidateStatus(ctx, candidateJobId)
+	err = rps.ValidTitle(ctx, input.CandidateJobId, candidateInterviewId, input.Title, status)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = rps.ValidTitle(ctx, candidateJobId, candidateInterviewId, title, status)
-	if err != nil {
-		return err
+	if input.InterviewDate.Before(time.Now()) {
+		return "", fmt.Errorf("model.candidate_interviews.validation.interview_date_invalid")
 	}
-	return nil
+	if input.StartFrom.After(*input.EndAt) {
+		return "", fmt.Errorf("model.candidate_interviews.validation.start_from_end_at_invalid")
+	}
+	return status, nil
 }

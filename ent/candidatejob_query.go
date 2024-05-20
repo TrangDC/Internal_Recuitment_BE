@@ -31,7 +31,7 @@ type CandidateJobQuery struct {
 	fields                         []string
 	predicates                     []predicate.CandidateJob
 	withAttachmentEdges            *AttachmentQuery
-	withHiringJob                  *HiringJobQuery
+	withHiringJobEdge              *HiringJobQuery
 	withCandidateJobFeedback       *CandidateJobFeedbackQuery
 	withCandidateEdge              *CandidateQuery
 	withCandidateJobInterview      *CandidateInterviewQuery
@@ -98,8 +98,8 @@ func (cjq *CandidateJobQuery) QueryAttachmentEdges() *AttachmentQuery {
 	return query
 }
 
-// QueryHiringJob chains the current query on the "hiring_job" edge.
-func (cjq *CandidateJobQuery) QueryHiringJob() *HiringJobQuery {
+// QueryHiringJobEdge chains the current query on the "hiring_job_edge" edge.
+func (cjq *CandidateJobQuery) QueryHiringJobEdge() *HiringJobQuery {
 	query := &HiringJobQuery{config: cjq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cjq.prepareQuery(ctx); err != nil {
@@ -112,7 +112,7 @@ func (cjq *CandidateJobQuery) QueryHiringJob() *HiringJobQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.HiringJobTable, candidatejob.HiringJobColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.HiringJobEdgeTable, candidatejob.HiringJobEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
 		return fromU, nil
@@ -368,7 +368,7 @@ func (cjq *CandidateJobQuery) Clone() *CandidateJobQuery {
 		order:                     append([]OrderFunc{}, cjq.order...),
 		predicates:                append([]predicate.CandidateJob{}, cjq.predicates...),
 		withAttachmentEdges:       cjq.withAttachmentEdges.Clone(),
-		withHiringJob:             cjq.withHiringJob.Clone(),
+		withHiringJobEdge:         cjq.withHiringJobEdge.Clone(),
 		withCandidateJobFeedback:  cjq.withCandidateJobFeedback.Clone(),
 		withCandidateEdge:         cjq.withCandidateEdge.Clone(),
 		withCandidateJobInterview: cjq.withCandidateJobInterview.Clone(),
@@ -390,14 +390,14 @@ func (cjq *CandidateJobQuery) WithAttachmentEdges(opts ...func(*AttachmentQuery)
 	return cjq
 }
 
-// WithHiringJob tells the query-builder to eager-load the nodes that are connected to
-// the "hiring_job" edge. The optional arguments are used to configure the query builder of the edge.
-func (cjq *CandidateJobQuery) WithHiringJob(opts ...func(*HiringJobQuery)) *CandidateJobQuery {
+// WithHiringJobEdge tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_job_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (cjq *CandidateJobQuery) WithHiringJobEdge(opts ...func(*HiringJobQuery)) *CandidateJobQuery {
 	query := &HiringJobQuery{config: cjq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	cjq.withHiringJob = query
+	cjq.withHiringJobEdge = query
 	return cjq
 }
 
@@ -509,7 +509,7 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		_spec       = cjq.querySpec()
 		loadedTypes = [5]bool{
 			cjq.withAttachmentEdges != nil,
-			cjq.withHiringJob != nil,
+			cjq.withHiringJobEdge != nil,
 			cjq.withCandidateJobFeedback != nil,
 			cjq.withCandidateEdge != nil,
 			cjq.withCandidateJobInterview != nil,
@@ -543,9 +543,9 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			return nil, err
 		}
 	}
-	if query := cjq.withHiringJob; query != nil {
-		if err := cjq.loadHiringJob(ctx, query, nodes, nil,
-			func(n *CandidateJob, e *HiringJob) { n.Edges.HiringJob = e }); err != nil {
+	if query := cjq.withHiringJobEdge; query != nil {
+		if err := cjq.loadHiringJobEdge(ctx, query, nodes, nil,
+			func(n *CandidateJob, e *HiringJob) { n.Edges.HiringJobEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -629,7 +629,7 @@ func (cjq *CandidateJobQuery) loadAttachmentEdges(ctx context.Context, query *At
 	}
 	return nil
 }
-func (cjq *CandidateJobQuery) loadHiringJob(ctx context.Context, query *HiringJobQuery, nodes []*CandidateJob, init func(*CandidateJob), assign func(*CandidateJob, *HiringJob)) error {
+func (cjq *CandidateJobQuery) loadHiringJobEdge(ctx context.Context, query *HiringJobQuery, nodes []*CandidateJob, init func(*CandidateJob), assign func(*CandidateJob, *HiringJob)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*CandidateJob)
 	for i := range nodes {

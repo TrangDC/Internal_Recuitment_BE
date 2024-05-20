@@ -66,6 +66,7 @@ type CandidateFilter struct {
 	FromDate    *time.Time           `json:"from_date"`
 	ToDate      *time.Time           `json:"to_date"`
 	IsBlackList *bool                `json:"is_black_list"`
+	JobID       *string              `json:"job_id"`
 }
 
 type CandidateFreeWord struct {
@@ -315,6 +316,12 @@ type UpdateCandidateInterviewInput struct {
 	Interviewer    []string  `json:"interviewer"`
 }
 
+type UpdateCandidateInterviewScheduleInput struct {
+	InterviewDate time.Time `json:"interview_date"`
+	StartFrom     time.Time `json:"start_from"`
+	EndAt         time.Time `json:"end_at"`
+}
+
 type UpdateCandidateJobFeedbackInput struct {
 	Feedback    string                `json:"feedback"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
@@ -499,6 +506,47 @@ func (e *AttachmentRelationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateInterviewStatusEditable string
+
+const (
+	CandidateInterviewStatusEditableApplied      CandidateInterviewStatusEditable = "applied"
+	CandidateInterviewStatusEditableInterviewing CandidateInterviewStatusEditable = "interviewing"
+)
+
+var AllCandidateInterviewStatusEditable = []CandidateInterviewStatusEditable{
+	CandidateInterviewStatusEditableApplied,
+	CandidateInterviewStatusEditableInterviewing,
+}
+
+func (e CandidateInterviewStatusEditable) IsValid() bool {
+	switch e {
+	case CandidateInterviewStatusEditableApplied, CandidateInterviewStatusEditableInterviewing:
+		return true
+	}
+	return false
+}
+
+func (e CandidateInterviewStatusEditable) String() string {
+	return string(e)
+}
+
+func (e *CandidateInterviewStatusEditable) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateInterviewStatusEditable(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateInterviewStatusEditable", str)
+	}
+	return nil
+}
+
+func (e CandidateInterviewStatusEditable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
