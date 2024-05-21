@@ -54,10 +54,11 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	var inputValidate models.CandidateInterviewInputValidate
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
-	candidateJobStatus, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	candidateJobStatus, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
+	if err != nil || stringError != nil {
+		newError := err.Error() + stringError.Error()
+		svc.logger.Error(newError, zap.Error(err))
+		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	memberIds = lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
@@ -100,10 +101,11 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		return uuid.MustParse(member)
 	})
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
-	_, err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
+	if err != nil || stringError != nil {
+		newError := err.Error() + stringError.Error()
+		svc.logger.Error(newError, zap.Error(err))
+		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterview(ctx, record, input, newMemberIds, removeMemberIds)
@@ -141,10 +143,11 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	}
 	inputValidate.CandidateJobId = record.CandidateJobID
 	inputValidate.Title = record.Title
-	_, err = svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
+	if err != nil || stringError != nil {
+		newError := err.Error() + stringError.Error()
+		svc.logger.Error(newError, zap.Error(err))
+		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input)
