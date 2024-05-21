@@ -34,6 +34,7 @@ stages:
   - migration
   - build
   - deploy
+  - validate
 
 .azure_cli_before_script: &azure_cli_before_script
   - az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} --tenant ${ARM_TENANT_ID}
@@ -250,3 +251,11 @@ build:
   tags:
     - $RUNNER_TAG
 
+validate_checklist:
+  stage: validate
+  script:
+    - |
+      if grep -q "\- \[ \]" merge_request_description.md; then
+        echo "All checklist items must be checked off before merging."
+        exit 1
+      fi
