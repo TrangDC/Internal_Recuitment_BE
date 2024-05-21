@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
@@ -13,6 +14,7 @@ import (
 	"trec/models"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type CandidateInterviewRepository interface {
@@ -20,7 +22,7 @@ type CandidateInterviewRepository interface {
 	UpdateCandidateInterview(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterview, error)
 	DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
-
+	CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error)
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error)
 	BuildQuery() *ent.CandidateInterviewQuery
@@ -29,6 +31,7 @@ type CandidateInterviewRepository interface {
 
 	// common function
 	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error)
+	ValidateCreateBulkInput(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateJob, error, error)
 }
 
 type candidateInterviewRepoImpl struct {
@@ -122,6 +125,20 @@ func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Cont
 	return update.Save(ctx)
 }
 
+func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error) {
+	var createBulk []*ent.CandidateInterviewCreate
+	for _, record := range candidateJobs {
+		createBulk = append(createBulk, rps.BuildCreate().SetTitle(input.Title).
+			SetInterviewDate(input.InterviewDate).
+			SetStartFrom(input.StartFrom).
+			SetEndAt(input.EndAt).
+			SetCandidateJobID(record.ID).
+			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())).
+			AddInterviewerEdgeIDs(memberIds...))
+	}
+	return rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)
+}
+
 // query
 func (rps *candidateInterviewRepoImpl) GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error) {
 	query := rps.BuildQuery().Where(candidateinterview.IDEQ(id)).WithInterviewerEdges(
@@ -137,23 +154,6 @@ func (rps *candidateInterviewRepoImpl) GetCandidateInterview(ctx context.Context
 }
 
 // common function
-func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidateJobId uuid.UUID, candidateInterviewId uuid.UUID, title string, status string) (error, error) {
-	query := rps.BuildQuery().Where(candidateinterview.TitleEqualFold(title),
-		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(status)),
-		candidateinterview.CandidateJobID(candidateJobId))
-	if candidateInterviewId != uuid.Nil {
-		query = query.Where(candidateinterview.IDNEQ(candidateInterviewId))
-	}
-	isExist, err := rps.BuildExist(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if isExist {
-		return nil, fmt.Errorf("model.candidate_interviews.validation.title_exist")
-	}
-	return nil, nil
-}
-
 func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error) {
 	record, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(input.CandidateJobId), candidatejob.DeletedAtIsNil()).WithHiringJobEdge(
 		func(query *ent.HiringJobQuery) {
@@ -176,28 +176,93 @@ func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candid
 	if err != nil || stringError != nil {
 		return "", stringError, err
 	}
-	stringError, err = rps.ValidateSchedule(ctx, candidateInterviewId, input)
+	stringError, err = rps.ValidateSchedule(ctx, candidateInterviewId, input.CandidateJobId, input.InterviewDate, input.StartFrom, input.EndAt)
 	if err != nil || stringError != nil {
 		return "", stringError, err
 	}
 	return record.Status.String(), nil, err
 }
 
-func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (error, error) {
-	if input.InterviewDate.Before(time.Now()) {
+func (rps *candidateInterviewRepoImpl) ValidateCreateBulkInput(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateJob, error, error) {
+	// validate job
+	_, err := rps.client.HiringJob.Query().Where(
+		hiringjob.IDEQ(uuid.MustParse(input.JobID)),
+		hiringjob.DeletedAtIsNil(),
+		hiringjob.StatusEQ(hiringjob.StatusOpened),
+	).First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("model.candidate_interviews.validation.job_close"), nil
+	}
+	// validate candidate
+	candidateIds := lo.Uniq(lo.Map(input.CandidateID, func(item string, index int) uuid.UUID {
+		return uuid.MustParse(item)
+	}))
+	candidates, err := rps.client.Candidate.Query().Where(candidate.IDIn(candidateIds...), candidate.IsBlacklist(false), candidate.DeletedAtIsNil()).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(candidates) != len(candidateIds) {
+		return nil, fmt.Errorf("model.candidate_interviews.validation.candidate_is_blacklist"), nil
+	}
+	// validate candidate job
+	candidateJobs, err := rps.client.CandidateJob.Query().Where(
+		candidatejob.CandidateIDIn(candidateIds...), candidatejob.DeletedAtIsNil(),
+		candidatejob.HiringJobIDEQ(uuid.MustParse(input.JobID)), candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing)).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(candidateJobs) != len(candidateIds) {
+		return nil, fmt.Errorf("model.candidate_interviews.validation.candidate_job_not_found"), nil
+	}
+	// validate title
+	for _, record := range candidateJobs {
+		stringError, err := rps.ValidTitle(ctx, record.ID, uuid.Nil, input.Title, record.Status.String())
+		if err != nil || stringError != nil {
+			return nil, stringError, err
+		}
+		stringError, err = rps.ValidateSchedule(ctx, uuid.Nil, record.ID, &input.InterviewDate, &input.StartFrom, &input.EndAt)
+		if err != nil || stringError != nil {
+			return nil, stringError, err
+		}
+	}
+	return candidateJobs, nil, nil
+}
+
+func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidateJobId uuid.UUID, candidateInterviewId uuid.UUID, title string, status string) (error, error) {
+	query := rps.BuildQuery().Where(candidateinterview.TitleEqualFold(title),
+		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(status)),
+		candidateinterview.CandidateJobID(candidateJobId))
+	if candidateInterviewId != uuid.Nil {
+		query = query.Where(candidateinterview.IDNEQ(candidateInterviewId))
+	}
+	isExist, err := rps.BuildExist(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if isExist {
+		return nil, fmt.Errorf("model.candidate_interviews.validation.title_exist")
+	}
+	return nil, nil
+}
+
+func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, candidateJobId uuid.UUID, interviewDate, startFrom, endAt *time.Time) (error, error) {
+	if interviewDate.Before(time.Now()) {
 		return fmt.Errorf("model.candidate_interviews.validation.interview_date_invalid"), nil
 	}
-	if input.StartFrom.After(*input.EndAt) {
+	if startFrom.After(*endAt) {
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_end_at_invalid"), nil
 	}
 	query := rps.client.CandidateInterview.Query().
-		Where(candidateinterview.IDNEQ(candidateInterviewId), candidateinterview.CandidateJobID(input.CandidateJobId),
-			candidateinterview.InterviewDateEQ(*input.InterviewDate))
+		Where(candidateinterview.CandidateJobID(candidateJobId),
+			candidateinterview.InterviewDateEQ(*interviewDate))
+	if candidateInterviewId != uuid.Nil {
+		query.Where(candidateinterview.IDNEQ(candidateInterviewId))
+	}
 	query.Where(candidateinterview.Or(
-		candidateinterview.And(candidateinterview.StartFromGTE(*input.StartFrom), candidateinterview.EndAtLTE(*input.EndAt)), // [start, [start, end] ,end]
-		candidateinterview.StartFromIn(*input.StartFrom, *input.EndAt),
-		candidateinterview.EndAtIn(*input.StartFrom, *input.EndAt)),
-		candidateinterview.And(candidateinterview.StartFromLTE(*input.StartFrom), candidateinterview.EndAtGTE(*input.EndAt)))
+		candidateinterview.And(candidateinterview.StartFromGTE(*startFrom), candidateinterview.EndAtLTE(*endAt)), // [start, [start, end] ,end]
+		candidateinterview.StartFromIn(*startFrom, *endAt),
+		candidateinterview.EndAtIn(*startFrom, *endAt)),
+		candidateinterview.And(candidateinterview.StartFromLTE(*startFrom), candidateinterview.EndAtGTE(*endAt)))
 	exist, err := query.Exist(ctx)
 	if err != nil {
 		return nil, err

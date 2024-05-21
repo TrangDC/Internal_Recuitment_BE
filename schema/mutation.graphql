@@ -38,6 +38,7 @@ type Mutation {
   UpdateCandidateInterview(id: ID!, input: UpdateCandidateInterviewInput!): CandidateInterviewResponse!
   UpdateCandidateInterviewSchedule(id: ID!, input: UpdateCandidateInterviewScheduleInput!): CandidateInterviewResponse!
   DeleteCandidateInterview(id: ID!): Boolean!
+  CreateCandidateInterview4Calendar(input: NewCandidateInterview4CalendarInput!): Boolean!
 
   #import
   ImportCandidate(file: Upload!): Boolean!

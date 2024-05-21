@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -145,12 +144,21 @@ func (r *mutationResolver) UpdateCandidateInterview(ctx context.Context, id stri
 
 // UpdateCandidateInterviewSchedule is the resolver for the UpdateCandidateInterviewSchedule field.
 func (r *mutationResolver) UpdateCandidateInterviewSchedule(ctx context.Context, id string, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateCandidateInterviewSchedule - UpdateCandidateInterviewSchedule"))
+	return r.serviceRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, uuid.MustParse(id), input)
 }
 
 // DeleteCandidateInterview is the resolver for the DeleteCandidateInterview field.
 func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id string) (bool, error) {
 	err := r.serviceRegistry.CandidateInterview().DeleteCandidateInterview(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// CreateCandidateInterview4Calendar is the resolver for the CreateCandidateInterview4Calendar field.
+func (r *mutationResolver) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (bool, error) {
+	err := r.serviceRegistry.CandidateInterview().CreateCandidateInterview4Calendar(ctx, input)
 	if err != nil {
 		return false, err
 	}

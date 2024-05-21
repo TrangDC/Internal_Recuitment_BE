@@ -39,6 +39,17 @@ input NewCandidateInterviewInput {
   interviewer: [ID!]!
 }
 
+input NewCandidateInterview4CalendarInput {
+  title: String!
+  description: String!
+  candidate_id: [ID!]!
+  job_id: ID!
+  interview_date: Time!
+  start_from: Time!
+  end_at: Time!
+  interviewer: [ID!]!
+}
+
 input UpdateCandidateInterviewInput {
   title: String!
   description: String!

@@ -57,16 +57,17 @@ type Base64Response struct {
 }
 
 type CandidateFilter struct {
-	Name        *string              `json:"name"`
-	Email       *string              `json:"email"`
-	Phone       *string              `json:"phone"`
-	DobFromDate *time.Time           `json:"dob_from_date"`
-	DobToDate   *time.Time           `json:"dob_to_date"`
-	Status      *CandidateStatusEnum `json:"status"`
-	FromDate    *time.Time           `json:"from_date"`
-	ToDate      *time.Time           `json:"to_date"`
-	IsBlackList *bool                `json:"is_black_list"`
-	JobID       *string              `json:"job_id"`
+	Name              *string              `json:"name"`
+	Email             *string              `json:"email"`
+	Phone             *string              `json:"phone"`
+	DobFromDate       *time.Time           `json:"dob_from_date"`
+	DobToDate         *time.Time           `json:"dob_to_date"`
+	Status            *CandidateStatusEnum `json:"status"`
+	FromDate          *time.Time           `json:"from_date"`
+	ToDate            *time.Time           `json:"to_date"`
+	IsBlackList       *bool                `json:"is_black_list"`
+	JobID             *string              `json:"job_id"`
+	IsAbleToInterview *bool                `json:"is_able_to_interview"`
 }
 
 type CandidateFreeWord struct {
@@ -213,6 +214,17 @@ type NewCandidateInput struct {
 	Email string    `json:"email"`
 	Phone string    `json:"phone"`
 	Dob   time.Time `json:"dob"`
+}
+
+type NewCandidateInterview4CalendarInput struct {
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	CandidateID   []string  `json:"candidate_id"`
+	JobID         string    `json:"job_id"`
+	InterviewDate time.Time `json:"interview_date"`
+	StartFrom     time.Time `json:"start_from"`
+	EndAt         time.Time `json:"end_at"`
+	Interviewer   []string  `json:"interviewer"`
 }
 
 type NewCandidateInterviewInput struct {

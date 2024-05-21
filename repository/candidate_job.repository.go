@@ -134,7 +134,10 @@ func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uui
 	if !ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(status.String())) {
 		return nil
 	}
-	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId), candidatejob.IDNEQ(candidateJobId))
+	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
+	if candidateJobId != uuid.Nil {
+		query.Where(candidatejob.IDNEQ(candidateJobId))
+	}
 	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
 		return candidatejob.Status(s)
 	})

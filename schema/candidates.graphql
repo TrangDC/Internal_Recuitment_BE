@@ -41,6 +41,7 @@ input CandidateFilter {
   to_date: Time
   is_black_list: Boolean
   job_id: ID
+  is_able_to_interview: Boolean
 }
 
 input CandidateFreeWord {

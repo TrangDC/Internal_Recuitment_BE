@@ -27,6 +27,8 @@ type CandidateInterviewService interface {
 	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
 	DeleteCandidateInterview(ctx context.Context, id uuid.UUID) error
 	UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
+	UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error)
+	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (error)
 
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
@@ -82,6 +84,27 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	return &ent.CandidateInterviewResponse{
 		Data: result,
 	}, nil
+}
+
+func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (error) {
+	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
+	if err != nil || stringError != nil {
+		newError := err.Error() + stringError.Error()
+		svc.logger.Error(newError, zap.Error(err))
+		return util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	memberIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
+		return uuid.MustParse(member)
+	})
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		_, err := repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input) 
+		return err 
+	})
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return nil
 }
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
