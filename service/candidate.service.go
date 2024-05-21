@@ -165,11 +165,11 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 	if filter.JobID != nil {
 		if filter.IsAbleToInterview != nil && *filter.IsAbleToInterview {
 			query = query.Where(candidate.HasCandidateJobEdgesWith(
-				candidatejob.ID(uuid.MustParse(*filter.JobID)),
+				candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID)),
 				candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
 			))
 		} else {
-			query = query.Where(candidate.HasCandidateJobEdgesWith(candidatejob.ID(uuid.MustParse(*filter.JobID))))
+			query = query.Where(candidate.HasCandidateJobEdgesWith(candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID))))
 		}
 	}
 	count, err := svc.repoRegistry.Candidate().BuildCount(ctx, query)
