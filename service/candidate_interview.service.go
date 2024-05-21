@@ -57,10 +57,13 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	candidateJobStatus, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
-	if err != nil || stringError != nil {
-		newError := err.Error() + stringError.Error()
-		svc.logger.Error(newError, zap.Error(err))
-		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
+	if err != nil{
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if stringError != nil {
+		svc.logger.Error(stringError.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	memberIds = lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
@@ -88,10 +91,13 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 
 func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (error) {
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
-	if err != nil || stringError != nil {
-		newError := err.Error() + stringError.Error()
-		svc.logger.Error(newError, zap.Error(err))
-		return util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
+	if err != nil{
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if stringError != nil {
+		svc.logger.Error(stringError.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	memberIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
@@ -125,10 +131,13 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	})
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
 	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil || stringError != nil {
-		newError := err.Error() + stringError.Error()
-		svc.logger.Error(newError, zap.Error(err))
-		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
+	if err != nil{
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if stringError != nil {
+		svc.logger.Error(stringError.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterview(ctx, record, input, newMemberIds, removeMemberIds)
@@ -167,10 +176,13 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	inputValidate.CandidateJobId = record.CandidateJobID
 	inputValidate.Title = record.Title
 	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil || stringError != nil {
-		newError := err.Error() + stringError.Error()
-		svc.logger.Error(newError, zap.Error(err))
-		return nil, util.WrapGQLError(ctx, newError, http.StatusBadRequest, util.ErrorFlagValidateFail)
+	if err != nil{
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if stringError != nil {
+		svc.logger.Error(stringError.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input)
