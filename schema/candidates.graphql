@@ -20,14 +20,14 @@ input NewCandidateInput{
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
 }
 
 input UpdateCandidateInput {
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
 }
 
 input CandidateFilter {
@@ -60,7 +60,7 @@ type Candidate {
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
   status: CandidateStatusEnum!
   is_black_list: Boolean!
   last_apply_date: Time

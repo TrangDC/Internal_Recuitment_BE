@@ -81,7 +81,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "phone", Type: field.TypeString, Size: 255},
-		{Name: "dob", Type: field.TypeTime},
+		{Name: "dob", Type: field.TypeTime, Nullable: true},
 		{Name: "is_blacklist", Type: field.TypeBool, Default: false},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 	}
@@ -164,6 +164,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateJobsTable holds the schema information for the "candidate_jobs" table.
 	CandidateJobsTable = &schema.Table{
@@ -181,6 +182,12 @@ var (
 				Symbol:     "candidate_jobs_hiring_jobs_candidate_job_edges",
 				Columns:    []*schema.Column{CandidateJobsColumns[6]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "candidate_jobs_users_candidate_job_edges",
+				Columns:    []*schema.Column{CandidateJobsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -349,6 +356,7 @@ func init() {
 	CandidateInterviewersTable.ForeignKeys[1].RefTable = CandidateInterviewsTable
 	CandidateJobsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateJobsTable.ForeignKeys[1].RefTable = HiringJobsTable
+	CandidateJobsTable.ForeignKeys[2].RefTable = UsersTable
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable

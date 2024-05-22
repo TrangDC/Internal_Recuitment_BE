@@ -88,6 +88,14 @@ func (cc *CandidateCreate) SetDob(t time.Time) *CandidateCreate {
 	return cc
 }
 
+// SetNillableDob sets the "dob" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableDob(t *time.Time) *CandidateCreate {
+	if t != nil {
+		cc.SetDob(*t)
+	}
+	return cc
+}
+
 // SetIsBlacklist sets the "is_blacklist" field.
 func (cc *CandidateCreate) SetIsBlacklist(b bool) *CandidateCreate {
 	cc.mutation.SetIsBlacklist(b)
@@ -264,9 +272,6 @@ func (cc *CandidateCreate) check() error {
 		if err := candidate.PhoneValidator(v); err != nil {
 			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Candidate.phone": %w`, err)}
 		}
-	}
-	if _, ok := cc.mutation.Dob(); !ok {
-		return &ValidationError{Name: "dob", err: errors.New(`ent: missing required field "Candidate.dob"`)}
 	}
 	if _, ok := cc.mutation.IsBlacklist(); !ok {
 		return &ValidationError{Name: "is_blacklist", err: errors.New(`ent: missing required field "Candidate.is_blacklist"`)}

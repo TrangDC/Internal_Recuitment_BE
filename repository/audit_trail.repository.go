@@ -5,7 +5,6 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/audittrail"
-	"trec/middleware"
 
 	"github.com/google/uuid"
 )
@@ -77,12 +76,12 @@ func (rps *auditTrailRepoImpl) GetAuditTrail(ctx context.Context, auditTrailId u
 
 // common function
 func (rps *auditTrailRepoImpl) AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error {
-	mutation := rps.BuildCreate().SetRecordId(recordId).
+	createdById := ctx.Value("user_id").(uuid.UUID)
+	_, err := rps.BuildCreate().SetRecordId(recordId).
 		SetModule(module).
 		SetActionType(mutationType).
 		SetRecordChanges(recordChange).
-		SetNote(note)
-	createdBy := ctx.Value(middleware.Key{})
-	_, err := mutation.SetCreatedBy(createdBy.(uuid.UUID)).Save(ctx)
+		SetCreatedBy(createdById).
+		SetNote(note).Save(ctx)
 	return err
 }

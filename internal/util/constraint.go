@@ -4,7 +4,7 @@ import "time"
 
 type Model string
 
-var DefaultTime, _ = time.Parse("2006-01", "0000-01")
+var DefaultTime = time.Time{}
 
 const (
 	Coefficient     Model = "Coefficient"

@@ -164,6 +164,14 @@ func (cj *CandidateJob) CandidateJobInterview(ctx context.Context) (result []*Ca
 	return result, err
 }
 
+func (cj *CandidateJob) CreatedByEdge(ctx context.Context) (*User, error) {
+	result, err := cj.Edges.CreatedByEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cj.QueryCreatedByEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (cjf *CandidateJobFeedback) CreatedByEdge(ctx context.Context) (*User, error) {
 	result, err := cjf.Edges.CreatedByEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -328,6 +336,18 @@ func (u *User) InterviewEdges(ctx context.Context) (result []*CandidateInterview
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryInterviewEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) CandidateJobEdges(ctx context.Context) (result []*CandidateJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateJobEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateJobEdges().All(ctx)
 	}
 	return result, err
 }

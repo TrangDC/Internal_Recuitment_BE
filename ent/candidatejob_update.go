@@ -14,6 +14,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -114,6 +115,26 @@ func (cju *CandidateJobUpdate) ClearCandidateID() *CandidateJobUpdate {
 	return cju
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (cju *CandidateJobUpdate) SetCreatedBy(u uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.SetCreatedBy(u)
+	return cju
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableCreatedBy(u *uuid.UUID) *CandidateJobUpdate {
+	if u != nil {
+		cju.SetCreatedBy(*u)
+	}
+	return cju
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (cju *CandidateJobUpdate) ClearCreatedBy() *CandidateJobUpdate {
+	cju.mutation.ClearCreatedBy()
+	return cju
+}
+
 // SetStatus sets the "status" field.
 func (cju *CandidateJobUpdate) SetStatus(c candidatejob.Status) *CandidateJobUpdate {
 	cju.mutation.SetStatus(c)
@@ -211,6 +232,25 @@ func (cju *CandidateJobUpdate) AddCandidateJobInterview(c ...*CandidateInterview
 	return cju.AddCandidateJobInterviewIDs(ids...)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (cju *CandidateJobUpdate) SetCreatedByEdgeID(id uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.SetCreatedByEdgeID(id)
+	return cju
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateJobUpdate {
+	if id != nil {
+		cju = cju.SetCreatedByEdgeID(*id)
+	}
+	return cju
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (cju *CandidateJobUpdate) SetCreatedByEdge(u *User) *CandidateJobUpdate {
+	return cju.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cju *CandidateJobUpdate) Mutation() *CandidateJobMutation {
 	return cju.mutation
@@ -289,6 +329,12 @@ func (cju *CandidateJobUpdate) RemoveCandidateJobInterview(c ...*CandidateInterv
 		ids[i] = c[i].ID
 	}
 	return cju.RemoveCandidateJobInterviewIDs(ids...)
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (cju *CandidateJobUpdate) ClearCreatedByEdge() *CandidateJobUpdate {
+	cju.mutation.ClearCreatedByEdge()
+	return cju
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -626,6 +672,41 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cju.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CreatedByEdgeTable,
+			Columns: []string{candidatejob.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cju.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CreatedByEdgeTable,
+			Columns: []string{candidatejob.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidatejob.Label}
@@ -722,6 +803,26 @@ func (cjuo *CandidateJobUpdateOne) SetNillableCandidateID(u *uuid.UUID) *Candida
 // ClearCandidateID clears the value of the "candidate_id" field.
 func (cjuo *CandidateJobUpdateOne) ClearCandidateID() *CandidateJobUpdateOne {
 	cjuo.mutation.ClearCandidateID()
+	return cjuo
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (cjuo *CandidateJobUpdateOne) SetCreatedBy(u uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.SetCreatedBy(u)
+	return cjuo
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableCreatedBy(u *uuid.UUID) *CandidateJobUpdateOne {
+	if u != nil {
+		cjuo.SetCreatedBy(*u)
+	}
+	return cjuo
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (cjuo *CandidateJobUpdateOne) ClearCreatedBy() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearCreatedBy()
 	return cjuo
 }
 
@@ -822,6 +923,25 @@ func (cjuo *CandidateJobUpdateOne) AddCandidateJobInterview(c ...*CandidateInter
 	return cjuo.AddCandidateJobInterviewIDs(ids...)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (cjuo *CandidateJobUpdateOne) SetCreatedByEdgeID(id uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.SetCreatedByEdgeID(id)
+	return cjuo
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateJobUpdateOne {
+	if id != nil {
+		cjuo = cjuo.SetCreatedByEdgeID(*id)
+	}
+	return cjuo
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (cjuo *CandidateJobUpdateOne) SetCreatedByEdge(u *User) *CandidateJobUpdateOne {
+	return cjuo.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cjuo *CandidateJobUpdateOne) Mutation() *CandidateJobMutation {
 	return cjuo.mutation
@@ -900,6 +1020,12 @@ func (cjuo *CandidateJobUpdateOne) RemoveCandidateJobInterview(c ...*CandidateIn
 		ids[i] = c[i].ID
 	}
 	return cjuo.RemoveCandidateJobInterviewIDs(ids...)
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (cjuo *CandidateJobUpdateOne) ClearCreatedByEdge() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearCreatedByEdge()
+	return cjuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1259,6 +1385,41 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cjuo.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CreatedByEdgeTable,
+			Columns: []string{candidatejob.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cjuo.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CreatedByEdgeTable,
+			Columns: []string{candidatejob.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

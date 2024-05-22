@@ -19,8 +19,8 @@ import (
 
 type CandidateInterviewRepository interface {
 	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID, status string) (*ent.CandidateInterview, error)
-	UpdateCandidateInterview(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
-	UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterview, error)
+	UpdateCandidateInterview(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
+	UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error)
 	// query
@@ -112,11 +112,14 @@ func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Cont
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
-func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterview, error) {
+func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
 	update := rps.BuildUpdateOne(ctx, model).
 		SetInterviewDate(input.InterviewDate).
 		SetStartFrom(input.StartFrom).
 		SetEndAt(input.EndAt)
+	if len(newMemberIds) > 0 && len(removeMemberIds) > 0 {
+		update.AddInterviewerEdgeIDs(newMemberIds...).RemoveInterviewerEdgeIDs(removeMemberIds...)
+	}
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -127,16 +130,28 @@ func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Cont
 
 func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error) {
 	var createBulk []*ent.CandidateInterviewCreate
+	var createInterviewers []*ent.CandidateInterviewerCreate
 	for _, record := range candidateJobs {
 		createBulk = append(createBulk, rps.BuildCreate().SetTitle(input.Title).
 			SetInterviewDate(input.InterviewDate).
 			SetStartFrom(input.StartFrom).
+			SetDescription(input.Description).
 			SetEndAt(input.EndAt).
 			SetCandidateJobID(record.ID).
-			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())).
-			AddInterviewerEdgeIDs(memberIds...))
+			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())))
 	}
-	return rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)
+	candidateInterviews, err := rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, record := range candidateInterviews {
+		createBulkThings := lo.Map(memberIds, func(item uuid.UUID, index int) *ent.CandidateInterviewerCreate {
+			return rps.client.CandidateInterviewer.Create().SetCandidateInterviewID(record.ID).SetUserID(item)
+		})
+		createInterviewers = append(createInterviewers, createBulkThings...)
+	}
+	_, err = rps.client.CandidateInterviewer.CreateBulk(createInterviewers...).Save(ctx)
+	return candidateInterviews, err
 }
 
 // query
@@ -246,9 +261,6 @@ func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidate
 }
 
 func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, candidateJobId uuid.UUID, interviewDate, startFrom, endAt *time.Time) (error, error) {
-	if interviewDate.Before(time.Now()) {
-		return fmt.Errorf("model.candidate_interviews.validation.interview_date_invalid"), nil
-	}
 	if startFrom.After(*endAt) {
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_end_at_invalid"), nil
 	}

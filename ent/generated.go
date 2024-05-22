@@ -155,7 +155,8 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
-	HiringJobID string `json:"hiring_job_id"`
+	HiringJobID string  `json:"hiring_job_id"`
+	CreatedBy   *string `json:"created_by"`
 }
 
 type CandidateJobGroupByStatusResponse struct {
@@ -210,10 +211,10 @@ type NewAttachmentInput struct {
 }
 
 type NewCandidateInput struct {
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
-	Phone string    `json:"phone"`
-	Dob   time.Time `json:"dob"`
+	Name  string     `json:"name"`
+	Email string     `json:"email"`
+	Phone string     `json:"phone"`
+	Dob   *time.Time `json:"dob"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -312,10 +313,10 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateInput struct {
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
-	Phone string    `json:"phone"`
-	Dob   time.Time `json:"dob"`
+	Name  string     `json:"name"`
+	Email string     `json:"email"`
+	Phone string     `json:"phone"`
+	Dob   *time.Time `json:"dob"`
 }
 
 type UpdateCandidateInterviewInput struct {
@@ -332,6 +333,7 @@ type UpdateCandidateInterviewScheduleInput struct {
 	InterviewDate time.Time `json:"interview_date"`
 	StartFrom     time.Time `json:"start_from"`
 	EndAt         time.Time `json:"end_at"`
+	Interviewer   []string  `json:"interviewer"`
 }
 
 type UpdateCandidateJobFeedbackInput struct {

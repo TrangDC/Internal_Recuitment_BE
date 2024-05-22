@@ -66,7 +66,7 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.HiringJobQuery) {
 			query.WithTeamEdge().WithOwnerEdge()
 		},
-	)
+	).WithCreatedByEdge()
 }
 
 func (rps candidateJobRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {
@@ -103,11 +103,13 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 	if err != nil {
 		return nil, err
 	}
+	createdById := ctx.Value("user_id").(uuid.UUID)
 	return rps.BuildCreate().
 		SetHiringJobID(uuid.MustParse(input.HiringJobID)).
 		SetUpdatedAt(time.Now().UTC()).
 		SetCandidateID(uuid.MustParse(input.CandidateID)).
 		SetStatus(candidatejob.Status(input.Status)).
+		SetCreatedBy(createdById).
 		Save(ctx)
 }
 

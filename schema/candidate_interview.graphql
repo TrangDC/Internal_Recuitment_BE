@@ -64,6 +64,7 @@ input UpdateCandidateInterviewScheduleInput {
   interview_date: Time!
   start_from: Time!
   end_at: Time!
+  interviewer: [ID!]
 }
 
 input CandidateInterviewFilter {

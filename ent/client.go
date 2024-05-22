@@ -985,6 +985,22 @@ func (c *CandidateJobClient) QueryCandidateJobInterview(cj *CandidateJob) *Candi
 	return query
 }
 
+// QueryCreatedByEdge queries the created_by_edge edge of a CandidateJob.
+func (c *CandidateJobClient) QueryCreatedByEdge(cj *CandidateJob) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.CreatedByEdgeTable, candidatejob.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateJobClient) Hooks() []Hook {
 	return c.hooks.CandidateJob
@@ -1684,6 +1700,22 @@ func (c *UserClient) QueryInterviewEdges(u *User) *CandidateInterviewQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.InterviewEdgesTable, user.InterviewEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobEdges queries the candidate_job_edges edge of a User.
+func (c *UserClient) QueryCandidateJobEdges(u *User) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateJobEdgesTable, user.CandidateJobEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
