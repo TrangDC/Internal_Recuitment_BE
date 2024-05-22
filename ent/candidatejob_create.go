@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -92,6 +93,20 @@ func (cjc *CandidateJobCreate) SetCandidateID(u uuid.UUID) *CandidateJobCreate {
 func (cjc *CandidateJobCreate) SetNillableCandidateID(u *uuid.UUID) *CandidateJobCreate {
 	if u != nil {
 		cjc.SetCandidateID(*u)
+	}
+	return cjc
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (cjc *CandidateJobCreate) SetCreatedBy(u uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetCreatedBy(u)
+	return cjc
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableCreatedBy(u *uuid.UUID) *CandidateJobCreate {
+	if u != nil {
+		cjc.SetCreatedBy(*u)
 	}
 	return cjc
 }
@@ -205,6 +220,25 @@ func (cjc *CandidateJobCreate) AddCandidateJobInterview(c ...*CandidateInterview
 		ids[i] = c[i].ID
 	}
 	return cjc.AddCandidateJobInterviewIDs(ids...)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (cjc *CandidateJobCreate) SetCreatedByEdgeID(id uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetCreatedByEdgeID(id)
+	return cjc
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateJobCreate {
+	if id != nil {
+		cjc = cjc.SetCreatedByEdgeID(*id)
+	}
+	return cjc
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (cjc *CandidateJobCreate) SetCreatedByEdge(u *User) *CandidateJobCreate {
+	return cjc.SetCreatedByEdgeID(u.ID)
 }
 
 // Mutation returns the CandidateJobMutation object of the builder.
@@ -458,6 +492,26 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cjc.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.CreatedByEdgeTable,
+			Columns: []string{candidatejob.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CreatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

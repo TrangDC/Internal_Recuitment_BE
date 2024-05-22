@@ -4,8 +4,8 @@
       "model_name": "Candidates",
       "name": "Name",
       "email": "Email",
-      "phone": "Phone Number",
-      "dob": "Date Of Birth",
+      "phone": "Phone",
+      "dob": "DOB",
       "is_blacklist": "Blacklist"
     }
   },

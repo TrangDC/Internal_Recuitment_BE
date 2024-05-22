@@ -9,6 +9,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -29,6 +30,8 @@ type CandidateJob struct {
 	HiringJobID uuid.UUID `json:"hiring_job_id,omitempty"`
 	// CandidateID holds the value of the "candidate_id" field.
 	CandidateID uuid.UUID `json:"candidate_id,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// Status holds the value of the "status" field.
 	Status candidatejob.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -48,11 +51,13 @@ type CandidateJobEdges struct {
 	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
 	// CandidateJobInterview holds the value of the candidate_job_interview edge.
 	CandidateJobInterview []*CandidateInterview `json:"candidate_job_interview,omitempty"`
+	// CreatedByEdge holds the value of the created_by_edge edge.
+	CreatedByEdge *User `json:"created_by_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
+	totalCount [6]map[string]int
 
 	namedAttachmentEdges       map[string][]*Attachment
 	namedCandidateJobFeedback  map[string][]*CandidateJobFeedback
@@ -112,6 +117,19 @@ func (e CandidateJobEdges) CandidateJobInterviewOrErr() ([]*CandidateInterview, 
 	return nil, &NotLoadedError{edge: "candidate_job_interview"}
 }
 
+// CreatedByEdgeOrErr returns the CreatedByEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CandidateJobEdges) CreatedByEdgeOrErr() (*User, error) {
+	if e.loadedTypes[5] {
+		if e.CreatedByEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.CreatedByEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "created_by_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -121,7 +139,7 @@ func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case candidatejob.FieldID, candidatejob.FieldHiringJobID, candidatejob.FieldCandidateID:
+		case candidatejob.FieldID, candidatejob.FieldHiringJobID, candidatejob.FieldCandidateID, candidatejob.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type CandidateJob", columns[i])
@@ -174,6 +192,12 @@ func (cj *CandidateJob) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				cj.CandidateID = *value
 			}
+		case candidatejob.FieldCreatedBy:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value != nil {
+				cj.CreatedBy = *value
+			}
 		case candidatejob.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -208,6 +232,11 @@ func (cj *CandidateJob) QueryCandidateEdge() *CandidateQuery {
 // QueryCandidateJobInterview queries the "candidate_job_interview" edge of the CandidateJob entity.
 func (cj *CandidateJob) QueryCandidateJobInterview() *CandidateInterviewQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryCandidateJobInterview(cj)
+}
+
+// QueryCreatedByEdge queries the "created_by_edge" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryCreatedByEdge() *UserQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryCreatedByEdge(cj)
 }
 
 // Update returns a builder for updating this CandidateJob.
@@ -247,6 +276,9 @@ func (cj *CandidateJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("candidate_id=")
 	builder.WriteString(fmt.Sprintf("%v", cj.CandidateID))
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(fmt.Sprintf("%v", cj.CreatedBy))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", cj.Status))

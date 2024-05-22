@@ -44,6 +44,11 @@ func (r *candidateJobResolver) HiringJob(ctx context.Context, obj *ent.Candidate
 	return obj.Edges.HiringJobEdge, nil
 }
 
+// CreatedBy is the resolver for the created_by field.
+func (r *candidateJobResolver) CreatedBy(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error) {
+	return obj.Edges.CreatedByEdge, nil
+}
+
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 

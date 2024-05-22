@@ -60,16 +60,16 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	svc.getAdditionalInfo(ctx, record)
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
+	result, _ := svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
+	recordChanges := svc.recordCreateDelete(result, audittrail.ActionTypeCreate)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.HiringJobResponse{
-		Data: record,
+		Data: result,
 	}, nil
 }
 
@@ -113,7 +113,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	svc.getAdditionalInfo(ctx, result)
+	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	recordChanges := svc.recordUpdate(record, result)
 	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)

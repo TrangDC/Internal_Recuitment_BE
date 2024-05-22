@@ -54,13 +54,11 @@ func (svc *exportDataSvcImpl) ExportSampleCandidates(ctx context.Context, lang e
 func (svc exportDataSvcImpl) candidateHeader(i18nObj models.I18nObject) *excelize.File {
 	file := excelize.NewFile()
 	sheetName := file.GetSheetName(0)
-	mergeCells(file, sheetName, "A2", "C2")
-	setCellValue(file, sheetName, "A2", i18nObj.Model.Candidates.ModelName)
-	setCellValue(file, sheetName, "A4", i18nObj.Excel.Id)
-	setCellValue(file, sheetName, "B4", i18nObj.Model.Candidates.Name)
-	setCellValue(file, sheetName, "C4", i18nObj.Model.Candidates.Email)
-	setCellValue(file, sheetName, "D4", i18nObj.Model.Candidates.Dob)
-	setCellValue(file, sheetName, "E4", i18nObj.Model.Candidates.Phone)
+	setCellValue(file, sheetName, "A1", i18nObj.Excel.Id)
+	setCellValue(file, sheetName, "B1", i18nObj.Model.Candidates.Name)
+	setCellValue(file, sheetName, "C1", i18nObj.Model.Candidates.Email)
+	setCellValue(file, sheetName, "E1", i18nObj.Model.Candidates.Phone)
+	setCellValue(file, sheetName, "D1", i18nObj.Model.Candidates.Dob)
 	return file
 }
 
@@ -68,6 +66,6 @@ func setCellValue(f *excelize.File, sheet, cell, value string) {
 	_ = f.SetCellValue(sheet, cell, value)
 }
 
-func mergeCells(f *excelize.File, sheet, cellB string, cellE string) {
-	_ = f.MergeCell(sheet, cellB, cellE)
-}
+// func mergeCells(f *excelize.File, sheet, cellB string, cellE string) {
+// 	_ = f.MergeCell(sheet, cellB, cellE)
+// }

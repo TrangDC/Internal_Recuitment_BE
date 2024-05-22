@@ -13,8 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Key struct{}
-
 // AuthenticateMiddleware is a middleware to authenticate user
 func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger *zap.Logger) func(c *gin.Context) {
 	return func(c *gin.Context) {
@@ -48,7 +46,7 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger
 			}
 			_ = db.QueryRow("SELECT id FROM users WHERE oid = $1 AND deleted_at IS NULL", tokenData.ObjectID).Scan(&id)
 		}
-		ctx = context.WithValue(ctx, Key{}, id)
+		ctx = context.WithValue(ctx, "user_id", id)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

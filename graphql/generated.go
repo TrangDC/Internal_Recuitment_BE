@@ -161,6 +161,7 @@ type ComplexityRoot struct {
 		Candidate   func(childComplexity int) int
 		CandidateID func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
+		CreatedBy   func(childComplexity int) int
 		HiringJob   func(childComplexity int) int
 		HiringJobID func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -428,6 +429,7 @@ type CandidateJobResolver interface {
 	Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error)
 	Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error)
 	HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error)
+	CreatedBy(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 }
 type CandidateJobFeedbackResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
@@ -960,6 +962,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.CreatedAt(childComplexity), true
+
+	case "CandidateJob.created_by":
+		if e.complexity.CandidateJob.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.CreatedBy(childComplexity), true
 
 	case "CandidateJob.hiring_job":
 		if e.complexity.CandidateJob.HiringJob == nil {
@@ -2420,6 +2429,7 @@ input UpdateCandidateInterviewScheduleInput {
   interview_date: Time!
   start_from: Time!
   end_at: Time!
+  interviewer: [ID!]
 }
 
 input CandidateInterviewFilter {
@@ -2488,6 +2498,7 @@ enum CandidateJobStatus {
 
 input CandidateJobGroupByStatusFilter{
   hiring_job_id: ID!
+  created_by: ID
 }
 
 type CandidateJob {
@@ -2498,6 +2509,7 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
+  created_by: User!
   created_at: Time!
   updated_at: Time!
 }
@@ -2642,14 +2654,14 @@ input NewCandidateInput{
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
 }
 
 input UpdateCandidateInput {
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
 }
 
 input CandidateFilter {
@@ -2682,7 +2694,7 @@ type Candidate {
   name: String!
   email: String!
   phone: String!
-  dob: Time!
+  dob: Time
   status: CandidateStatusEnum!
   is_black_list: Boolean!
   last_apply_date: Time
@@ -5947,14 +5959,11 @@ func (ec *executionContext) _Candidate_dob(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Candidate_dob(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6752,6 +6761,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -7551,6 +7562,60 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJob_created_by(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJob_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJob_created_at(ctx, field)
 	if err != nil {
@@ -7692,6 +7757,8 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -7932,6 +7999,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8499,6 +8568,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8560,6 +8631,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8621,6 +8694,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8682,6 +8757,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8743,6 +8820,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8804,6 +8883,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8865,6 +8946,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8983,6 +9066,8 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJob_created_by(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -17416,7 +17501,7 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"hiring_job_id"}
+	fieldsInOrder := [...]string{"hiring_job_id", "created_by"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17428,6 +17513,14 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
 			it.HiringJobID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "created_by":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
+			it.CreatedBy, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17695,7 +17788,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
-			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			it.Dob, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18339,7 +18432,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
-			it.Dob, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			it.Dob, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18432,7 +18525,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewScheduleInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"interview_date", "start_from", "end_at"}
+	fieldsInOrder := [...]string{"interview_date", "start_from", "end_at", "interviewer"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -18460,6 +18553,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewScheduleInput(
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_at"))
 			it.EndAt, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "interviewer":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interviewer"))
+			it.Interviewer, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19360,9 +19461,6 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._Candidate_dob(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "status":
 			field := field
 
@@ -19857,6 +19955,26 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._CandidateJob_hiring_job(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_by":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_created_by(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

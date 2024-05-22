@@ -162,7 +162,7 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 	query := svc.repoRegistry.Candidate().BuildQuery()
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
-	if filter.JobID != nil {
+	if filter != nil && filter.JobID != nil {
 		if filter.IsAbleToInterview != nil && *filter.IsAbleToInterview {
 			query = query.Where(candidate.HasCandidateJobEdgesWith(
 				candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID)),

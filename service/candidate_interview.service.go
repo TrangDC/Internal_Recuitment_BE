@@ -28,7 +28,7 @@ type CandidateInterviewService interface {
 	DeleteCandidateInterview(ctx context.Context, id uuid.UUID) error
 	UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
 	UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error)
-	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (error)
+	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) error
 
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
@@ -57,7 +57,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	candidateJobStatus, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
-	if err != nil{
+	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
@@ -89,9 +89,9 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	}, nil
 }
 
-func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (error) {
+func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) error {
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
-	if err != nil{
+	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
@@ -103,8 +103,8 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 		return uuid.MustParse(member)
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err := repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input) 
-		return err 
+		_, err := repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input)
+		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -131,7 +131,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	})
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
 	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil{
+	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
@@ -163,6 +163,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
+	var newMemberIds, removeMemberIds []uuid.UUID
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
@@ -176,7 +177,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	inputValidate.CandidateJobId = record.CandidateJobID
 	inputValidate.Title = record.Title
 	_, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, id, inputValidate)
-	if err != nil{
+	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
@@ -184,8 +185,14 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 		svc.logger.Error(stringError.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	if input.Interviewer != nil || len(input.Interviewer) == 0 {
+		memberIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
+			return uuid.MustParse(member)
+		})
+		newMemberIds, removeMemberIds = svc.updateMembers(record, memberIds)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input)
+		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input, newMemberIds, removeMemberIds)
 		if err != nil {
 			return err
 		}

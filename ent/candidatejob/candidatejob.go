@@ -26,6 +26,8 @@ const (
 	FieldHiringJobID = "hiring_job_id"
 	// FieldCandidateID holds the string denoting the candidate_id field in the database.
 	FieldCandidateID = "candidate_id"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
@@ -38,6 +40,8 @@ const (
 	EdgeCandidateEdge = "candidate_edge"
 	// EdgeCandidateJobInterview holds the string denoting the candidate_job_interview edge name in mutations.
 	EdgeCandidateJobInterview = "candidate_job_interview"
+	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
+	EdgeCreatedByEdge = "created_by_edge"
 	// Table holds the table name of the candidatejob in the database.
 	Table = "candidate_jobs"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -75,6 +79,13 @@ const (
 	CandidateJobInterviewInverseTable = "candidate_interviews"
 	// CandidateJobInterviewColumn is the table column denoting the candidate_job_interview relation/edge.
 	CandidateJobInterviewColumn = "candidate_job_id"
+	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
+	CreatedByEdgeTable = "candidate_jobs"
+	// CreatedByEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatedByEdgeInverseTable = "users"
+	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
+	CreatedByEdgeColumn = "created_by"
 )
 
 // Columns holds all SQL columns for candidatejob fields.
@@ -85,6 +96,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldHiringJobID,
 	FieldCandidateID,
+	FieldCreatedBy,
 	FieldStatus,
 }
 

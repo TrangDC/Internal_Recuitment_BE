@@ -18,7 +18,7 @@ func (Candidate) Fields() []ent.Field {
 		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.String("email").MaxLen(255).NotEmpty().Unique(),
 		field.String("phone").MaxLen(255).NotEmpty(),
-		field.Time("dob"),
+		field.Time("dob").Optional(),
 		field.Bool("is_blacklist").Default(false),
 		field.Time("last_apply_date").Optional().Annotations(entgql.OrderField("last_apply_date")),
 	}

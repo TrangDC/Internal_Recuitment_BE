@@ -726,6 +726,20 @@ func DobLTE(v time.Time) predicate.Candidate {
 	})
 }
 
+// DobIsNil applies the IsNil predicate on the "dob" field.
+func DobIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDob)))
+	})
+}
+
+// DobNotNil applies the NotNil predicate on the "dob" field.
+func DobNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDob)))
+	})
+}
+
 // IsBlacklistEQ applies the EQ predicate on the "is_blacklist" field.
 func IsBlacklistEQ(v bool) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {

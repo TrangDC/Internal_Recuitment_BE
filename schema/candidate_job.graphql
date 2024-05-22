@@ -24,6 +24,7 @@ enum CandidateJobStatus {
 
 input CandidateJobGroupByStatusFilter{
   hiring_job_id: ID!
+  created_by: ID
 }
 
 type CandidateJob {
@@ -34,6 +35,7 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
+  created_by: User!
   created_at: Time!
   updated_at: Time!
 }

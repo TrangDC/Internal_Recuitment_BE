@@ -94,6 +94,20 @@ func (cu *CandidateUpdate) SetDob(t time.Time) *CandidateUpdate {
 	return cu
 }
 
+// SetNillableDob sets the "dob" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableDob(t *time.Time) *CandidateUpdate {
+	if t != nil {
+		cu.SetDob(*t)
+	}
+	return cu
+}
+
+// ClearDob clears the value of the "dob" field.
+func (cu *CandidateUpdate) ClearDob() *CandidateUpdate {
+	cu.mutation.ClearDob()
+	return cu
+}
+
 // SetIsBlacklist sets the "is_blacklist" field.
 func (cu *CandidateUpdate) SetIsBlacklist(b bool) *CandidateUpdate {
 	cu.mutation.SetIsBlacklist(b)
@@ -291,6 +305,9 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Dob(); ok {
 		_spec.SetField(candidate.FieldDob, field.TypeTime, value)
 	}
+	if cu.mutation.DobCleared() {
+		_spec.ClearField(candidate.FieldDob, field.TypeTime)
+	}
 	if value, ok := cu.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)
 	}
@@ -434,6 +451,20 @@ func (cuo *CandidateUpdateOne) SetPhone(s string) *CandidateUpdateOne {
 // SetDob sets the "dob" field.
 func (cuo *CandidateUpdateOne) SetDob(t time.Time) *CandidateUpdateOne {
 	cuo.mutation.SetDob(t)
+	return cuo
+}
+
+// SetNillableDob sets the "dob" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableDob(t *time.Time) *CandidateUpdateOne {
+	if t != nil {
+		cuo.SetDob(*t)
+	}
+	return cuo
+}
+
+// ClearDob clears the value of the "dob" field.
+func (cuo *CandidateUpdateOne) ClearDob() *CandidateUpdateOne {
+	cuo.mutation.ClearDob()
 	return cuo
 }
 
@@ -663,6 +694,9 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if value, ok := cuo.mutation.Dob(); ok {
 		_spec.SetField(candidate.FieldDob, field.TypeTime, value)
+	}
+	if cuo.mutation.DobCleared() {
+		_spec.ClearField(candidate.FieldDob, field.TypeTime)
 	}
 	if value, ok := cuo.mutation.IsBlacklist(); ok {
 		_spec.SetField(candidate.FieldIsBlacklist, field.TypeBool, value)

@@ -14,6 +14,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -35,6 +36,7 @@ type CandidateJobQuery struct {
 	withCandidateJobFeedback       *CandidateJobFeedbackQuery
 	withCandidateEdge              *CandidateQuery
 	withCandidateJobInterview      *CandidateInterviewQuery
+	withCreatedByEdge              *UserQuery
 	modifiers                      []func(*sql.Selector)
 	loadTotal                      []func(context.Context, []*CandidateJob) error
 	withNamedAttachmentEdges       map[string]*AttachmentQuery
@@ -179,6 +181,28 @@ func (cjq *CandidateJobQuery) QueryCandidateJobInterview() *CandidateInterviewQu
 			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
 			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.CandidateJobInterviewTable, candidatejob.CandidateJobInterviewColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
+func (cjq *CandidateJobQuery) QueryCreatedByEdge() *UserQuery {
+	query := &UserQuery{config: cjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.CreatedByEdgeTable, candidatejob.CreatedByEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
 		return fromU, nil
@@ -372,6 +396,7 @@ func (cjq *CandidateJobQuery) Clone() *CandidateJobQuery {
 		withCandidateJobFeedback:  cjq.withCandidateJobFeedback.Clone(),
 		withCandidateEdge:         cjq.withCandidateEdge.Clone(),
 		withCandidateJobInterview: cjq.withCandidateJobInterview.Clone(),
+		withCreatedByEdge:         cjq.withCreatedByEdge.Clone(),
 		// clone intermediate query.
 		sql:    cjq.sql.Clone(),
 		path:   cjq.path,
@@ -431,6 +456,17 @@ func (cjq *CandidateJobQuery) WithCandidateJobInterview(opts ...func(*CandidateI
 		opt(query)
 	}
 	cjq.withCandidateJobInterview = query
+	return cjq
+}
+
+// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
+// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (cjq *CandidateJobQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *CandidateJobQuery {
+	query := &UserQuery{config: cjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cjq.withCreatedByEdge = query
 	return cjq
 }
 
@@ -507,12 +543,13 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*CandidateJob{}
 		_spec       = cjq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			cjq.withAttachmentEdges != nil,
 			cjq.withHiringJobEdge != nil,
 			cjq.withCandidateJobFeedback != nil,
 			cjq.withCandidateEdge != nil,
 			cjq.withCandidateJobInterview != nil,
+			cjq.withCreatedByEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -570,6 +607,12 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			func(n *CandidateJob, e *CandidateInterview) {
 				n.Edges.CandidateJobInterview = append(n.Edges.CandidateJobInterview, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := cjq.withCreatedByEdge; query != nil {
+		if err := cjq.loadCreatedByEdge(ctx, query, nodes, nil,
+			func(n *CandidateJob, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -732,6 +775,32 @@ func (cjq *CandidateJobQuery) loadCandidateJobInterview(ctx context.Context, que
 			return fmt.Errorf(`unexpected foreign-key "candidate_job_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (cjq *CandidateJobQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*CandidateJob, init func(*CandidateJob), assign func(*CandidateJob, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*CandidateJob)
+	for i := range nodes {
+		fk := nodes[i].CreatedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

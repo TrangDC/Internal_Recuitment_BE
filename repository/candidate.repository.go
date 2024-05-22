@@ -37,6 +37,8 @@ func NewCandidateRepository(client *ent.Client) CandidateRepository {
 	}
 }
 
+var defaultTime = time.Time{}
+
 // Base function
 func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
 	return rps.client.Candidate.Create().SetUpdatedAt(time.Now())
@@ -45,11 +47,14 @@ func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
 func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error) {
 	var createBulk []*ent.CandidateCreate
 	for _, v := range input {
-		createBulk = append(createBulk, rps.BuildCreate().
+		create := rps.BuildCreate().
 			SetName(strings.TrimSpace(v.Name)).
 			SetEmail(strings.TrimSpace(v.Email)).
-			SetPhone(strings.TrimSpace(v.Phone)).
-			SetDob(v.Dob))
+			SetPhone(strings.TrimSpace(v.Phone))
+		if v.Dob != &defaultTime {
+			create.SetDob(*v.Dob)
+		}
+		createBulk = append(createBulk, create)
 	}
 	return rps.client.Candidate.CreateBulk(createBulk...).Save(ctx)
 }
@@ -92,21 +97,25 @@ func (rps candidateRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent
 
 // mutation
 func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.NewCandidateInput) (*ent.Candidate, error) {
-	return rps.BuildCreate().
+	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).
 		SetEmail(strings.TrimSpace(input.Email)).
-		SetPhone(strings.TrimSpace(input.Phone)).
-		SetDob(input.Dob).
-		Save(ctx)
+		SetPhone(strings.TrimSpace(input.Phone))
+	if input.Dob != nil && *input.Dob != defaultTime {
+		create.SetDob(*input.Dob)
+	}
+	return create.Save(ctx)
 }
 
 func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Candidate, input *ent.UpdateCandidateInput) (*ent.Candidate, error) {
-	return rps.BuildUpdateOne(ctx, record).
+	update := rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetEmail(strings.TrimSpace(input.Email)).
-		SetPhone(strings.TrimSpace(input.Phone)).
-		SetDob(input.Dob).
-		Save(ctx)
+		SetPhone(strings.TrimSpace(input.Phone))
+	if input.Dob != nil && *input.Dob != defaultTime {
+		update.SetDob(*input.Dob)
+	}
+	return update.Save(ctx)
 }
 
 func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Candidate) error {

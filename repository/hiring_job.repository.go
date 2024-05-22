@@ -8,6 +8,7 @@ import (
 	"trec/ent"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
+	"trec/ent/user"
 	"trec/internal/util"
 
 	"github.com/google/uuid"
@@ -60,6 +61,14 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 		func(query *ent.CandidateJobQuery) {
 			query.Where(candidatejob.DeletedAtIsNil(), candidatejob.StatusEQ(candidatejob.StatusHired))
 		},
+	).WithOwnerEdge().WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
 	)
 }
 
@@ -68,7 +77,7 @@ func (rps *hiringJobRepoImpl) BuildGet(ctx context.Context, query *ent.HiringJob
 }
 
 func (rps *hiringJobRepoImpl) BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error) {
-	return query.WithOwnerEdge().WithTeamEdge().All(ctx)
+	return query.All(ctx)
 }
 
 func (rps *hiringJobRepoImpl) BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error) {
@@ -132,7 +141,7 @@ func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.H
 
 // query
 func (rps *hiringJobRepoImpl) GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error) {
-	return rps.BuildQuery().WithOwnerEdge().WithTeamEdge().Where(hiringjob.IDEQ(hiringJobId)).First(ctx)
+	return rps.BuildQuery().Where(hiringjob.IDEQ(hiringJobId)).First(ctx)
 }
 
 // common function
