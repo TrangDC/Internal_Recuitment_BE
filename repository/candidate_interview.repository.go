@@ -265,7 +265,7 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_end_at_invalid"), nil
 	}
 	query := rps.client.CandidateInterview.Query().
-		Where(candidateinterview.CandidateJobID(candidateJobId),
+		Where(candidateinterview.CandidateJobID(candidateJobId), candidateinterview.DeletedAtIsNil(),
 			candidateinterview.InterviewDateEQ(*interviewDate))
 	if candidateInterviewId != uuid.Nil {
 		query.Where(candidateinterview.IDNEQ(candidateInterviewId))
