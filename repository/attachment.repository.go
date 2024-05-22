@@ -12,7 +12,7 @@ import (
 type AttachmentRepository interface {
 	// mutation
 	CreateAttachment(ctx context.Context, input []*ent.NewAttachmentInput, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
-
+	RemoveAttachment(ctx context.Context, relationId uuid.UUID) error
 	// query
 	GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error)
 	GetAttachments(ctx context.Context, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
@@ -93,6 +93,10 @@ func (rps *attachmentRepoImpl) CreateAttachment(ctx context.Context, input []*en
 		return nil, err
 	}
 	return attachments, nil
+}
+
+func (rps *attachmentRepoImpl) RemoveAttachment(ctx context.Context, relationId uuid.UUID) error {
+	return rps.BuildDelete().Where(attachment.RelationIDEQ(relationId)).Exec(ctx)
 }
 
 func (rps *attachmentRepoImpl) GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error) {

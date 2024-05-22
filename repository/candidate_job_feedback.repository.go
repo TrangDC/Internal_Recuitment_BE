@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
+	"trec/ent/user"
 
 	"github.com/google/uuid"
 )
@@ -61,6 +62,10 @@ func (rps CandidateJobFeedbackRepoImpl) BuildQuery() *ent.CandidateJobFeedbackQu
 		func(query *ent.AttachmentQuery) {
 			query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
 		},
+	).WithCreatedByEdge(
+		func(query *ent.UserQuery) {
+			query.Where(user.DeletedAtIsNil())
+		},
 	)
 }
 
@@ -100,7 +105,7 @@ func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.C
 }
 
 func (rps CandidateJobFeedbackRepoImpl) DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error) {
-	return rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now().UTC()).RemoveAttachmentEdges().Save(ctx)
+	return rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now().UTC()).Save(ctx)
 }
 func (rps CandidateJobFeedbackRepoImpl) UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error) {
 	return rps.BuildUpdateOne(ctx, model).SetFeedback(input.Feedback).Save(ctx)
@@ -123,9 +128,10 @@ func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJ
 }
 
 func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(true), candidate.HasCandidateJobEdgesWith(
-		candidatejob.DeletedAtIsNil(), candidatejob.IDEQ(candidateJobId),
-	)).First(ctx)
+	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil(),
+		candidatejob.HasCandidateEdgeWith(
+			candidate.IsBlacklistEQ(false),
+		)).First(ctx)
 	if err != nil {
 		return fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist")
 	}

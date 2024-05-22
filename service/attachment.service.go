@@ -12,6 +12,7 @@ import (
 
 type AttachmentService interface {
 	CreateAttachment(ctx context.Context, input []*ent.NewAttachmentInput, relationId uuid.UUID, relationType attachment.RelationType, repoRegistry repository.Repository) ([]*ent.Attachment, error)
+	RemoveAttachment(ctx context.Context, relationId uuid.UUID, repoRegistry repository.Repository) (error)
 	GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error)
 	GetAttachments(ctx context.Context, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
 }
@@ -35,6 +36,15 @@ func (svc *attachmentSvcImpl) CreateAttachment(ctx context.Context, input []*ent
 		return nil, err
 	}
 	return attachments, nil
+}
+
+func (svc *attachmentSvcImpl) RemoveAttachment(ctx context.Context, relationId uuid.UUID, repoRegistry repository.Repository) (error) {
+	err := repoRegistry.Attachment().RemoveAttachment(ctx, relationId)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return err
+	}
+	return nil
 }
 
 func (svc *attachmentSvcImpl) GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error) {
