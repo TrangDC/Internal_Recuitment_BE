@@ -32,6 +32,7 @@ type Mutation {
   # CandidateJobFeedback
   CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
   UpdateCandidateJobFeedback(id: ID!, input: UpdateCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
+  DeleteCandidateJobFeedback(id: ID!): Boolean!
 
   # CandidateInterview
   CreateCandidateInterview(input: NewCandidateInterviewInput!): CandidateInterviewResponse!

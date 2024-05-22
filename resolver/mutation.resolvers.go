@@ -132,6 +132,15 @@ func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id st
 	return r.serviceRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, uuid.MustParse(id), &input)
 }
 
+// DeleteCandidateJobFeedback is the resolver for the DeleteCandidateJobFeedback field.
+func (r *mutationResolver) DeleteCandidateJobFeedback(ctx context.Context, id string) (bool, error) {
+	err := r.serviceRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // CreateCandidateInterview is the resolver for the CreateCandidateInterview field.
 func (r *mutationResolver) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
 	return r.serviceRegistry.CandidateInterview().CreateCandidateInterview(ctx, input)
