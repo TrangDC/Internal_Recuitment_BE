@@ -24,6 +24,7 @@ type CandidateJobFeedbackService interface {
 	// query
 	GetCandidateJobFeedback(ctx context.Context, id uuid.UUID) (*ent.CandidateJobFeedbackResponse, error)
 	GetCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFeedbackFreeWord, filter *ent.CandidateJobFeedbackFilter, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
+	DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID) (error)
 }
 type candidateJobFeedbackSvcImpl struct {
 	attachmentSvc AttachmentService
@@ -115,6 +116,29 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	return &ent.CandidateJobFeedbackResponse{
 		Data: result,
 	}, nil
+}
+
+func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID) (error) {
+	candidateJobFeedback, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, candidateJobFeedback)
+		return err
+	})
+	return err
 }
 
 func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedback(ctx context.Context, id uuid.UUID) (*ent.CandidateJobFeedbackResponse, error) {

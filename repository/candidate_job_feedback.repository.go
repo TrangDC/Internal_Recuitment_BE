@@ -18,6 +18,7 @@ type CandidateJobFeedbackRepository interface {
 	// mutation
 	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
 	UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
+	DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error)
 	// query
 	GetCandidateJobFeedback(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJobFeedback, error)
 	BuildQuery() *ent.CandidateJobFeedbackQuery
@@ -98,6 +99,9 @@ func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.C
 		Save(ctx)
 }
 
+func (rps CandidateJobFeedbackRepoImpl) DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error) {
+	return rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now().UTC()).RemoveAttachmentEdges().Save(ctx)
+}
 func (rps CandidateJobFeedbackRepoImpl) UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error) {
 	return rps.BuildUpdateOne(ctx, model).SetFeedback(input.Feedback).Save(ctx)
 }
@@ -119,7 +123,7 @@ func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJ
 }
 
 func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(false), candidate.HasCandidateJobEdgesWith(
+	_, err := rps.client.Candidate.Query().Where(candidate.IsBlacklist(true), candidate.HasCandidateJobEdgesWith(
 		candidatejob.DeletedAtIsNil(), candidatejob.IDEQ(candidateJobId),
 	)).First(ctx)
 	if err != nil {
