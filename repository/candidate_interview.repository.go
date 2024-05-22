@@ -64,7 +64,11 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 		},
 	).WithCandidateJobEdge(
 		func(query *ent.CandidateJobQuery) {
-			query.Where(candidatejob.DeletedAtIsNil())
+			query.Where(candidatejob.DeletedAtIsNil()).WithCandidateEdge().WithHiringJobEdge(
+				func(query *ent.HiringJobQuery) {
+					query.Where(hiringjob.DeletedAtIsNil()).WithTeamEdge()
+				},
+			)
 		},
 	)
 }
@@ -160,15 +164,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 
 // query
 func (rps *candidateInterviewRepoImpl) GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error) {
-	query := rps.BuildQuery().Where(candidateinterview.IDEQ(id)).WithInterviewerEdges(
-		func(query *ent.UserQuery) {
-			query.Where(user.DeletedAtIsNil())
-		},
-	).WithCandidateJobEdge(
-		func(query *ent.CandidateJobQuery) {
-			query.Where(candidatejob.DeletedAtIsNil())
-		},
-	)
+	query := rps.BuildQuery().Where(candidateinterview.IDEQ(id))
 	return rps.BuildGet(ctx, query)
 }
 
