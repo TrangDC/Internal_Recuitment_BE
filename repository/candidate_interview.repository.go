@@ -62,6 +62,10 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 		func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
 		},
+	).WithCandidateJobEdge(
+		func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.DeletedAtIsNil())
+		},
 	)
 }
 
