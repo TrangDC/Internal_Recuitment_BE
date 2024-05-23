@@ -19,6 +19,11 @@ func (r *userResolver) Status(ctx context.Context, obj *ent.User) (ent.UserStatu
 	return ent.UserStatus(obj.Status), nil
 }
 
+// Team is the resolver for the team field.
+func (r *userResolver) Team(ctx context.Context, obj *ent.User) (*ent.Team, error) {
+	return obj.Edges.TeamEdges[0], nil
+}
+
 // User returns graphql1.UserResolver implementation.
 func (r *Resolver) User() graphql1.UserResolver { return &userResolver{r} }
 

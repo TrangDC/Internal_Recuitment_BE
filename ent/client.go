@@ -677,6 +677,22 @@ func (c *CandidateInterviewClient) QueryInterviewerEdges(ci *CandidateInterview)
 	return query
 }
 
+// QueryCreatedByEdge queries the created_by_edge edge of a CandidateInterview.
+func (c *CandidateInterviewClient) QueryCreatedByEdge(ci *CandidateInterview) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateinterview.CreatedByEdgeTable, candidateinterview.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUserInterviewers queries the user_interviewers edge of a CandidateInterview.
 func (c *CandidateInterviewClient) QueryUserInterviewers(ci *CandidateInterview) *CandidateInterviewerQuery {
 	query := &CandidateInterviewerQuery{config: c.config}
@@ -1716,6 +1732,22 @@ func (c *UserClient) QueryCandidateJobEdges(u *User) *CandidateJobQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateJobEdgesTable, user.CandidateJobEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateInterviewEdges queries the candidate_interview_edges edge of a User.
+func (c *UserClient) QueryCandidateInterviewEdges(u *User) *CandidateInterviewQuery {
+	query := &CandidateInterviewQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateInterviewEdgesTable, user.CandidateInterviewEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

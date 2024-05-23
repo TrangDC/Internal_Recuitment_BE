@@ -22,6 +22,7 @@ func (CandidateInterview) Fields() []ent.Field {
 		field.Time("interview_date").Optional(),
 		field.Time("start_from").Optional(),
 		field.Time("end_at").Optional(),
+		field.UUID("created_by", uuid.UUID{}).Optional(),
 		field.Text("description"),
 	}
 }
@@ -32,6 +33,7 @@ func (CandidateInterview) Edges() []ent.Edge {
 		edge.From("candidate_job_edge", CandidateJob.Type).Ref("candidate_job_interview").Unique().Field("candidate_job_id"),
 		edge.To("attachment_edges", Attachment.Type),
 		edge.From("interviewer_edges", User.Type).Ref("interview_edges").Through("user_interviewers", CandidateInterviewer.Type),
+		edge.From("created_by_edge", User.Type).Ref("candidate_interview_edges").Unique().Field("created_by"),
 	}
 }
 

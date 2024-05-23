@@ -42,6 +42,8 @@ const (
 	EdgeInterviewEdges = "interview_edges"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
+	// EdgeCandidateInterviewEdges holds the string denoting the candidate_interview_edges edge name in mutations.
+	EdgeCandidateInterviewEdges = "candidate_interview_edges"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
@@ -86,6 +88,13 @@ const (
 	CandidateJobEdgesInverseTable = "candidate_jobs"
 	// CandidateJobEdgesColumn is the table column denoting the candidate_job_edges relation/edge.
 	CandidateJobEdgesColumn = "created_by"
+	// CandidateInterviewEdgesTable is the table that holds the candidate_interview_edges relation/edge.
+	CandidateInterviewEdgesTable = "candidate_interviews"
+	// CandidateInterviewEdgesInverseTable is the table name for the CandidateInterview entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateinterview" package.
+	CandidateInterviewEdgesInverseTable = "candidate_interviews"
+	// CandidateInterviewEdgesColumn is the table column denoting the candidate_interview_edges relation/edge.
+	CandidateInterviewEdgesColumn = "created_by"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.

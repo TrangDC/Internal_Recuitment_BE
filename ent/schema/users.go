@@ -31,6 +31,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("candidate_job_feedback", CandidateJobFeedback.Type),
 		edge.To("interview_edges", CandidateInterview.Type).Through("interview_users", CandidateInterviewer.Type),
 		edge.To("candidate_job_edges", CandidateJob.Type),
+		edge.To("candidate_interview_edges", CandidateInterview.Type),
 	}
 }
 

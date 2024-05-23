@@ -199,6 +199,21 @@ func (uu *UserUpdate) AddCandidateJobEdges(c ...*CandidateJob) *UserUpdate {
 	return uu.AddCandidateJobEdgeIDs(ids...)
 }
 
+// AddCandidateInterviewEdgeIDs adds the "candidate_interview_edges" edge to the CandidateInterview entity by IDs.
+func (uu *UserUpdate) AddCandidateInterviewEdgeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddCandidateInterviewEdgeIDs(ids...)
+	return uu
+}
+
+// AddCandidateInterviewEdges adds the "candidate_interview_edges" edges to the CandidateInterview entity.
+func (uu *UserUpdate) AddCandidateInterviewEdges(c ...*CandidateInterview) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCandidateInterviewEdgeIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uu *UserUpdate) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddTeamUserIDs(ids...)
@@ -358,6 +373,27 @@ func (uu *UserUpdate) RemoveCandidateJobEdges(c ...*CandidateJob) *UserUpdate {
 		ids[i] = c[i].ID
 	}
 	return uu.RemoveCandidateJobEdgeIDs(ids...)
+}
+
+// ClearCandidateInterviewEdges clears all "candidate_interview_edges" edges to the CandidateInterview entity.
+func (uu *UserUpdate) ClearCandidateInterviewEdges() *UserUpdate {
+	uu.mutation.ClearCandidateInterviewEdges()
+	return uu
+}
+
+// RemoveCandidateInterviewEdgeIDs removes the "candidate_interview_edges" edge to CandidateInterview entities by IDs.
+func (uu *UserUpdate) RemoveCandidateInterviewEdgeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveCandidateInterviewEdgeIDs(ids...)
+	return uu
+}
+
+// RemoveCandidateInterviewEdges removes "candidate_interview_edges" edges to CandidateInterview entities.
+func (uu *UserUpdate) RemoveCandidateInterviewEdges(c ...*CandidateInterview) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCandidateInterviewEdgeIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -895,6 +931,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.CandidateInterviewEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCandidateInterviewEdgesIDs(); len(nodes) > 0 && !uu.mutation.CandidateInterviewEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CandidateInterviewEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.TeamUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1184,6 +1274,21 @@ func (uuo *UserUpdateOne) AddCandidateJobEdges(c ...*CandidateJob) *UserUpdateOn
 	return uuo.AddCandidateJobEdgeIDs(ids...)
 }
 
+// AddCandidateInterviewEdgeIDs adds the "candidate_interview_edges" edge to the CandidateInterview entity by IDs.
+func (uuo *UserUpdateOne) AddCandidateInterviewEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddCandidateInterviewEdgeIDs(ids...)
+	return uuo
+}
+
+// AddCandidateInterviewEdges adds the "candidate_interview_edges" edges to the CandidateInterview entity.
+func (uuo *UserUpdateOne) AddCandidateInterviewEdges(c ...*CandidateInterview) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCandidateInterviewEdgeIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uuo *UserUpdateOne) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddTeamUserIDs(ids...)
@@ -1343,6 +1448,27 @@ func (uuo *UserUpdateOne) RemoveCandidateJobEdges(c ...*CandidateJob) *UserUpdat
 		ids[i] = c[i].ID
 	}
 	return uuo.RemoveCandidateJobEdgeIDs(ids...)
+}
+
+// ClearCandidateInterviewEdges clears all "candidate_interview_edges" edges to the CandidateInterview entity.
+func (uuo *UserUpdateOne) ClearCandidateInterviewEdges() *UserUpdateOne {
+	uuo.mutation.ClearCandidateInterviewEdges()
+	return uuo
+}
+
+// RemoveCandidateInterviewEdgeIDs removes the "candidate_interview_edges" edge to CandidateInterview entities by IDs.
+func (uuo *UserUpdateOne) RemoveCandidateInterviewEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveCandidateInterviewEdgeIDs(ids...)
+	return uuo
+}
+
+// RemoveCandidateInterviewEdges removes "candidate_interview_edges" edges to CandidateInterview entities.
+func (uuo *UserUpdateOne) RemoveCandidateInterviewEdges(c ...*CandidateInterview) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCandidateInterviewEdgeIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -1902,6 +2028,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CandidateInterviewEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCandidateInterviewEdgesIDs(); len(nodes) > 0 && !uuo.mutation.CandidateInterviewEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CandidateInterviewEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateInterviewEdgesTable,
+			Columns: []string{user.CandidateInterviewEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateinterview.FieldID,
 				},
 			},
 		}

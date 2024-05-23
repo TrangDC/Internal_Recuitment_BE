@@ -35,7 +35,7 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
-  created_by: User!
+  owner: User
   created_at: Time!
   updated_at: Time!
 }

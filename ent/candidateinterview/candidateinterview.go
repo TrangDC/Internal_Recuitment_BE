@@ -34,6 +34,8 @@ const (
 	FieldStartFrom = "start_from"
 	// FieldEndAt holds the string denoting the end_at field in the database.
 	FieldEndAt = "end_at"
+	// FieldCreatedBy holds the string denoting the created_by field in the database.
+	FieldCreatedBy = "created_by"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// EdgeCandidateJobEdge holds the string denoting the candidate_job_edge edge name in mutations.
@@ -42,6 +44,8 @@ const (
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeInterviewerEdges holds the string denoting the interviewer_edges edge name in mutations.
 	EdgeInterviewerEdges = "interviewer_edges"
+	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
+	EdgeCreatedByEdge = "created_by_edge"
 	// EdgeUserInterviewers holds the string denoting the user_interviewers edge name in mutations.
 	EdgeUserInterviewers = "user_interviewers"
 	// Table holds the table name of the candidateinterview in the database.
@@ -65,6 +69,13 @@ const (
 	// InterviewerEdgesInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	InterviewerEdgesInverseTable = "users"
+	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
+	CreatedByEdgeTable = "candidate_interviews"
+	// CreatedByEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatedByEdgeInverseTable = "users"
+	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
+	CreatedByEdgeColumn = "created_by"
 	// UserInterviewersTable is the table that holds the user_interviewers relation/edge.
 	UserInterviewersTable = "candidate_interviewers"
 	// UserInterviewersInverseTable is the table name for the CandidateInterviewer entity.
@@ -86,6 +97,7 @@ var Columns = []string{
 	FieldInterviewDate,
 	FieldStartFrom,
 	FieldEndAt,
+	FieldCreatedBy,
 	FieldDescription,
 }
 

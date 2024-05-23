@@ -84,6 +84,14 @@ func (ci *CandidateInterview) InterviewerEdges(ctx context.Context) (result []*U
 	return result, err
 }
 
+func (ci *CandidateInterview) CreatedByEdge(ctx context.Context) (*User, error) {
+	result, err := ci.Edges.CreatedByEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ci.QueryCreatedByEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (ci *CandidateInterview) UserInterviewers(ctx context.Context) (result []*CandidateInterviewer, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ci.NamedUserInterviewers(graphql.GetFieldContext(ctx).Field.Alias)
@@ -348,6 +356,18 @@ func (u *User) CandidateJobEdges(ctx context.Context) (result []*CandidateJob, e
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryCandidateJobEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) CandidateInterviewEdges(ctx context.Context) (result []*CandidateInterview, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateInterviewEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateInterviewEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateInterviewEdges().All(ctx)
 	}
 	return result, err
 }

@@ -32,6 +32,7 @@ type CandidateInterviewQuery struct {
 	withCandidateJobEdge      *CandidateJobQuery
 	withAttachmentEdges       *AttachmentQuery
 	withInterviewerEdges      *UserQuery
+	withCreatedByEdge         *UserQuery
 	withUserInterviewers      *CandidateInterviewerQuery
 	modifiers                 []func(*sql.Selector)
 	loadTotal                 []func(context.Context, []*CandidateInterview) error
@@ -133,6 +134,28 @@ func (ciq *CandidateInterviewQuery) QueryInterviewerEdges() *UserQuery {
 			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, candidateinterview.InterviewerEdgesTable, candidateinterview.InterviewerEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(ciq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
+func (ciq *CandidateInterviewQuery) QueryCreatedByEdge() *UserQuery {
+	query := &UserQuery{config: ciq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ciq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ciq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateinterview.Table, candidateinterview.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateinterview.CreatedByEdgeTable, candidateinterview.CreatedByEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ciq.driver.Dialect(), step)
 		return fromU, nil
@@ -346,6 +369,7 @@ func (ciq *CandidateInterviewQuery) Clone() *CandidateInterviewQuery {
 		withCandidateJobEdge: ciq.withCandidateJobEdge.Clone(),
 		withAttachmentEdges:  ciq.withAttachmentEdges.Clone(),
 		withInterviewerEdges: ciq.withInterviewerEdges.Clone(),
+		withCreatedByEdge:    ciq.withCreatedByEdge.Clone(),
 		withUserInterviewers: ciq.withUserInterviewers.Clone(),
 		// clone intermediate query.
 		sql:    ciq.sql.Clone(),
@@ -384,6 +408,17 @@ func (ciq *CandidateInterviewQuery) WithInterviewerEdges(opts ...func(*UserQuery
 		opt(query)
 	}
 	ciq.withInterviewerEdges = query
+	return ciq
+}
+
+// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
+// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (ciq *CandidateInterviewQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *CandidateInterviewQuery {
+	query := &UserQuery{config: ciq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ciq.withCreatedByEdge = query
 	return ciq
 }
 
@@ -471,10 +506,11 @@ func (ciq *CandidateInterviewQuery) sqlAll(ctx context.Context, hooks ...queryHo
 	var (
 		nodes       = []*CandidateInterview{}
 		_spec       = ciq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			ciq.withCandidateJobEdge != nil,
 			ciq.withAttachmentEdges != nil,
 			ciq.withInterviewerEdges != nil,
+			ciq.withCreatedByEdge != nil,
 			ciq.withUserInterviewers != nil,
 		}
 	)
@@ -518,6 +554,12 @@ func (ciq *CandidateInterviewQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		if err := ciq.loadInterviewerEdges(ctx, query, nodes,
 			func(n *CandidateInterview) { n.Edges.InterviewerEdges = []*User{} },
 			func(n *CandidateInterview, e *User) { n.Edges.InterviewerEdges = append(n.Edges.InterviewerEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := ciq.withCreatedByEdge; query != nil {
+		if err := ciq.loadCreatedByEdge(ctx, query, nodes, nil,
+			func(n *CandidateInterview, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -666,6 +708,32 @@ func (ciq *CandidateInterviewQuery) loadInterviewerEdges(ctx context.Context, qu
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (ciq *CandidateInterviewQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*CandidateInterview, init func(*CandidateInterview), assign func(*CandidateInterview, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*CandidateInterview)
+	for i := range nodes {
+		fk := nodes[i].CreatedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

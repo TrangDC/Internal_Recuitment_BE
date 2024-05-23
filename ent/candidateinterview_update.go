@@ -173,6 +173,26 @@ func (ciu *CandidateInterviewUpdate) ClearEndAt() *CandidateInterviewUpdate {
 	return ciu
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (ciu *CandidateInterviewUpdate) SetCreatedBy(u uuid.UUID) *CandidateInterviewUpdate {
+	ciu.mutation.SetCreatedBy(u)
+	return ciu
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (ciu *CandidateInterviewUpdate) SetNillableCreatedBy(u *uuid.UUID) *CandidateInterviewUpdate {
+	if u != nil {
+		ciu.SetCreatedBy(*u)
+	}
+	return ciu
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (ciu *CandidateInterviewUpdate) ClearCreatedBy() *CandidateInterviewUpdate {
+	ciu.mutation.ClearCreatedBy()
+	return ciu
+}
+
 // SetDescription sets the "description" field.
 func (ciu *CandidateInterviewUpdate) SetDescription(s string) *CandidateInterviewUpdate {
 	ciu.mutation.SetDescription(s)
@@ -226,6 +246,25 @@ func (ciu *CandidateInterviewUpdate) AddInterviewerEdges(u ...*User) *CandidateI
 		ids[i] = u[i].ID
 	}
 	return ciu.AddInterviewerEdgeIDs(ids...)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (ciu *CandidateInterviewUpdate) SetCreatedByEdgeID(id uuid.UUID) *CandidateInterviewUpdate {
+	ciu.mutation.SetCreatedByEdgeID(id)
+	return ciu
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (ciu *CandidateInterviewUpdate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateInterviewUpdate {
+	if id != nil {
+		ciu = ciu.SetCreatedByEdgeID(*id)
+	}
+	return ciu
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (ciu *CandidateInterviewUpdate) SetCreatedByEdge(u *User) *CandidateInterviewUpdate {
+	return ciu.SetCreatedByEdgeID(u.ID)
 }
 
 // AddUserInterviewerIDs adds the "user_interviewers" edge to the CandidateInterviewer entity by IDs.
@@ -294,6 +333,12 @@ func (ciu *CandidateInterviewUpdate) RemoveInterviewerEdges(u ...*User) *Candida
 		ids[i] = u[i].ID
 	}
 	return ciu.RemoveInterviewerEdgeIDs(ids...)
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (ciu *CandidateInterviewUpdate) ClearCreatedByEdge() *CandidateInterviewUpdate {
+	ciu.mutation.ClearCreatedByEdge()
+	return ciu
 }
 
 // ClearUserInterviewers clears all "user_interviewers" edges to the CandidateInterviewer entity.
@@ -613,6 +658,41 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ciu.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidateinterview.CreatedByEdgeTable,
+			Columns: []string{candidateinterview.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ciu.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidateinterview.CreatedByEdgeTable,
+			Columns: []string{candidateinterview.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if ciu.mutation.UserInterviewersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -826,6 +906,26 @@ func (ciuo *CandidateInterviewUpdateOne) ClearEndAt() *CandidateInterviewUpdateO
 	return ciuo
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (ciuo *CandidateInterviewUpdateOne) SetCreatedBy(u uuid.UUID) *CandidateInterviewUpdateOne {
+	ciuo.mutation.SetCreatedBy(u)
+	return ciuo
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (ciuo *CandidateInterviewUpdateOne) SetNillableCreatedBy(u *uuid.UUID) *CandidateInterviewUpdateOne {
+	if u != nil {
+		ciuo.SetCreatedBy(*u)
+	}
+	return ciuo
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (ciuo *CandidateInterviewUpdateOne) ClearCreatedBy() *CandidateInterviewUpdateOne {
+	ciuo.mutation.ClearCreatedBy()
+	return ciuo
+}
+
 // SetDescription sets the "description" field.
 func (ciuo *CandidateInterviewUpdateOne) SetDescription(s string) *CandidateInterviewUpdateOne {
 	ciuo.mutation.SetDescription(s)
@@ -879,6 +979,25 @@ func (ciuo *CandidateInterviewUpdateOne) AddInterviewerEdges(u ...*User) *Candid
 		ids[i] = u[i].ID
 	}
 	return ciuo.AddInterviewerEdgeIDs(ids...)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (ciuo *CandidateInterviewUpdateOne) SetCreatedByEdgeID(id uuid.UUID) *CandidateInterviewUpdateOne {
+	ciuo.mutation.SetCreatedByEdgeID(id)
+	return ciuo
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (ciuo *CandidateInterviewUpdateOne) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateInterviewUpdateOne {
+	if id != nil {
+		ciuo = ciuo.SetCreatedByEdgeID(*id)
+	}
+	return ciuo
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (ciuo *CandidateInterviewUpdateOne) SetCreatedByEdge(u *User) *CandidateInterviewUpdateOne {
+	return ciuo.SetCreatedByEdgeID(u.ID)
 }
 
 // AddUserInterviewerIDs adds the "user_interviewers" edge to the CandidateInterviewer entity by IDs.
@@ -947,6 +1066,12 @@ func (ciuo *CandidateInterviewUpdateOne) RemoveInterviewerEdges(u ...*User) *Can
 		ids[i] = u[i].ID
 	}
 	return ciuo.RemoveInterviewerEdgeIDs(ids...)
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (ciuo *CandidateInterviewUpdateOne) ClearCreatedByEdge() *CandidateInterviewUpdateOne {
+	ciuo.mutation.ClearCreatedByEdge()
+	return ciuo
 }
 
 // ClearUserInterviewers clears all "user_interviewers" edges to the CandidateInterviewer entity.
@@ -1293,6 +1418,41 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 		edge.Target.Fields = specE.Fields
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ciuo.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidateinterview.CreatedByEdgeTable,
+			Columns: []string{candidateinterview.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ciuo.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidateinterview.CreatedByEdgeTable,
+			Columns: []string{candidateinterview.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}

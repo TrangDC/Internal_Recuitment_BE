@@ -143,6 +143,20 @@ func (cic *CandidateInterviewCreate) SetNillableEndAt(t *time.Time) *CandidateIn
 	return cic
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (cic *CandidateInterviewCreate) SetCreatedBy(u uuid.UUID) *CandidateInterviewCreate {
+	cic.mutation.SetCreatedBy(u)
+	return cic
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (cic *CandidateInterviewCreate) SetNillableCreatedBy(u *uuid.UUID) *CandidateInterviewCreate {
+	if u != nil {
+		cic.SetCreatedBy(*u)
+	}
+	return cic
+}
+
 // SetDescription sets the "description" field.
 func (cic *CandidateInterviewCreate) SetDescription(s string) *CandidateInterviewCreate {
 	cic.mutation.SetDescription(s)
@@ -210,6 +224,25 @@ func (cic *CandidateInterviewCreate) AddInterviewerEdges(u ...*User) *CandidateI
 		ids[i] = u[i].ID
 	}
 	return cic.AddInterviewerEdgeIDs(ids...)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (cic *CandidateInterviewCreate) SetCreatedByEdgeID(id uuid.UUID) *CandidateInterviewCreate {
+	cic.mutation.SetCreatedByEdgeID(id)
+	return cic
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (cic *CandidateInterviewCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateInterviewCreate {
+	if id != nil {
+		cic = cic.SetCreatedByEdgeID(*id)
+	}
+	return cic
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (cic *CandidateInterviewCreate) SetCreatedByEdge(u *User) *CandidateInterviewCreate {
+	return cic.SetCreatedByEdgeID(u.ID)
 }
 
 // AddUserInterviewerIDs adds the "user_interviewers" edge to the CandidateInterviewer entity by IDs.
@@ -477,6 +510,26 @@ func (cic *CandidateInterviewCreate) createSpec() (*CandidateInterview, *sqlgrap
 		if specE.ID.Value != nil {
 			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cic.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidateinterview.CreatedByEdgeTable,
+			Columns: []string{candidateinterview.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CreatedBy = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cic.mutation.UserInterviewersIDs(); len(nodes) > 0 {
