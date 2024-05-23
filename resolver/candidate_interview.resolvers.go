@@ -37,6 +37,11 @@ func (r *candidateInterviewResolver) EditAble(ctx context.Context, obj *ent.Cand
 	return false, nil
 }
 
+// Owner is the resolver for the owner field.
+func (r *candidateInterviewResolver) Owner(ctx context.Context, obj *ent.CandidateInterview) (*ent.User, error) {
+	return obj.Edges.CreatedByEdge, nil
+}
+
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.
 func (r *Resolver) CandidateInterview() graphql1.CandidateInterviewResolver {
 	return &candidateInterviewResolver{r}

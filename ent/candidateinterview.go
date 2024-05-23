@@ -8,6 +8,7 @@ import (
 	"time"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -36,6 +37,8 @@ type CandidateInterview struct {
 	StartFrom time.Time `json:"start_from,omitempty"`
 	// EndAt holds the value of the "end_at" field.
 	EndAt time.Time `json:"end_at,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -51,13 +54,15 @@ type CandidateInterviewEdges struct {
 	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
 	// InterviewerEdges holds the value of the interviewer_edges edge.
 	InterviewerEdges []*User `json:"interviewer_edges,omitempty"`
+	// CreatedByEdge holds the value of the created_by_edge edge.
+	CreatedByEdge *User `json:"created_by_edge,omitempty"`
 	// UserInterviewers holds the value of the user_interviewers edge.
 	UserInterviewers []*CandidateInterviewer `json:"user_interviewers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [5]map[string]int
 
 	namedAttachmentEdges  map[string][]*Attachment
 	namedInterviewerEdges map[string][]*User
@@ -95,10 +100,23 @@ func (e CandidateInterviewEdges) InterviewerEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "interviewer_edges"}
 }
 
+// CreatedByEdgeOrErr returns the CreatedByEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CandidateInterviewEdges) CreatedByEdgeOrErr() (*User, error) {
+	if e.loadedTypes[3] {
+		if e.CreatedByEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.CreatedByEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "created_by_edge"}
+}
+
 // UserInterviewersOrErr returns the UserInterviewers value or an error if the edge
 // was not loaded in eager-loading.
 func (e CandidateInterviewEdges) UserInterviewersOrErr() ([]*CandidateInterviewer, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.UserInterviewers, nil
 	}
 	return nil, &NotLoadedError{edge: "user_interviewers"}
@@ -113,7 +131,7 @@ func (*CandidateInterview) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case candidateinterview.FieldCreatedAt, candidateinterview.FieldUpdatedAt, candidateinterview.FieldDeletedAt, candidateinterview.FieldInterviewDate, candidateinterview.FieldStartFrom, candidateinterview.FieldEndAt:
 			values[i] = new(sql.NullTime)
-		case candidateinterview.FieldID, candidateinterview.FieldCandidateJobID:
+		case candidateinterview.FieldID, candidateinterview.FieldCandidateJobID, candidateinterview.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type CandidateInterview", columns[i])
@@ -190,6 +208,12 @@ func (ci *CandidateInterview) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				ci.EndAt = value.Time
 			}
+		case candidateinterview.FieldCreatedBy:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value != nil {
+				ci.CreatedBy = *value
+			}
 		case candidateinterview.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
@@ -214,6 +238,11 @@ func (ci *CandidateInterview) QueryAttachmentEdges() *AttachmentQuery {
 // QueryInterviewerEdges queries the "interviewer_edges" edge of the CandidateInterview entity.
 func (ci *CandidateInterview) QueryInterviewerEdges() *UserQuery {
 	return (&CandidateInterviewClient{config: ci.config}).QueryInterviewerEdges(ci)
+}
+
+// QueryCreatedByEdge queries the "created_by_edge" edge of the CandidateInterview entity.
+func (ci *CandidateInterview) QueryCreatedByEdge() *UserQuery {
+	return (&CandidateInterviewClient{config: ci.config}).QueryCreatedByEdge(ci)
 }
 
 // QueryUserInterviewers queries the "user_interviewers" edge of the CandidateInterview entity.
@@ -270,6 +299,9 @@ func (ci *CandidateInterview) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("end_at=")
 	builder.WriteString(ci.EndAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(fmt.Sprintf("%v", ci.CreatedBy))
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(ci.Description)

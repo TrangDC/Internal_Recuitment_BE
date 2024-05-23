@@ -24,6 +24,7 @@ type User {
   name: String!
   work_email: String!
   status: UserStatus!
+  team: Team
 }
 
 type UserSelectionEdge {

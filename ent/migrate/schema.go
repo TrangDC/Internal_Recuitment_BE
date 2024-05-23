@@ -104,6 +104,7 @@ var (
 		{Name: "end_at", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateInterviewsTable holds the schema information for the "candidate_interviews" table.
 	CandidateInterviewsTable = &schema.Table{
@@ -115,6 +116,12 @@ var (
 				Symbol:     "candidate_interviews_candidate_jobs_candidate_job_interview",
 				Columns:    []*schema.Column{CandidateInterviewsColumns[10]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "candidate_interviews_users_candidate_interview_edges",
+				Columns:    []*schema.Column{CandidateInterviewsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -352,6 +359,7 @@ func init() {
 	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	CandidateInterviewsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[1].RefTable = CandidateInterviewsTable
 	CandidateJobsTable.ForeignKeys[0].RefTable = CandidatesTable

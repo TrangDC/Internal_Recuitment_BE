@@ -70,7 +70,7 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 				},
 			)
 		},
-	)
+	).WithCreatedByEdge()
 }
 
 func (rps *candidateInterviewRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error) {
@@ -99,6 +99,7 @@ func (rps *candidateInterviewRepoImpl) BuildSaveUpdateOne(ctx context.Context, u
 
 // mutation
 func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID, status string) (*ent.CandidateInterview, error) {
+	createdById := ctx.Value("user_id").(uuid.UUID)
 	create := rps.BuildCreate().SetTitle(strings.TrimSpace(input.Title)).
 		AddInterviewerEdgeIDs(memberIds...).
 		SetDescription(input.Description).
@@ -106,6 +107,7 @@ func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Cont
 		SetInterviewDate(input.InterviewDate).
 		SetStartFrom(input.StartFrom).
 		SetEndAt(input.EndAt).
+		SetCreatedBy(createdById).
 		SetCandidateJobStatus(candidateinterview.CandidateJobStatus(status))
 	return create.Save(ctx)
 }
@@ -139,6 +141,7 @@ func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Cont
 func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error) {
 	var createBulk []*ent.CandidateInterviewCreate
 	var createInterviewers []*ent.CandidateInterviewerCreate
+	createdBy := ctx.Value("user_id").(uuid.UUID)
 	for _, record := range candidateJobs {
 		createBulk = append(createBulk, rps.BuildCreate().SetTitle(input.Title).
 			SetInterviewDate(input.InterviewDate).
@@ -146,6 +149,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 			SetDescription(input.Description).
 			SetEndAt(input.EndAt).
 			SetCandidateJobID(record.ID).
+			SetCreatedBy(createdBy).
 			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())))
 	}
 	candidateInterviews, err := rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)

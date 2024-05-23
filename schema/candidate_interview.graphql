@@ -20,6 +20,7 @@ type CandidateInterview {
   interviewer: [User!]!
   candidate_job: CandidateJob!
   edit_able: Boolean!
+  owner: User
   created_at: Time!
   updated_at: Time!
 }

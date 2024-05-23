@@ -138,6 +138,13 @@ func EndAt(v time.Time) predicate.CandidateInterview {
 	})
 }
 
+// CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
+func CreatedBy(v uuid.UUID) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedBy), v))
+	})
+}
+
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {
@@ -784,6 +791,56 @@ func EndAtNotNil() predicate.CandidateInterview {
 	})
 }
 
+// CreatedByEQ applies the EQ predicate on the "created_by" field.
+func CreatedByEQ(v uuid.UUID) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedBy), v))
+	})
+}
+
+// CreatedByNEQ applies the NEQ predicate on the "created_by" field.
+func CreatedByNEQ(v uuid.UUID) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedBy), v))
+	})
+}
+
+// CreatedByIn applies the In predicate on the "created_by" field.
+func CreatedByIn(vs ...uuid.UUID) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCreatedBy), v...))
+	})
+}
+
+// CreatedByNotIn applies the NotIn predicate on the "created_by" field.
+func CreatedByNotIn(vs ...uuid.UUID) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCreatedBy), v...))
+	})
+}
+
+// CreatedByIsNil applies the IsNil predicate on the "created_by" field.
+func CreatedByIsNil() predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCreatedBy)))
+	})
+}
+
+// CreatedByNotNil applies the NotNil predicate on the "created_by" field.
+func CreatedByNotNil() predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCreatedBy)))
+	})
+}
+
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {
@@ -958,6 +1015,34 @@ func HasInterviewerEdgesWith(preds ...predicate.User) predicate.CandidateIntervi
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(InterviewerEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, InterviewerEdgesTable, InterviewerEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedByEdge applies the HasEdge predicate on the "created_by_edge" edge.
+func HasCreatedByEdge() predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedByEdgeWith applies the HasEdge predicate on the "created_by_edge" edge with a given conditions (other predicates).
+func HasCreatedByEdgeWith(preds ...predicate.User) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

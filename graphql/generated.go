@@ -137,6 +137,7 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		InterviewDate  func(childComplexity int) int
 		Interviewer    func(childComplexity int) int
+		Owner          func(childComplexity int) int
 		StartFrom      func(childComplexity int) int
 		Title          func(childComplexity int) int
 		UpdatedAt      func(childComplexity int) int
@@ -161,10 +162,10 @@ type ComplexityRoot struct {
 		Candidate   func(childComplexity int) int
 		CandidateID func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
-		CreatedBy   func(childComplexity int) int
 		HiringJob   func(childComplexity int) int
 		HiringJobID func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Owner       func(childComplexity int) int
 		Status      func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 	}
@@ -361,6 +362,7 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
 		Status    func(childComplexity int) int
+		Team      func(childComplexity int) int
 		WorkEmail func(childComplexity int) int
 	}
 
@@ -421,6 +423,7 @@ type CandidateInterviewResolver interface {
 	Interviewer(ctx context.Context, obj *ent.CandidateInterview) ([]*ent.User, error)
 	CandidateJob(ctx context.Context, obj *ent.CandidateInterview) (*ent.CandidateJob, error)
 	EditAble(ctx context.Context, obj *ent.CandidateInterview) (bool, error)
+	Owner(ctx context.Context, obj *ent.CandidateInterview) (*ent.User, error)
 }
 type CandidateJobResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJob) (string, error)
@@ -430,7 +433,7 @@ type CandidateJobResolver interface {
 	Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error)
 	Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error)
 	HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error)
-	CreatedBy(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
+	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 }
 type CandidateJobFeedbackResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
@@ -514,6 +517,7 @@ type UserResolver interface {
 	ID(ctx context.Context, obj *ent.User) (string, error)
 
 	Status(ctx context.Context, obj *ent.User) (ent.UserStatus, error)
+	Team(ctx context.Context, obj *ent.User) (*ent.Team, error)
 }
 
 type executableSchema struct {
@@ -881,6 +885,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateInterview.Interviewer(childComplexity), true
 
+	case "CandidateInterview.owner":
+		if e.complexity.CandidateInterview.Owner == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.Owner(childComplexity), true
+
 	case "CandidateInterview.start_from":
 		if e.complexity.CandidateInterview.StartFrom == nil {
 			break
@@ -965,13 +976,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJob.CreatedAt(childComplexity), true
 
-	case "CandidateJob.created_by":
-		if e.complexity.CandidateJob.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.CandidateJob.CreatedBy(childComplexity), true
-
 	case "CandidateJob.hiring_job":
 		if e.complexity.CandidateJob.HiringJob == nil {
 			break
@@ -992,6 +996,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.ID(childComplexity), true
+
+	case "CandidateJob.owner":
+		if e.complexity.CandidateJob.Owner == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.Owner(childComplexity), true
 
 	case "CandidateJob.status":
 		if e.complexity.CandidateJob.Status == nil {
@@ -2096,6 +2107,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Status(childComplexity), true
 
+	case "User.team":
+		if e.complexity.User.Team == nil {
+			break
+		}
+
+		return e.complexity.User.Team(childComplexity), true
+
 	case "User.work_email":
 		if e.complexity.User.WorkEmail == nil {
 			break
@@ -2399,6 +2417,7 @@ type CandidateInterview {
   interviewer: [User!]!
   candidate_job: CandidateJob!
   edit_able: Boolean!
+  owner: User
   created_at: Time!
   updated_at: Time!
 }
@@ -2523,7 +2542,7 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
-  created_by: User!
+  owner: User
   created_at: Time!
   updated_at: Time!
 }
@@ -2662,6 +2681,7 @@ enum CandidateOrderField {
   dob
   created_at
   last_apply_date
+  email
 }
 
 input NewCandidateInput{
@@ -3102,6 +3122,7 @@ type User {
   name: String!
   work_email: String!
   status: UserStatus!
+  team: Team
 }
 
 type UserSelectionEdge {
@@ -4935,6 +4956,8 @@ func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Cont
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6731,6 +6754,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6791,8 +6816,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -6843,6 +6868,59 @@ func (ec *executionContext) fieldContext_CandidateInterview_edit_able(ctx contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateInterview_owner(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_owner(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateInterview().Owner(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateInterview",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -6995,6 +7073,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewEdge_node(ctx context
 				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
 			case "edit_able":
 				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateInterview_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -7106,6 +7186,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewResponse_data(ctx con
 				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
 			case "edit_able":
 				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateInterview_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -7592,8 +7674,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateJob_created_by(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJob_created_by(ctx, field)
+func (ec *executionContext) _CandidateJob_owner(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_owner(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7606,24 +7688,21 @@ func (ec *executionContext) _CandidateJob_created_by(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CandidateJob().CreatedBy(rctx, obj)
+		return ec.resolvers.CandidateJob().Owner(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateJob_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CandidateJob",
 		Field:      field,
@@ -7639,6 +7718,8 @@ func (ec *executionContext) fieldContext_CandidateJob_created_by(ctx context.Con
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -7787,8 +7868,8 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8029,8 +8110,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8089,6 +8170,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -8598,8 +8681,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8661,8 +8744,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8724,8 +8807,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8787,8 +8870,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8850,8 +8933,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8913,8 +8996,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8976,8 +9059,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9096,8 +9179,8 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJob_created_by(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9930,6 +10013,8 @@ func (ec *executionContext) fieldContext_HiringJob_user(ctx context.Context, fie
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -13830,6 +13915,8 @@ func (ec *executionContext) fieldContext_Team_members(ctx context.Context, field
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14453,6 +14540,65 @@ func (ec *executionContext) fieldContext_User_status(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _User_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Team(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Team)
+	fc.Result = res
+	return ec.marshalOTeam2ᚖtrecᚋentᚐTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Team_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Team_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_Team_slug(ctx, field)
+			case "members":
+				return ec.fieldContext_Team_members(ctx, field)
+			case "opening_requests":
+				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Team_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Team_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Team_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UserEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserEdge_node(ctx, field)
 	if err != nil {
@@ -14500,6 +14646,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14595,6 +14743,8 @@ func (ec *executionContext) fieldContext_UserResponse_data(ctx context.Context, 
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -19783,6 +19933,23 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 				return innerFunc(ctx)
 
 			})
+		case "owner":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateInterview_owner(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._CandidateInterview_created_at(ctx, field, obj)
@@ -20050,7 +20217,7 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
-		case "created_by":
+		case "owner":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -20059,10 +20226,7 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._CandidateJob_created_by(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._CandidateJob_owner(ctx, field, obj)
 				return res
 			}
 
@@ -22042,6 +22206,23 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "team":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_team(ctx, field, obj)
 				return res
 			}
 
