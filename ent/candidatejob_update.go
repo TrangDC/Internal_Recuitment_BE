@@ -18,6 +18,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -146,6 +147,24 @@ func (cju *CandidateJobUpdate) SetNillableStatus(c *candidatejob.Status) *Candid
 	if c != nil {
 		cju.SetStatus(*c)
 	}
+	return cju
+}
+
+// SetFailedReason sets the "failed_reason" field.
+func (cju *CandidateJobUpdate) SetFailedReason(s []string) *CandidateJobUpdate {
+	cju.mutation.SetFailedReason(s)
+	return cju
+}
+
+// AppendFailedReason appends s to the "failed_reason" field.
+func (cju *CandidateJobUpdate) AppendFailedReason(s []string) *CandidateJobUpdate {
+	cju.mutation.AppendFailedReason(s)
+	return cju
+}
+
+// ClearFailedReason clears the value of the "failed_reason" field.
+func (cju *CandidateJobUpdate) ClearFailedReason() *CandidateJobUpdate {
+	cju.mutation.ClearFailedReason()
 	return cju
 }
 
@@ -439,6 +458,17 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cju.mutation.Status(); ok {
 		_spec.SetField(candidatejob.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := cju.mutation.FailedReason(); ok {
+		_spec.SetField(candidatejob.FieldFailedReason, field.TypeJSON, value)
+	}
+	if value, ok := cju.mutation.AppendedFailedReason(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, candidatejob.FieldFailedReason, value)
+		})
+	}
+	if cju.mutation.FailedReasonCleared() {
+		_spec.ClearField(candidatejob.FieldFailedReason, field.TypeJSON)
 	}
 	if cju.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -840,6 +870,24 @@ func (cjuo *CandidateJobUpdateOne) SetNillableStatus(c *candidatejob.Status) *Ca
 	return cjuo
 }
 
+// SetFailedReason sets the "failed_reason" field.
+func (cjuo *CandidateJobUpdateOne) SetFailedReason(s []string) *CandidateJobUpdateOne {
+	cjuo.mutation.SetFailedReason(s)
+	return cjuo
+}
+
+// AppendFailedReason appends s to the "failed_reason" field.
+func (cjuo *CandidateJobUpdateOne) AppendFailedReason(s []string) *CandidateJobUpdateOne {
+	cjuo.mutation.AppendFailedReason(s)
+	return cjuo
+}
+
+// ClearFailedReason clears the value of the "failed_reason" field.
+func (cjuo *CandidateJobUpdateOne) ClearFailedReason() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearFailedReason()
+	return cjuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cjuo *CandidateJobUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobUpdateOne {
 	cjuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -1160,6 +1208,17 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 	}
 	if value, ok := cjuo.mutation.Status(); ok {
 		_spec.SetField(candidatejob.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := cjuo.mutation.FailedReason(); ok {
+		_spec.SetField(candidatejob.FieldFailedReason, field.TypeJSON, value)
+	}
+	if value, ok := cjuo.mutation.AppendedFailedReason(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, candidatejob.FieldFailedReason, value)
+		})
+	}
+	if cjuo.mutation.FailedReasonCleared() {
+		_spec.ClearField(candidatejob.FieldFailedReason, field.TypeJSON)
 	}
 	if cjuo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -11,6 +11,11 @@ enum CandidateJobStatusOpen{
   offering
 }
 
+enum CandidateJobStatusFailed{
+  offer_lost
+  kiv
+}
+
 enum CandidateJobStatus {
   hired
   kiv
@@ -20,6 +25,20 @@ enum CandidateJobStatus {
   interviewing
   offering
   new
+}
+
+enum CandidateJobFailedReason {
+  poor_professionalism
+  poor_fit_and_engagement
+  over_expectations
+  over_qualification
+  language_deficiency
+  weak_technical_skills
+  poor_interpersonal_skills
+  poor_problem_solving_skills
+  poor_management_skills
+  candidate_withdrawal
+  others
 }
 
 input CandidateJobGroupByStatusFilter{
@@ -36,6 +55,7 @@ type CandidateJob {
   candidate: Candidate!
   hiring_job: HiringJob!
   owner: User
+  failed_reason: [CandidateJobFailedReason!]
   created_at: Time!
   updated_at: Time!
 }
@@ -59,6 +79,11 @@ input NewCandidateJobInput {
 
 input UpdateCandidateAttachment {
   attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateJobStatus {
+  status: CandidateJobStatus!
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 type CandidateJobResponse {
@@ -85,6 +110,7 @@ input CandidateJobFilter {
   team_id: ID
   hiring_job_id: ID
   candidate_id: ID!
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input CandidateJobOrder {

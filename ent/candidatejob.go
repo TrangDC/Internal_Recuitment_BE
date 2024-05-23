@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -34,6 +35,8 @@ type CandidateJob struct {
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// Status holds the value of the "status" field.
 	Status candidatejob.Status `json:"status,omitempty"`
+	// FailedReason holds the value of the "failed_reason" field.
+	FailedReason []string `json:"failed_reason,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateJobQuery when eager-loading is set.
 	Edges CandidateJobEdges `json:"edges"`
@@ -135,6 +138,8 @@ func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidatejob.FieldFailedReason:
+			values[i] = new([]byte)
 		case candidatejob.FieldStatus:
 			values[i] = new(sql.NullString)
 		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt:
@@ -203,6 +208,14 @@ func (cj *CandidateJob) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				cj.Status = candidatejob.Status(value.String)
+			}
+		case candidatejob.FieldFailedReason:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field failed_reason", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &cj.FailedReason); err != nil {
+					return fmt.Errorf("unmarshal field failed_reason: %w", err)
+				}
 			}
 		}
 	}
@@ -282,6 +295,9 @@ func (cj *CandidateJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", cj.Status))
+	builder.WriteString(", ")
+	builder.WriteString("failed_reason=")
+	builder.WriteString(fmt.Sprintf("%v", cj.FailedReason))
 	builder.WriteByte(')')
 	return builder.String()
 }

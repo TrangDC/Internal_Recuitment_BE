@@ -530,6 +530,20 @@ func StatusNotIn(vs ...Status) predicate.CandidateJob {
 	})
 }
 
+// FailedReasonIsNil applies the IsNil predicate on the "failed_reason" field.
+func FailedReasonIsNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldFailedReason)))
+	})
+}
+
+// FailedReasonNotNil applies the NotNil predicate on the "failed_reason" field.
+func FailedReasonNotNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldFailedReason)))
+	})
+}
+
 // HasAttachmentEdges applies the HasEdge predicate on the "attachment_edges" edge.
 func HasAttachmentEdges() predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {

@@ -4862,6 +4862,8 @@ type CandidateJobMutation struct {
 	updated_at                     *time.Time
 	deleted_at                     *time.Time
 	status                         *candidatejob.Status
+	failed_reason                  *[]string
+	appendfailed_reason            []string
 	clearedFields                  map[string]struct{}
 	attachment_edges               map[uuid.UUID]struct{}
 	removedattachment_edges        map[uuid.UUID]struct{}
@@ -5304,6 +5306,71 @@ func (m *CandidateJobMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetFailedReason sets the "failed_reason" field.
+func (m *CandidateJobMutation) SetFailedReason(s []string) {
+	m.failed_reason = &s
+	m.appendfailed_reason = nil
+}
+
+// FailedReason returns the value of the "failed_reason" field in the mutation.
+func (m *CandidateJobMutation) FailedReason() (r []string, exists bool) {
+	v := m.failed_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedReason returns the old "failed_reason" field's value of the CandidateJob entity.
+// If the CandidateJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobMutation) OldFailedReason(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailedReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailedReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedReason: %w", err)
+	}
+	return oldValue.FailedReason, nil
+}
+
+// AppendFailedReason adds s to the "failed_reason" field.
+func (m *CandidateJobMutation) AppendFailedReason(s []string) {
+	m.appendfailed_reason = append(m.appendfailed_reason, s...)
+}
+
+// AppendedFailedReason returns the list of values that were appended to the "failed_reason" field in this mutation.
+func (m *CandidateJobMutation) AppendedFailedReason() ([]string, bool) {
+	if len(m.appendfailed_reason) == 0 {
+		return nil, false
+	}
+	return m.appendfailed_reason, true
+}
+
+// ClearFailedReason clears the value of the "failed_reason" field.
+func (m *CandidateJobMutation) ClearFailedReason() {
+	m.failed_reason = nil
+	m.appendfailed_reason = nil
+	m.clearedFields[candidatejob.FieldFailedReason] = struct{}{}
+}
+
+// FailedReasonCleared returns if the "failed_reason" field was cleared in this mutation.
+func (m *CandidateJobMutation) FailedReasonCleared() bool {
+	_, ok := m.clearedFields[candidatejob.FieldFailedReason]
+	return ok
+}
+
+// ResetFailedReason resets all changes to the "failed_reason" field.
+func (m *CandidateJobMutation) ResetFailedReason() {
+	m.failed_reason = nil
+	m.appendfailed_reason = nil
+	delete(m.clearedFields, candidatejob.FieldFailedReason)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateJobMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -5602,7 +5669,7 @@ func (m *CandidateJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateJobMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, candidatejob.FieldCreatedAt)
 	}
@@ -5623,6 +5690,9 @@ func (m *CandidateJobMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, candidatejob.FieldStatus)
+	}
+	if m.failed_reason != nil {
+		fields = append(fields, candidatejob.FieldFailedReason)
 	}
 	return fields
 }
@@ -5646,6 +5716,8 @@ func (m *CandidateJobMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedBy()
 	case candidatejob.FieldStatus:
 		return m.Status()
+	case candidatejob.FieldFailedReason:
+		return m.FailedReason()
 	}
 	return nil, false
 }
@@ -5669,6 +5741,8 @@ func (m *CandidateJobMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCreatedBy(ctx)
 	case candidatejob.FieldStatus:
 		return m.OldStatus(ctx)
+	case candidatejob.FieldFailedReason:
+		return m.OldFailedReason(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -5727,6 +5801,13 @@ func (m *CandidateJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case candidatejob.FieldFailedReason:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedReason(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -5772,6 +5853,9 @@ func (m *CandidateJobMutation) ClearedFields() []string {
 	if m.FieldCleared(candidatejob.FieldCreatedBy) {
 		fields = append(fields, candidatejob.FieldCreatedBy)
 	}
+	if m.FieldCleared(candidatejob.FieldFailedReason) {
+		fields = append(fields, candidatejob.FieldFailedReason)
+	}
 	return fields
 }
 
@@ -5801,6 +5885,9 @@ func (m *CandidateJobMutation) ClearField(name string) error {
 	case candidatejob.FieldCreatedBy:
 		m.ClearCreatedBy()
 		return nil
+	case candidatejob.FieldFailedReason:
+		m.ClearFailedReason()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob nullable field %s", name)
 }
@@ -5829,6 +5916,9 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 		return nil
 	case candidatejob.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case candidatejob.FieldFailedReason:
+		m.ResetFailedReason()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)

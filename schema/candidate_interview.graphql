@@ -87,6 +87,8 @@ input CandidateInterviewCalendarFilter {
   to_date: Time
   team_id: ID
   hiring_job_id: ID
+  interview_date_from: Time
+  interview_date_to: Time
 }
 
 input CandidateInterviewFreeWord {

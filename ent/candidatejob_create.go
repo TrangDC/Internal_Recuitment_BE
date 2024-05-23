@@ -125,6 +125,12 @@ func (cjc *CandidateJobCreate) SetNillableStatus(c *candidatejob.Status) *Candid
 	return cjc
 }
 
+// SetFailedReason sets the "failed_reason" field.
+func (cjc *CandidateJobCreate) SetFailedReason(s []string) *CandidateJobCreate {
+	cjc.mutation.SetFailedReason(s)
+	return cjc
+}
+
 // SetID sets the "id" field.
 func (cjc *CandidateJobCreate) SetID(u uuid.UUID) *CandidateJobCreate {
 	cjc.mutation.SetID(u)
@@ -396,6 +402,10 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 	if value, ok := cjc.mutation.Status(); ok {
 		_spec.SetField(candidatejob.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := cjc.mutation.FailedReason(); ok {
+		_spec.SetField(candidatejob.FieldFailedReason, field.TypeJSON, value)
+		_node.FailedReason = value
 	}
 	if nodes := cjc.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

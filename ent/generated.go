@@ -77,14 +77,16 @@ type CandidateFreeWord struct {
 }
 
 type CandidateInterviewCalendarFilter struct {
-	InterviewDate *time.Time `json:"interview_date"`
-	StartFrom     *time.Time `json:"start_from"`
-	EndAt         *time.Time `json:"end_at"`
-	Interviewer   []string   `json:"interviewer"`
-	FromDate      *time.Time `json:"from_date"`
-	ToDate        *time.Time `json:"to_date"`
-	TeamID        *string    `json:"team_id"`
-	HiringJobID   *string    `json:"hiring_job_id"`
+	InterviewDate     *time.Time `json:"interview_date"`
+	StartFrom         *time.Time `json:"start_from"`
+	EndAt             *time.Time `json:"end_at"`
+	Interviewer       []string   `json:"interviewer"`
+	FromDate          *time.Time `json:"from_date"`
+	ToDate            *time.Time `json:"to_date"`
+	TeamID            *string    `json:"team_id"`
+	HiringJobID       *string    `json:"hiring_job_id"`
+	InterviewDateFrom *time.Time `json:"interview_date_from"`
+	InterviewDateTo   *time.Time `json:"interview_date_to"`
 }
 
 type CandidateInterviewFilter struct {
@@ -131,12 +133,13 @@ type CandidateJobFeedbackResponseGetAll struct {
 }
 
 type CandidateJobFilter struct {
-	Status      *CandidateJobStatus `json:"status"`
-	FromDate    *time.Time          `json:"from_date"`
-	ToDate      *time.Time          `json:"to_date"`
-	TeamID      *string             `json:"team_id"`
-	HiringJobID *string             `json:"hiring_job_id"`
-	CandidateID string              `json:"candidate_id"`
+	Status       *CandidateJobStatus        `json:"status"`
+	FromDate     *time.Time                 `json:"from_date"`
+	ToDate       *time.Time                 `json:"to_date"`
+	TeamID       *string                    `json:"team_id"`
+	HiringJobID  *string                    `json:"hiring_job_id"`
+	CandidateID  string                     `json:"candidate_id"`
+	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
 }
 
 type CandidateJobFreeWord struct {
@@ -339,6 +342,11 @@ type UpdateCandidateInterviewScheduleInput struct {
 type UpdateCandidateJobFeedbackInput struct {
 	Feedback    string                `json:"feedback"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
+}
+
+type UpdateCandidateJobStatus struct {
+	Status       CandidateJobStatus         `json:"status"`
+	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
 }
 
 type UpdateHiringJobInput struct {
@@ -569,6 +577,65 @@ func (e CandidateInterviewStatusEditable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CandidateJobFailedReason string
+
+const (
+	CandidateJobFailedReasonPoorProfessionalism      CandidateJobFailedReason = "poor_professionalism"
+	CandidateJobFailedReasonPoorFitAndEngagement     CandidateJobFailedReason = "poor_fit_and_engagement"
+	CandidateJobFailedReasonOverExpectations         CandidateJobFailedReason = "over_expectations"
+	CandidateJobFailedReasonOverQualification        CandidateJobFailedReason = "over_qualification"
+	CandidateJobFailedReasonLanguageDeficiency       CandidateJobFailedReason = "language_deficiency"
+	CandidateJobFailedReasonWeakTechnicalSkills      CandidateJobFailedReason = "weak_technical_skills"
+	CandidateJobFailedReasonPoorInterpersonalSkills  CandidateJobFailedReason = "poor_interpersonal_skills"
+	CandidateJobFailedReasonPoorProblemSolvingSkills CandidateJobFailedReason = "poor_problem_solving_skills"
+	CandidateJobFailedReasonPoorManagementSkills     CandidateJobFailedReason = "poor_management_skills"
+	CandidateJobFailedReasonCandidateWithdrawal      CandidateJobFailedReason = "candidate_withdrawal"
+	CandidateJobFailedReasonOthers                   CandidateJobFailedReason = "others"
+)
+
+var AllCandidateJobFailedReason = []CandidateJobFailedReason{
+	CandidateJobFailedReasonPoorProfessionalism,
+	CandidateJobFailedReasonPoorFitAndEngagement,
+	CandidateJobFailedReasonOverExpectations,
+	CandidateJobFailedReasonOverQualification,
+	CandidateJobFailedReasonLanguageDeficiency,
+	CandidateJobFailedReasonWeakTechnicalSkills,
+	CandidateJobFailedReasonPoorInterpersonalSkills,
+	CandidateJobFailedReasonPoorProblemSolvingSkills,
+	CandidateJobFailedReasonPoorManagementSkills,
+	CandidateJobFailedReasonCandidateWithdrawal,
+	CandidateJobFailedReasonOthers,
+}
+
+func (e CandidateJobFailedReason) IsValid() bool {
+	switch e {
+	case CandidateJobFailedReasonPoorProfessionalism, CandidateJobFailedReasonPoorFitAndEngagement, CandidateJobFailedReasonOverExpectations, CandidateJobFailedReasonOverQualification, CandidateJobFailedReasonLanguageDeficiency, CandidateJobFailedReasonWeakTechnicalSkills, CandidateJobFailedReasonPoorInterpersonalSkills, CandidateJobFailedReasonPoorProblemSolvingSkills, CandidateJobFailedReasonPoorManagementSkills, CandidateJobFailedReasonCandidateWithdrawal, CandidateJobFailedReasonOthers:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobFailedReason) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobFailedReason) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobFailedReason(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobFailedReason", str)
+	}
+	return nil
+}
+
+func (e CandidateJobFailedReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CandidateJobStatus string
 
 const (
@@ -664,6 +731,47 @@ func (e *CandidateJobStatusEnded) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CandidateJobStatusEnded) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobStatusFailed string
+
+const (
+	CandidateJobStatusFailedOfferLost CandidateJobStatusFailed = "offer_lost"
+	CandidateJobStatusFailedKiv       CandidateJobStatusFailed = "kiv"
+)
+
+var AllCandidateJobStatusFailed = []CandidateJobStatusFailed{
+	CandidateJobStatusFailedOfferLost,
+	CandidateJobStatusFailedKiv,
+}
+
+func (e CandidateJobStatusFailed) IsValid() bool {
+	switch e {
+	case CandidateJobStatusFailedOfferLost, CandidateJobStatusFailedKiv:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatusFailed) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatusFailed) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatusFailed(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatusFailed", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatusFailed) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

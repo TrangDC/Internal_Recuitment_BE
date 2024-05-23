@@ -5,9 +5,10 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
+
+	"github.com/samber/lo"
 )
 
 // ID is the resolver for the id field.
@@ -47,20 +48,18 @@ func (r *candidateJobResolver) HiringJob(ctx context.Context, obj *ent.Candidate
 
 // Owner is the resolver for the owner field.
 func (r *candidateJobResolver) Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Owner - owner"))
+	return obj.Edges.CreatedByEdge, nil
+}
+
+// FailedReason is the resolver for the failed_reason field.
+func (r *candidateJobResolver) FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error) {
+	result := lo.Map(obj.FailedReason, func(s string, index int) ent.CandidateJobFailedReason {
+		return ent.CandidateJobFailedReason(s)
+	})
+	return result, nil
 }
 
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 
 type candidateJobResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *candidateJobResolver) CreatedBy(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error) {
-	return obj.Edges.CreatedByEdge, nil
-}

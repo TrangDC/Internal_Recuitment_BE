@@ -21,7 +21,7 @@ import (
 type CandidateJobService interface {
 	// mutation
 	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error)
-	UpdateCandidateJobStatus(ctx context.Context, status ent.CandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error)
 	DeleteCandidateJob(ctx context.Context, id uuid.UUID) error
 	UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID) (*ent.CandidateJobResponse, error)
 
@@ -78,7 +78,7 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	}, nil
 }
 
-func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, status ent.CandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error) {
+func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error) {
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -88,13 +88,13 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, st
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, candidateJob.CandidateID, id, &status)
+	err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, candidateJob.CandidateID, id, &input.Status)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateJob, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, candidateJob, status)
+		candidateJob, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, candidateJob, input)
 		return err
 	})
 	if err != nil {
@@ -338,5 +338,8 @@ func (svc *candidateJobSvcImpl) filter(candidateJobQuery *ent.CandidateJobQuery,
 	}
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
+	}
+	if input.FailedReason != nil && len(input.FailedReason) != 0 {
+		candidateJobQuery.Where(candidatejob.FailedReasonNotNil())
 	}
 }

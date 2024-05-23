@@ -158,16 +158,17 @@ type ComplexityRoot struct {
 	}
 
 	CandidateJob struct {
-		Attachments func(childComplexity int) int
-		Candidate   func(childComplexity int) int
-		CandidateID func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		HiringJob   func(childComplexity int) int
-		HiringJobID func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Owner       func(childComplexity int) int
-		Status      func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		Attachments  func(childComplexity int) int
+		Candidate    func(childComplexity int) int
+		CandidateID  func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		FailedReason func(childComplexity int) int
+		HiringJob    func(childComplexity int) int
+		HiringJobID  func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Owner        func(childComplexity int) int
+		Status       func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
 	}
 
 	CandidateJobEdge struct {
@@ -289,7 +290,7 @@ type ComplexityRoot struct {
 		UpdateCandidateInterviewSchedule  func(childComplexity int, id string, input ent.UpdateCandidateInterviewScheduleInput) int
 		UpdateCandidateJobAttachment      func(childComplexity int, id string, input ent.UpdateCandidateAttachment) int
 		UpdateCandidateJobFeedback        func(childComplexity int, id string, input ent.UpdateCandidateJobFeedbackInput) int
-		UpdateCandidateJobStatus          func(childComplexity int, id string, status ent.CandidateJobStatus) int
+		UpdateCandidateJobStatus          func(childComplexity int, id string, input ent.UpdateCandidateJobStatus) int
 		UpdateHiringJob                   func(childComplexity int, id string, input ent.UpdateHiringJobInput, note string) int
 		UpdateHiringJobStatus             func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
 		UpdateTeam                        func(childComplexity int, id string, input ent.UpdateTeamInput, note string) int
@@ -434,6 +435,7 @@ type CandidateJobResolver interface {
 	Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error)
 	HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error)
 	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
+	FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error)
 }
 type CandidateJobFeedbackResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
@@ -474,7 +476,7 @@ type MutationResolver interface {
 	CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error)
 	UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment) (*ent.CandidateJobResponse, error)
 	DeleteCandidateJob(ctx context.Context, id string) (bool, error)
-	UpdateCandidateJobStatus(ctx context.Context, id string, status ent.CandidateJobStatus) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus) (*ent.CandidateJobResponse, error)
 	CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
 	UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
 	DeleteCandidateJobFeedback(ctx context.Context, id string) (bool, error)
@@ -975,6 +977,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.CreatedAt(childComplexity), true
+
+	case "CandidateJob.failed_reason":
+		if e.complexity.CandidateJob.FailedReason == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.FailedReason(childComplexity), true
 
 	case "CandidateJob.hiring_job":
 		if e.complexity.CandidateJob.HiringJob == nil {
@@ -1644,7 +1653,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateCandidateJobStatus(childComplexity, args["id"].(string), args["status"].(ent.CandidateJobStatus)), true
+		return e.complexity.Mutation.UpdateCandidateJobStatus(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateJobStatus)), true
 
 	case "Mutation.UpdateHiringJob":
 		if e.complexity.Mutation.UpdateHiringJob == nil {
@@ -2252,6 +2261,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateCandidateInterviewInput,
 		ec.unmarshalInputUpdateCandidateInterviewScheduleInput,
 		ec.unmarshalInputUpdateCandidateJobFeedbackInput,
+		ec.unmarshalInputUpdateCandidateJobStatus,
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateTeamInput,
 		ec.unmarshalInputUpdateUserInput,
@@ -2484,6 +2494,8 @@ input CandidateInterviewCalendarFilter {
   to_date: Time
   team_id: ID
   hiring_job_id: ID
+  interview_date_from: Time
+  interview_date_to: Time
 }
 
 input CandidateInterviewFreeWord {
@@ -2518,6 +2530,11 @@ enum CandidateJobStatusOpen{
   offering
 }
 
+enum CandidateJobStatusFailed{
+  offer_lost
+  kiv
+}
+
 enum CandidateJobStatus {
   hired
   kiv
@@ -2527,6 +2544,20 @@ enum CandidateJobStatus {
   interviewing
   offering
   new
+}
+
+enum CandidateJobFailedReason {
+  poor_professionalism
+  poor_fit_and_engagement
+  over_expectations
+  over_qualification
+  language_deficiency
+  weak_technical_skills
+  poor_interpersonal_skills
+  poor_problem_solving_skills
+  poor_management_skills
+  candidate_withdrawal
+  others
 }
 
 input CandidateJobGroupByStatusFilter{
@@ -2543,6 +2574,7 @@ type CandidateJob {
   candidate: Candidate!
   hiring_job: HiringJob!
   owner: User
+  failed_reason: [CandidateJobFailedReason!]
   created_at: Time!
   updated_at: Time!
 }
@@ -2566,6 +2598,11 @@ input NewCandidateJobInput {
 
 input UpdateCandidateAttachment {
   attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateJobStatus {
+  status: CandidateJobStatus!
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 type CandidateJobResponse {
@@ -2592,6 +2629,7 @@ input CandidateJobFilter {
   team_id: ID
   hiring_job_id: ID
   candidate_id: ID!
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input CandidateJobOrder {
@@ -2977,7 +3015,7 @@ type HiringJobResponseGetAll {
   CreateCandidateJob(input: NewCandidateJobInput!): CandidateJobResponse!
   UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!): CandidateJobResponse!
   DeleteCandidateJob(id: ID!): Boolean!
-  UpdateCandidateJobStatus(id: ID!, status: CandidateJobStatus!): CandidateJobResponse!
+  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!): CandidateJobResponse!
 
   # CandidateJobFeedback
   CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
@@ -3617,15 +3655,15 @@ func (ec *executionContext) field_Mutation_UpdateCandidateJobStatus_args(ctx con
 		}
 	}
 	args["id"] = arg0
-	var arg1 ent.CandidateJobStatus
-	if tmp, ok := rawArgs["status"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-		arg1, err = ec.unmarshalNCandidateJobStatus2trecᚋentᚐCandidateJobStatus(ctx, tmp)
+	var arg1 ent.UpdateCandidateJobStatus
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateCandidateJobStatus2trecᚋentᚐUpdateCandidateJobStatus(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["status"] = arg1
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -6818,6 +6856,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -7727,6 +7767,47 @@ func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJob_failed_reason(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_failed_reason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().FailedReason(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]ent.CandidateJobFailedReason)
+	fc.Result = res
+	return ec.marshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_failed_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateJobFailedReason does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJob_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJob_created_at(ctx, field)
 	if err != nil {
@@ -7870,6 +7951,8 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8112,6 +8195,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8683,6 +8768,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8746,6 +8833,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8809,6 +8898,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8872,6 +8963,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8935,6 +9028,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8998,6 +9093,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9061,6 +9158,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9181,6 +9280,8 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -11545,7 +11646,7 @@ func (ec *executionContext) _Mutation_UpdateCandidateJobStatus(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateCandidateJobStatus(rctx, fc.Args["id"].(string), fc.Args["status"].(ent.CandidateJobStatus))
+		return ec.resolvers.Mutation().UpdateCandidateJobStatus(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateJobStatus))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17292,7 +17393,7 @@ func (ec *executionContext) unmarshalInputCandidateInterviewCalendarFilter(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"interview_date", "start_from", "end_at", "interviewer", "from_date", "to_date", "team_id", "hiring_job_id"}
+	fieldsInOrder := [...]string{"interview_date", "start_from", "end_at", "interviewer", "from_date", "to_date", "team_id", "hiring_job_id", "interview_date_from", "interview_date_to"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17360,6 +17461,22 @@ func (ec *executionContext) unmarshalInputCandidateInterviewCalendarFilter(ctx c
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
 			it.HiringJobID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "interview_date_from":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interview_date_from"))
+			it.InterviewDateFrom, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "interview_date_to":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interview_date_to"))
+			it.InterviewDateTo, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17632,7 +17749,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "from_date", "to_date", "team_id", "hiring_job_id", "candidate_id"}
+	fieldsInOrder := [...]string{"status", "from_date", "to_date", "team_id", "hiring_job_id", "candidate_id", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17684,6 +17801,14 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
 			it.CandidateID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "failed_reason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
+			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18832,6 +18957,42 @@ func (ec *executionContext) unmarshalInputUpdateCandidateJobFeedbackInput(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
 			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateCandidateJobStatus(ctx context.Context, obj interface{}) (ent.UpdateCandidateJobStatus, error) {
+	var it ent.UpdateCandidateJobStatus
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"status", "failed_reason"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNCandidateJobStatus2trecᚋentᚐCandidateJobStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "failed_reason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
+			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20227,6 +20388,23 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._CandidateJob_owner(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "failed_reason":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_failed_reason(ctx, field, obj)
 				return res
 			}
 
@@ -23216,6 +23394,16 @@ func (ec *executionContext) marshalNCandidateJobEdge2ᚖtrecᚋentᚐCandidateJo
 	return ec._CandidateJobEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCandidateJobFailedReason2trecᚋentᚐCandidateJobFailedReason(ctx context.Context, v interface{}) (ent.CandidateJobFailedReason, error) {
+	var res ent.CandidateJobFailedReason
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateJobFailedReason2trecᚋentᚐCandidateJobFailedReason(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobFailedReason) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedback) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -23932,6 +24120,11 @@ func (ec *executionContext) unmarshalNUpdateCandidateInterviewScheduleInput2trec
 
 func (ec *executionContext) unmarshalNUpdateCandidateJobFeedbackInput2trecᚋentᚐUpdateCandidateJobFeedbackInput(ctx context.Context, v interface{}) (ent.UpdateCandidateJobFeedbackInput, error) {
 	res, err := ec.unmarshalInputUpdateCandidateJobFeedbackInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateCandidateJobStatus2trecᚋentᚐUpdateCandidateJobStatus(ctx context.Context, v interface{}) (ent.UpdateCandidateJobStatus, error) {
+	res, err := ec.unmarshalInputUpdateCandidateJobStatus(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -24683,6 +24876,73 @@ func (ec *executionContext) marshalOCandidateJob2ᚖtrecᚋentᚐCandidateJob(ct
 		return graphql.Null
 	}
 	return ec._CandidateJob(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx context.Context, v interface{}) ([]ent.CandidateJobFailedReason, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ent.CandidateJobFailedReason, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCandidateJobFailedReason2trecᚋentᚐCandidateJobFailedReason(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.CandidateJobFailedReason) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateJobFailedReason2trecᚋentᚐCandidateJobFailedReason(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOCandidateJobFeedback2ᚖtrecᚋentᚐCandidateJobFeedback(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobFeedback) graphql.Marshaler {

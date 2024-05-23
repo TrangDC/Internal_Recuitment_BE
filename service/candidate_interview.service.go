@@ -392,6 +392,9 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.CreatedAtGTE(*input.FromDate), candidateinterview.CreatedAtLTE(*input.ToDate)))
 	}
+	if input.InterviewDateFrom != nil && input.InterviewDateTo != nil {
+		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.InterviewDateGTE(*input.InterviewDateFrom), candidateinterview.InterviewDateLTE(*input.InterviewDateTo)))
+	}
 	if input.Interviewer != nil {
 		userIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 			return uuid.MustParse(member)

@@ -18,7 +18,7 @@ type CandidateJobRepository interface {
 	// mutation
 	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJob, error)
 	DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error
-	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, status ent.CandidateJobStatus) (*ent.CandidateJob, error)
+	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error)
 	UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error)
 	// query
 	GetCandidateJob(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJob, error)
@@ -113,8 +113,20 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 		Save(ctx)
 }
 
-func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, status ent.CandidateJobStatus) (*ent.CandidateJob, error) {
-	return rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(status.String())).Save(ctx)
+func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(input.Status.String()))
+	if ent.CandidateJobStatusFailed.IsValid(ent.CandidateJobStatusFailed(input.Status)) {
+		if input.FailedReason == nil && len(input.FailedReason) == 0 {
+			return nil, fmt.Errorf("model.candidate_job.validation.failed_reason_required")
+		}
+		reason := lo.Map(input.FailedReason, func(s ent.CandidateJobFailedReason, index int) string {
+			return s.String()
+		})
+		update.SetFailedReason(reason)
+	} else {
+		update.ClearFailedReason()
+	}
+	return update.Save(ctx)
 }
 
 func (rps candidateJobRepoImpl) UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error) {

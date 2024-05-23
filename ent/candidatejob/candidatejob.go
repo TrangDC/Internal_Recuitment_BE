@@ -30,6 +30,8 @@ const (
 	FieldCreatedBy = "created_by"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldFailedReason holds the string denoting the failed_reason field in the database.
+	FieldFailedReason = "failed_reason"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
@@ -98,6 +100,7 @@ var Columns = []string{
 	FieldCandidateID,
 	FieldCreatedBy,
 	FieldStatus,
+	FieldFailedReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

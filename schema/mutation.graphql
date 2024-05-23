@@ -27,7 +27,7 @@ type Mutation {
   CreateCandidateJob(input: NewCandidateJobInput!): CandidateJobResponse!
   UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!): CandidateJobResponse!
   DeleteCandidateJob(id: ID!): Boolean!
-  UpdateCandidateJobStatus(id: ID!, status: CandidateJobStatus!): CandidateJobResponse!
+  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!): CandidateJobResponse!
 
   # CandidateJobFeedback
   CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
