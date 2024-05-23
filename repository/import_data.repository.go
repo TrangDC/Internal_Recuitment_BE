@@ -24,7 +24,7 @@ func NewImportDataRepository(client *ent.Client) ImportDataRepository {
 }
 
 func (rps importDataRepoImpl) ReadXlsxFile(data graphql.Upload) ([][]string, error) {
-	destinationPath := "../" + data.Filename // Use an absolute path within the container
+	destinationPath := "/app/" + data.Filename // Use an absolute path within the container
 	destinationFile, err := os.Create(destinationPath)
 	if err != nil {
 		return nil, fmt.Errorf("error creating destination file: %w", err)
