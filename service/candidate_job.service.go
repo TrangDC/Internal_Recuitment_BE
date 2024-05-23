@@ -181,7 +181,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 	var page int
 	var perPage int
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.CandidateIDEQ(uuid.MustParse(filter.CandidateID)))
-	svc.filter(query, filter)
+	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
 	count, err := svc.repoRegistry.CandidateJob().BuildCount(ctx, query)
 	if err != nil {
@@ -322,7 +322,7 @@ func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuer
 	}
 }
 
-func (svc *candidateJobSvcImpl) filter(candidateJobQuery *ent.CandidateJobQuery, input ent.CandidateJobFilter) {
+func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *ent.CandidateJobQuery, input ent.CandidateJobFilter) {
 	if input.Status != nil {
 		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
 	}
@@ -340,6 +340,25 @@ func (svc *candidateJobSvcImpl) filter(candidateJobQuery *ent.CandidateJobQuery,
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
 	}
 	if input.FailedReason != nil && len(input.FailedReason) != 0 {
-		candidateJobQuery.Where(candidatejob.FailedReasonNotNil())
+		candidateJobIds := []uuid.UUID{}
+		queryString := "SELECT id FROM candidate_jobs WHERE "
+		for i, reason := range input.FailedReason {
+			queryString += "failed_reason @> '[\"" + reason.String() + "\"]'::jsonb"
+			if i != len(input.FailedReason)-1 {
+				queryString += " AND "
+			}
+		}
+		queryString += ";"
+		rows, _ := candidateJobQuery.QueryContext(ctx, queryString)
+		if rows != nil {
+			for rows.Next() {
+				var id uuid.UUID
+				rows.Scan(&id)
+				candidateJobIds = append(candidateJobIds, id)
+			}
+			candidateJobQuery.Where(candidatejob.IDIn(candidateJobIds...))
+		} else {
+			candidateJobQuery.Where(candidatejob.IDEQ(uuid.Nil))
+		}
 	}
 }
