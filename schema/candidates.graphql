@@ -43,6 +43,7 @@ input CandidateFilter {
   is_black_list: Boolean
   job_id: ID
   is_able_to_interview: Boolean
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input CandidateFreeWord {

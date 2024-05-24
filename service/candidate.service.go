@@ -160,7 +160,7 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 	var page int
 	var perPage int
 	query := svc.repoRegistry.Candidate().BuildQuery()
-	svc.filter(query, filter)
+	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
 	if filter != nil && filter.JobID != nil {
 		if filter.IsAbleToInterview != nil && *filter.IsAbleToInterview {
@@ -233,7 +233,7 @@ func (svc *candidateSvcImpl) freeWord(candidateQuery *ent.CandidateQuery, input 
 	}
 }
 
-func (svc *candidateSvcImpl) filter(candidateQuery *ent.CandidateQuery, input *ent.CandidateFilter) {
+func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.CandidateQuery, input *ent.CandidateFilter) {
 	if input != nil {
 		if input.Name != nil {
 			candidateQuery.Where(candidate.NameEqualFold(strings.TrimSpace(*input.Name)))
@@ -252,6 +252,30 @@ func (svc *candidateSvcImpl) filter(candidateQuery *ent.CandidateQuery, input *e
 		}
 		if input.FromDate != nil && input.ToDate != nil {
 			candidateQuery.Where(candidate.CreatedAtGTE(*input.FromDate), candidate.CreatedAtLTE(*input.ToDate))
+		}
+		if input.FailedReason != nil && len(input.FailedReason) != 0 {
+			candidateJobIds := []uuid.UUID{}
+			queryString := "SELECT id FROM candidate_jobs WHERE "
+			for i, reason := range input.FailedReason {
+				queryString += "failed_reason @> '[\"" + reason.String() + "\"]'::jsonb"
+				if i != len(input.FailedReason)-1 {
+					queryString += " AND "
+				}
+			}
+			queryString += ";"
+			rows, _ := candidateQuery.QueryContext(ctx, queryString)
+			if rows != nil {
+				for rows.Next() {
+					var id uuid.UUID
+					rows.Scan(&id)
+					candidateJobIds = append(candidateJobIds, id)
+				}
+				candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
+					candidatejob.IDIn(candidateJobIds...),
+				))
+			} else {
+				candidateQuery.Where(candidate.IDIn(uuid.Nil))
+			}
 		}
 	}
 }

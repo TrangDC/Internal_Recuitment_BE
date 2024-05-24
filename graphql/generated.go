@@ -2748,6 +2748,7 @@ input CandidateFilter {
   is_black_list: Boolean
   job_id: ID
   is_able_to_interview: Boolean
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input CandidateFreeWord {
@@ -17241,7 +17242,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17333,6 +17334,14 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_able_to_interview"))
 			it.IsAbleToInterview, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "failed_reason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
+			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
