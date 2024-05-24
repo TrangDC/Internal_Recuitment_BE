@@ -59,7 +59,7 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 			return err
 		}
 		if input.Attachments != nil {
-			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobFeedbacks, repoRegistry)
 		}
 		return err
 	})
@@ -100,7 +100,7 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 			return err
 		}
 		if input.Attachments != nil {
-			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobFeedbacks, repoRegistry)
 		}
 		return err
 	})
