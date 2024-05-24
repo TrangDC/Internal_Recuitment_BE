@@ -7,7 +7,9 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 
 	"github.com/google/uuid"
@@ -66,7 +68,24 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.HiringJobQuery) {
 			query.WithTeamEdge().WithOwnerEdge()
 		},
-	).WithCreatedByEdge()
+	).WithCreatedByEdge().WithCandidateJobInterview(
+		func(query *ent.CandidateInterviewQuery) {
+			query.Where(
+				candidateinterview.CandidateJobStatusIn(
+					candidateinterview.CandidateJobStatusApplied,
+					candidateinterview.CandidateJobStatusInterviewing,
+				),
+				candidateinterview.DeletedAtIsNil())
+		},
+	).WithCandidateJobFeedback(
+		func(query *ent.CandidateJobFeedbackQuery) {
+			query.Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
+				func(query *ent.AttachmentQuery) {
+					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
+				},
+			)
+		},
+	)
 }
 
 func (rps candidateJobRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {

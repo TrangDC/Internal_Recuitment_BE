@@ -54,6 +54,8 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
+  interviews: [CandidateInterview!]
+  feedback: [CandidateJobFeedback!]
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   created_at: Time!
