@@ -83,14 +83,6 @@ func (cic *CandidateInterviewerCreate) SetID(u uuid.UUID) *CandidateInterviewerC
 	return cic
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (cic *CandidateInterviewerCreate) SetNillableID(u *uuid.UUID) *CandidateInterviewerCreate {
-	if u != nil {
-		cic.SetID(*u)
-	}
-	return cic
-}
-
 // SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
 func (cic *CandidateInterviewerCreate) SetUserEdgeID(id uuid.UUID) *CandidateInterviewerCreate {
 	cic.mutation.SetUserEdgeID(id)
@@ -193,10 +185,6 @@ func (cic *CandidateInterviewerCreate) defaults() {
 	if _, ok := cic.mutation.CreatedAt(); !ok {
 		v := candidateinterviewer.DefaultCreatedAt()
 		cic.mutation.SetCreatedAt(v)
-	}
-	if _, ok := cic.mutation.ID(); !ok {
-		v := candidateinterviewer.DefaultID()
-		cic.mutation.SetID(v)
 	}
 }
 

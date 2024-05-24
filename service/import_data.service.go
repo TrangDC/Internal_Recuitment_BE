@@ -50,7 +50,7 @@ func (svc *importDataSvcImpl) ImportCandidate(ctx context.Context, data graphql.
 	}
 	rows = rows[1:]
 	if len(lo.FindDuplicates(newCandidateEmails)) != 0 {
-		return util.WrapGQLError(ctx, "excel.import.candidates.dublicate_email", http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return util.WrapGQLError(ctx, "excel.import.candidates.duplicate_email", http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	if len(lo.Map(rows, func(row []string, index int) string { return row[1] })) != len(rows) {
 		return util.WrapGQLError(ctx, "excel.import.candidates.missing_name", http.StatusInternalServerError, util.ErrorFlagInternalError)

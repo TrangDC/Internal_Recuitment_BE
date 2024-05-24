@@ -16,8 +16,6 @@ import (
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
-
-	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -37,10 +35,6 @@ func init() {
 	attachmentDescDocumentName := attachmentFields[1].Descriptor()
 	// attachment.DocumentNameValidator is a validator for the "document_name" field. It is called by the builders before save.
 	attachment.DocumentNameValidator = attachmentDescDocumentName.Validators[0].(func(string) error)
-	// attachmentDescID is the schema descriptor for id field.
-	attachmentDescID := attachmentMixinFields0[0].Descriptor()
-	// attachment.DefaultID holds the default value on creation for the id field.
-	attachment.DefaultID = attachmentDescID.Default.(func() uuid.UUID)
 	audittrailMixin := schema.AuditTrail{}.Mixin()
 	audittrailMixinFields0 := audittrailMixin[0].Fields()
 	_ = audittrailMixinFields0
@@ -54,10 +48,6 @@ func init() {
 	audittrailDescNote := audittrailFields[4].Descriptor()
 	// audittrail.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	audittrail.NoteValidator = audittrailDescNote.Validators[0].(func(string) error)
-	// audittrailDescID is the schema descriptor for id field.
-	audittrailDescID := audittrailMixinFields0[0].Descriptor()
-	// audittrail.DefaultID holds the default value on creation for the id field.
-	audittrail.DefaultID = audittrailDescID.Default.(func() uuid.UUID)
 	candidateMixin := schema.Candidate{}.Mixin()
 	candidateMixinFields0 := candidateMixin[0].Fields()
 	_ = candidateMixinFields0
@@ -125,10 +115,6 @@ func init() {
 	candidateDescIsBlacklist := candidateFields[4].Descriptor()
 	// candidate.DefaultIsBlacklist holds the default value on creation for the is_blacklist field.
 	candidate.DefaultIsBlacklist = candidateDescIsBlacklist.Default.(bool)
-	// candidateDescID is the schema descriptor for id field.
-	candidateDescID := candidateMixinFields0[0].Descriptor()
-	// candidate.DefaultID holds the default value on creation for the id field.
-	candidate.DefaultID = candidateDescID.Default.(func() uuid.UUID)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
 	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
 	_ = candidateinterviewMixinFields0
@@ -142,10 +128,6 @@ func init() {
 	candidateinterviewDescTitle := candidateinterviewFields[0].Descriptor()
 	// candidateinterview.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	candidateinterview.TitleValidator = candidateinterviewDescTitle.Validators[0].(func(string) error)
-	// candidateinterviewDescID is the schema descriptor for id field.
-	candidateinterviewDescID := candidateinterviewMixinFields0[0].Descriptor()
-	// candidateinterview.DefaultID holds the default value on creation for the id field.
-	candidateinterview.DefaultID = candidateinterviewDescID.Default.(func() uuid.UUID)
 	candidateinterviewerMixin := schema.CandidateInterviewer{}.Mixin()
 	candidateinterviewerMixinFields0 := candidateinterviewerMixin[0].Fields()
 	_ = candidateinterviewerMixinFields0
@@ -155,10 +137,6 @@ func init() {
 	candidateinterviewerDescCreatedAt := candidateinterviewerMixinFields0[1].Descriptor()
 	// candidateinterviewer.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidateinterviewer.DefaultCreatedAt = candidateinterviewerDescCreatedAt.Default.(func() time.Time)
-	// candidateinterviewerDescID is the schema descriptor for id field.
-	candidateinterviewerDescID := candidateinterviewerMixinFields0[0].Descriptor()
-	// candidateinterviewer.DefaultID holds the default value on creation for the id field.
-	candidateinterviewer.DefaultID = candidateinterviewerDescID.Default.(func() uuid.UUID)
 	candidatejobMixin := schema.CandidateJob{}.Mixin()
 	candidatejobMixinFields0 := candidatejobMixin[0].Fields()
 	_ = candidatejobMixinFields0
@@ -168,10 +146,6 @@ func init() {
 	candidatejobDescCreatedAt := candidatejobMixinFields0[1].Descriptor()
 	// candidatejob.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejob.DefaultCreatedAt = candidatejobDescCreatedAt.Default.(func() time.Time)
-	// candidatejobDescID is the schema descriptor for id field.
-	candidatejobDescID := candidatejobMixinFields0[0].Descriptor()
-	// candidatejob.DefaultID holds the default value on creation for the id field.
-	candidatejob.DefaultID = candidatejobDescID.Default.(func() uuid.UUID)
 	candidatejobfeedbackMixin := schema.CandidateJobFeedback{}.Mixin()
 	candidatejobfeedbackMixinFields0 := candidatejobfeedbackMixin[0].Fields()
 	_ = candidatejobfeedbackMixinFields0
@@ -181,10 +155,6 @@ func init() {
 	candidatejobfeedbackDescCreatedAt := candidatejobfeedbackMixinFields0[1].Descriptor()
 	// candidatejobfeedback.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobfeedback.DefaultCreatedAt = candidatejobfeedbackDescCreatedAt.Default.(func() time.Time)
-	// candidatejobfeedbackDescID is the schema descriptor for id field.
-	candidatejobfeedbackDescID := candidatejobfeedbackMixinFields0[0].Descriptor()
-	// candidatejobfeedback.DefaultID holds the default value on creation for the id field.
-	candidatejobfeedback.DefaultID = candidatejobfeedbackDescID.Default.(func() uuid.UUID)
 	hiringjobMixin := schema.HiringJob{}.Mixin()
 	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
 	_ = hiringjobMixinFields0
@@ -234,10 +204,6 @@ func init() {
 	hiringjobDescSalaryTo := hiringjobFields[9].Descriptor()
 	// hiringjob.DefaultSalaryTo holds the default value on creation for the salary_to field.
 	hiringjob.DefaultSalaryTo = hiringjobDescSalaryTo.Default.(int)
-	// hiringjobDescID is the schema descriptor for id field.
-	hiringjobDescID := hiringjobMixinFields0[0].Descriptor()
-	// hiringjob.DefaultID holds the default value on creation for the id field.
-	hiringjob.DefaultID = hiringjobDescID.Default.(func() uuid.UUID)
 	teamMixin := schema.Team{}.Mixin()
 	teamMixinFields0 := teamMixin[0].Fields()
 	_ = teamMixinFields0
@@ -271,10 +237,6 @@ func init() {
 			return nil
 		}
 	}()
-	// teamDescID is the schema descriptor for id field.
-	teamDescID := teamMixinFields0[0].Descriptor()
-	// team.DefaultID holds the default value on creation for the id field.
-	team.DefaultID = teamDescID.Default.(func() uuid.UUID)
 	teammanagerMixin := schema.TeamManager{}.Mixin()
 	teammanagerMixinFields0 := teammanagerMixin[0].Fields()
 	_ = teammanagerMixinFields0
@@ -284,10 +246,6 @@ func init() {
 	teammanagerDescCreatedAt := teammanagerMixinFields0[1].Descriptor()
 	// teammanager.DefaultCreatedAt holds the default value on creation for the created_at field.
 	teammanager.DefaultCreatedAt = teammanagerDescCreatedAt.Default.(func() time.Time)
-	// teammanagerDescID is the schema descriptor for id field.
-	teammanagerDescID := teammanagerMixinFields0[0].Descriptor()
-	// teammanager.DefaultID holds the default value on creation for the id field.
-	teammanager.DefaultID = teammanagerDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -323,8 +281,4 @@ func init() {
 	userDescOid := userFields[3].Descriptor()
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
-	// userDescID is the schema descriptor for id field.
-	userDescID := userMixinFields0[0].Descriptor()
-	// user.DefaultID holds the default value on creation for the id field.
-	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

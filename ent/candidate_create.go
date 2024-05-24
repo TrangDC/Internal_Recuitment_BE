@@ -130,14 +130,6 @@ func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	return cc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (cc *CandidateCreate) SetNillableID(u *uuid.UUID) *CandidateCreate {
-	if u != nil {
-		cc.SetID(*u)
-	}
-	return cc
-}
-
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cc *CandidateCreate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
 	cc.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -237,10 +229,6 @@ func (cc *CandidateCreate) defaults() {
 	if _, ok := cc.mutation.IsBlacklist(); !ok {
 		v := candidate.DefaultIsBlacklist
 		cc.mutation.SetIsBlacklist(v)
-	}
-	if _, ok := cc.mutation.ID(); !ok {
-		v := candidate.DefaultID()
-		cc.mutation.SetID(v)
 	}
 }
 

@@ -104,14 +104,6 @@ func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	return ac
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableID(u *uuid.UUID) *AttachmentCreate {
-	if u != nil {
-		ac.SetID(*u)
-	}
-	return ac
-}
-
 // SetCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID.
 func (ac *AttachmentCreate) SetCandidateJobID(id uuid.UUID) *AttachmentCreate {
 	ac.mutation.SetCandidateJobID(id)
@@ -249,10 +241,6 @@ func (ac *AttachmentCreate) defaults() {
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		v := attachment.DefaultCreatedAt()
 		ac.mutation.SetCreatedAt(v)
-	}
-	if _, ok := ac.mutation.ID(); !ok {
-		v := attachment.DefaultID()
-		ac.mutation.SetID(v)
 	}
 }
 

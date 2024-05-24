@@ -29,6 +29,8 @@ WORKDIR /app
 
 COPY --from=build /app/config.yaml .
 COPY --from=build /app/server .
+COPY --from=build /app/i18n/en.json /app/i18n/
+COPY --from=build /app/i18n/vi.json /app/i18n/
 
 RUN chmod +x /app/server
 

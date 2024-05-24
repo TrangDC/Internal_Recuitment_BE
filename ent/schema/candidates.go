@@ -16,7 +16,7 @@ type Candidate struct {
 func (Candidate) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
-		field.String("email").MaxLen(255).NotEmpty().Unique(),
+		field.String("email").MaxLen(255).NotEmpty().Unique().Annotations(entgql.OrderField("email")),
 		field.String("phone").MaxLen(255).NotEmpty(),
 		field.Time("dob").Optional(),
 		field.Bool("is_blacklist").Default(false),

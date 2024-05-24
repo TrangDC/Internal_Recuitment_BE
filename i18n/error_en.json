@@ -1,0 +1,61 @@
+{
+  "model": {
+    "candidate_interviews": {
+      "validation": {
+        "candidate_job_status_changed": "message_value",
+        "candidate_not_found": "message_value",
+        "candidate_job_not_found": "message_value",
+        "candidate_is_blacklist": "message_value",
+        "job_close": "message_value",
+        "candidate_job_status_ended": "message_value",
+        "title_exist": "message_value",
+        "start_from_end_at_invalid": "message_value",
+        "schedule_exist": "message_value"
+      }
+    },
+    "hiring_job": {
+      "validation": {
+        "amount_neq_zero": "message_value",
+        "failed_reason_required": "message_value",
+        "candidate_job_status_exist": "message_value",
+        "candidate_is_blacklist": "message_value",
+        "name_exist": "message_value"
+      }
+    },
+    "candidates": {
+      "validation": {
+        "email_exist": "message_value"
+      }
+    },
+    "teams": {
+      "validation": {
+        "cannot_delete_team": "message_value",
+        "name_exist": "message_value",
+        "user_in_another_team": "message_value"
+      }
+    },
+    "users": {
+      "validation": {
+        "work_email_exist": "message_value"
+      }
+    },
+    "candidate_job_feedbacks": {
+      "validation": {
+        "job_close": "message_value",
+        "candidate_is_blacklist": "message_value"
+      }
+    }
+  },
+  "excel": {
+    "import": {
+      "error": "message_value",
+      "candidates": {
+        "invalid_format": "message_value",
+        "duplicate_email": "message_value",
+        "missing_name": "message_value",
+        "missing_email": "message_value",
+        "phone_number": "message_value"
+      }
+    }
+  }
+}

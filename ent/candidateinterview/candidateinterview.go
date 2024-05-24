@@ -7,8 +7,6 @@ import (
 	"io"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
@@ -122,8 +120,6 @@ var (
 	DefaultCreatedAt func() time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )
 
 // CandidateJobStatus defines the type for the "candidate_job_status" enum field.

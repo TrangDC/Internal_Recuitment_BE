@@ -169,14 +169,6 @@ func (cic *CandidateInterviewCreate) SetID(u uuid.UUID) *CandidateInterviewCreat
 	return cic
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (cic *CandidateInterviewCreate) SetNillableID(u *uuid.UUID) *CandidateInterviewCreate {
-	if u != nil {
-		cic.SetID(*u)
-	}
-	return cic
-}
-
 // SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
 func (cic *CandidateInterviewCreate) SetCandidateJobEdgeID(id uuid.UUID) *CandidateInterviewCreate {
 	cic.mutation.SetCandidateJobEdgeID(id)
@@ -345,10 +337,6 @@ func (cic *CandidateInterviewCreate) defaults() {
 		v := candidateinterview.DefaultCandidateJobStatus
 		cic.mutation.SetCandidateJobStatus(v)
 	}
-	if _, ok := cic.mutation.ID(); !ok {
-		v := candidateinterview.DefaultID()
-		cic.mutation.SetID(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -507,9 +495,6 @@ func (cic *CandidateInterviewCreate) createSpec() (*CandidateInterview, *sqlgrap
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cic.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {

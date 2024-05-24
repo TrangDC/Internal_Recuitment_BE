@@ -43,7 +43,7 @@ func NewTeamService(repoRegistry repository.Repository, logger *zap.Logger) Team
 }
 
 func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
-	var team *ent.Team
+	var result *ent.Team
 	var memberIds []uuid.UUID
 	err := svc.repoRegistry.Team().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
@@ -59,10 +59,14 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, 
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		team, err = repoRegistry.Team().CreateTeam(ctx, input, memberIds)
+		result, err = repoRegistry.Team().CreateTeam(ctx, input, memberIds)
 		return err
 	})
-	result, err := svc.repoRegistry.Team().GetTeam(ctx, team.ID)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result, err = svc.repoRegistry.Team().GetTeam(ctx, result.ID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)

@@ -4,8 +4,6 @@ package team
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
@@ -85,6 +83,4 @@ var (
 	SlugValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )

@@ -1094,6 +1094,16 @@ var (
 			}
 		},
 	}
+	// CandidateOrderFieldEmail orders Candidate by email.
+	CandidateOrderFieldEmail = &CandidateOrderField{
+		field: candidate.FieldEmail,
+		toCursor: func(c *Candidate) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.Email,
+			}
+		},
+	}
 	// CandidateOrderFieldLastApplyDate orders Candidate by last_apply_date.
 	CandidateOrderFieldLastApplyDate = &CandidateOrderField{
 		field: candidate.FieldLastApplyDate,
@@ -1118,6 +1128,8 @@ func (f CandidateOrderField) String() string {
 		str = "deleted_at"
 	case candidate.FieldName:
 		str = "name"
+	case candidate.FieldEmail:
+		str = "email"
 	case candidate.FieldLastApplyDate:
 		str = "last_apply_date"
 	}
@@ -1144,6 +1156,8 @@ func (f *CandidateOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *CandidateOrderFieldDeletedAt
 	case "name":
 		*f = *CandidateOrderFieldName
+	case "email":
+		*f = *CandidateOrderFieldEmail
 	case "last_apply_date":
 		*f = *CandidateOrderFieldLastApplyDate
 	default:

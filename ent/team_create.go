@@ -84,14 +84,6 @@ func (tc *TeamCreate) SetID(u uuid.UUID) *TeamCreate {
 	return tc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (tc *TeamCreate) SetNillableID(u *uuid.UUID) *TeamCreate {
-	if u != nil {
-		tc.SetID(*u)
-	}
-	return tc
-}
-
 // AddUserEdgeIDs adds the "user_edges" edge to the User entity by IDs.
 func (tc *TeamCreate) AddUserEdgeIDs(ids ...uuid.UUID) *TeamCreate {
 	tc.mutation.AddUserEdgeIDs(ids...)
@@ -218,10 +210,6 @@ func (tc *TeamCreate) defaults() {
 		v := team.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := tc.mutation.ID(); !ok {
-		v := team.DefaultID()
-		tc.mutation.SetID(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -322,9 +310,6 @@ func (tc *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := tc.mutation.TeamJobEdgesIDs(); len(nodes) > 0 {

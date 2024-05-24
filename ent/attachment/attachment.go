@@ -7,8 +7,6 @@ import (
 	"io"
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
@@ -88,8 +86,6 @@ var (
 	DefaultCreatedAt func() time.Time
 	// DocumentNameValidator is a validator for the "document_name" field. It is called by the builders before save.
 	DocumentNameValidator func(string) error
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )
 
 // RelationType defines the type for the "relation_type" enum field.

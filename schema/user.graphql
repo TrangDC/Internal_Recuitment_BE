@@ -42,6 +42,7 @@ input UserFilter {
   ids: [ID!]
   ignore_ids: [ID!]
   not_in_team: Boolean
+  status: UserStatus
 }
 
 input UserFreeWord {

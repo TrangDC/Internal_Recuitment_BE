@@ -3179,6 +3179,7 @@ input UserFilter {
   ids: [ID!]
   ignore_ids: [ID!]
   not_in_team: Boolean
+  status: UserStatus
 }
 
 input UserFreeWord {
@@ -19226,7 +19227,7 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "not_in_team"}
+	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "not_in_team", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19262,6 +19263,14 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not_in_team"))
 			it.NotInTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOUserStatus2ᚖtrecᚋentᚐUserStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -25297,6 +25306,22 @@ func (ec *executionContext) unmarshalOUserOrder2ᚖtrecᚋentᚐUserOrder(ctx co
 	}
 	res, err := ec.unmarshalInputUserOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUserStatus2ᚖtrecᚋentᚐUserStatus(ctx context.Context, v interface{}) (*ent.UserStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.UserStatus)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserStatus2ᚖtrecᚋentᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v *ent.UserStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
