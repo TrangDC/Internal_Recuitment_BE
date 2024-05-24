@@ -601,9 +601,6 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ciu.mutation.RemovedInterviewerEdgesIDs(); len(nodes) > 0 && !ciu.mutation.InterviewerEdgesCleared() {
@@ -627,9 +624,6 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ciu.mutation.InterviewerEdgesIDs(); len(nodes) > 0 {
@@ -653,9 +647,6 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ciu.mutation.CreatedByEdgeCleared() {
@@ -1364,9 +1355,6 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ciuo.mutation.RemovedInterviewerEdgesIDs(); len(nodes) > 0 && !ciuo.mutation.InterviewerEdgesCleared() {
@@ -1390,9 +1378,6 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ciuo.mutation.InterviewerEdgesIDs(); len(nodes) > 0 {
@@ -1416,9 +1401,6 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		if specE.ID.Value != nil {
-			edge.Target.Fields = append(edge.Target.Fields, specE.ID)
-		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ciuo.mutation.CreatedByEdgeCleared() {

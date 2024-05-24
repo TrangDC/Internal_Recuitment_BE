@@ -230,7 +230,7 @@ func (rps *candidateInterviewRepoImpl) ValidateCreateBulkInput(ctx context.Conte
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(candidateJobs) != len(candidateIds) {
+	if len(candidateJobs) < len(candidateIds) {
 		return nil, fmt.Errorf("model.candidate_interviews.validation.candidate_job_not_found"), nil
 	}
 	// validate title

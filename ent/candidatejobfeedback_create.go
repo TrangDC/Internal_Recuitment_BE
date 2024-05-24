@@ -106,14 +106,6 @@ func (cjfc *CandidateJobFeedbackCreate) SetID(u uuid.UUID) *CandidateJobFeedback
 	return cjfc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (cjfc *CandidateJobFeedbackCreate) SetNillableID(u *uuid.UUID) *CandidateJobFeedbackCreate {
-	if u != nil {
-		cjfc.SetID(*u)
-	}
-	return cjfc
-}
-
 // SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
 func (cjfc *CandidateJobFeedbackCreate) SetCreatedByEdgeID(id uuid.UUID) *CandidateJobFeedbackCreate {
 	cjfc.mutation.SetCreatedByEdgeID(id)
@@ -247,10 +239,6 @@ func (cjfc *CandidateJobFeedbackCreate) defaults() {
 	if _, ok := cjfc.mutation.CreatedAt(); !ok {
 		v := candidatejobfeedback.DefaultCreatedAt()
 		cjfc.mutation.SetCreatedAt(v)
-	}
-	if _, ok := cjfc.mutation.ID(); !ok {
-		v := candidatejobfeedback.DefaultID()
-		cjfc.mutation.SetID(v)
 	}
 }
 

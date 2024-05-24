@@ -379,10 +379,11 @@ type UpdateUserStatusInput struct {
 }
 
 type UserFilter struct {
-	Name      *string  `json:"name"`
-	Ids       []string `json:"ids"`
-	IgnoreIds []string `json:"ignore_ids"`
-	NotInTeam *bool    `json:"not_in_team"`
+	Name      *string     `json:"name"`
+	Ids       []string    `json:"ids"`
+	IgnoreIds []string    `json:"ignore_ids"`
+	NotInTeam *bool       `json:"not_in_team"`
+	Status    *UserStatus `json:"status"`
 }
 
 type UserFreeWord struct {

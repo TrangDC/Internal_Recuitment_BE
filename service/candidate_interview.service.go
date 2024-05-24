@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 	"trec/ent"
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
@@ -54,6 +55,9 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	var candidateInterview *ent.CandidateInterview
 	var memberIds []uuid.UUID
 	var inputValidate models.CandidateInterviewInputValidate
+	startFrom, endAt := svc.convertInterviewSchedule(&input.StartFrom, &input.EndAt)
+	input.EndAt = *endAt
+	input.StartFrom = *startFrom
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	candidateJobStatus, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
@@ -90,6 +94,9 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 }
 
 func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) error {
+	startFrom, endAt := svc.convertInterviewSchedule(&input.StartFrom, &input.EndAt)
+	input.EndAt = *endAt
+	input.StartFrom = *startFrom
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -116,6 +123,9 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
+	startFrom, endAt := svc.convertInterviewSchedule(&input.StartFrom, &input.EndAt)
+	input.EndAt = *endAt
+	input.StartFrom = *startFrom
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
@@ -164,6 +174,9 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
 	var newMemberIds, removeMemberIds []uuid.UUID
+	startFrom, endAt := svc.convertInterviewSchedule(&input.StartFrom, &input.EndAt)
+	input.EndAt = *endAt
+	input.StartFrom = *startFrom
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
@@ -387,6 +400,9 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 		candidateInterviewQuery.Where(candidateinterview.InterviewDateEQ(*input.InterviewDate))
 	}
 	if input.StartFrom != nil && input.EndAt != nil {
+		startFrom, endAt := svc.convertInterviewSchedule(input.StartFrom, input.EndAt)
+		input.EndAt = endAt
+		input.StartFrom = startFrom
 		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.StartFromGTE(*input.StartFrom), candidateinterview.EndAtLTE(*input.EndAt)))
 	}
 	if input.FromDate != nil && input.ToDate != nil {
@@ -429,4 +445,10 @@ func (svc *candidateInterviewSvcImpl) updateMembers(record *ent.CandidateIntervi
 		return !lo.Contains(memberIds, memberId)
 	})
 	return newMemberIds, removeMemberIds
+}
+
+func (svc *candidateInterviewSvcImpl) convertInterviewSchedule(startFrom *time.Time, endAt *time.Time) (*time.Time, *time.Time) {
+	newStartFrom := time.Date(0001, 01, 01, startFrom.Hour(), startFrom.Minute(), 0, 0, time.UTC)
+	newEndAt := time.Date(0001, 01, 01, endAt.Hour(), endAt.Minute(), 0, 0, time.UTC)
+	return &newStartFrom, &newEndAt
 }

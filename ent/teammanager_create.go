@@ -83,14 +83,6 @@ func (tmc *TeamManagerCreate) SetID(u uuid.UUID) *TeamManagerCreate {
 	return tmc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (tmc *TeamManagerCreate) SetNillableID(u *uuid.UUID) *TeamManagerCreate {
-	if u != nil {
-		tmc.SetID(*u)
-	}
-	return tmc
-}
-
 // SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
 func (tmc *TeamManagerCreate) SetUserEdgeID(id uuid.UUID) *TeamManagerCreate {
 	tmc.mutation.SetUserEdgeID(id)
@@ -193,10 +185,6 @@ func (tmc *TeamManagerCreate) defaults() {
 	if _, ok := tmc.mutation.CreatedAt(); !ok {
 		v := teammanager.DefaultCreatedAt()
 		tmc.mutation.SetCreatedAt(v)
-	}
-	if _, ok := tmc.mutation.ID(); !ok {
-		v := teammanager.DefaultID()
-		tmc.mutation.SetID(v)
 	}
 }
 

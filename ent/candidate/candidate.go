@@ -4,8 +4,6 @@ package candidate
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
@@ -79,6 +77,4 @@ var (
 	PhoneValidator func(string) error
 	// DefaultIsBlacklist holds the default value on creation for the "is_blacklist" field.
 	DefaultIsBlacklist bool
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )

@@ -137,14 +137,6 @@ func (cjc *CandidateJobCreate) SetID(u uuid.UUID) *CandidateJobCreate {
 	return cjc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (cjc *CandidateJobCreate) SetNillableID(u *uuid.UUID) *CandidateJobCreate {
-	if u != nil {
-		cjc.SetID(*u)
-	}
-	return cjc
-}
-
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cjc *CandidateJobCreate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobCreate {
 	cjc.mutation.AddAttachmentEdgeIDs(ids...)
@@ -331,10 +323,6 @@ func (cjc *CandidateJobCreate) defaults() {
 	if _, ok := cjc.mutation.Status(); !ok {
 		v := candidatejob.DefaultStatus
 		cjc.mutation.SetStatus(v)
-	}
-	if _, ok := cjc.mutation.ID(); !ok {
-		v := candidatejob.DefaultID()
-		cjc.mutation.SetID(v)
 	}
 }
 

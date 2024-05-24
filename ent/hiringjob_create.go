@@ -206,14 +206,6 @@ func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	return hjc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (hjc *HiringJobCreate) SetNillableID(u *uuid.UUID) *HiringJobCreate {
-	if u != nil {
-		hjc.SetID(*u)
-	}
-	return hjc
-}
-
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjc *HiringJobCreate) SetOwnerEdgeID(id uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetOwnerEdgeID(id)
@@ -363,10 +355,6 @@ func (hjc *HiringJobCreate) defaults() {
 	if _, ok := hjc.mutation.SalaryTo(); !ok {
 		v := hiringjob.DefaultSalaryTo
 		hjc.mutation.SetSalaryTo(v)
-	}
-	if _, ok := hjc.mutation.ID(); !ok {
-		v := hiringjob.DefaultID()
-		hjc.mutation.SetID(v)
 	}
 }
 

@@ -138,14 +138,6 @@ func (atc *AuditTrailCreate) SetID(u uuid.UUID) *AuditTrailCreate {
 	return atc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (atc *AuditTrailCreate) SetNillableID(u *uuid.UUID) *AuditTrailCreate {
-	if u != nil {
-		atc.SetID(*u)
-	}
-	return atc
-}
-
 // SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
 func (atc *AuditTrailCreate) SetUserEdgeID(id uuid.UUID) *AuditTrailCreate {
 	atc.mutation.SetUserEdgeID(id)
@@ -249,10 +241,6 @@ func (atc *AuditTrailCreate) defaults() {
 	if _, ok := atc.mutation.ActionType(); !ok {
 		v := audittrail.DefaultActionType
 		atc.mutation.SetActionType(v)
-	}
-	if _, ok := atc.mutation.ID(); !ok {
-		v := audittrail.DefaultID()
-		atc.mutation.SetID(v)
 	}
 }
 
