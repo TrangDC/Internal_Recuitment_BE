@@ -154,7 +154,7 @@ func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uui
 		return candidatejob.Status(s)
 	})
 	openStatus = append(openStatus, candidatejob.StatusHired)
-	if lo.Contains(openStatus, candidatejob.Status(*status)) {
+	if !lo.Contains(openStatus, candidatejob.Status(*status)) {
 		return nil
 	}
 	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
