@@ -1,0 +1,1 @@
+ALTER TABLE public.candidates DROP CONSTRAINT candidates_email_key;

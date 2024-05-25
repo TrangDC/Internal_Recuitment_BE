@@ -254,6 +254,11 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 		if input.FromDate != nil && input.ToDate != nil {
 			candidateQuery.Where(candidate.CreatedAtGTE(*input.FromDate), candidate.CreatedAtLTE(*input.ToDate))
 		}
+		if input.Status != nil {
+			candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
+				candidatejob.StatusEQ(candidatejob.Status(*input.Status)),
+			))
+		}
 		if input.FailedReason != nil && len(input.FailedReason) != 0 {
 			candidateJobIds := []uuid.UUID{}
 			queryString := "SELECT id FROM candidate_jobs WHERE "

@@ -448,7 +448,7 @@ func (svc *candidateInterviewSvcImpl) updateMembers(record *ent.CandidateIntervi
 }
 
 func (svc *candidateInterviewSvcImpl) convertInterviewSchedule(startFrom *time.Time, endAt *time.Time) (*time.Time, *time.Time) {
-	newStartFrom := time.Date(0001, 01, 01, startFrom.Hour(), startFrom.Minute(), 0, 0, time.UTC)
-	newEndAt := time.Date(0001, 01, 01, endAt.Hour(), endAt.Minute(), 0, 0, time.UTC)
+	newStartFrom := time.Date(0001, 02, 01, startFrom.Hour(), startFrom.Minute(), 0, 0, time.UTC)
+	newEndAt := time.Date(0001, 02, 01, endAt.Hour(), endAt.Minute(), 0, 0, time.UTC)
 	return &newStartFrom, &newEndAt
 }
