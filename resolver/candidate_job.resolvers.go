@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -45,16 +44,6 @@ func (r *candidateJobResolver) Candidate(ctx context.Context, obj *ent.Candidate
 // HiringJob is the resolver for the hiring_job field.
 func (r *candidateJobResolver) HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error) {
 	return obj.Edges.HiringJobEdge, nil
-}
-
-// Interviews is the resolver for the interviews field.
-func (r *candidateJobResolver) Interviews(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateInterview, error) {
-	panic(fmt.Errorf("not implemented: Interviews - interviews"))
-}
-
-// Feedback is the resolver for the feedback field.
-func (r *candidateJobResolver) Feedback(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobFeedback, error) {
-	panic(fmt.Errorf("not implemented: Feedback - feedback"))
 }
 
 // Owner is the resolver for the owner field.

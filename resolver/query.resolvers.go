@@ -81,6 +81,11 @@ func (r *queryResolver) GetCandidateJobGroupByStatus(ctx context.Context, filter
 	return r.serviceRegistry.CandidateJob().GetCandidateJobGroupByStatus(ctx, filter, orderBy)
 }
 
+// GetCandidateJobGroupByInterview is the resolver for the GetCandidateJobGroupByInterview field.
+func (r *queryResolver) GetCandidateJobGroupByInterview(ctx context.Context, id string) (*ent.CandidateJobGroupByInterviewResponse, error) {
+	return r.serviceRegistry.CandidateJob().GetCandidateJobGroupByInterview(ctx, uuid.MustParse(id))
+}
+
 // GetCandidateJobFeedback is the resolver for the GetCandidateJobFeedback field.
 func (r *queryResolver) GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error) {
 	return r.serviceRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, uuid.MustParse(id))

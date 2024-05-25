@@ -3,6 +3,9 @@
 package candidatejobfeedback
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +24,8 @@ const (
 	FieldCandidateJobID = "candidate_job_id"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldCandidateJobStatus holds the string denoting the candidate_job_status field in the database.
+	FieldCandidateJobStatus = "candidate_job_status"
 	// FieldFeedback holds the string denoting the feedback field in the database.
 	FieldFeedback = "feedback"
 	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
@@ -62,6 +67,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldCandidateJobID,
 	FieldCreatedBy,
+	FieldCandidateJobStatus,
 	FieldFeedback,
 }
 
@@ -79,3 +85,52 @@ var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
+
+// CandidateJobStatus defines the type for the "candidate_job_status" enum field.
+type CandidateJobStatus string
+
+// CandidateJobStatusApplied is the default value of the CandidateJobStatus enum.
+const DefaultCandidateJobStatus = CandidateJobStatusApplied
+
+// CandidateJobStatus values.
+const (
+	CandidateJobStatusApplied      CandidateJobStatus = "applied"
+	CandidateJobStatusInterviewing CandidateJobStatus = "interviewing"
+	CandidateJobStatusOffering     CandidateJobStatus = "offering"
+	CandidateJobStatusHired        CandidateJobStatus = "hired"
+	CandidateJobStatusKiv          CandidateJobStatus = "kiv"
+	CandidateJobStatusOfferLost    CandidateJobStatus = "offer_lost"
+	CandidateJobStatusExStaff      CandidateJobStatus = "ex_staff"
+)
+
+func (cjs CandidateJobStatus) String() string {
+	return string(cjs)
+}
+
+// CandidateJobStatusValidator is a validator for the "candidate_job_status" field enum values. It is called by the builders before save.
+func CandidateJobStatusValidator(cjs CandidateJobStatus) error {
+	switch cjs {
+	case CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusHired, CandidateJobStatusKiv, CandidateJobStatusOfferLost, CandidateJobStatusExStaff:
+		return nil
+	default:
+		return fmt.Errorf("candidatejobfeedback: invalid enum value for candidate_job_status field: %q", cjs)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e CandidateJobStatus) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *CandidateJobStatus) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = CandidateJobStatus(str)
+	if err := CandidateJobStatusValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid CandidateJobStatus", str)
+	}
+	return nil
+}

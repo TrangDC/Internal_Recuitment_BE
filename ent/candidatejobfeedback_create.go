@@ -94,6 +94,20 @@ func (cjfc *CandidateJobFeedbackCreate) SetNillableCreatedBy(u *uuid.UUID) *Cand
 	return cjfc
 }
 
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (cjfc *CandidateJobFeedbackCreate) SetCandidateJobStatus(cjs candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackCreate {
+	cjfc.mutation.SetCandidateJobStatus(cjs)
+	return cjfc
+}
+
+// SetNillableCandidateJobStatus sets the "candidate_job_status" field if the given value is not nil.
+func (cjfc *CandidateJobFeedbackCreate) SetNillableCandidateJobStatus(cjs *candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackCreate {
+	if cjs != nil {
+		cjfc.SetCandidateJobStatus(*cjs)
+	}
+	return cjfc
+}
+
 // SetFeedback sets the "feedback" field.
 func (cjfc *CandidateJobFeedbackCreate) SetFeedback(s string) *CandidateJobFeedbackCreate {
 	cjfc.mutation.SetFeedback(s)
@@ -240,12 +254,24 @@ func (cjfc *CandidateJobFeedbackCreate) defaults() {
 		v := candidatejobfeedback.DefaultCreatedAt()
 		cjfc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := cjfc.mutation.CandidateJobStatus(); !ok {
+		v := candidatejobfeedback.DefaultCandidateJobStatus
+		cjfc.mutation.SetCandidateJobStatus(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (cjfc *CandidateJobFeedbackCreate) check() error {
 	if _, ok := cjfc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CandidateJobFeedback.created_at"`)}
+	}
+	if _, ok := cjfc.mutation.CandidateJobStatus(); !ok {
+		return &ValidationError{Name: "candidate_job_status", err: errors.New(`ent: missing required field "CandidateJobFeedback.candidate_job_status"`)}
+	}
+	if v, ok := cjfc.mutation.CandidateJobStatus(); ok {
+		if err := candidatejobfeedback.CandidateJobStatusValidator(v); err != nil {
+			return &ValidationError{Name: "candidate_job_status", err: fmt.Errorf(`ent: validator failed for field "CandidateJobFeedback.candidate_job_status": %w`, err)}
+		}
 	}
 	if _, ok := cjfc.mutation.Feedback(); !ok {
 		return &ValidationError{Name: "feedback", err: errors.New(`ent: missing required field "CandidateJobFeedback.feedback"`)}
@@ -297,6 +323,10 @@ func (cjfc *CandidateJobFeedbackCreate) createSpec() (*CandidateJobFeedback, *sq
 	if value, ok := cjfc.mutation.DeletedAt(); ok {
 		_spec.SetField(candidatejobfeedback.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
+	}
+	if value, ok := cjfc.mutation.CandidateJobStatus(); ok {
+		_spec.SetField(candidatejobfeedback.FieldCandidateJobStatus, field.TypeEnum, value)
+		_node.CandidateJobStatus = value
 	}
 	if value, ok := cjfc.mutation.Feedback(); ok {
 		_spec.SetField(candidatejobfeedback.FieldFeedback, field.TypeString, value)

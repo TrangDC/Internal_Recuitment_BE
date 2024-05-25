@@ -148,6 +148,16 @@ type CandidateJobFreeWord struct {
 	HiringJob *string `json:"hiring_job"`
 }
 
+type CandidateJobGroupByInterview struct {
+	Applied      *CandidateJobGroupInterviewFeedback `json:"applied"`
+	Interviewing *CandidateJobGroupInterviewFeedback `json:"interviewing"`
+	Offering     *CandidateJobGroupInterviewFeedback `json:"offering"`
+}
+
+type CandidateJobGroupByInterviewResponse struct {
+	Data *CandidateJobGroupByInterview `json:"data"`
+}
+
 type CandidateJobGroupByStatus struct {
 	Hired        []*CandidateJob `json:"hired"`
 	Kiv          []*CandidateJob `json:"kiv"`
@@ -165,6 +175,11 @@ type CandidateJobGroupByStatusFilter struct {
 
 type CandidateJobGroupByStatusResponse struct {
 	Data *CandidateJobGroupByStatus `json:"data"`
+}
+
+type CandidateJobGroupInterviewFeedback struct {
+	Interview []*CandidateInterview   `json:"interview"`
+	Feedback  []*CandidateJobFeedback `json:"feedback"`
 }
 
 type CandidateJobResponse struct {

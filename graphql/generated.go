@@ -163,11 +163,9 @@ type ComplexityRoot struct {
 		CandidateID  func(childComplexity int) int
 		CreatedAt    func(childComplexity int) int
 		FailedReason func(childComplexity int) int
-		Feedback     func(childComplexity int) int
 		HiringJob    func(childComplexity int) int
 		HiringJobID  func(childComplexity int) int
 		ID           func(childComplexity int) int
-		Interviews   func(childComplexity int) int
 		Owner        func(childComplexity int) int
 		Status       func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
@@ -204,6 +202,16 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	CandidateJobGroupByInterview struct {
+		Applied      func(childComplexity int) int
+		Interviewing func(childComplexity int) int
+		Offering     func(childComplexity int) int
+	}
+
+	CandidateJobGroupByInterviewResponse struct {
+		Data func(childComplexity int) int
+	}
+
 	CandidateJobGroupByStatus struct {
 		Applied      func(childComplexity int) int
 		ExStaff      func(childComplexity int) int
@@ -216,6 +224,11 @@ type ComplexityRoot struct {
 
 	CandidateJobGroupByStatusResponse struct {
 		Data func(childComplexity int) int
+	}
+
+	CandidateJobGroupInterviewFeedback struct {
+		Feedback  func(childComplexity int) int
+		Interview func(childComplexity int) int
 	}
 
 	CandidateJobResponse struct {
@@ -329,6 +342,7 @@ type ComplexityRoot struct {
 		GetCandidateInterview             func(childComplexity int, id string) int
 		GetCandidateJob                   func(childComplexity int, id string) int
 		GetCandidateJobFeedback           func(childComplexity int, id string) int
+		GetCandidateJobGroupByInterview   func(childComplexity int, id string) int
 		GetCandidateJobGroupByStatus      func(childComplexity int, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) int
 		GetHiringJob                      func(childComplexity int, id string) int
 		GetTeam                           func(childComplexity int, id string) int
@@ -436,8 +450,6 @@ type CandidateJobResolver interface {
 	Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error)
 	Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error)
 	HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error)
-	Interviews(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateInterview, error)
-	Feedback(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobFeedback, error)
 	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 	FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error)
 }
@@ -506,6 +518,7 @@ type QueryResolver interface {
 	GetCandidateJob(ctx context.Context, id string) (*ent.CandidateJobResponse, error)
 	GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error)
+	GetCandidateJobGroupByInterview(ctx context.Context, id string) (*ent.CandidateJobGroupByInterviewResponse, error)
 	GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error)
 	GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
 	GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error)
@@ -989,13 +1002,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJob.FailedReason(childComplexity), true
 
-	case "CandidateJob.feedback":
-		if e.complexity.CandidateJob.Feedback == nil {
-			break
-		}
-
-		return e.complexity.CandidateJob.Feedback(childComplexity), true
-
 	case "CandidateJob.hiring_job":
 		if e.complexity.CandidateJob.HiringJob == nil {
 			break
@@ -1016,13 +1022,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.ID(childComplexity), true
-
-	case "CandidateJob.interviews":
-		if e.complexity.CandidateJob.Interviews == nil {
-			break
-		}
-
-		return e.complexity.CandidateJob.Interviews(childComplexity), true
 
 	case "CandidateJob.owner":
 		if e.complexity.CandidateJob.Owner == nil {
@@ -1157,6 +1156,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobFeedbackResponseGetAll.Pagination(childComplexity), true
 
+	case "CandidateJobGroupByInterview.applied":
+		if e.complexity.CandidateJobGroupByInterview.Applied == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.Applied(childComplexity), true
+
+	case "CandidateJobGroupByInterview.interviewing":
+		if e.complexity.CandidateJobGroupByInterview.Interviewing == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.Interviewing(childComplexity), true
+
+	case "CandidateJobGroupByInterview.offering":
+		if e.complexity.CandidateJobGroupByInterview.Offering == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.Offering(childComplexity), true
+
+	case "CandidateJobGroupByInterviewResponse.data":
+		if e.complexity.CandidateJobGroupByInterviewResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterviewResponse.Data(childComplexity), true
+
 	case "CandidateJobGroupByStatus.applied":
 		if e.complexity.CandidateJobGroupByStatus.Applied == nil {
 			break
@@ -1212,6 +1239,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJobGroupByStatusResponse.Data(childComplexity), true
+
+	case "CandidateJobGroupInterviewFeedback.feedback":
+		if e.complexity.CandidateJobGroupInterviewFeedback.Feedback == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupInterviewFeedback.Feedback(childComplexity), true
+
+	case "CandidateJobGroupInterviewFeedback.interview":
+		if e.complexity.CandidateJobGroupInterviewFeedback.Interview == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupInterviewFeedback.Interview(childComplexity), true
 
 	case "CandidateJobResponse.data":
 		if e.complexity.CandidateJobResponse.Data == nil {
@@ -1962,6 +2003,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCandidateJobFeedback(childComplexity, args["id"].(string)), true
 
+	case "Query.GetCandidateJobGroupByInterview":
+		if e.complexity.Query.GetCandidateJobGroupByInterview == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidateJobGroupByInterview_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidateJobGroupByInterview(childComplexity, args["id"].(string)), true
+
 	case "Query.GetCandidateJobGroupByStatus":
 		if e.complexity.Query.GetCandidateJobGroupByStatus == nil {
 			break
@@ -2591,12 +2644,21 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
-  interviews: [CandidateInterview!]
-  feedback: [CandidateJobFeedback!]
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   created_at: Time!
   updated_at: Time!
+}
+
+type CandidateJobGroupInterviewFeedback {
+  interview: [CandidateInterview!]
+  feedback: [CandidateJobFeedback!]
+}
+
+type CandidateJobGroupByInterview {
+  applied: CandidateJobGroupInterviewFeedback
+  interviewing: CandidateJobGroupInterviewFeedback
+  offering: CandidateJobGroupInterviewFeedback
 }
 
 type CandidateJobGroupByStatus {
@@ -2630,6 +2692,10 @@ type CandidateJobResponse {
 }
 type CandidateJobGroupByStatusResponse {
   data: CandidateJobGroupByStatus
+}
+
+type CandidateJobGroupByInterviewResponse {
+  data: CandidateJobGroupByInterview
 }
 
 type CandidateJobEdge {
@@ -3080,7 +3146,7 @@ type HiringJobResponseGetAll {
 	GetCandidateJob(id: ID!): CandidateJobResponse!
 	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
 	GetCandidateJobGroupByStatus(filter: CandidateJobGroupByStatusFilter!, orderBy: CandidateJobOrder): CandidateJobGroupByStatusResponse!
-
+	GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
 	#CandidateJobFeedback
 	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
 	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
@@ -4311,6 +4377,21 @@ func (ec *executionContext) field_Query_GetCandidateInterview_args(ctx context.C
 }
 
 func (ec *executionContext) field_Query_GetCandidateJobFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidateJobGroupByInterview_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -6876,10 +6957,6 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -7740,136 +7817,6 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateJob_interviews(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJob_interviews(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CandidateJob().Interviews(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.CandidateInterview)
-	fc.Result = res
-	return ec.marshalOCandidateInterview2ᚕᚖtrecᚋentᚐCandidateInterviewᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CandidateJob_interviews(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CandidateJob",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_CandidateInterview_id(ctx, field)
-			case "title":
-				return ec.fieldContext_CandidateInterview_title(ctx, field)
-			case "description":
-				return ec.fieldContext_CandidateInterview_description(ctx, field)
-			case "candidate_job_id":
-				return ec.fieldContext_CandidateInterview_candidate_job_id(ctx, field)
-			case "interview_date":
-				return ec.fieldContext_CandidateInterview_interview_date(ctx, field)
-			case "start_from":
-				return ec.fieldContext_CandidateInterview_start_from(ctx, field)
-			case "end_at":
-				return ec.fieldContext_CandidateInterview_end_at(ctx, field)
-			case "interviewer":
-				return ec.fieldContext_CandidateInterview_interviewer(ctx, field)
-			case "candidate_job":
-				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
-			case "edit_able":
-				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
-			case "owner":
-				return ec.fieldContext_CandidateInterview_owner(ctx, field)
-			case "created_at":
-				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_CandidateInterview_updated_at(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CandidateInterview", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CandidateJob_feedback(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJob_feedback(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CandidateJob().Feedback(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.CandidateJobFeedback)
-	fc.Result = res
-	return ec.marshalOCandidateJobFeedback2ᚕᚖtrecᚋentᚐCandidateJobFeedbackᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CandidateJob_feedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CandidateJob",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_CandidateJobFeedback_id(ctx, field)
-			case "created_by":
-				return ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
-			case "candidate_job_id":
-				return ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
-			case "candidate_job":
-				return ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
-			case "owner":
-				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
-			case "attachments":
-				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
-			case "created_at":
-				return ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedback", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _CandidateJob_owner(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJob_owner(ctx, field)
 	if err != nil {
@@ -8105,10 +8052,6 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -8353,10 +8296,6 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -8880,6 +8819,196 @@ func (ec *executionContext) fieldContext_CandidateJobFeedbackResponseGetAll_pagi
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJobGroupByInterview_applied(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_applied(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Applied, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_applied(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_interviewing(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_interviewing(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Interviewing, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_interviewing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_offering(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_offering(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Offering, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_offering(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterviewResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterviewResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterviewResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupByInterview)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupByInterview2ᚖtrecᚋentᚐCandidateJobGroupByInterview(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterviewResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterviewResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "applied":
+				return ec.fieldContext_CandidateJobGroupByInterview_applied(ctx, field)
+			case "interviewing":
+				return ec.fieldContext_CandidateJobGroupByInterview_interviewing(ctx, field)
+			case "offering":
+				return ec.fieldContext_CandidateJobGroupByInterview_offering(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupByInterview", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJobGroupByStatus_hired(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByStatus) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJobGroupByStatus_hired(ctx, field)
 	if err != nil {
@@ -8930,10 +9059,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -8999,10 +9124,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9068,10 +9189,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9137,10 +9254,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9206,10 +9319,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9275,10 +9384,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9344,10 +9449,6 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -9420,6 +9521,136 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatusResponse_data(
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJobGroupInterviewFeedback_interview(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupInterviewFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Interview, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateInterview)
+	fc.Result = res
+	return ec.marshalOCandidateInterview2ᚕᚖtrecᚋentᚐCandidateInterviewᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupInterviewFeedback",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateInterview_id(ctx, field)
+			case "title":
+				return ec.fieldContext_CandidateInterview_title(ctx, field)
+			case "description":
+				return ec.fieldContext_CandidateInterview_description(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateInterview_candidate_job_id(ctx, field)
+			case "interview_date":
+				return ec.fieldContext_CandidateInterview_interview_date(ctx, field)
+			case "start_from":
+				return ec.fieldContext_CandidateInterview_start_from(ctx, field)
+			case "end_at":
+				return ec.fieldContext_CandidateInterview_end_at(ctx, field)
+			case "interviewer":
+				return ec.fieldContext_CandidateInterview_interviewer(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateInterview_candidate_job(ctx, field)
+			case "edit_able":
+				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateInterview_owner(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateInterview_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateInterview", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupInterviewFeedback_feedback(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupInterviewFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Feedback, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateJobFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobFeedback2ᚕᚖtrecᚋentᚐCandidateJobFeedbackᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupInterviewFeedback",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJobFeedback_id(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJobResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJobResponse_data(ctx, field)
 	if err != nil {
@@ -9470,10 +9701,6 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
-			case "interviews":
-				return ec.fieldContext_CandidateJob_interviews(ctx, field)
-			case "feedback":
-				return ec.fieldContext_CandidateJob_feedback(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -13538,6 +13765,65 @@ func (ec *executionContext) fieldContext_Query_GetCandidateJobGroupByStatus(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetCandidateJobGroupByStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetCandidateJobGroupByInterview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidateJobGroupByInterview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCandidateJobGroupByInterview(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupByInterviewResponse)
+	fc.Result = res
+	return ec.marshalNCandidateJobGroupByInterviewResponse2ᚖtrecᚋentᚐCandidateJobGroupByInterviewResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCandidateJobGroupByInterview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateJobGroupByInterviewResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupByInterviewResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetCandidateJobGroupByInterview_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -20590,40 +20876,6 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
-		case "interviews":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CandidateJob_interviews(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "feedback":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CandidateJob_feedback(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "owner":
 			field := field
 
@@ -20972,6 +21224,64 @@ func (ec *executionContext) _CandidateJobFeedbackResponseGetAll(ctx context.Cont
 	return out
 }
 
+var candidateJobGroupByInterviewImplementors = []string{"CandidateJobGroupByInterview"}
+
+func (ec *executionContext) _CandidateJobGroupByInterview(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobGroupByInterview) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobGroupByInterviewImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobGroupByInterview")
+		case "applied":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_applied(ctx, field, obj)
+
+		case "interviewing":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_interviewing(ctx, field, obj)
+
+		case "offering":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_offering(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobGroupByInterviewResponseImplementors = []string{"CandidateJobGroupByInterviewResponse"}
+
+func (ec *executionContext) _CandidateJobGroupByInterviewResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobGroupByInterviewResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobGroupByInterviewResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobGroupByInterviewResponse")
+		case "data":
+
+			out.Values[i] = ec._CandidateJobGroupByInterviewResponse_data(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var candidateJobGroupByStatusImplementors = []string{"CandidateJobGroupByStatus"}
 
 func (ec *executionContext) _CandidateJobGroupByStatus(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobGroupByStatus) graphql.Marshaler {
@@ -21034,6 +21344,35 @@ func (ec *executionContext) _CandidateJobGroupByStatusResponse(ctx context.Conte
 		case "data":
 
 			out.Values[i] = ec._CandidateJobGroupByStatusResponse_data(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobGroupInterviewFeedbackImplementors = []string{"CandidateJobGroupInterviewFeedback"}
+
+func (ec *executionContext) _CandidateJobGroupInterviewFeedback(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobGroupInterviewFeedback) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobGroupInterviewFeedbackImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobGroupInterviewFeedback")
+		case "interview":
+
+			out.Values[i] = ec._CandidateJobGroupInterviewFeedback_interview(ctx, field, obj)
+
+		case "feedback":
+
+			out.Values[i] = ec._CandidateJobGroupInterviewFeedback_feedback(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -22191,6 +22530,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetCandidateJobGroupByStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetCandidateJobGroupByInterview":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCandidateJobGroupByInterview(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -23768,6 +24130,20 @@ func (ec *executionContext) unmarshalNCandidateJobFilter2trecᚋentᚐCandidateJ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNCandidateJobGroupByInterviewResponse2trecᚋentᚐCandidateJobGroupByInterviewResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobGroupByInterviewResponse) graphql.Marshaler {
+	return ec._CandidateJobGroupByInterviewResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateJobGroupByInterviewResponse2ᚖtrecᚋentᚐCandidateJobGroupByInterviewResponse(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobGroupByInterviewResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobGroupByInterviewResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCandidateJobGroupByStatusFilter2trecᚋentᚐCandidateJobGroupByStatusFilter(ctx context.Context, v interface{}) (ent.CandidateJobGroupByStatusFilter, error) {
 	res, err := ec.unmarshalInputCandidateJobGroupByStatusFilter(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -25316,11 +25692,25 @@ func (ec *executionContext) unmarshalOCandidateJobFreeWord2ᚖtrecᚋentᚐCandi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOCandidateJobGroupByInterview2ᚖtrecᚋentᚐCandidateJobGroupByInterview(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobGroupByInterview) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CandidateJobGroupByInterview(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCandidateJobGroupByStatus2ᚖtrecᚋentᚐCandidateJobGroupByStatus(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobGroupByStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CandidateJobGroupByStatus(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobGroupInterviewFeedback) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CandidateJobGroupInterviewFeedback(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCandidateJobOrder2ᚖtrecᚋentᚐCandidateJobOrder(ctx context.Context, v interface{}) (*ent.CandidateJobOrder, error) {

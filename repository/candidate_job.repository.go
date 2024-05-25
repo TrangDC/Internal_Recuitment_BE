@@ -7,9 +7,7 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
-	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
-	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 
 	"github.com/google/uuid"
@@ -27,6 +25,7 @@ type CandidateJobRepository interface {
 	BuildQuery() *ent.CandidateJobQuery
 	BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
+	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
 	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) error
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) error
@@ -68,24 +67,11 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.HiringJobQuery) {
 			query.WithTeamEdge().WithOwnerEdge()
 		},
-	).WithCreatedByEdge().WithCandidateJobInterview(
-		func(query *ent.CandidateInterviewQuery) {
-			query.Where(
-				candidateinterview.CandidateJobStatusIn(
-					candidateinterview.CandidateJobStatusApplied,
-					candidateinterview.CandidateJobStatusInterviewing,
-				),
-				candidateinterview.DeletedAtIsNil())
-		},
-	).WithCandidateJobFeedback(
-		func(query *ent.CandidateJobFeedbackQuery) {
-			query.Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
-				func(query *ent.AttachmentQuery) {
-					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
-				},
-			)
-		},
-	)
+	).WithCreatedByEdge()
+}
+
+func (rps candidateJobRepoImpl) GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {
+	return query.First(ctx)
 }
 
 func (rps candidateJobRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {

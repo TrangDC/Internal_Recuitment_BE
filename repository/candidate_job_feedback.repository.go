@@ -17,7 +17,7 @@ import (
 
 type CandidateJobFeedbackRepository interface {
 	// mutation
-	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
+	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, status string) (*ent.CandidateJobFeedback, error)
 	UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
 	DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error)
 	// query
@@ -27,7 +27,7 @@ type CandidateJobFeedbackRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateJobFeedbackQuery) ([]*ent.CandidateJobFeedback, error)
 
 	ValidJob(ctx context.Context, candidateJobId uuid.UUID) error
-	ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error
+	ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error)
 }
 
 type CandidateJobFeedbackRepoImpl struct {
@@ -94,13 +94,14 @@ func (rps CandidateJobFeedbackRepoImpl) BuildSaveUpdateOne(ctx context.Context, 
 }
 
 // mutation
-func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error) {
+func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, status string) (*ent.CandidateJobFeedback, error) {
 	createdById := ctx.Value("user_id").(uuid.UUID)
 	return rps.BuildCreate().
 		SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
 		SetFeedback(input.Feedback).
 		SetUpdatedAt(time.Now().UTC()).
 		SetCreatedBy(createdById).
+		SetCandidateJobStatus(candidatejobfeedback.CandidateJobStatus(status)).
 		Save(ctx)
 }
 
@@ -127,13 +128,13 @@ func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJ
 	return err
 }
 
-func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil(),
+func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error) {
+	candidateJob, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil(),
 		candidatejob.HasCandidateEdgeWith(
 			candidate.IsBlacklistEQ(false),
 		)).First(ctx)
 	if err != nil {
-		return fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist")
+		return "", fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist")
 	}
-	return err
+	return candidateJob.Status.String(), err
 }

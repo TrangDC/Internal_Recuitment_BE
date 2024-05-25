@@ -54,12 +54,21 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate!
   hiring_job: HiringJob!
-  interviews: [CandidateInterview!]
-  feedback: [CandidateJobFeedback!]
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   created_at: Time!
   updated_at: Time!
+}
+
+type CandidateJobGroupInterviewFeedback {
+  interview: [CandidateInterview!]
+  feedback: [CandidateJobFeedback!]
+}
+
+type CandidateJobGroupByInterview {
+  applied: CandidateJobGroupInterviewFeedback
+  interviewing: CandidateJobGroupInterviewFeedback
+  offering: CandidateJobGroupInterviewFeedback
 }
 
 type CandidateJobGroupByStatus {
@@ -93,6 +102,10 @@ type CandidateJobResponse {
 }
 type CandidateJobGroupByStatusResponse {
   data: CandidateJobGroupByStatus
+}
+
+type CandidateJobGroupByInterviewResponse {
+  data: CandidateJobGroupByInterview
 }
 
 type CandidateJobEdge {

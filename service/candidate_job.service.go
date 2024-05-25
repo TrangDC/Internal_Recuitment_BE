@@ -6,7 +6,9 @@ import (
 	"strings"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -30,6 +32,7 @@ type CandidateJobService interface {
 	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum
 	GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error)
+	GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error)
 }
 
 type candidateJobSvcImpl struct {
@@ -265,6 +268,63 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		}),
 	}
 	result = &ent.CandidateJobGroupByStatusResponse{
+		Data: edges,
+	}
+	return result, nil
+}
+
+func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error) {
+	var edges *ent.CandidateJobGroupByInterview
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).WithCandidateJobInterview(
+		func(query *ent.CandidateInterviewQuery) {
+			query.Where(
+				candidateinterview.CandidateJobStatusIn(
+					candidateinterview.CandidateJobStatusApplied,
+					candidateinterview.CandidateJobStatusInterviewing,
+				),
+				candidateinterview.DeletedAtIsNil()).WithCandidateJobEdge()
+		},
+	).WithCandidateJobFeedback(
+		func(query *ent.CandidateJobFeedbackQuery) {
+			query.Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
+				func(query *ent.AttachmentQuery) {
+					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
+				},
+			)
+		},
+	)
+	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = &ent.CandidateJobGroupByInterview{
+		Applied: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusApplied
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusApplied
+			}),
+		},
+		Interviewing: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusInterviewing
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusInterviewing
+			}),
+		},
+		Offering: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusOffering
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOffering
+			}),
+		},
+	}
+	result := &ent.CandidateJobGroupByInterviewResponse{
 		Data: edges,
 	}
 	return result, nil

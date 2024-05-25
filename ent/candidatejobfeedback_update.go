@@ -112,6 +112,20 @@ func (cjfu *CandidateJobFeedbackUpdate) ClearCreatedBy() *CandidateJobFeedbackUp
 	return cjfu
 }
 
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (cjfu *CandidateJobFeedbackUpdate) SetCandidateJobStatus(cjs candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackUpdate {
+	cjfu.mutation.SetCandidateJobStatus(cjs)
+	return cjfu
+}
+
+// SetNillableCandidateJobStatus sets the "candidate_job_status" field if the given value is not nil.
+func (cjfu *CandidateJobFeedbackUpdate) SetNillableCandidateJobStatus(cjs *candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackUpdate {
+	if cjs != nil {
+		cjfu.SetCandidateJobStatus(*cjs)
+	}
+	return cjfu
+}
+
 // SetFeedback sets the "feedback" field.
 func (cjfu *CandidateJobFeedbackUpdate) SetFeedback(s string) *CandidateJobFeedbackUpdate {
 	cjfu.mutation.SetFeedback(s)
@@ -216,12 +230,18 @@ func (cjfu *CandidateJobFeedbackUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(cjfu.hooks) == 0 {
+		if err = cjfu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = cjfu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CandidateJobFeedbackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cjfu.check(); err != nil {
+				return 0, err
 			}
 			cjfu.mutation = mutation
 			affected, err = cjfu.sqlSave(ctx)
@@ -263,6 +283,16 @@ func (cjfu *CandidateJobFeedbackUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cjfu *CandidateJobFeedbackUpdate) check() error {
+	if v, ok := cjfu.mutation.CandidateJobStatus(); ok {
+		if err := candidatejobfeedback.CandidateJobStatusValidator(v); err != nil {
+			return &ValidationError{Name: "candidate_job_status", err: fmt.Errorf(`ent: validator failed for field "CandidateJobFeedback.candidate_job_status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cjfu *CandidateJobFeedbackUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -292,6 +322,9 @@ func (cjfu *CandidateJobFeedbackUpdate) sqlSave(ctx context.Context) (n int, err
 	}
 	if cjfu.mutation.DeletedAtCleared() {
 		_spec.ClearField(candidatejobfeedback.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := cjfu.mutation.CandidateJobStatus(); ok {
+		_spec.SetField(candidatejobfeedback.FieldCandidateJobStatus, field.TypeEnum, value)
 	}
 	if value, ok := cjfu.mutation.Feedback(); ok {
 		_spec.SetField(candidatejobfeedback.FieldFeedback, field.TypeString, value)
@@ -519,6 +552,20 @@ func (cjfuo *CandidateJobFeedbackUpdateOne) ClearCreatedBy() *CandidateJobFeedba
 	return cjfuo
 }
 
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (cjfuo *CandidateJobFeedbackUpdateOne) SetCandidateJobStatus(cjs candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackUpdateOne {
+	cjfuo.mutation.SetCandidateJobStatus(cjs)
+	return cjfuo
+}
+
+// SetNillableCandidateJobStatus sets the "candidate_job_status" field if the given value is not nil.
+func (cjfuo *CandidateJobFeedbackUpdateOne) SetNillableCandidateJobStatus(cjs *candidatejobfeedback.CandidateJobStatus) *CandidateJobFeedbackUpdateOne {
+	if cjs != nil {
+		cjfuo.SetCandidateJobStatus(*cjs)
+	}
+	return cjfuo
+}
+
 // SetFeedback sets the "feedback" field.
 func (cjfuo *CandidateJobFeedbackUpdateOne) SetFeedback(s string) *CandidateJobFeedbackUpdateOne {
 	cjfuo.mutation.SetFeedback(s)
@@ -630,12 +677,18 @@ func (cjfuo *CandidateJobFeedbackUpdateOne) Save(ctx context.Context) (*Candidat
 		node *CandidateJobFeedback
 	)
 	if len(cjfuo.hooks) == 0 {
+		if err = cjfuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = cjfuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CandidateJobFeedbackMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cjfuo.check(); err != nil {
+				return nil, err
 			}
 			cjfuo.mutation = mutation
 			node, err = cjfuo.sqlSave(ctx)
@@ -681,6 +734,16 @@ func (cjfuo *CandidateJobFeedbackUpdateOne) ExecX(ctx context.Context) {
 	if err := cjfuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cjfuo *CandidateJobFeedbackUpdateOne) check() error {
+	if v, ok := cjfuo.mutation.CandidateJobStatus(); ok {
+		if err := candidatejobfeedback.CandidateJobStatusValidator(v); err != nil {
+			return &ValidationError{Name: "candidate_job_status", err: fmt.Errorf(`ent: validator failed for field "CandidateJobFeedback.candidate_job_status": %w`, err)}
+		}
+	}
+	return nil
 }
 
 func (cjfuo *CandidateJobFeedbackUpdateOne) sqlSave(ctx context.Context) (_node *CandidateJobFeedback, err error) {
@@ -729,6 +792,9 @@ func (cjfuo *CandidateJobFeedbackUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if cjfuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(candidatejobfeedback.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := cjfuo.mutation.CandidateJobStatus(); ok {
+		_spec.SetField(candidatejobfeedback.FieldCandidateJobStatus, field.TypeEnum, value)
 	}
 	if value, ok := cjfuo.mutation.Feedback(); ok {
 		_spec.SetField(candidatejobfeedback.FieldFeedback, field.TypeString, value)

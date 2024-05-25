@@ -444,6 +444,42 @@ func CreatedByNotNil() predicate.CandidateJobFeedback {
 	})
 }
 
+// CandidateJobStatusEQ applies the EQ predicate on the "candidate_job_status" field.
+func CandidateJobStatusEQ(v CandidateJobStatus) predicate.CandidateJobFeedback {
+	return predicate.CandidateJobFeedback(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCandidateJobStatus), v))
+	})
+}
+
+// CandidateJobStatusNEQ applies the NEQ predicate on the "candidate_job_status" field.
+func CandidateJobStatusNEQ(v CandidateJobStatus) predicate.CandidateJobFeedback {
+	return predicate.CandidateJobFeedback(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCandidateJobStatus), v))
+	})
+}
+
+// CandidateJobStatusIn applies the In predicate on the "candidate_job_status" field.
+func CandidateJobStatusIn(vs ...CandidateJobStatus) predicate.CandidateJobFeedback {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJobFeedback(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCandidateJobStatus), v...))
+	})
+}
+
+// CandidateJobStatusNotIn applies the NotIn predicate on the "candidate_job_status" field.
+func CandidateJobStatusNotIn(vs ...CandidateJobStatus) predicate.CandidateJobFeedback {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJobFeedback(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCandidateJobStatus), v...))
+	})
+}
+
 // FeedbackEQ applies the EQ predicate on the "feedback" field.
 func FeedbackEQ(v string) predicate.CandidateJobFeedback {
 	return predicate.CandidateJobFeedback(func(s *sql.Selector) {

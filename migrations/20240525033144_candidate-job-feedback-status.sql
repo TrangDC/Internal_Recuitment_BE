@@ -1,0 +1,1 @@
+ALTER TABLE candidate_job_feedbacks ADD COLUMN candidate_job_status candidate_job_enum DEFAULT 'applied' NULL;

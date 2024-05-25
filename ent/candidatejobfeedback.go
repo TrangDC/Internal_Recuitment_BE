@@ -29,6 +29,8 @@ type CandidateJobFeedback struct {
 	CandidateJobID uuid.UUID `json:"candidate_job_id,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+	// CandidateJobStatus holds the value of the "candidate_job_status" field.
+	CandidateJobStatus candidatejobfeedback.CandidateJobStatus `json:"candidate_job_status,omitempty"`
 	// Feedback holds the value of the "feedback" field.
 	Feedback string `json:"feedback,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -93,7 +95,7 @@ func (*CandidateJobFeedback) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case candidatejobfeedback.FieldFeedback:
+		case candidatejobfeedback.FieldCandidateJobStatus, candidatejobfeedback.FieldFeedback:
 			values[i] = new(sql.NullString)
 		case candidatejobfeedback.FieldCreatedAt, candidatejobfeedback.FieldUpdatedAt, candidatejobfeedback.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -149,6 +151,12 @@ func (cjf *CandidateJobFeedback) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value != nil {
 				cjf.CreatedBy = *value
+			}
+		case candidatejobfeedback.FieldCandidateJobStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field candidate_job_status", values[i])
+			} else if value.Valid {
+				cjf.CandidateJobStatus = candidatejobfeedback.CandidateJobStatus(value.String)
 			}
 		case candidatejobfeedback.FieldFeedback:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -213,6 +221,9 @@ func (cjf *CandidateJobFeedback) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", cjf.CreatedBy))
+	builder.WriteString(", ")
+	builder.WriteString("candidate_job_status=")
+	builder.WriteString(fmt.Sprintf("%v", cjf.CandidateJobStatus))
 	builder.WriteString(", ")
 	builder.WriteString("feedback=")
 	builder.WriteString(cjf.Feedback)

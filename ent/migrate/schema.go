@@ -206,6 +206,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_job_status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
 		{Name: "feedback", Type: field.TypeString, Size: 2147483647},
 		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
@@ -218,13 +219,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_job_feedbacks_candidate_jobs_candidate_job_feedback",
-				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[5]},
+				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[6]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "candidate_job_feedbacks_users_candidate_job_feedback",
-				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[6]},
+				Columns:    []*schema.Column{CandidateJobFeedbacksColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

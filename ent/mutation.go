@@ -6123,6 +6123,7 @@ type CandidateJobFeedbackMutation struct {
 	created_at                *time.Time
 	updated_at                *time.Time
 	deleted_at                *time.Time
+	candidate_job_status      *candidatejobfeedback.CandidateJobStatus
 	feedback                  *string
 	clearedFields             map[string]struct{}
 	created_by_edge           *uuid.UUID
@@ -6473,6 +6474,42 @@ func (m *CandidateJobFeedbackMutation) ResetCreatedBy() {
 	delete(m.clearedFields, candidatejobfeedback.FieldCreatedBy)
 }
 
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (m *CandidateJobFeedbackMutation) SetCandidateJobStatus(cjs candidatejobfeedback.CandidateJobStatus) {
+	m.candidate_job_status = &cjs
+}
+
+// CandidateJobStatus returns the value of the "candidate_job_status" field in the mutation.
+func (m *CandidateJobFeedbackMutation) CandidateJobStatus() (r candidatejobfeedback.CandidateJobStatus, exists bool) {
+	v := m.candidate_job_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateJobStatus returns the old "candidate_job_status" field's value of the CandidateJobFeedback entity.
+// If the CandidateJobFeedback object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobFeedbackMutation) OldCandidateJobStatus(ctx context.Context) (v candidatejobfeedback.CandidateJobStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateJobStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateJobStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateJobStatus: %w", err)
+	}
+	return oldValue.CandidateJobStatus, nil
+}
+
+// ResetCandidateJobStatus resets all changes to the "candidate_job_status" field.
+func (m *CandidateJobFeedbackMutation) ResetCandidateJobStatus() {
+	m.candidate_job_status = nil
+}
+
 // SetFeedback sets the "feedback" field.
 func (m *CandidateJobFeedbackMutation) SetFeedback(s string) {
 	m.feedback = &s
@@ -6660,7 +6697,7 @@ func (m *CandidateJobFeedbackMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateJobFeedbackMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, candidatejobfeedback.FieldCreatedAt)
 	}
@@ -6675,6 +6712,9 @@ func (m *CandidateJobFeedbackMutation) Fields() []string {
 	}
 	if m.created_by_edge != nil {
 		fields = append(fields, candidatejobfeedback.FieldCreatedBy)
+	}
+	if m.candidate_job_status != nil {
+		fields = append(fields, candidatejobfeedback.FieldCandidateJobStatus)
 	}
 	if m.feedback != nil {
 		fields = append(fields, candidatejobfeedback.FieldFeedback)
@@ -6697,6 +6737,8 @@ func (m *CandidateJobFeedbackMutation) Field(name string) (ent.Value, bool) {
 		return m.CandidateJobID()
 	case candidatejobfeedback.FieldCreatedBy:
 		return m.CreatedBy()
+	case candidatejobfeedback.FieldCandidateJobStatus:
+		return m.CandidateJobStatus()
 	case candidatejobfeedback.FieldFeedback:
 		return m.Feedback()
 	}
@@ -6718,6 +6760,8 @@ func (m *CandidateJobFeedbackMutation) OldField(ctx context.Context, name string
 		return m.OldCandidateJobID(ctx)
 	case candidatejobfeedback.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case candidatejobfeedback.FieldCandidateJobStatus:
+		return m.OldCandidateJobStatus(ctx)
 	case candidatejobfeedback.FieldFeedback:
 		return m.OldFeedback(ctx)
 	}
@@ -6763,6 +6807,13 @@ func (m *CandidateJobFeedbackMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case candidatejobfeedback.FieldCandidateJobStatus:
+		v, ok := value.(candidatejobfeedback.CandidateJobStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateJobStatus(v)
 		return nil
 	case candidatejobfeedback.FieldFeedback:
 		v, ok := value.(string)
@@ -6861,6 +6912,9 @@ func (m *CandidateJobFeedbackMutation) ResetField(name string) error {
 		return nil
 	case candidatejobfeedback.FieldCreatedBy:
 		m.ResetCreatedBy()
+		return nil
+	case candidatejobfeedback.FieldCandidateJobStatus:
+		m.ResetCandidateJobStatus()
 		return nil
 	case candidatejobfeedback.FieldFeedback:
 		m.ResetFeedback()
