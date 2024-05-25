@@ -278,11 +278,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).WithCandidateJobInterview(
 		func(query *ent.CandidateInterviewQuery) {
 			query.Where(
-				candidateinterview.CandidateJobStatusIn(
-					candidateinterview.CandidateJobStatusApplied,
-					candidateinterview.CandidateJobStatusInterviewing,
-				),
-				candidateinterview.DeletedAtIsNil()).WithCandidateJobEdge()
+				candidateinterview.DeletedAtIsNil()).WithCreatedByEdge().WithInterviewerEdges().WithCandidateJobEdge()
 		},
 	).WithCandidateJobFeedback(
 		func(query *ent.CandidateJobFeedbackQuery) {
@@ -290,7 +286,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 				func(query *ent.AttachmentQuery) {
 					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
 				},
-			)
+			).WithCreatedByEdge()
 		},
 	)
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
