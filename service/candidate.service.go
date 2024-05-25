@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -198,7 +197,6 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(candidates, func(candidate *ent.Candidate, index int) *ent.CandidateEdge {
-		fmt.Println("======", len(candidate.Edges.CandidateJobEdges))
 		return &ent.CandidateEdge{
 			Node: candidate,
 			Cursor: ent.Cursor{

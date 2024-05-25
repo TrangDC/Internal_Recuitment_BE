@@ -5,8 +5,8 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
+	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
 
 	"github.com/samber/lo"
@@ -60,17 +60,15 @@ func (r *candidateJobResolver) FailedReason(ctx context.Context, obj *ent.Candid
 	return result, nil
 }
 
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
+	if obj.Edges.HiringJobEdge.Status == hiringjob.StatusOpened {
+		return false, nil
+	}
+	return true, nil
+}
+
 // CandidateJob returns graphql1.CandidateJobResolver implementation.
 func (r *Resolver) CandidateJob() graphql1.CandidateJobResolver { return &candidateJobResolver{r} }
 
 type candidateJobResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (*bool, error) {
-	panic(fmt.Errorf("not implemented: IsAbleToDelete - is_able_to_delete"))
-}
