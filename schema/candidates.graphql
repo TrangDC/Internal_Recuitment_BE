@@ -66,6 +66,8 @@ type Candidate {
   status: CandidateStatusEnum!
   is_black_list: Boolean!
   last_apply_date: Time
+  is_able_to_delete: Boolean!
+  hiring_job_title: String!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

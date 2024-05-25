@@ -6,7 +6,10 @@ package resolver
 import (
 	"context"
 	"trec/ent"
+	"trec/ent/candidatejob"
 	graphql1 "trec/graphql"
+
+	"github.com/samber/lo"
 )
 
 // ID is the resolver for the id field.
@@ -46,7 +49,17 @@ func (r *hiringJobResolver) Status(ctx context.Context, obj *ent.HiringJob) (ent
 
 // TotalCandidatesRecruited is the resolver for the total_candidates_recruited field.
 func (r *hiringJobResolver) TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error) {
-	return len(obj.Edges.CandidateJobEdges), nil
+	return len(lo.Filter(obj.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
+		return item.Status == candidatejob.StatusHired
+	})), nil
+}
+
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *hiringJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.HiringJob) (bool, error) {
+	if len(obj.Edges.CandidateJobEdges) > 0 {
+		return false, nil
+	}
+	return true, nil
 }
 
 // HiringJob returns graphql1.HiringJobResolver implementation.

@@ -7,8 +7,10 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type CandidateRepository interface {
@@ -68,7 +70,14 @@ func (rps candidateRepoImpl) BuildDelete() *ent.CandidateUpdate {
 }
 
 func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
-	return rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil())
+	candidateJobStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(entity ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(entity.String())
+	})
+	return rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil()).WithCandidateJobEdges(
+		func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.StatusIn(candidateJobStatusOpen...), candidatejob.DeletedAtIsNil()).Limit(1).WithHiringJobEdge()
+		},
+	)
 }
 
 func (rps candidateRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateQuery) (*ent.Candidate, error) {

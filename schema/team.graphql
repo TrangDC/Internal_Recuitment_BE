@@ -39,6 +39,7 @@ type Team {
   slug: String!
   members: [User!]!
   opening_requests: Int!
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

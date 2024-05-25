@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -31,6 +32,7 @@ type CandidateService interface {
 	GetCandidate(ctx context.Context, id uuid.UUID) (*ent.CandidateResponse, error)
 	GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
 }
+
 type candidateSvcImpl struct {
 	repoRegistry repository.Repository
 	logger       *zap.Logger
@@ -196,6 +198,7 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(candidates, func(candidate *ent.Candidate, index int) *ent.CandidateEdge {
+		fmt.Println("======", len(candidate.Edges.CandidateJobEdges))
 		return &ent.CandidateEdge{
 			Node: candidate,
 			Cursor: ent.Cursor{

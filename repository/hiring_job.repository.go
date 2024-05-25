@@ -59,7 +59,7 @@ func (rps *hiringJobRepoImpl) BuildDelete() *ent.HiringJobUpdate {
 func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 	return rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil()).WithCandidateJobEdges(
 		func(query *ent.CandidateJobQuery) {
-			query.Where(candidatejob.DeletedAtIsNil(), candidatejob.StatusEQ(candidatejob.StatusHired))
+			query.Where(candidatejob.DeletedAtIsNil())
 		},
 	).WithOwnerEdge().WithTeamEdge(
 		func(query *ent.TeamQuery) {

@@ -30,6 +30,14 @@ func (r *teamResolver) OpeningRequests(ctx context.Context, obj *ent.Team) (int,
 	return len(total), nil
 }
 
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *teamResolver) IsAbleToDelete(ctx context.Context, obj *ent.Team) (bool, error) {
+	if len(obj.Edges.TeamJobEdges) > 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Team returns graphql1.TeamResolver implementation.
 func (r *Resolver) Team() graphql1.TeamResolver { return &teamResolver{r} }
 

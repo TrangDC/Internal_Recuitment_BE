@@ -109,17 +109,19 @@ type ComplexityRoot struct {
 	}
 
 	Candidate struct {
-		CreatedAt     func(childComplexity int) int
-		DeletedAt     func(childComplexity int) int
-		Dob           func(childComplexity int) int
-		Email         func(childComplexity int) int
-		ID            func(childComplexity int) int
-		IsBlacklist   func(childComplexity int) int
-		LastApplyDate func(childComplexity int) int
-		Name          func(childComplexity int) int
-		Phone         func(childComplexity int) int
-		Status        func(childComplexity int) int
-		UpdatedAt     func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		DeletedAt      func(childComplexity int) int
+		Dob            func(childComplexity int) int
+		Email          func(childComplexity int) int
+		HiringJobTitle func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IsAbleToDelete func(childComplexity int) int
+		IsBlacklist    func(childComplexity int) int
+		LastApplyDate  func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Phone          func(childComplexity int) int
+		Status         func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
 	}
 
 	CandidateEdge struct {
@@ -256,6 +258,7 @@ type ComplexityRoot struct {
 		DeletedAt                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		ID                       func(childComplexity int) int
+		IsAbleToDelete           func(childComplexity int) int
 		Location                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		SalaryFrom               func(childComplexity int) int
@@ -354,6 +357,7 @@ type ComplexityRoot struct {
 		CreatedAt       func(childComplexity int) int
 		DeletedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
+		IsAbleToDelete  func(childComplexity int) int
 		Members         func(childComplexity int) int
 		Name            func(childComplexity int) int
 		OpeningRequests func(childComplexity int) int
@@ -431,6 +435,9 @@ type CandidateResolver interface {
 	ID(ctx context.Context, obj *ent.Candidate) (string, error)
 
 	Status(ctx context.Context, obj *ent.Candidate) (ent.CandidateStatusEnum, error)
+
+	IsAbleToDelete(ctx context.Context, obj *ent.Candidate) (bool, error)
+	HiringJobTitle(ctx context.Context, obj *ent.Candidate) (string, error)
 }
 type CandidateInterviewResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateInterview) (string, error)
@@ -473,6 +480,7 @@ type HiringJobResolver interface {
 	User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error)
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
 	TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error)
+	IsAbleToDelete(ctx context.Context, obj *ent.HiringJob) (bool, error)
 }
 type MutationResolver interface {
 	CreateAttachmentSasurl(ctx context.Context, input ent.AttachmentInput) (*ent.AttachmentResponse, error)
@@ -531,6 +539,7 @@ type TeamResolver interface {
 
 	Members(ctx context.Context, obj *ent.Team) ([]*ent.User, error)
 	OpeningRequests(ctx context.Context, obj *ent.Team) (int, error)
+	IsAbleToDelete(ctx context.Context, obj *ent.Team) (bool, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *ent.User) (string, error)
@@ -778,12 +787,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Candidate.Email(childComplexity), true
 
+	case "Candidate.hiring_job_title":
+		if e.complexity.Candidate.HiringJobTitle == nil {
+			break
+		}
+
+		return e.complexity.Candidate.HiringJobTitle(childComplexity), true
+
 	case "Candidate.id":
 		if e.complexity.Candidate.ID == nil {
 			break
 		}
 
 		return e.complexity.Candidate.ID(childComplexity), true
+
+	case "Candidate.is_able_to_delete":
+		if e.complexity.Candidate.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.Candidate.IsAbleToDelete(childComplexity), true
 
 	case "Candidate.is_black_list":
 		if e.complexity.Candidate.IsBlacklist == nil {
@@ -1337,6 +1360,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.ID(childComplexity), true
+
+	case "HiringJob.is_able_to_delete":
+		if e.complexity.HiringJob.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.IsAbleToDelete(childComplexity), true
 
 	case "HiringJob.location":
 		if e.complexity.HiringJob.Location == nil {
@@ -2095,6 +2125,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Team.ID(childComplexity), true
+
+	case "Team.is_able_to_delete":
+		if e.complexity.Team.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.Team.IsAbleToDelete(childComplexity), true
 
 	case "Team.members":
 		if e.complexity.Team.Members == nil {
@@ -2857,6 +2894,8 @@ type Candidate {
   status: CandidateStatusEnum!
   is_black_list: Boolean!
   last_apply_date: Time
+  is_able_to_delete: Boolean!
+  hiring_job_title: String!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -3052,6 +3091,7 @@ type HiringJob {
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -3200,6 +3240,7 @@ type Team {
   slug: String!
   members: [User!]!
   opening_requests: Int!
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -6302,6 +6343,94 @@ func (ec *executionContext) fieldContext_Candidate_last_apply_date(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Candidate_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_hiring_job_title(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_hiring_job_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().HiringJobTitle(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_hiring_job_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Candidate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Candidate_created_at(ctx, field)
 	if err != nil {
@@ -6486,6 +6615,10 @@ func (ec *executionContext) fieldContext_CandidateEdge_node(ctx context.Context,
 				return ec.fieldContext_Candidate_is_black_list(ctx, field)
 			case "last_apply_date":
 				return ec.fieldContext_Candidate_last_apply_date(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
+			case "hiring_job_title":
+				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -7724,6 +7857,10 @@ func (ec *executionContext) fieldContext_CandidateJob_candidate(ctx context.Cont
 				return ec.fieldContext_Candidate_is_black_list(ctx, field)
 			case "last_apply_date":
 				return ec.fieldContext_Candidate_last_apply_date(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
+			case "hiring_job_title":
+				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -7804,6 +7941,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -9873,6 +10012,10 @@ func (ec *executionContext) fieldContext_CandidateResponse_data(ctx context.Cont
 				return ec.fieldContext_Candidate_is_black_list(ctx, field)
 			case "last_apply_date":
 				return ec.fieldContext_Candidate_last_apply_date(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
+			case "hiring_job_title":
+				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -10477,6 +10620,8 @@ func (ec *executionContext) fieldContext_HiringJob_team(ctx context.Context, fie
 				return ec.fieldContext_Team_members(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Team_created_at(ctx, field)
 			case "updated_at":
@@ -10629,6 +10774,50 @@ func (ec *executionContext) fieldContext_HiringJob_total_candidates_recruited(ct
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJob_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJob().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10830,6 +11019,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -10951,6 +11142,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -14551,6 +14744,50 @@ func (ec *executionContext) fieldContext_Team_opening_requests(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Team_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.Team) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Team_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Team().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Team_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Team",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Team_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Team) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Team_created_at(ctx, field)
 	if err != nil {
@@ -14729,6 +14966,8 @@ func (ec *executionContext) fieldContext_TeamEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Team_members(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Team_created_at(ctx, field)
 			case "updated_at":
@@ -14832,6 +15071,8 @@ func (ec *executionContext) fieldContext_TeamResponse_data(ctx context.Context, 
 				return ec.fieldContext_Team_members(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Team_created_at(ctx, field)
 			case "updated_at":
@@ -15169,6 +15410,8 @@ func (ec *executionContext) fieldContext_User_team(ctx context.Context, field gr
 				return ec.fieldContext_Team_members(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Team_created_at(ctx, field)
 			case "updated_at":
@@ -20386,6 +20629,46 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._Candidate_last_apply_date(ctx, field, obj)
 
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_is_able_to_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "hiring_job_title":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_hiring_job_title(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._Candidate_created_at(ctx, field, obj)
@@ -21720,6 +22003,26 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJob_is_able_to_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._HiringJob_created_at(ctx, field, obj)
@@ -22801,6 +23104,26 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Team_opening_requests(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Team_is_able_to_delete(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
