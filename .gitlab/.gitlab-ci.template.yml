@@ -164,9 +164,9 @@ sonarqube:
     - curl -sSf https://atlasgo.sh | sh
   script:
     - |
-      atlas migrate hash  --dir "file://migrations"
+      atlas migrate hash  --dir file://migrations
     - |
-      atlas migrate apply --url ${POSTGRES_CONNECTION_STRING} --dir "file://migrations" --dry-run
+      atlas migrate apply --url ${POSTGRES_CONNECTION_STRING} --dir file://migrations --dry-run
   tags:
     - $RUNNER_TAG
 
