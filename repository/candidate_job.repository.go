@@ -150,16 +150,18 @@ func (rps candidateJobRepoImpl) GetCandidateJob(ctx context.Context, candidateId
 
 // common function
 func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) error {
-	if !ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(status.String())) {
+	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(s)
+	})
+	openStatus = append(openStatus, candidatejob.StatusHired)
+	if lo.Contains(openStatus, candidatejob.Status(*status)) {
 		return nil
 	}
 	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
 	if candidateJobId != uuid.Nil {
 		query.Where(candidatejob.IDNEQ(candidateJobId))
 	}
-	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
-		return candidatejob.Status(s)
-	})
+
 	query = query.Where(candidatejob.StatusIn(openStatus...))
 	isExist, _ := rps.BuildExist(ctx, query)
 	if isExist {

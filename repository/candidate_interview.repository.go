@@ -275,10 +275,11 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 		query.Where(candidateinterview.IDNEQ(candidateInterviewId))
 	}
 	query.Where(candidateinterview.Or(
-		candidateinterview.And(candidateinterview.StartFromGTE(*startFrom), candidateinterview.EndAtLTE(*endAt)), // [start, [start, end] ,end]
+		candidateinterview.And(candidateinterview.StartFromLTE(*startFrom), candidateinterview.EndAtGTE(*endAt)), // outside
+		candidateinterview.And(candidateinterview.StartFromGTE(*startFrom), candidateinterview.EndAtLTE(*endAt)), // inside
 		candidateinterview.StartFromIn(*startFrom, *endAt),
 		candidateinterview.EndAtIn(*startFrom, *endAt)),
-		candidateinterview.And(candidateinterview.StartFromLTE(*startFrom), candidateinterview.EndAtGTE(*endAt)))
+	)
 	exist, err := query.Exist(ctx)
 	if err != nil {
 		return nil, err
