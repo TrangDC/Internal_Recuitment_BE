@@ -7,6 +7,7 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
@@ -71,6 +72,10 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 	).WithCreatedByEdge().WithCandidateJobStep(
 		func(query *ent.CandidateJobStepQuery) {
 			query.Order(ent.Asc(candidatejobstep.FieldCreatedAt))
+		},
+	).WithCandidateJobInterview(
+		func(query *ent.CandidateInterviewQuery) {
+			query.Where(candidateinterview.DeletedAtIsNil())
 		},
 	)
 }
