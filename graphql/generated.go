@@ -161,20 +161,20 @@ type ComplexityRoot struct {
 	}
 
 	CandidateJob struct {
-		Attachments           func(childComplexity int) int
-		Candidate             func(childComplexity int) int
-		CandidateID           func(childComplexity int) int
-		CreatedAt             func(childComplexity int) int
-		FailedReason          func(childComplexity int) int
-		HiringJob             func(childComplexity int) int
-		HiringJobID           func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		IsAbleToDelete        func(childComplexity int) int
-		IsHasInterviewFeature func(childComplexity int) int
-		Owner                 func(childComplexity int) int
-		Status                func(childComplexity int) int
-		Steps                 func(childComplexity int) int
-		UpdatedAt             func(childComplexity int) int
+		Attachments      func(childComplexity int) int
+		Candidate        func(childComplexity int) int
+		CandidateID      func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		FailedReason     func(childComplexity int) int
+		HiringJob        func(childComplexity int) int
+		HiringJobID      func(childComplexity int) int
+		ID               func(childComplexity int) int
+		InterviewFeature func(childComplexity int) int
+		IsAbleToDelete   func(childComplexity int) int
+		Owner            func(childComplexity int) int
+		Status           func(childComplexity int) int
+		Steps            func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
 	}
 
 	CandidateJobEdge struct {
@@ -477,7 +477,7 @@ type CandidateJobResolver interface {
 	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 	FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error)
-	IsHasInterviewFeature(ctx context.Context, obj *ent.CandidateJob) (bool, error)
+	InterviewFeature(ctx context.Context, obj *ent.CandidateJob) (int, error)
 	Steps(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobStep, error)
 }
 type CandidateJobFeedbackResolver interface {
@@ -1072,19 +1072,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJob.ID(childComplexity), true
 
+	case "CandidateJob.interview_feature":
+		if e.complexity.CandidateJob.InterviewFeature == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.InterviewFeature(childComplexity), true
+
 	case "CandidateJob.is_able_to_delete":
 		if e.complexity.CandidateJob.IsAbleToDelete == nil {
 			break
 		}
 
 		return e.complexity.CandidateJob.IsAbleToDelete(childComplexity), true
-
-	case "CandidateJob.is_has_interview_feature":
-		if e.complexity.CandidateJob.IsHasInterviewFeature == nil {
-			break
-		}
-
-		return e.complexity.CandidateJob.IsHasInterviewFeature(childComplexity), true
 
 	case "CandidateJob.owner":
 		if e.complexity.CandidateJob.Owner == nil {
@@ -2801,7 +2801,7 @@ type CandidateJob {
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
-  is_has_interview_feature: Boolean!
+  interview_feature: Int!
   steps: [CandidateJobStep!]
   created_at: Time!
   updated_at: Time!
@@ -2956,7 +2956,8 @@ type CandidateJobFeedbackResponseGetAll {
   candidate_job_status: CandidateJobStatus!
   created_at: Time!
   updated_at: Time!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../schema/candidates.graphql", Input: `enum CandidateStatusEnum {
   applied
   interviewing
@@ -7228,8 +7229,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -8234,8 +8235,8 @@ func (ec *executionContext) fieldContext_CandidateJob_is_able_to_delete(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateJob_is_has_interview_feature(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+func (ec *executionContext) _CandidateJob_interview_feature(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8248,7 +8249,7 @@ func (ec *executionContext) _CandidateJob_is_has_interview_feature(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CandidateJob().IsHasInterviewFeature(rctx, obj)
+		return ec.resolvers.CandidateJob().InterviewFeature(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8260,19 +8261,19 @@ func (ec *executionContext) _CandidateJob_is_has_interview_feature(ctx context.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateJob_is_has_interview_feature(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateJob_interview_feature(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CandidateJob",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8478,8 +8479,8 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -8728,8 +8729,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -9693,8 +9694,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -9764,8 +9765,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -9835,8 +9836,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -9906,8 +9907,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -9977,8 +9978,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -10048,8 +10049,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -10119,8 +10120,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -10377,8 +10378,8 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
-			case "is_has_interview_feature":
-				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
 			case "steps":
 				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
@@ -22018,7 +22019,7 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
-		case "is_has_interview_feature":
+		case "interview_feature":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -22027,7 +22028,7 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._CandidateJob_is_has_interview_feature(ctx, field, obj)
+				res = ec._CandidateJob_interview_feature(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

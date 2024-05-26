@@ -83,6 +83,10 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	userId := ctx.Value("user_id").(uuid.UUID)
+	if candidateJobFeedback.CreatedBy != userId {
+		return nil, util.WrapGQLError(ctx, "model.candidate_job_feedbacks.validation.editor_not_is_owner", http.StatusBadGateway, util.ErrorFlagValidateFail)
+	}
 	_, err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, candidateJobFeedback.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

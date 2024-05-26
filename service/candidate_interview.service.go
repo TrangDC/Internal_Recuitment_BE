@@ -133,6 +133,10 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	endAtTime := time.Date(record.InterviewDate.Year(), record.InterviewDate.Month(), record.InterviewDate.Day(), record.EndAt.Hour(), record.EndAt.Minute(), 0, 0, time.UTC)
+	if time.Now().UTC().After(endAtTime) {
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_interview_ended", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
+	}
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
 	}
@@ -183,6 +187,10 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	endAtTime := time.Date(record.InterviewDate.Year(), record.InterviewDate.Month(), record.InterviewDate.Day(), record.EndAt.Hour(), record.EndAt.Minute(), 0, 0, time.UTC)
+	if time.Now().UTC().After(endAtTime) {
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_interview_ended", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
 	}
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)

@@ -57,7 +57,7 @@ type CandidateJob {
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
-  is_has_interview_feature: Boolean!
+  interview_feature: Int!
   steps: [CandidateJobStep!]
   created_at: Time!
   updated_at: Time!
