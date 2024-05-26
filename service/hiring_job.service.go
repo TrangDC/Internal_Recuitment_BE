@@ -103,6 +103,9 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	if input.Amount == 0 && record.Status == hiringjob.StatusOpened {
+		return nil, util.WrapGQLError(ctx, "model.hiring_job.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	err = svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -135,6 +138,12 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	candidateJobWithStatusOpen := lo.Map(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
+		return ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(item.Status))
+	})
+	if len(candidateJobWithStatusOpen) > 0 && record.Status == hiringjob.StatusOpened && hiringjob.Status(status) == hiringjob.StatusClosed {
+		return nil, util.WrapGQLError(ctx, "model.hiring_job.validation.candidate_job_open_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, record, status)

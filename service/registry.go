@@ -25,6 +25,7 @@ type Service interface {
 	Attachment() AttachmentService
 	ExportData() ExportDataService
 	ImportData() ImportDataService
+	CandiateJobStep() CandidateJobStepService
 }
 
 // serviceImpl is the implementation of Service.
@@ -42,6 +43,7 @@ type serviceImpl struct {
 	attachmentService           AttachmentService
 	exportDataService           ExportDataService
 	importDataService           ImportDataService
+	candidateJobStepService     CandidateJobStepService
 }
 
 // NewService creates a new Service.
@@ -62,6 +64,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		attachmentService:           NewAttachmentService(repoRegistry, logger),
 		exportDataService:           NewExportDataService(repoRegistry, i18n, logger),
 		importDataService:           NewImportDataService(repoRegistry, logger),
+		candidateJobStepService:     NewCandidateJobStepService(repoRegistry, logger),
 	}
 }
 
@@ -128,4 +131,9 @@ func (i serviceImpl) ExportData() ExportDataService {
 // ImportData returns the ImportDataService.
 func (i serviceImpl) ImportData() ImportDataService {
 	return i.importDataService
+}
+
+// CandiateJobStep returns the CandidateJobStepService.
+func (i serviceImpl) CandiateJobStep() CandidateJobStepService {
+	return i.candidateJobStepService
 }

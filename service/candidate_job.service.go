@@ -36,16 +36,18 @@ type CandidateJobService interface {
 }
 
 type candidateJobSvcImpl struct {
-	attachmentSvc AttachmentService
-	repoRegistry  repository.Repository
-	logger        *zap.Logger
+	attachmentSvc       AttachmentService
+	candidateJobStepSvc CandidateJobStepService
+	repoRegistry        repository.Repository
+	logger              *zap.Logger
 }
 
 func NewCandidateJobService(repoRegistry repository.Repository, logger *zap.Logger) CandidateJobService {
 	return &candidateJobSvcImpl{
-		attachmentSvc: NewAttachmentService(repoRegistry, logger),
-		repoRegistry:  repoRegistry,
-		logger:        logger,
+		attachmentSvc:       NewAttachmentService(repoRegistry, logger),
+		candidateJobStepSvc: NewCandidateJobStepService(repoRegistry, logger),
+		repoRegistry:        repoRegistry,
+		logger:              logger,
 	}
 }
 
@@ -65,6 +67,10 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 			return err
 		}
 		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJob.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		if err != nil {
+			return err
+		}
+		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidateJob.Status, candidateJob.ID, repoRegistry)
 		return err
 	})
 	if err != nil {
@@ -98,6 +104,10 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateJob, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, candidateJob, input)
+		if err != nil {
+			return err
+		}
+		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidateJob.Status, candidateJob.ID, repoRegistry)
 		return err
 	})
 	if err != nil {
@@ -317,6 +327,38 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 			}),
 			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
 				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOffering
+			}),
+		},
+		Hired: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusHired
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusHired
+			}),
+		},
+		OfferLost: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusOfferLost
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOfferLost
+			}),
+		},
+		Kiv: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusKiv
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusKiv
+			}),
+		},
+		ExStaff: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusExStaff
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusExStaff
 			}),
 		},
 	}

@@ -325,9 +325,13 @@ func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx cont
 	var edges []*ent.CandidateInterviewEdge
 	var page int
 	var perPage int
+	candidateJobStatusEnded := lo.Map(ent.AllCandidateJobStatusEnded, func(status ent.CandidateJobStatusEnded, index int) candidatejob.Status {
+		return candidatejob.Status(status)
+	})
 	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(
 		candidateinterview.HasCandidateJobEdgeWith(
-			candidatejob.DeletedAtIsNil(), candidatejob.HasCandidateEdgeWith(
+			candidatejob.DeletedAtIsNil(), candidatejob.StatusNotIn(candidateJobStatusEnded...),
+			candidatejob.HasCandidateEdgeWith(
 				candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
 			),
 		),

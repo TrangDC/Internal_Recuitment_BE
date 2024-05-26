@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -37,11 +38,13 @@ type CandidateJobQuery struct {
 	withCandidateEdge              *CandidateQuery
 	withCandidateJobInterview      *CandidateInterviewQuery
 	withCreatedByEdge              *UserQuery
+	withCandidateJobStep           *CandidateJobStepQuery
 	modifiers                      []func(*sql.Selector)
 	loadTotal                      []func(context.Context, []*CandidateJob) error
 	withNamedAttachmentEdges       map[string]*AttachmentQuery
 	withNamedCandidateJobFeedback  map[string]*CandidateJobFeedbackQuery
 	withNamedCandidateJobInterview map[string]*CandidateInterviewQuery
+	withNamedCandidateJobStep      map[string]*CandidateJobStepQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -203,6 +206,28 @@ func (cjq *CandidateJobQuery) QueryCreatedByEdge() *UserQuery {
 			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.CreatedByEdgeTable, candidatejob.CreatedByEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateJobStep chains the current query on the "candidate_job_step" edge.
+func (cjq *CandidateJobQuery) QueryCandidateJobStep() *CandidateJobStepQuery {
+	query := &CandidateJobStepQuery{config: cjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
+			sqlgraph.To(candidatejobstep.Table, candidatejobstep.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.CandidateJobStepTable, candidatejob.CandidateJobStepColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
 		return fromU, nil
@@ -397,6 +422,7 @@ func (cjq *CandidateJobQuery) Clone() *CandidateJobQuery {
 		withCandidateEdge:         cjq.withCandidateEdge.Clone(),
 		withCandidateJobInterview: cjq.withCandidateJobInterview.Clone(),
 		withCreatedByEdge:         cjq.withCreatedByEdge.Clone(),
+		withCandidateJobStep:      cjq.withCandidateJobStep.Clone(),
 		// clone intermediate query.
 		sql:    cjq.sql.Clone(),
 		path:   cjq.path,
@@ -467,6 +493,17 @@ func (cjq *CandidateJobQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *Candi
 		opt(query)
 	}
 	cjq.withCreatedByEdge = query
+	return cjq
+}
+
+// WithCandidateJobStep tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_step" edge. The optional arguments are used to configure the query builder of the edge.
+func (cjq *CandidateJobQuery) WithCandidateJobStep(opts ...func(*CandidateJobStepQuery)) *CandidateJobQuery {
+	query := &CandidateJobStepQuery{config: cjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cjq.withCandidateJobStep = query
 	return cjq
 }
 
@@ -543,13 +580,14 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*CandidateJob{}
 		_spec       = cjq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			cjq.withAttachmentEdges != nil,
 			cjq.withHiringJobEdge != nil,
 			cjq.withCandidateJobFeedback != nil,
 			cjq.withCandidateEdge != nil,
 			cjq.withCandidateJobInterview != nil,
 			cjq.withCreatedByEdge != nil,
+			cjq.withCandidateJobStep != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -616,6 +654,15 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			return nil, err
 		}
 	}
+	if query := cjq.withCandidateJobStep; query != nil {
+		if err := cjq.loadCandidateJobStep(ctx, query, nodes,
+			func(n *CandidateJob) { n.Edges.CandidateJobStep = []*CandidateJobStep{} },
+			func(n *CandidateJob, e *CandidateJobStep) {
+				n.Edges.CandidateJobStep = append(n.Edges.CandidateJobStep, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range cjq.withNamedAttachmentEdges {
 		if err := cjq.loadAttachmentEdges(ctx, query, nodes,
 			func(n *CandidateJob) { n.appendNamedAttachmentEdges(name) },
@@ -634,6 +681,13 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		if err := cjq.loadCandidateJobInterview(ctx, query, nodes,
 			func(n *CandidateJob) { n.appendNamedCandidateJobInterview(name) },
 			func(n *CandidateJob, e *CandidateInterview) { n.appendNamedCandidateJobInterview(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cjq.withNamedCandidateJobStep {
+		if err := cjq.loadCandidateJobStep(ctx, query, nodes,
+			func(n *CandidateJob) { n.appendNamedCandidateJobStep(name) },
+			func(n *CandidateJob, e *CandidateJobStep) { n.appendNamedCandidateJobStep(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -804,6 +858,33 @@ func (cjq *CandidateJobQuery) loadCreatedByEdge(ctx context.Context, query *User
 	}
 	return nil
 }
+func (cjq *CandidateJobQuery) loadCandidateJobStep(ctx context.Context, query *CandidateJobStepQuery, nodes []*CandidateJob, init func(*CandidateJob), assign func(*CandidateJob, *CandidateJobStep)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*CandidateJob)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateJobStep(func(s *sql.Selector) {
+		s.Where(sql.InValues(candidatejob.CandidateJobStepColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CandidateJobID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "candidate_job_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (cjq *CandidateJobQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := cjq.querySpec()
@@ -947,6 +1028,20 @@ func (cjq *CandidateJobQuery) WithNamedCandidateJobInterview(name string, opts .
 		cjq.withNamedCandidateJobInterview = make(map[string]*CandidateInterviewQuery)
 	}
 	cjq.withNamedCandidateJobInterview[name] = query
+	return cjq
+}
+
+// WithNamedCandidateJobStep tells the query-builder to eager-load the nodes that are connected to the "candidate_job_step"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cjq *CandidateJobQuery) WithNamedCandidateJobStep(name string, opts ...func(*CandidateJobStepQuery)) *CandidateJobQuery {
+	query := &CandidateJobStepQuery{config: cjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cjq.withNamedCandidateJobStep == nil {
+		cjq.withNamedCandidateJobStep = make(map[string]*CandidateJobStepQuery)
+	}
+	cjq.withNamedCandidateJobStep[name] = query
 	return cjq
 }
 

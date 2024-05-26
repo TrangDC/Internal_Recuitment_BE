@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"time"
 	"trec/ent"
 	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
@@ -62,10 +63,22 @@ func (r *candidateJobResolver) FailedReason(ctx context.Context, obj *ent.Candid
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
-	if obj.Edges.HiringJobEdge.Status == hiringjob.StatusOpened {
-		return false, nil
-	}
-	return true, nil
+	return (obj.Edges.HiringJobEdge.Status != hiringjob.StatusOpened &&
+			ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(obj.Status))),
+		nil
+}
+
+// IsHasInterviewFeature is the resolver for the is_has_interview_feature field.
+func (r *candidateJobResolver) IsHasInterviewFeature(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
+	interviewFeature := lo.Filter(obj.Edges.CandidateJobInterview, func(cji *ent.CandidateInterview, index int) bool {
+		return cji.InterviewDate.After(time.Now().UTC())
+	})
+	return len(interviewFeature) > 0, nil
+}
+
+// Steps is the resolver for the steps field.
+func (r *candidateJobResolver) Steps(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobStep, error) {
+	return obj.Edges.CandidateJobStep, nil
 }
 
 // CandidateJob returns graphql1.CandidateJobResolver implementation.

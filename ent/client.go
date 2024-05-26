@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -47,6 +48,8 @@ type Client struct {
 	CandidateJob *CandidateJobClient
 	// CandidateJobFeedback is the client for interacting with the CandidateJobFeedback builders.
 	CandidateJobFeedback *CandidateJobFeedbackClient
+	// CandidateJobStep is the client for interacting with the CandidateJobStep builders.
+	CandidateJobStep *CandidateJobStepClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Team is the client for interacting with the Team builders.
@@ -75,6 +78,7 @@ func (c *Client) init() {
 	c.CandidateInterviewer = NewCandidateInterviewerClient(c.config)
 	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
+	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
@@ -119,6 +123,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
+		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		Team:                 NewTeamClient(cfg),
 		TeamManager:          NewTeamManagerClient(cfg),
@@ -149,6 +154,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
+		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		Team:                 NewTeamClient(cfg),
 		TeamManager:          NewTeamManagerClient(cfg),
@@ -188,6 +194,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateInterviewer.Use(hooks...)
 	c.CandidateJob.Use(hooks...)
 	c.CandidateJobFeedback.Use(hooks...)
+	c.CandidateJobStep.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
@@ -1017,6 +1024,22 @@ func (c *CandidateJobClient) QueryCreatedByEdge(cj *CandidateJob) *UserQuery {
 	return query
 }
 
+// QueryCandidateJobStep queries the candidate_job_step edge of a CandidateJob.
+func (c *CandidateJobClient) QueryCandidateJobStep(cj *CandidateJob) *CandidateJobStepQuery {
+	query := &CandidateJobStepQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(candidatejobstep.Table, candidatejobstep.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatejob.CandidateJobStepTable, candidatejob.CandidateJobStepColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateJobClient) Hooks() []Hook {
 	return c.hooks.CandidateJob
@@ -1158,6 +1181,112 @@ func (c *CandidateJobFeedbackClient) QueryAttachmentEdges(cjf *CandidateJobFeedb
 // Hooks returns the client hooks.
 func (c *CandidateJobFeedbackClient) Hooks() []Hook {
 	return c.hooks.CandidateJobFeedback
+}
+
+// CandidateJobStepClient is a client for the CandidateJobStep schema.
+type CandidateJobStepClient struct {
+	config
+}
+
+// NewCandidateJobStepClient returns a client for the CandidateJobStep from the given config.
+func NewCandidateJobStepClient(c config) *CandidateJobStepClient {
+	return &CandidateJobStepClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatejobstep.Hooks(f(g(h())))`.
+func (c *CandidateJobStepClient) Use(hooks ...Hook) {
+	c.hooks.CandidateJobStep = append(c.hooks.CandidateJobStep, hooks...)
+}
+
+// Create returns a builder for creating a CandidateJobStep entity.
+func (c *CandidateJobStepClient) Create() *CandidateJobStepCreate {
+	mutation := newCandidateJobStepMutation(c.config, OpCreate)
+	return &CandidateJobStepCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateJobStep entities.
+func (c *CandidateJobStepClient) CreateBulk(builders ...*CandidateJobStepCreate) *CandidateJobStepCreateBulk {
+	return &CandidateJobStepCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateJobStep.
+func (c *CandidateJobStepClient) Update() *CandidateJobStepUpdate {
+	mutation := newCandidateJobStepMutation(c.config, OpUpdate)
+	return &CandidateJobStepUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateJobStepClient) UpdateOne(cjs *CandidateJobStep) *CandidateJobStepUpdateOne {
+	mutation := newCandidateJobStepMutation(c.config, OpUpdateOne, withCandidateJobStep(cjs))
+	return &CandidateJobStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateJobStepClient) UpdateOneID(id uuid.UUID) *CandidateJobStepUpdateOne {
+	mutation := newCandidateJobStepMutation(c.config, OpUpdateOne, withCandidateJobStepID(id))
+	return &CandidateJobStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateJobStep.
+func (c *CandidateJobStepClient) Delete() *CandidateJobStepDelete {
+	mutation := newCandidateJobStepMutation(c.config, OpDelete)
+	return &CandidateJobStepDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateJobStepClient) DeleteOne(cjs *CandidateJobStep) *CandidateJobStepDeleteOne {
+	return c.DeleteOneID(cjs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateJobStepClient) DeleteOneID(id uuid.UUID) *CandidateJobStepDeleteOne {
+	builder := c.Delete().Where(candidatejobstep.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateJobStepDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateJobStep.
+func (c *CandidateJobStepClient) Query() *CandidateJobStepQuery {
+	return &CandidateJobStepQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateJobStep entity by its id.
+func (c *CandidateJobStepClient) Get(ctx context.Context, id uuid.UUID) (*CandidateJobStep, error) {
+	return c.Query().Where(candidatejobstep.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateJobStepClient) GetX(ctx context.Context, id uuid.UUID) *CandidateJobStep {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCandidateJobEdge queries the candidate_job_edge edge of a CandidateJobStep.
+func (c *CandidateJobStepClient) QueryCandidateJobEdge(cjs *CandidateJobStep) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cjs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejobstep.Table, candidatejobstep.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejobstep.CandidateJobEdgeTable, candidatejobstep.CandidateJobEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cjs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateJobStepClient) Hooks() []Hook {
+	return c.hooks.CandidateJobStep
 }
 
 // HiringJobClient is a client for the HiringJob schema.

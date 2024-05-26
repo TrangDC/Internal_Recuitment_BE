@@ -149,6 +149,10 @@ type CandidateJobFreeWord struct {
 }
 
 type CandidateJobGroupByInterview struct {
+	Hired        *CandidateJobGroupInterviewFeedback `json:"hired"`
+	Kiv          *CandidateJobGroupInterviewFeedback `json:"kiv"`
+	OfferLost    *CandidateJobGroupInterviewFeedback `json:"offer_lost"`
+	ExStaff      *CandidateJobGroupInterviewFeedback `json:"ex_staff"`
 	Applied      *CandidateJobGroupInterviewFeedback `json:"applied"`
 	Interviewing *CandidateJobGroupInterviewFeedback `json:"interviewing"`
 	Offering     *CandidateJobGroupInterviewFeedback `json:"offering"`

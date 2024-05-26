@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -559,7 +560,7 @@ func (cj *CandidateJob) Node(ctx context.Context) (node *Node, err error) {
 		ID:     cj.ID,
 		Type:   "CandidateJob",
 		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 6),
+		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cj.CreatedAt); err != nil {
@@ -686,6 +687,16 @@ func (cj *CandidateJob) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Edges[6] = &Edge{
+		Type: "CandidateJobStep",
+		Name: "candidate_job_step",
+	}
+	err = cj.QueryCandidateJobStep().
+		Select(candidatejobstep.FieldID).
+		Scan(ctx, &node.Edges[6].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -780,6 +791,67 @@ func (cjf *CandidateJobFeedback) Node(ctx context.Context) (node *Node, err erro
 	err = cjf.QueryAttachmentEdges().
 		Select(attachment.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (cjs *CandidateJobStep) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     cjs.ID,
+		Type:   "CandidateJobStep",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(cjs.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cjs.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cjs.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cjs.CandidateJobStatus); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "candidatejobstep.CandidateJobStatus",
+		Name:  "candidate_job_status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cjs.CandidateJobID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_job_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "CandidateJob",
+		Name: "candidate_job_edge",
+	}
+	err = cjs.QueryCandidateJobEdge().
+		Select(candidatejob.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -1414,6 +1486,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case candidatejobstep.Table:
+		query := c.CandidateJobStep.Query().
+			Where(candidatejobstep.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateJobStep")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case hiringjob.Table:
 		query := c.HiringJob.Query().
 			Where(hiringjob.ID(id))
@@ -1635,6 +1719,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.CandidateJobFeedback.Query().
 			Where(candidatejobfeedback.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "CandidateJobFeedback")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidatejobstep.Table:
+		query := c.CandidateJobStep.Query().
+			Where(candidatejobstep.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateJobStep")
 		if err != nil {
 			return nil, err
 		}

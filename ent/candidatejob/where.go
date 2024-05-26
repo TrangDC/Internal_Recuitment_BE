@@ -712,6 +712,34 @@ func HasCreatedByEdgeWith(preds ...predicate.User) predicate.CandidateJob {
 	})
 }
 
+// HasCandidateJobStep applies the HasEdge predicate on the "candidate_job_step" edge.
+func HasCandidateJobStep() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobStepTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobStepTable, CandidateJobStepColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateJobStepWith applies the HasEdge predicate on the "candidate_job_step" edge with a given conditions (other predicates).
+func HasCandidateJobStepWith(preds ...predicate.CandidateJobStep) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateJobStepInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobStepTable, CandidateJobStepColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.CandidateJob) predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {

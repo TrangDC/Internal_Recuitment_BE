@@ -1,0 +1,7 @@
+type CandidateJobStep {
+  id: ID!
+  candidate_job_id: ID!
+  candidate_job_status: CandidateJobStatus!
+  created_at: Time!
+  updated_at: Time!
+}

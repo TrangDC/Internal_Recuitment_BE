@@ -27,6 +27,9 @@ type CandidateJob func(*sql.Selector)
 // CandidateJobFeedback is the predicate function for candidatejobfeedback builders.
 type CandidateJobFeedback func(*sql.Selector)
 
+// CandidateJobStep is the predicate function for candidatejobstep builders.
+type CandidateJobStep func(*sql.Selector)
+
 // HiringJob is the predicate function for hiringjob builders.
 type HiringJob func(*sql.Selector)
 

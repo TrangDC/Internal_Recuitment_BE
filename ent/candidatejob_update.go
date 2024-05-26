@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -270,6 +271,21 @@ func (cju *CandidateJobUpdate) SetCreatedByEdge(u *User) *CandidateJobUpdate {
 	return cju.SetCreatedByEdgeID(u.ID)
 }
 
+// AddCandidateJobStepIDs adds the "candidate_job_step" edge to the CandidateJobStep entity by IDs.
+func (cju *CandidateJobUpdate) AddCandidateJobStepIDs(ids ...uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.AddCandidateJobStepIDs(ids...)
+	return cju
+}
+
+// AddCandidateJobStep adds the "candidate_job_step" edges to the CandidateJobStep entity.
+func (cju *CandidateJobUpdate) AddCandidateJobStep(c ...*CandidateJobStep) *CandidateJobUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cju.AddCandidateJobStepIDs(ids...)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cju *CandidateJobUpdate) Mutation() *CandidateJobMutation {
 	return cju.mutation
@@ -354,6 +370,27 @@ func (cju *CandidateJobUpdate) RemoveCandidateJobInterview(c ...*CandidateInterv
 func (cju *CandidateJobUpdate) ClearCreatedByEdge() *CandidateJobUpdate {
 	cju.mutation.ClearCreatedByEdge()
 	return cju
+}
+
+// ClearCandidateJobStep clears all "candidate_job_step" edges to the CandidateJobStep entity.
+func (cju *CandidateJobUpdate) ClearCandidateJobStep() *CandidateJobUpdate {
+	cju.mutation.ClearCandidateJobStep()
+	return cju
+}
+
+// RemoveCandidateJobStepIDs removes the "candidate_job_step" edge to CandidateJobStep entities by IDs.
+func (cju *CandidateJobUpdate) RemoveCandidateJobStepIDs(ids ...uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.RemoveCandidateJobStepIDs(ids...)
+	return cju
+}
+
+// RemoveCandidateJobStep removes "candidate_job_step" edges to CandidateJobStep entities.
+func (cju *CandidateJobUpdate) RemoveCandidateJobStep(c ...*CandidateJobStep) *CandidateJobUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cju.RemoveCandidateJobStepIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -737,6 +774,60 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cju.mutation.CandidateJobStepCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cju.mutation.RemovedCandidateJobStepIDs(); len(nodes) > 0 && !cju.mutation.CandidateJobStepCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cju.mutation.CandidateJobStepIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidatejob.Label}
@@ -990,6 +1081,21 @@ func (cjuo *CandidateJobUpdateOne) SetCreatedByEdge(u *User) *CandidateJobUpdate
 	return cjuo.SetCreatedByEdgeID(u.ID)
 }
 
+// AddCandidateJobStepIDs adds the "candidate_job_step" edge to the CandidateJobStep entity by IDs.
+func (cjuo *CandidateJobUpdateOne) AddCandidateJobStepIDs(ids ...uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.AddCandidateJobStepIDs(ids...)
+	return cjuo
+}
+
+// AddCandidateJobStep adds the "candidate_job_step" edges to the CandidateJobStep entity.
+func (cjuo *CandidateJobUpdateOne) AddCandidateJobStep(c ...*CandidateJobStep) *CandidateJobUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cjuo.AddCandidateJobStepIDs(ids...)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cjuo *CandidateJobUpdateOne) Mutation() *CandidateJobMutation {
 	return cjuo.mutation
@@ -1074,6 +1180,27 @@ func (cjuo *CandidateJobUpdateOne) RemoveCandidateJobInterview(c ...*CandidateIn
 func (cjuo *CandidateJobUpdateOne) ClearCreatedByEdge() *CandidateJobUpdateOne {
 	cjuo.mutation.ClearCreatedByEdge()
 	return cjuo
+}
+
+// ClearCandidateJobStep clears all "candidate_job_step" edges to the CandidateJobStep entity.
+func (cjuo *CandidateJobUpdateOne) ClearCandidateJobStep() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearCandidateJobStep()
+	return cjuo
+}
+
+// RemoveCandidateJobStepIDs removes the "candidate_job_step" edge to CandidateJobStep entities by IDs.
+func (cjuo *CandidateJobUpdateOne) RemoveCandidateJobStepIDs(ids ...uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.RemoveCandidateJobStepIDs(ids...)
+	return cjuo
+}
+
+// RemoveCandidateJobStep removes "candidate_job_step" edges to CandidateJobStep entities.
+func (cjuo *CandidateJobUpdateOne) RemoveCandidateJobStep(c ...*CandidateJobStep) *CandidateJobUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cjuo.RemoveCandidateJobStepIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1479,6 +1606,60 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cjuo.mutation.CandidateJobStepCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cjuo.mutation.RemovedCandidateJobStepIDs(); len(nodes) > 0 && !cjuo.mutation.CandidateJobStepCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cjuo.mutation.CandidateJobStepIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidatejob.CandidateJobStepTable,
+			Columns: []string{candidatejob.CandidateJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejobstep.FieldID,
 				},
 			},
 		}

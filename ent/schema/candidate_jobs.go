@@ -35,6 +35,7 @@ func (CandidateJob) Edges() []ent.Edge {
 		edge.From("candidate_edge", Candidate.Type).Ref("candidate_job_edges").Unique().Field("candidate_id"),
 		edge.To("candidate_job_interview", CandidateInterview.Type),
 		edge.From("created_by_edge", User.Type).Ref("candidate_job_edges").Unique().Field("created_by"),
+		edge.To("candidate_job_step", CandidateJobStep.Type),
 	}
 }
 
