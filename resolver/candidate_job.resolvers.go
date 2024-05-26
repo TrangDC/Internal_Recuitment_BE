@@ -68,12 +68,12 @@ func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.Cand
 		nil
 }
 
-// IsHasInterviewFeature is the resolver for the is_has_interview_feature field.
-func (r *candidateJobResolver) IsHasInterviewFeature(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
+// InterviewFeature is the resolver for the interview_feature field.
+func (r *candidateJobResolver) InterviewFeature(ctx context.Context, obj *ent.CandidateJob) (int, error) {
 	interviewFeature := lo.Filter(obj.Edges.CandidateJobInterview, func(cji *ent.CandidateInterview, index int) bool {
 		return cji.InterviewDate.After(time.Now().UTC())
 	})
-	return len(interviewFeature) > 0, nil
+	return len(interviewFeature), nil
 }
 
 // Steps is the resolver for the steps field.
