@@ -57,6 +57,8 @@ type CandidateJob {
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
+  is_has_interview_feature: Boolean!
+  steps: [CandidateJobStep!]
   created_at: Time!
   updated_at: Time!
 }
@@ -67,6 +69,10 @@ type CandidateJobGroupInterviewFeedback {
 }
 
 type CandidateJobGroupByInterview {
+  hired: CandidateJobGroupInterviewFeedback
+  kiv: CandidateJobGroupInterviewFeedback
+  offer_lost: CandidateJobGroupInterviewFeedback
+  ex_staff: CandidateJobGroupInterviewFeedback
   applied: CandidateJobGroupInterviewFeedback
   interviewing: CandidateJobGroupInterviewFeedback
   offering: CandidateJobGroupInterviewFeedback

@@ -15,6 +15,7 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -42,6 +43,7 @@ const (
 	TypeCandidateInterviewer = "CandidateInterviewer"
 	TypeCandidateJob         = "CandidateJob"
 	TypeCandidateJobFeedback = "CandidateJobFeedback"
+	TypeCandidateJobStep     = "CandidateJobStep"
 	TypeHiringJob            = "HiringJob"
 	TypeTeam                 = "Team"
 	TypeTeamManager          = "TeamManager"
@@ -4880,6 +4882,9 @@ type CandidateJobMutation struct {
 	clearedcandidate_job_interview bool
 	created_by_edge                *uuid.UUID
 	clearedcreated_by_edge         bool
+	candidate_job_step             map[uuid.UUID]struct{}
+	removedcandidate_job_step      map[uuid.UUID]struct{}
+	clearedcandidate_job_step      bool
 	done                           bool
 	oldValue                       func(context.Context) (*CandidateJob, error)
 	predicates                     []predicate.CandidateJob
@@ -5650,6 +5655,60 @@ func (m *CandidateJobMutation) ResetCreatedByEdge() {
 	m.clearedcreated_by_edge = false
 }
 
+// AddCandidateJobStepIDs adds the "candidate_job_step" edge to the CandidateJobStep entity by ids.
+func (m *CandidateJobMutation) AddCandidateJobStepIDs(ids ...uuid.UUID) {
+	if m.candidate_job_step == nil {
+		m.candidate_job_step = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_job_step[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateJobStep clears the "candidate_job_step" edge to the CandidateJobStep entity.
+func (m *CandidateJobMutation) ClearCandidateJobStep() {
+	m.clearedcandidate_job_step = true
+}
+
+// CandidateJobStepCleared reports if the "candidate_job_step" edge to the CandidateJobStep entity was cleared.
+func (m *CandidateJobMutation) CandidateJobStepCleared() bool {
+	return m.clearedcandidate_job_step
+}
+
+// RemoveCandidateJobStepIDs removes the "candidate_job_step" edge to the CandidateJobStep entity by IDs.
+func (m *CandidateJobMutation) RemoveCandidateJobStepIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_job_step == nil {
+		m.removedcandidate_job_step = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_job_step, ids[i])
+		m.removedcandidate_job_step[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateJobStep returns the removed IDs of the "candidate_job_step" edge to the CandidateJobStep entity.
+func (m *CandidateJobMutation) RemovedCandidateJobStepIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_job_step {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateJobStepIDs returns the "candidate_job_step" edge IDs in the mutation.
+func (m *CandidateJobMutation) CandidateJobStepIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_job_step {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateJobStep resets all changes to the "candidate_job_step" edge.
+func (m *CandidateJobMutation) ResetCandidateJobStep() {
+	m.candidate_job_step = nil
+	m.clearedcandidate_job_step = false
+	m.removedcandidate_job_step = nil
+}
+
 // Where appends a list predicates to the CandidateJobMutation builder.
 func (m *CandidateJobMutation) Where(ps ...predicate.CandidateJob) {
 	m.predicates = append(m.predicates, ps...)
@@ -5926,7 +5985,7 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateJobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.attachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -5944,6 +6003,9 @@ func (m *CandidateJobMutation) AddedEdges() []string {
 	}
 	if m.created_by_edge != nil {
 		edges = append(edges, candidatejob.EdgeCreatedByEdge)
+	}
+	if m.candidate_job_step != nil {
+		edges = append(edges, candidatejob.EdgeCandidateJobStep)
 	}
 	return edges
 }
@@ -5982,13 +6044,19 @@ func (m *CandidateJobMutation) AddedIDs(name string) []ent.Value {
 		if id := m.created_by_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case candidatejob.EdgeCandidateJobStep:
+		ids := make([]ent.Value, 0, len(m.candidate_job_step))
+		for id := range m.candidate_job_step {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateJobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedattachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -5997,6 +6065,9 @@ func (m *CandidateJobMutation) RemovedEdges() []string {
 	}
 	if m.removedcandidate_job_interview != nil {
 		edges = append(edges, candidatejob.EdgeCandidateJobInterview)
+	}
+	if m.removedcandidate_job_step != nil {
+		edges = append(edges, candidatejob.EdgeCandidateJobStep)
 	}
 	return edges
 }
@@ -6023,13 +6094,19 @@ func (m *CandidateJobMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidatejob.EdgeCandidateJobStep:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_job_step))
+		for id := range m.removedcandidate_job_step {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateJobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedattachment_edges {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -6047,6 +6124,9 @@ func (m *CandidateJobMutation) ClearedEdges() []string {
 	}
 	if m.clearedcreated_by_edge {
 		edges = append(edges, candidatejob.EdgeCreatedByEdge)
+	}
+	if m.clearedcandidate_job_step {
+		edges = append(edges, candidatejob.EdgeCandidateJobStep)
 	}
 	return edges
 }
@@ -6067,6 +6147,8 @@ func (m *CandidateJobMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_job_interview
 	case candidatejob.EdgeCreatedByEdge:
 		return m.clearedcreated_by_edge
+	case candidatejob.EdgeCandidateJobStep:
+		return m.clearedcandidate_job_step
 	}
 	return false
 }
@@ -6109,6 +6191,9 @@ func (m *CandidateJobMutation) ResetEdge(name string) error {
 		return nil
 	case candidatejob.EdgeCreatedByEdge:
 		m.ResetCreatedByEdge()
+		return nil
+	case candidatejob.EdgeCandidateJobStep:
+		m.ResetCandidateJobStep()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob edge %s", name)
@@ -7041,6 +7126,665 @@ func (m *CandidateJobFeedbackMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJobFeedback edge %s", name)
+}
+
+// CandidateJobStepMutation represents an operation that mutates the CandidateJobStep nodes in the graph.
+type CandidateJobStepMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	candidate_job_status      *candidatejobstep.CandidateJobStatus
+	clearedFields             map[string]struct{}
+	candidate_job_edge        *uuid.UUID
+	clearedcandidate_job_edge bool
+	done                      bool
+	oldValue                  func(context.Context) (*CandidateJobStep, error)
+	predicates                []predicate.CandidateJobStep
+}
+
+var _ ent.Mutation = (*CandidateJobStepMutation)(nil)
+
+// candidatejobstepOption allows management of the mutation configuration using functional options.
+type candidatejobstepOption func(*CandidateJobStepMutation)
+
+// newCandidateJobStepMutation creates new mutation for the CandidateJobStep entity.
+func newCandidateJobStepMutation(c config, op Op, opts ...candidatejobstepOption) *CandidateJobStepMutation {
+	m := &CandidateJobStepMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateJobStep,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateJobStepID sets the ID field of the mutation.
+func withCandidateJobStepID(id uuid.UUID) candidatejobstepOption {
+	return func(m *CandidateJobStepMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateJobStep
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateJobStep, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateJobStep.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateJobStep sets the old CandidateJobStep of the mutation.
+func withCandidateJobStep(node *CandidateJobStep) candidatejobstepOption {
+	return func(m *CandidateJobStepMutation) {
+		m.oldValue = func(context.Context) (*CandidateJobStep, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateJobStepMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateJobStepMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateJobStep entities.
+func (m *CandidateJobStepMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateJobStepMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateJobStepMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateJobStep.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateJobStepMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateJobStepMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateJobStep entity.
+// If the CandidateJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobStepMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateJobStepMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateJobStepMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateJobStepMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateJobStep entity.
+// If the CandidateJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobStepMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateJobStepMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidatejobstep.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateJobStepMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidatejobstep.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateJobStepMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidatejobstep.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateJobStepMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateJobStepMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateJobStep entity.
+// If the CandidateJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobStepMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateJobStepMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidatejobstep.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateJobStepMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidatejobstep.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateJobStepMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidatejobstep.FieldDeletedAt)
+}
+
+// SetCandidateJobStatus sets the "candidate_job_status" field.
+func (m *CandidateJobStepMutation) SetCandidateJobStatus(cjs candidatejobstep.CandidateJobStatus) {
+	m.candidate_job_status = &cjs
+}
+
+// CandidateJobStatus returns the value of the "candidate_job_status" field in the mutation.
+func (m *CandidateJobStepMutation) CandidateJobStatus() (r candidatejobstep.CandidateJobStatus, exists bool) {
+	v := m.candidate_job_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateJobStatus returns the old "candidate_job_status" field's value of the CandidateJobStep entity.
+// If the CandidateJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobStepMutation) OldCandidateJobStatus(ctx context.Context) (v candidatejobstep.CandidateJobStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateJobStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateJobStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateJobStatus: %w", err)
+	}
+	return oldValue.CandidateJobStatus, nil
+}
+
+// ResetCandidateJobStatus resets all changes to the "candidate_job_status" field.
+func (m *CandidateJobStepMutation) ResetCandidateJobStatus() {
+	m.candidate_job_status = nil
+}
+
+// SetCandidateJobID sets the "candidate_job_id" field.
+func (m *CandidateJobStepMutation) SetCandidateJobID(u uuid.UUID) {
+	m.candidate_job_edge = &u
+}
+
+// CandidateJobID returns the value of the "candidate_job_id" field in the mutation.
+func (m *CandidateJobStepMutation) CandidateJobID() (r uuid.UUID, exists bool) {
+	v := m.candidate_job_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateJobID returns the old "candidate_job_id" field's value of the CandidateJobStep entity.
+// If the CandidateJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobStepMutation) OldCandidateJobID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateJobID: %w", err)
+	}
+	return oldValue.CandidateJobID, nil
+}
+
+// ClearCandidateJobID clears the value of the "candidate_job_id" field.
+func (m *CandidateJobStepMutation) ClearCandidateJobID() {
+	m.candidate_job_edge = nil
+	m.clearedFields[candidatejobstep.FieldCandidateJobID] = struct{}{}
+}
+
+// CandidateJobIDCleared returns if the "candidate_job_id" field was cleared in this mutation.
+func (m *CandidateJobStepMutation) CandidateJobIDCleared() bool {
+	_, ok := m.clearedFields[candidatejobstep.FieldCandidateJobID]
+	return ok
+}
+
+// ResetCandidateJobID resets all changes to the "candidate_job_id" field.
+func (m *CandidateJobStepMutation) ResetCandidateJobID() {
+	m.candidate_job_edge = nil
+	delete(m.clearedFields, candidatejobstep.FieldCandidateJobID)
+}
+
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by id.
+func (m *CandidateJobStepMutation) SetCandidateJobEdgeID(id uuid.UUID) {
+	m.candidate_job_edge = &id
+}
+
+// ClearCandidateJobEdge clears the "candidate_job_edge" edge to the CandidateJob entity.
+func (m *CandidateJobStepMutation) ClearCandidateJobEdge() {
+	m.clearedcandidate_job_edge = true
+}
+
+// CandidateJobEdgeCleared reports if the "candidate_job_edge" edge to the CandidateJob entity was cleared.
+func (m *CandidateJobStepMutation) CandidateJobEdgeCleared() bool {
+	return m.CandidateJobIDCleared() || m.clearedcandidate_job_edge
+}
+
+// CandidateJobEdgeID returns the "candidate_job_edge" edge ID in the mutation.
+func (m *CandidateJobStepMutation) CandidateJobEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_job_edge != nil {
+		return *m.candidate_job_edge, true
+	}
+	return
+}
+
+// CandidateJobEdgeIDs returns the "candidate_job_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateJobEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateJobStepMutation) CandidateJobEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_job_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateJobEdge resets all changes to the "candidate_job_edge" edge.
+func (m *CandidateJobStepMutation) ResetCandidateJobEdge() {
+	m.candidate_job_edge = nil
+	m.clearedcandidate_job_edge = false
+}
+
+// Where appends a list predicates to the CandidateJobStepMutation builder.
+func (m *CandidateJobStepMutation) Where(ps ...predicate.CandidateJobStep) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateJobStepMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateJobStep).
+func (m *CandidateJobStepMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateJobStepMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, candidatejobstep.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidatejobstep.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidatejobstep.FieldDeletedAt)
+	}
+	if m.candidate_job_status != nil {
+		fields = append(fields, candidatejobstep.FieldCandidateJobStatus)
+	}
+	if m.candidate_job_edge != nil {
+		fields = append(fields, candidatejobstep.FieldCandidateJobID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateJobStepMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidatejobstep.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidatejobstep.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidatejobstep.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidatejobstep.FieldCandidateJobStatus:
+		return m.CandidateJobStatus()
+	case candidatejobstep.FieldCandidateJobID:
+		return m.CandidateJobID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateJobStepMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidatejobstep.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidatejobstep.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidatejobstep.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidatejobstep.FieldCandidateJobStatus:
+		return m.OldCandidateJobStatus(ctx)
+	case candidatejobstep.FieldCandidateJobID:
+		return m.OldCandidateJobID(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateJobStep field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateJobStepMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidatejobstep.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidatejobstep.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidatejobstep.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidatejobstep.FieldCandidateJobStatus:
+		v, ok := value.(candidatejobstep.CandidateJobStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateJobStatus(v)
+		return nil
+	case candidatejobstep.FieldCandidateJobID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateJobID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateJobStep field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateJobStepMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateJobStepMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateJobStepMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateJobStep numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateJobStepMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidatejobstep.FieldUpdatedAt) {
+		fields = append(fields, candidatejobstep.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidatejobstep.FieldDeletedAt) {
+		fields = append(fields, candidatejobstep.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidatejobstep.FieldCandidateJobID) {
+		fields = append(fields, candidatejobstep.FieldCandidateJobID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateJobStepMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateJobStepMutation) ClearField(name string) error {
+	switch name {
+	case candidatejobstep.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidatejobstep.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidatejobstep.FieldCandidateJobID:
+		m.ClearCandidateJobID()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateJobStep nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateJobStepMutation) ResetField(name string) error {
+	switch name {
+	case candidatejobstep.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidatejobstep.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidatejobstep.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidatejobstep.FieldCandidateJobStatus:
+		m.ResetCandidateJobStatus()
+		return nil
+	case candidatejobstep.FieldCandidateJobID:
+		m.ResetCandidateJobID()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateJobStep field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateJobStepMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.candidate_job_edge != nil {
+		edges = append(edges, candidatejobstep.EdgeCandidateJobEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateJobStepMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidatejobstep.EdgeCandidateJobEdge:
+		if id := m.candidate_job_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateJobStepMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateJobStepMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateJobStepMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcandidate_job_edge {
+		edges = append(edges, candidatejobstep.EdgeCandidateJobEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateJobStepMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidatejobstep.EdgeCandidateJobEdge:
+		return m.clearedcandidate_job_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateJobStepMutation) ClearEdge(name string) error {
+	switch name {
+	case candidatejobstep.EdgeCandidateJobEdge:
+		m.ClearCandidateJobEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateJobStep unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateJobStepMutation) ResetEdge(name string) error {
+	switch name {
+	case candidatejobstep.EdgeCandidateJobEdge:
+		m.ResetCandidateJobEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateJobStep edge %s", name)
 }
 
 // HiringJobMutation represents an operation that mutates the HiringJob nodes in the graph.

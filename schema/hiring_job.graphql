@@ -96,6 +96,7 @@ type HiringJob {
   status: HiringJobStatus!
   total_candidates_recruited: Int!
   is_able_to_delete: Boolean!
+  is_able_to_close: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -2419,6 +2420,308 @@ func (cjf *CandidateJobFeedback) ToEdge(order *CandidateJobFeedbackOrder) *Candi
 	return &CandidateJobFeedbackEdge{
 		Node:   cjf,
 		Cursor: order.Field.toCursor(cjf),
+	}
+}
+
+// CandidateJobStepEdge is the edge representation of CandidateJobStep.
+type CandidateJobStepEdge struct {
+	Node   *CandidateJobStep `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// CandidateJobStepConnection is the connection containing edges to CandidateJobStep.
+type CandidateJobStepConnection struct {
+	Edges      []*CandidateJobStepEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *CandidateJobStepConnection) build(nodes []*CandidateJobStep, pager *candidatejobstepPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateJobStep
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateJobStep {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateJobStep {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateJobStepEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateJobStepEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateJobStepPaginateOption enables pagination customization.
+type CandidateJobStepPaginateOption func(*candidatejobstepPager) error
+
+// WithCandidateJobStepOrder configures pagination ordering.
+func WithCandidateJobStepOrder(order *CandidateJobStepOrder) CandidateJobStepPaginateOption {
+	if order == nil {
+		order = DefaultCandidateJobStepOrder
+	}
+	o := *order
+	return func(pager *candidatejobstepPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateJobStepOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateJobStepFilter configures pagination filter.
+func WithCandidateJobStepFilter(filter func(*CandidateJobStepQuery) (*CandidateJobStepQuery, error)) CandidateJobStepPaginateOption {
+	return func(pager *candidatejobstepPager) error {
+		if filter == nil {
+			return errors.New("CandidateJobStepQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatejobstepPager struct {
+	order  *CandidateJobStepOrder
+	filter func(*CandidateJobStepQuery) (*CandidateJobStepQuery, error)
+}
+
+func newCandidateJobStepPager(opts []CandidateJobStepPaginateOption) (*candidatejobstepPager, error) {
+	pager := &candidatejobstepPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateJobStepOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatejobstepPager) applyFilter(query *CandidateJobStepQuery) (*CandidateJobStepQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatejobstepPager) toCursor(cjs *CandidateJobStep) Cursor {
+	return p.order.Field.toCursor(cjs)
+}
+
+func (p *candidatejobstepPager) applyCursors(query *CandidateJobStepQuery, after, before *Cursor) *CandidateJobStepQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateJobStepOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatejobstepPager) applyOrder(query *CandidateJobStepQuery, reverse bool) *CandidateJobStepQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateJobStepOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateJobStepOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatejobstepPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateJobStepOrder.Field {
+			b.Comma().Ident(DefaultCandidateJobStepOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateJobStep.
+func (cjs *CandidateJobStepQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateJobStepPaginateOption,
+) (*CandidateJobStepConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateJobStepPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if cjs, err = pager.applyFilter(cjs); err != nil {
+		return nil, err
+	}
+	conn := &CandidateJobStepConnection{Edges: []*CandidateJobStepEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = cjs.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	cjs = pager.applyCursors(cjs, after, before)
+	cjs = pager.applyOrder(cjs, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		cjs.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cjs.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := cjs.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateJobStepOrderFieldCreatedAt orders CandidateJobStep by created_at.
+	CandidateJobStepOrderFieldCreatedAt = &CandidateJobStepOrderField{
+		field: candidatejobstep.FieldCreatedAt,
+		toCursor: func(cjs *CandidateJobStep) Cursor {
+			return Cursor{
+				ID:    cjs.ID,
+				Value: cjs.CreatedAt,
+			}
+		},
+	}
+	// CandidateJobStepOrderFieldUpdatedAt orders CandidateJobStep by updated_at.
+	CandidateJobStepOrderFieldUpdatedAt = &CandidateJobStepOrderField{
+		field: candidatejobstep.FieldUpdatedAt,
+		toCursor: func(cjs *CandidateJobStep) Cursor {
+			return Cursor{
+				ID:    cjs.ID,
+				Value: cjs.UpdatedAt,
+			}
+		},
+	}
+	// CandidateJobStepOrderFieldDeletedAt orders CandidateJobStep by deleted_at.
+	CandidateJobStepOrderFieldDeletedAt = &CandidateJobStepOrderField{
+		field: candidatejobstep.FieldDeletedAt,
+		toCursor: func(cjs *CandidateJobStep) Cursor {
+			return Cursor{
+				ID:    cjs.ID,
+				Value: cjs.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateJobStepOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatejobstep.FieldCreatedAt:
+		str = "created_at"
+	case candidatejobstep.FieldUpdatedAt:
+		str = "updated_at"
+	case candidatejobstep.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateJobStepOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateJobStepOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateJobStepOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateJobStepOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateJobStepOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateJobStepOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateJobStepOrderField", str)
+	}
+	return nil
+}
+
+// CandidateJobStepOrderField defines the ordering field of CandidateJobStep.
+type CandidateJobStepOrderField struct {
+	field    string
+	toCursor func(*CandidateJobStep) Cursor
+}
+
+// CandidateJobStepOrder defines the ordering of CandidateJobStep.
+type CandidateJobStepOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *CandidateJobStepOrderField `json:"field"`
+}
+
+// DefaultCandidateJobStepOrder is the default ordering of CandidateJobStep.
+var DefaultCandidateJobStepOrder = &CandidateJobStepOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateJobStepOrderField{
+		field: candidatejobstep.FieldID,
+		toCursor: func(cjs *CandidateJobStep) Cursor {
+			return Cursor{ID: cjs.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateJobStep into CandidateJobStepEdge.
+func (cjs *CandidateJobStep) ToEdge(order *CandidateJobStepOrder) *CandidateJobStepEdge {
+	if order == nil {
+		order = DefaultCandidateJobStepOrder
+	}
+	return &CandidateJobStepEdge{
+		Node:   cjs,
+		Cursor: order.Field.toCursor(cjs),
 	}
 }
 

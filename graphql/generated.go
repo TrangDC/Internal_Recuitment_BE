@@ -43,6 +43,7 @@ type ResolverRoot interface {
 	CandidateInterview() CandidateInterviewResolver
 	CandidateJob() CandidateJobResolver
 	CandidateJobFeedback() CandidateJobFeedbackResolver
+	CandidateJobStep() CandidateJobStepResolver
 	HiringJob() HiringJobResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -160,18 +161,20 @@ type ComplexityRoot struct {
 	}
 
 	CandidateJob struct {
-		Attachments    func(childComplexity int) int
-		Candidate      func(childComplexity int) int
-		CandidateID    func(childComplexity int) int
-		CreatedAt      func(childComplexity int) int
-		FailedReason   func(childComplexity int) int
-		HiringJob      func(childComplexity int) int
-		HiringJobID    func(childComplexity int) int
-		ID             func(childComplexity int) int
-		IsAbleToDelete func(childComplexity int) int
-		Owner          func(childComplexity int) int
-		Status         func(childComplexity int) int
-		UpdatedAt      func(childComplexity int) int
+		Attachments           func(childComplexity int) int
+		Candidate             func(childComplexity int) int
+		CandidateID           func(childComplexity int) int
+		CreatedAt             func(childComplexity int) int
+		FailedReason          func(childComplexity int) int
+		HiringJob             func(childComplexity int) int
+		HiringJobID           func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		IsAbleToDelete        func(childComplexity int) int
+		IsHasInterviewFeature func(childComplexity int) int
+		Owner                 func(childComplexity int) int
+		Status                func(childComplexity int) int
+		Steps                 func(childComplexity int) int
+		UpdatedAt             func(childComplexity int) int
 	}
 
 	CandidateJobEdge struct {
@@ -207,7 +210,11 @@ type ComplexityRoot struct {
 
 	CandidateJobGroupByInterview struct {
 		Applied      func(childComplexity int) int
+		ExStaff      func(childComplexity int) int
+		Hired        func(childComplexity int) int
 		Interviewing func(childComplexity int) int
+		Kiv          func(childComplexity int) int
+		OfferLost    func(childComplexity int) int
 		Offering     func(childComplexity int) int
 	}
 
@@ -243,6 +250,14 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	CandidateJobStep struct {
+		CandidateJobID     func(childComplexity int) int
+		CandidateJobStatus func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+	}
+
 	CandidateResponse struct {
 		Data func(childComplexity int) int
 	}
@@ -259,6 +274,7 @@ type ComplexityRoot struct {
 		DeletedAt                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		ID                       func(childComplexity int) int
+		IsAbleToClose            func(childComplexity int) int
 		IsAbleToDelete           func(childComplexity int) int
 		Location                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
@@ -461,6 +477,8 @@ type CandidateJobResolver interface {
 	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 	FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error)
+	IsHasInterviewFeature(ctx context.Context, obj *ent.CandidateJob) (bool, error)
+	Steps(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobStep, error)
 }
 type CandidateJobFeedbackResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
@@ -470,6 +488,11 @@ type CandidateJobFeedbackResolver interface {
 	Owner(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.User, error)
 
 	Attachments(ctx context.Context, obj *ent.CandidateJobFeedback) ([]*ent.Attachment, error)
+}
+type CandidateJobStepResolver interface {
+	ID(ctx context.Context, obj *ent.CandidateJobStep) (string, error)
+	CandidateJobID(ctx context.Context, obj *ent.CandidateJobStep) (string, error)
+	CandidateJobStatus(ctx context.Context, obj *ent.CandidateJobStep) (ent.CandidateJobStatus, error)
 }
 type HiringJobResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJob) (string, error)
@@ -483,6 +506,7 @@ type HiringJobResolver interface {
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
 	TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.HiringJob) (bool, error)
+	IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error)
 }
 type MutationResolver interface {
 	CreateAttachmentSasurl(ctx context.Context, input ent.AttachmentInput) (*ent.AttachmentResponse, error)
@@ -1055,6 +1079,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJob.IsAbleToDelete(childComplexity), true
 
+	case "CandidateJob.is_has_interview_feature":
+		if e.complexity.CandidateJob.IsHasInterviewFeature == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.IsHasInterviewFeature(childComplexity), true
+
 	case "CandidateJob.owner":
 		if e.complexity.CandidateJob.Owner == nil {
 			break
@@ -1068,6 +1099,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.Status(childComplexity), true
+
+	case "CandidateJob.steps":
+		if e.complexity.CandidateJob.Steps == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.Steps(childComplexity), true
 
 	case "CandidateJob.updated_at":
 		if e.complexity.CandidateJob.UpdatedAt == nil {
@@ -1195,12 +1233,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobGroupByInterview.Applied(childComplexity), true
 
+	case "CandidateJobGroupByInterview.ex_staff":
+		if e.complexity.CandidateJobGroupByInterview.ExStaff == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.ExStaff(childComplexity), true
+
+	case "CandidateJobGroupByInterview.hired":
+		if e.complexity.CandidateJobGroupByInterview.Hired == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.Hired(childComplexity), true
+
 	case "CandidateJobGroupByInterview.interviewing":
 		if e.complexity.CandidateJobGroupByInterview.Interviewing == nil {
 			break
 		}
 
 		return e.complexity.CandidateJobGroupByInterview.Interviewing(childComplexity), true
+
+	case "CandidateJobGroupByInterview.kiv":
+		if e.complexity.CandidateJobGroupByInterview.Kiv == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.Kiv(childComplexity), true
+
+	case "CandidateJobGroupByInterview.offer_lost":
+		if e.complexity.CandidateJobGroupByInterview.OfferLost == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.OfferLost(childComplexity), true
 
 	case "CandidateJobGroupByInterview.offering":
 		if e.complexity.CandidateJobGroupByInterview.Offering == nil {
@@ -1307,6 +1373,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobResponseGetAll.Pagination(childComplexity), true
 
+	case "CandidateJobStep.candidate_job_id":
+		if e.complexity.CandidateJobStep.CandidateJobID == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobStep.CandidateJobID(childComplexity), true
+
+	case "CandidateJobStep.candidate_job_status":
+		if e.complexity.CandidateJobStep.CandidateJobStatus == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobStep.CandidateJobStatus(childComplexity), true
+
+	case "CandidateJobStep.created_at":
+		if e.complexity.CandidateJobStep.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobStep.CreatedAt(childComplexity), true
+
+	case "CandidateJobStep.id":
+		if e.complexity.CandidateJobStep.ID == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobStep.ID(childComplexity), true
+
+	case "CandidateJobStep.updated_at":
+		if e.complexity.CandidateJobStep.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobStep.UpdatedAt(childComplexity), true
+
 	case "CandidateResponse.data":
 		if e.complexity.CandidateResponse.Data == nil {
 			break
@@ -1369,6 +1470,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.ID(childComplexity), true
+
+	case "HiringJob.is_able_to_close":
+		if e.complexity.HiringJob.IsAbleToClose == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.IsAbleToClose(childComplexity), true
 
 	case "HiringJob.is_able_to_delete":
 		if e.complexity.HiringJob.IsAbleToDelete == nil {
@@ -2693,6 +2801,8 @@ type CandidateJob {
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
+  is_has_interview_feature: Boolean!
+  steps: [CandidateJobStep!]
   created_at: Time!
   updated_at: Time!
 }
@@ -2703,6 +2813,10 @@ type CandidateJobGroupInterviewFeedback {
 }
 
 type CandidateJobGroupByInterview {
+  hired: CandidateJobGroupInterviewFeedback
+  kiv: CandidateJobGroupInterviewFeedback
+  offer_lost: CandidateJobGroupInterviewFeedback
+  ex_staff: CandidateJobGroupInterviewFeedback
   applied: CandidateJobGroupInterviewFeedback
   interviewing: CandidateJobGroupInterviewFeedback
   offering: CandidateJobGroupInterviewFeedback
@@ -2836,6 +2950,13 @@ type CandidateJobFeedbackResponseGetAll {
   pagination: Pagination!
 }
 `, BuiltIn: false},
+	{Name: "../schema/candidate_job_step.graphql", Input: `type CandidateJobStep {
+  id: ID!
+  candidate_job_id: ID!
+  candidate_job_status: CandidateJobStatus!
+  created_at: Time!
+  updated_at: Time!
+}`, BuiltIn: false},
 	{Name: "../schema/candidates.graphql", Input: `enum CandidateStatusEnum {
   applied
   interviewing
@@ -3102,6 +3223,7 @@ type HiringJob {
   status: HiringJobStatus!
   total_candidates_recruited: Int!
   is_able_to_delete: Boolean!
+  is_able_to_close: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -7106,6 +7228,10 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -7955,6 +8081,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -8101,6 +8229,103 @@ func (ec *executionContext) fieldContext_CandidateJob_is_able_to_delete(ctx cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJob_is_has_interview_feature(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().IsHasInterviewFeature(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_is_has_interview_feature(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJob_steps(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_steps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().Steps(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateJobStep)
+	fc.Result = res
+	return ec.marshalOCandidateJobStep2ᚕᚖtrecᚋentᚐCandidateJobStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_steps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJobStep_id(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateJobStep_candidate_job_id(ctx, field)
+			case "candidate_job_status":
+				return ec.fieldContext_CandidateJobStep_candidate_job_status(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJobStep_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJobStep_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobStep", field.Name)
 		},
 	}
 	return fc, nil
@@ -8253,6 +8478,10 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -8499,6 +8728,10 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9018,6 +9251,194 @@ func (ec *executionContext) fieldContext_CandidateJobFeedbackResponseGetAll_pagi
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJobGroupByInterview_hired(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_hired(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hired, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_hired(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_kiv(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_kiv(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Kiv, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_kiv(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_offer_lost(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_offer_lost(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OfferLost, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_offer_lost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_ex_staff(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_ex_staff(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExStaff, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_ex_staff(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJobGroupByInterview_applied(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJobGroupByInterview_applied(ctx, field)
 	if err != nil {
@@ -9195,6 +9616,14 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByInterviewResponse_da
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "hired":
+				return ec.fieldContext_CandidateJobGroupByInterview_hired(ctx, field)
+			case "kiv":
+				return ec.fieldContext_CandidateJobGroupByInterview_kiv(ctx, field)
+			case "offer_lost":
+				return ec.fieldContext_CandidateJobGroupByInterview_offer_lost(ctx, field)
+			case "ex_staff":
+				return ec.fieldContext_CandidateJobGroupByInterview_ex_staff(ctx, field)
 			case "applied":
 				return ec.fieldContext_CandidateJobGroupByInterview_applied(ctx, field)
 			case "interviewing":
@@ -9264,6 +9693,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9331,6 +9764,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9398,6 +9835,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9465,6 +9906,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9532,6 +9977,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9599,6 +10048,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9666,6 +10119,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -9920,6 +10377,10 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "is_has_interview_feature":
+				return ec.fieldContext_CandidateJob_is_has_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -10028,6 +10489,226 @@ func (ec *executionContext) fieldContext_CandidateJobResponseGetAll_pagination(c
 				return ec.fieldContext_Pagination_total(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobStep_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobStep_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobStep().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobStep_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobStep_candidate_job_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobStep_candidate_job_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobStep().CandidateJobID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobStep_candidate_job_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobStep_candidate_job_status(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobStep_candidate_job_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobStep().CandidateJobStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.CandidateJobStatus)
+	fc.Result = res
+	return ec.marshalNCandidateJobStatus2trecᚋentᚐCandidateJobStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobStep_candidate_job_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateJobStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobStep_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobStep_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobStep_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobStep",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobStep_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobStep_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobStep_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobStep",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10899,6 +11580,50 @@ func (ec *executionContext) fieldContext_HiringJob_is_able_to_delete(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJob_is_able_to_close(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJob().IsAbleToClose(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_is_able_to_close(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJob_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJob_created_at(ctx, field)
 	if err != nil {
@@ -11097,6 +11822,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -11220,6 +11947,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -21289,6 +22018,43 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
+		case "is_has_interview_feature":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_is_has_interview_feature(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "steps":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_steps(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._CandidateJob_created_at(ctx, field, obj)
@@ -21613,6 +22379,22 @@ func (ec *executionContext) _CandidateJobGroupByInterview(ctx context.Context, s
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CandidateJobGroupByInterview")
+		case "hired":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_hired(ctx, field, obj)
+
+		case "kiv":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_kiv(ctx, field, obj)
+
+		case "offer_lost":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_offer_lost(ctx, field, obj)
+
+		case "ex_staff":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_ex_staff(ctx, field, obj)
+
 		case "applied":
 
 			out.Values[i] = ec._CandidateJobGroupByInterview_applied(ctx, field, obj)
@@ -21812,6 +22594,101 @@ func (ec *executionContext) _CandidateJobResponseGetAll(ctx context.Context, sel
 
 			if out.Values[i] == graphql.Null {
 				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateJobStepImplementors = []string{"CandidateJobStep"}
+
+func (ec *executionContext) _CandidateJobStep(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateJobStep) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateJobStepImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateJobStep")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobStep_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "candidate_job_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobStep_candidate_job_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "candidate_job_status":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobStep_candidate_job_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_at":
+
+			out.Values[i] = ec._CandidateJobStep_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._CandidateJobStep_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -22109,6 +22986,26 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._HiringJob_is_able_to_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_able_to_close":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJob_is_able_to_close(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -24636,6 +25533,16 @@ func (ec *executionContext) marshalNCandidateJobStatus2trecᚋentᚐCandidateJob
 	return v
 }
 
+func (ec *executionContext) marshalNCandidateJobStep2ᚖtrecᚋentᚐCandidateJobStep(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobStep) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateJobStep(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCandidateOrderField2ᚖtrecᚋentᚐCandidateOrderField(ctx context.Context, v interface{}) (*ent.CandidateOrderField, error) {
 	var res = new(ent.CandidateOrderField)
 	err := res.UnmarshalGQL(v)
@@ -26154,6 +27061,53 @@ func (ec *executionContext) marshalOCandidateJobStatus2ᚖtrecᚋentᚐCandidate
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOCandidateJobStep2ᚕᚖtrecᚋentᚐCandidateJobStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateJobStep) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateJobStep2ᚖtrecᚋentᚐCandidateJobStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOCandidateOrder2ᚖtrecᚋentᚐCandidateOrder(ctx context.Context, v interface{}) (*ent.CandidateOrder, error) {

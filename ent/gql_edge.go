@@ -180,6 +180,18 @@ func (cj *CandidateJob) CreatedByEdge(ctx context.Context) (*User, error) {
 	return result, MaskNotFound(err)
 }
 
+func (cj *CandidateJob) CandidateJobStep(ctx context.Context) (result []*CandidateJobStep, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cj.NamedCandidateJobStep(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cj.Edges.CandidateJobStepOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cj.QueryCandidateJobStep().All(ctx)
+	}
+	return result, err
+}
+
 func (cjf *CandidateJobFeedback) CreatedByEdge(ctx context.Context) (*User, error) {
 	result, err := cjf.Edges.CreatedByEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -206,6 +218,14 @@ func (cjf *CandidateJobFeedback) AttachmentEdges(ctx context.Context) (result []
 		result, err = cjf.QueryAttachmentEdges().All(ctx)
 	}
 	return result, err
+}
+
+func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {
+	result, err := cjs.Edges.CandidateJobEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cjs.QueryCandidateJobEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (hj *HiringJob) OwnerEdge(ctx context.Context) (*User, error) {

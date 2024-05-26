@@ -42,6 +42,8 @@ const (
 	EdgeCandidateJobInterview = "candidate_job_interview"
 	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
 	EdgeCreatedByEdge = "created_by_edge"
+	// EdgeCandidateJobStep holds the string denoting the candidate_job_step edge name in mutations.
+	EdgeCandidateJobStep = "candidate_job_step"
 	// Table holds the table name of the candidatejob in the database.
 	Table = "candidate_jobs"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -86,6 +88,13 @@ const (
 	CreatedByEdgeInverseTable = "users"
 	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
 	CreatedByEdgeColumn = "created_by"
+	// CandidateJobStepTable is the table that holds the candidate_job_step relation/edge.
+	CandidateJobStepTable = "candidate_job_steps"
+	// CandidateJobStepInverseTable is the table name for the CandidateJobStep entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatejobstep" package.
+	CandidateJobStepInverseTable = "candidate_job_steps"
+	// CandidateJobStepColumn is the table column denoting the candidate_job_step relation/edge.
+	CandidateJobStepColumn = "candidate_job_id"
 )
 
 // Columns holds all SQL columns for candidatejob fields.

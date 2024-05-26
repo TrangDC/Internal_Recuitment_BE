@@ -56,15 +56,18 @@ type CandidateJobEdges struct {
 	CandidateJobInterview []*CandidateInterview `json:"candidate_job_interview,omitempty"`
 	// CreatedByEdge holds the value of the created_by_edge edge.
 	CreatedByEdge *User `json:"created_by_edge,omitempty"`
+	// CandidateJobStep holds the value of the candidate_job_step edge.
+	CandidateJobStep []*CandidateJobStep `json:"candidate_job_step,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [6]map[string]int
+	totalCount [7]map[string]int
 
 	namedAttachmentEdges       map[string][]*Attachment
 	namedCandidateJobFeedback  map[string][]*CandidateJobFeedback
 	namedCandidateJobInterview map[string][]*CandidateInterview
+	namedCandidateJobStep      map[string][]*CandidateJobStep
 }
 
 // AttachmentEdgesOrErr returns the AttachmentEdges value or an error if the edge
@@ -131,6 +134,15 @@ func (e CandidateJobEdges) CreatedByEdgeOrErr() (*User, error) {
 		return e.CreatedByEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "created_by_edge"}
+}
+
+// CandidateJobStepOrErr returns the CandidateJobStep value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateJobEdges) CandidateJobStepOrErr() ([]*CandidateJobStep, error) {
+	if e.loadedTypes[6] {
+		return e.CandidateJobStep, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_job_step"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -252,6 +264,11 @@ func (cj *CandidateJob) QueryCreatedByEdge() *UserQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryCreatedByEdge(cj)
 }
 
+// QueryCandidateJobStep queries the "candidate_job_step" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryCandidateJobStep() *CandidateJobStepQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryCandidateJobStep(cj)
+}
+
 // Update returns a builder for updating this CandidateJob.
 // Note that you need to call CandidateJob.Unwrap() before calling this method if this CandidateJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -371,6 +388,30 @@ func (cj *CandidateJob) appendNamedCandidateJobInterview(name string, edges ...*
 		cj.Edges.namedCandidateJobInterview[name] = []*CandidateInterview{}
 	} else {
 		cj.Edges.namedCandidateJobInterview[name] = append(cj.Edges.namedCandidateJobInterview[name], edges...)
+	}
+}
+
+// NamedCandidateJobStep returns the CandidateJobStep named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (cj *CandidateJob) NamedCandidateJobStep(name string) ([]*CandidateJobStep, error) {
+	if cj.Edges.namedCandidateJobStep == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := cj.Edges.namedCandidateJobStep[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (cj *CandidateJob) appendNamedCandidateJobStep(name string, edges ...*CandidateJobStep) {
+	if cj.Edges.namedCandidateJobStep == nil {
+		cj.Edges.namedCandidateJobStep = make(map[string][]*CandidateJobStep)
+	}
+	if len(edges) == 0 {
+		cj.Edges.namedCandidateJobStep[name] = []*CandidateJobStep{}
+	} else {
+		cj.Edges.namedCandidateJobStep[name] = append(cj.Edges.namedCandidateJobStep[name], edges...)
 	}
 }
 

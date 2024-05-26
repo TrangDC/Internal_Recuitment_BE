@@ -8,6 +8,7 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 
 	"github.com/google/uuid"
@@ -67,7 +68,11 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.HiringJobQuery) {
 			query.WithTeamEdge().WithOwnerEdge()
 		},
-	).WithCreatedByEdge()
+	).WithCreatedByEdge().WithCandidateJobStep(
+		func(query *ent.CandidateJobStepQuery) {
+			query.Order(ent.Asc(candidatejobstep.FieldCreatedAt))
+		},
+	)
 }
 
 func (rps candidateJobRepoImpl) GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {

@@ -231,6 +231,29 @@ var (
 			},
 		},
 	}
+	// CandidateJobStepsColumns holds the columns for the "candidate_job_steps" table.
+	CandidateJobStepsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_job_status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
+		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateJobStepsTable holds the schema information for the "candidate_job_steps" table.
+	CandidateJobStepsTable = &schema.Table{
+		Name:       "candidate_job_steps",
+		Columns:    CandidateJobStepsColumns,
+		PrimaryKey: []*schema.Column{CandidateJobStepsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_job_steps_candidate_jobs_candidate_job_step",
+				Columns:    []*schema.Column{CandidateJobStepsColumns[5]},
+				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// HiringJobsColumns holds the columns for the "hiring_jobs" table.
 	HiringJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -348,6 +371,7 @@ var (
 		CandidateInterviewersTable,
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
+		CandidateJobStepsTable,
 		HiringJobsTable,
 		TeamsTable,
 		TeamManagersTable,
@@ -369,6 +393,7 @@ func init() {
 	CandidateJobsTable.ForeignKeys[2].RefTable = UsersTable
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
+	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable

@@ -62,6 +62,17 @@ func (r *hiringJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.HiringJ
 	return true, nil
 }
 
+// IsAbleToClose is the resolver for the is_able_to_close field.
+func (r *hiringJobResolver) IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error) {
+	candidateJobWithStatusOpen := lo.Map(obj.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
+		return ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(item.Status))
+	})
+	if len(candidateJobWithStatusOpen) > 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // HiringJob returns graphql1.HiringJobResolver implementation.
 func (r *Resolver) HiringJob() graphql1.HiringJobResolver { return &hiringJobResolver{r} }
 
