@@ -63,7 +63,7 @@ func (r *candidateJobResolver) FailedReason(ctx context.Context, obj *ent.Candid
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
-	return (obj.Edges.HiringJobEdge.Status != hiringjob.StatusOpened &&
+	return (obj.Edges.HiringJobEdge.Status == hiringjob.StatusOpened &&
 			ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(obj.Status))),
 		nil
 }

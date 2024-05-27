@@ -77,6 +77,9 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	if len(record.Edges.CandidateJobEdges) > 0 {
+		return util.WrapGQLError(ctx, "model.candidates.validation.candidate_job_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.Candidate().DeleteCandidate(ctx, record)
 		return err
