@@ -64,7 +64,11 @@ func (svc *importDataSvcImpl) ImportCandidate(ctx context.Context, data graphql.
 	if len(lo.Intersect(candidateEmails, newCandidateEmails)) > 0 {
 		return util.WrapGQLError(ctx, "model.candidates.validation.email_exist", http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	candidateInputs := lo.Map(rows, func(row []string, index int) *ent.NewCandidateInput {
+	var candidateInputs []*ent.NewCandidateInput
+	for _, row := range rows {
+		if len(row) < 4 {
+			return util.WrapGQLError(ctx, "excel.import.candidates.invalid_format", http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
 		newInput := &ent.NewCandidateInput{
 			Name:  row[1],
 			Email: row[2],
@@ -75,12 +79,12 @@ func (svc *importDataSvcImpl) ImportCandidate(ctx context.Context, data graphql.
 			dob, err := time.Parse("01-02-06", row[4])
 			if err != nil {
 				svc.logger.Error("error parsing dob", zap.Error(err))
-				return nil
+				return util.WrapGQLError(ctx, "excel.import.candidates.dob_invalid_format", http.StatusInternalServerError, util.ErrorFlagInternalError)
 			}
 			newInput.Dob = &dob
 		}
-		return newInput
-	})
+		candidateInputs = append(candidateInputs, newInput)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err := repoRegistry.Candidate().BuildBulkCreate(ctx, candidateInputs)
 		return err

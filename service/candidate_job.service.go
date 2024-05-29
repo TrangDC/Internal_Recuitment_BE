@@ -139,6 +139,10 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		if err != nil {
 			return err
 		}
+		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateJob.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
 		_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJob.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
 		return err
 	})

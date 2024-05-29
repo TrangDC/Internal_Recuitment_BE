@@ -144,8 +144,9 @@ func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, re
 	return update.Save(ctx)
 }
 
+// fix it, it not remove attachment
 func (rps candidateJobRepoImpl) UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error) {
-	return rps.BuildUpdateOne(ctx, record).RemoveAttachmentEdges().Save(ctx)
+	return rps.BuildUpdateOne(ctx, record).Save(ctx)
 }
 
 func (rps candidateJobRepoImpl) DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error {
