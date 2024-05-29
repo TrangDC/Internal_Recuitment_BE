@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 	"trec/ent"
 
@@ -38,7 +37,6 @@ func (rps *candidateInterviewerRepoImpl) CreateBulkCandidateInterview(ctx contex
 	[]*ent.CandidateInterviewer, error) {
 	var createInterviewers []*ent.CandidateInterviewerCreate
 	for _, record := range candidateInterviews {
-		fmt.Println("========", record.ID)
 		createBulkThings := lo.Map(memberIds, func(item uuid.UUID, index int) *ent.CandidateInterviewerCreate {
 			return rps.BuildCreate().SetCandidateInterviewID(record.ID).SetUserID(item).SetID(uuid.New())
 		})

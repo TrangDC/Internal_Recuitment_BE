@@ -270,7 +270,7 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			} else {
 				if ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(input.Status.String())) {
 					candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
-						candidatejob.StatusEQ(candidatejob.Status(*input.Status)),
+						candidatejob.StatusEQ(candidatejob.Status(*input.Status)), candidatejob.DeletedAtIsNil(),
 					))
 				} else {
 					candidateStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
