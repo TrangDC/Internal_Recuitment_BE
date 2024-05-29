@@ -150,6 +150,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 			SetEndAt(input.EndAt).
 			SetCandidateJobID(record.ID).
 			SetCreatedBy(createdBy).
+			SetID(uuid.New()).
 			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())))
 	}
 	candidateInterviews, err := rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)
@@ -266,12 +267,20 @@ func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidate
 
 func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, candidateJobId uuid.UUID, interviewDate, startFrom, endAt *time.Time) (error, error) {
 	currentDate := time.Now().UTC()
-	currentDate = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 0, 0, 0, 0, time.UTC)
-	if !currentDate.After(*interviewDate) {
+	currentDate = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 0, 0, 0, 0, time.UTC).Add(-(time.Hour * 12))
+	if currentDate.After(*interviewDate) {
 		return fmt.Errorf("model.candidate_interviews.validation.interview_date_is_past"), nil
 	}
-	currentDate = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), startFrom.Hour(), startFrom.Minute(), 0, 0, time.UTC)
-	if !time.Now().UTC().After(currentDate) {
+	// timeDifference := interviewDate.Sub(currentDate).Minutes()
+	// localTimeZone := 0
+	// if timeDifference < 60*12 {
+	// 	localTimeZone = ((60 * 12) - int(timeDifference)) / 60
+	// } else {
+	// 	localTimeZone = (int(timeDifference) - (60 * 12)) / 60
+	// }
+	utcTime := time.Now().UTC()
+	currentTime := time.Date(utcTime.Year(), utcTime.Month(), utcTime.Day(), utcTime.Hour(), utcTime.Minute(), 0, 0, time.UTC)
+	if currentTime.After(*startFrom) {
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_is_past"), nil
 	}
 	if startFrom.After(*endAt) {

@@ -258,9 +258,41 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			candidateQuery.Where(candidate.CreatedAtGTE(*input.FromDate), candidate.CreatedAtLTE(*input.ToDate))
 		}
 		if input.Status != nil {
-			candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
-				candidatejob.StatusEQ(candidatejob.Status(*input.Status)),
-			))
+			if ent.CandidateStatusEnum(input.Status.String()) == ent.CandidateStatusEnumNew {
+				candidates, _ := svc.repoRegistry.Candidate().BuildList(ctx,
+					svc.repoRegistry.Candidate().BuildQuery())
+				candidateWithoutJobs := lo.Filter(candidates, func(entity *ent.Candidate, i int) bool {
+					return len(entity.Edges.CandidateJobEdges) == 0
+				})
+				candidateQuery.Where(candidate.IDIn(lo.Map(candidateWithoutJobs, func(entity *ent.Candidate, i int) uuid.UUID {
+					return entity.ID
+				})...))
+			} else {
+				if ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(input.Status.String())) {
+					candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
+						candidatejob.StatusEQ(candidatejob.Status(*input.Status)),
+					))
+				} else {
+					candidateStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+						return candidatejob.Status(s)
+					})
+					candidates, _ := svc.repoRegistry.Candidate().BuildList(ctx,
+						svc.repoRegistry.Candidate().BuildQuery().Where(candidate.HasCandidateJobEdgesWith(
+							candidatejob.DeletedAtIsNil(),
+						)))
+					candidates = lo.Filter(candidates, func(entity *ent.Candidate, i int) bool {
+						return len(lo.Filter(entity.Edges.CandidateJobEdges, func(candidateJob *ent.CandidateJob, j int) bool {
+							return lo.Contains(candidateStatusOpen, candidateJob.Status)
+						})) == 0
+					})
+					candidateJobEQStatus := lo.Filter(candidates, func(entity *ent.Candidate, i int) bool {
+						return entity.Edges.CandidateJobEdges[0].Status.String() == input.Status.String()
+					})
+					candidateQuery.Where(candidate.IDIn(lo.Map(candidateJobEQStatus, func(entity *ent.Candidate, i int) uuid.UUID {
+						return entity.ID
+					})...))
+				}
+			}
 		}
 		if input.FailedReason != nil && len(input.FailedReason) != 0 {
 			candidateJobIds := []uuid.UUID{}
