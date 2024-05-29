@@ -39,7 +39,7 @@ func NewUserRepository(client *ent.Client) UserRepository {
 
 // Base functions
 func (rps *userRepoImpl) BuildCreate() *ent.UserCreate {
-	return rps.client.User.Create().SetUpdatedAt(time.Now().UTC())
+	return rps.client.User.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps *userRepoImpl) BuildUpdate() *ent.UserUpdate {

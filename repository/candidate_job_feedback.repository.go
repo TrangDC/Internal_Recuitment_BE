@@ -42,7 +42,7 @@ func NewCandidateJobFeedbackRepository(client *ent.Client) CandidateJobFeedbackR
 
 // Base function
 func (rps CandidateJobFeedbackRepoImpl) BuildCreate() *ent.CandidateJobFeedbackCreate {
-	return rps.client.CandidateJobFeedback.Create().SetUpdatedAt(time.Now())
+	return rps.client.CandidateJobFeedback.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps CandidateJobFeedbackRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateJobFeedbackCreate) ([]*ent.CandidateJobFeedback, error) {

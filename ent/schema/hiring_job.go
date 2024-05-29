@@ -28,6 +28,7 @@ func (HiringJob) Fields() []ent.Field {
 		field.Int("salary_to").Default(0).Annotations(entgql.OrderField("salary_to")),
 		field.Enum("currency").Values("vnd", "usd", "jpy"),
 		field.Time("last_apply_date").Optional().Annotations(entgql.OrderField("last_apply_date")),
+		field.Int("priority").Default(4).Annotations(entgql.OrderField("priority")),
 	}
 }
 

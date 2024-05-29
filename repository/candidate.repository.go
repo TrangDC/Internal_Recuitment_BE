@@ -39,10 +39,11 @@ func NewCandidateRepository(client *ent.Client) CandidateRepository {
 }
 
 var defaultTime = time.Time{}
+var currentTime = time.Now().UTC()
 
 // Base function
 func (rps candidateRepoImpl) BuildCreate() *ent.CandidateCreate {
-	return rps.client.Candidate.Create().SetUpdatedAt(time.Now())
+	return rps.client.Candidate.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps candidateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error) {

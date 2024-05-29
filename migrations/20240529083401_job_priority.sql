@@ -1,0 +1,2 @@
+ALTER TABLE hiring_jobs
+ADD COLUMN priority INT NOT NULL DEFAULT 4;

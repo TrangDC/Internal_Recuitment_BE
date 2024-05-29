@@ -3013,6 +3013,16 @@ var (
 			}
 		},
 	}
+	// HiringJobOrderFieldPriority orders HiringJob by priority.
+	HiringJobOrderFieldPriority = &HiringJobOrderField{
+		field: hiringjob.FieldPriority,
+		toCursor: func(hj *HiringJob) Cursor {
+			return Cursor{
+				ID:    hj.ID,
+				Value: hj.Priority,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -3037,6 +3047,8 @@ func (f HiringJobOrderField) String() string {
 		str = "salary_to"
 	case hiringjob.FieldLastApplyDate:
 		str = "last_apply_date"
+	case hiringjob.FieldPriority:
+		str = "priority"
 	}
 	return str
 }
@@ -3071,6 +3083,8 @@ func (f *HiringJobOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *HiringJobOrderFieldSalaryTo
 	case "last_apply_date":
 		*f = *HiringJobOrderFieldLastApplyDate
+	case "priority":
+		*f = *HiringJobOrderFieldPriority
 	default:
 		return fmt.Errorf("%s is not a valid HiringJobOrderField", str)
 	}
