@@ -252,7 +252,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
 	var result *ent.CandidateJobGroupByStatusResponse
 	var edges *ent.CandidateJobGroupByStatus
-	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID)))
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID))).Order(ent.Desc(candidatejob.FieldCreatedAt))
 	if orderBy != nil {
 		order := ent.Desc(orderBy.Field.String())
 		if orderBy.Direction == ent.OrderDirectionAsc {
@@ -298,8 +298,8 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 	var edges *ent.CandidateJobGroupByInterview
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).WithCandidateJobInterview(
 		func(query *ent.CandidateInterviewQuery) {
-			query.Where(
-				candidateinterview.DeletedAtIsNil()).WithCreatedByEdge().WithInterviewerEdges().WithCandidateJobEdge()
+			query.Where(candidateinterview.DeletedAtIsNil()).WithCreatedByEdge().WithInterviewerEdges().WithCandidateJobEdge().
+				Order(ent.Desc(candidateinterview.FieldCreatedAt))
 		},
 	).WithCandidateJobFeedback(
 		func(query *ent.CandidateJobFeedbackQuery) {
@@ -307,7 +307,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 				func(query *ent.AttachmentQuery) {
 					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
 				},
-			).WithCreatedByEdge()
+			).WithCreatedByEdge().Order(ent.Desc(candidatejobfeedback.FieldCreatedAt))
 		},
 	)
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
