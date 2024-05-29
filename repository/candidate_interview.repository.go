@@ -46,7 +46,7 @@ func NewCandidateInterviewRepository(client *ent.Client) CandidateInterviewRepos
 
 // Base functions
 func (rps *candidateInterviewRepoImpl) BuildCreate() *ent.CandidateInterviewCreate {
-	return rps.client.CandidateInterview.Create().SetUpdatedAt(time.Now())
+	return rps.client.CandidateInterview.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps *candidateInterviewRepoImpl) BuildUpdate() *ent.CandidateInterviewUpdate {

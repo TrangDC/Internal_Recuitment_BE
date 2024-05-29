@@ -245,6 +245,27 @@ func (hju *HiringJobUpdate) ClearLastApplyDate() *HiringJobUpdate {
 	return hju
 }
 
+// SetPriority sets the "priority" field.
+func (hju *HiringJobUpdate) SetPriority(i int) *HiringJobUpdate {
+	hju.mutation.ResetPriority()
+	hju.mutation.SetPriority(i)
+	return hju
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillablePriority(i *int) *HiringJobUpdate {
+	if i != nil {
+		hju.SetPriority(*i)
+	}
+	return hju
+}
+
+// AddPriority adds i to the "priority" field.
+func (hju *HiringJobUpdate) AddPriority(i int) *HiringJobUpdate {
+	hju.mutation.AddPriority(i)
+	return hju
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hju *HiringJobUpdate) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdate {
 	hju.mutation.SetOwnerEdgeID(id)
@@ -510,6 +531,12 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if hju.mutation.LastApplyDateCleared() {
 		_spec.ClearField(hiringjob.FieldLastApplyDate, field.TypeTime)
+	}
+	if value, ok := hju.mutation.Priority(); ok {
+		_spec.SetField(hiringjob.FieldPriority, field.TypeInt, value)
+	}
+	if value, ok := hju.mutation.AddedPriority(); ok {
+		_spec.AddField(hiringjob.FieldPriority, field.TypeInt, value)
 	}
 	if hju.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -867,6 +894,27 @@ func (hjuo *HiringJobUpdateOne) ClearLastApplyDate() *HiringJobUpdateOne {
 	return hjuo
 }
 
+// SetPriority sets the "priority" field.
+func (hjuo *HiringJobUpdateOne) SetPriority(i int) *HiringJobUpdateOne {
+	hjuo.mutation.ResetPriority()
+	hjuo.mutation.SetPriority(i)
+	return hjuo
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillablePriority(i *int) *HiringJobUpdateOne {
+	if i != nil {
+		hjuo.SetPriority(*i)
+	}
+	return hjuo
+}
+
+// AddPriority adds i to the "priority" field.
+func (hjuo *HiringJobUpdateOne) AddPriority(i int) *HiringJobUpdateOne {
+	hjuo.mutation.AddPriority(i)
+	return hjuo
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjuo *HiringJobUpdateOne) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdateOne {
 	hjuo.mutation.SetOwnerEdgeID(id)
@@ -1162,6 +1210,12 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 	}
 	if hjuo.mutation.LastApplyDateCleared() {
 		_spec.ClearField(hiringjob.FieldLastApplyDate, field.TypeTime)
+	}
+	if value, ok := hjuo.mutation.Priority(); ok {
+		_spec.SetField(hiringjob.FieldPriority, field.TypeInt, value)
+	}
+	if value, ok := hjuo.mutation.AddedPriority(); ok {
+		_spec.AddField(hiringjob.FieldPriority, field.TypeInt, value)
 	}
 	if hjuo.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

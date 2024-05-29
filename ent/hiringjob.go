@@ -51,6 +51,8 @@ type HiringJob struct {
 	Currency hiringjob.Currency `json:"currency,omitempty"`
 	// LastApplyDate holds the value of the "last_apply_date" field.
 	LastApplyDate time.Time `json:"last_apply_date,omitempty"`
+	// Priority holds the value of the "priority" field.
+	Priority int `json:"priority,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobQuery when eager-loading is set.
 	Edges HiringJobEdges `json:"edges"`
@@ -113,7 +115,7 @@ func (*HiringJob) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case hiringjob.FieldAmount, hiringjob.FieldSalaryFrom, hiringjob.FieldSalaryTo:
+		case hiringjob.FieldAmount, hiringjob.FieldSalaryFrom, hiringjob.FieldSalaryTo, hiringjob.FieldPriority:
 			values[i] = new(sql.NullInt64)
 		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency:
 			values[i] = new(sql.NullString)
@@ -238,6 +240,12 @@ func (hj *HiringJob) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hj.LastApplyDate = value.Time
 			}
+		case hiringjob.FieldPriority:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field priority", values[i])
+			} else if value.Valid {
+				hj.Priority = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -328,6 +336,9 @@ func (hj *HiringJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_apply_date=")
 	builder.WriteString(hj.LastApplyDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("priority=")
+	builder.WriteString(fmt.Sprintf("%v", hj.Priority))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -271,6 +271,7 @@ var (
 		{Name: "salary_to", Type: field.TypeInt, Default: 0},
 		{Name: "currency", Type: field.TypeEnum, Enums: []string{"vnd", "usd", "jpy"}},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
+		{Name: "priority", Type: field.TypeInt, Default: 4},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -282,13 +283,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "hiring_jobs_teams_team_job_edges",
-				Columns:    []*schema.Column{HiringJobsColumns[15]},
+				Columns:    []*schema.Column{HiringJobsColumns[16]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "hiring_jobs_users_hiring_owner",
-				Columns:    []*schema.Column{HiringJobsColumns[16]},
+				Columns:    []*schema.Column{HiringJobsColumns[17]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

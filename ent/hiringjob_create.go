@@ -200,6 +200,20 @@ func (hjc *HiringJobCreate) SetNillableLastApplyDate(t *time.Time) *HiringJobCre
 	return hjc
 }
 
+// SetPriority sets the "priority" field.
+func (hjc *HiringJobCreate) SetPriority(i int) *HiringJobCreate {
+	hjc.mutation.SetPriority(i)
+	return hjc
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillablePriority(i *int) *HiringJobCreate {
+	if i != nil {
+		hjc.SetPriority(*i)
+	}
+	return hjc
+}
+
 // SetID sets the "id" field.
 func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetID(u)
@@ -356,6 +370,10 @@ func (hjc *HiringJobCreate) defaults() {
 		v := hiringjob.DefaultSalaryTo
 		hjc.mutation.SetSalaryTo(v)
 	}
+	if _, ok := hjc.mutation.Priority(); !ok {
+		v := hiringjob.DefaultPriority
+		hjc.mutation.SetPriority(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -427,6 +445,9 @@ func (hjc *HiringJobCreate) check() error {
 		if err := hiringjob.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "HiringJob.currency": %w`, err)}
 		}
+	}
+	if _, ok := hjc.mutation.Priority(); !ok {
+		return &ValidationError{Name: "priority", err: errors.New(`ent: missing required field "HiringJob.priority"`)}
 	}
 	return nil
 }
@@ -519,6 +540,10 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 	if value, ok := hjc.mutation.LastApplyDate(); ok {
 		_spec.SetField(hiringjob.FieldLastApplyDate, field.TypeTime, value)
 		_node.LastApplyDate = value
+	}
+	if value, ok := hjc.mutation.Priority(); ok {
+		_spec.SetField(hiringjob.FieldPriority, field.TypeInt, value)
+		_node.Priority = value
 	}
 	if nodes := hjc.mutation.OwnerEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

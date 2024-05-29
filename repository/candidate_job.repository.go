@@ -45,7 +45,7 @@ func NewCandidateJobRepository(client *ent.Client) CandidateJobRepository {
 
 // Base function
 func (rps candidateJobRepoImpl) BuildCreate() *ent.CandidateJobCreate {
-	return rps.client.CandidateJob.Create().SetUpdatedAt(time.Now())
+	return rps.client.CandidateJob.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps candidateJobRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateJobCreate) ([]*ent.CandidateJob, error) {

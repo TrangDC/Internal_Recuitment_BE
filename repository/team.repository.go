@@ -43,7 +43,7 @@ func NewTeamRepository(client *ent.Client) TeamRepository {
 
 // Base functions
 func (rps *teamRepoImpl) BuildCreate() *ent.TeamCreate {
-	return rps.client.Team.Create().SetUpdatedAt(time.Now())
+	return rps.client.Team.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps *teamRepoImpl) BuildUpdate() *ent.TeamUpdate {

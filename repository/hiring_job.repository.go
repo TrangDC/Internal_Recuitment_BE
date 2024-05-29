@@ -27,6 +27,7 @@ type HiringJobRepository interface {
 	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
 	// common function
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error
+	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) error
 }
 
 type hiringJobRepoImpl struct {
@@ -41,7 +42,7 @@ func NewHiringJobRepository(client *ent.Client) HiringJobRepository {
 
 // Base function
 func (rps *hiringJobRepoImpl) BuildCreate() *ent.HiringJobCreate {
-	return rps.client.HiringJob.Create().SetUpdatedAt(time.Now())
+	return rps.client.HiringJob.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
 }
 
 func (rps *hiringJobRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.HiringJobCreate) ([]*ent.HiringJob, error) {
@@ -111,6 +112,7 @@ func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.Ne
 		SetStatus(hiringjob.Status(input.Status)).
 		SetTeamID(uuid.MustParse(input.TeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
+		SetPriority(input.Priority).
 		Save(ctx)
 }
 
@@ -127,6 +129,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetCurrency(hiringjob.Currency(input.Currency)).
 		SetTeamID(uuid.MustParse(input.TeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
+		SetPriority(input.Priority).
 		Save(ctx)
 }
 
@@ -153,6 +156,23 @@ func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UU
 	isExist, err := rps.BuildExist(ctx, query)
 	if isExist {
 		return fmt.Errorf("model.hiring_jobs.validation.name_exist")
+	}
+	return err
+}
+
+func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) error {
+	query := rps.BuildQuery().Where(hiringjob.PriorityEQ(priority), hiringjob.TeamIDEQ(teamId))
+	if hiringJobId != uuid.Nil {
+		query = query.Where(hiringjob.IDNEQ(hiringJobId))
+	}
+	isExist, err := rps.BuildExist(ctx, query)
+	if isExist {
+		switch priority {
+		case 1:
+			return fmt.Errorf("model.hiring_jobs.validation.priority_ugent_exist")
+		case 2:
+			return fmt.Errorf("model.hiring_jobs.validation.priority_high_exist")
+		}
 	}
 	return err
 }

@@ -214,6 +214,10 @@ func init() {
 	hiringjobDescSalaryTo := hiringjobFields[9].Descriptor()
 	// hiringjob.DefaultSalaryTo holds the default value on creation for the salary_to field.
 	hiringjob.DefaultSalaryTo = hiringjobDescSalaryTo.Default.(int)
+	// hiringjobDescPriority is the schema descriptor for priority field.
+	hiringjobDescPriority := hiringjobFields[12].Descriptor()
+	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
+	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
 	teamMixin := schema.Team{}.Mixin()
 	teamMixinFields0 := teamMixin[0].Fields()
 	_ = teamMixinFields0

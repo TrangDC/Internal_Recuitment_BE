@@ -32,6 +32,7 @@ enum HiringJobOrderByField {
   salary_to
   last_apply_date
   total_candidates_recruited
+  priority
 }
 
 enum HiringJobOrderByAdditionalField {
@@ -65,6 +66,7 @@ input NewHiringJobInput {
   currency: CurrencyEnum!
   team_id: ID!
   created_by: ID!
+  priority: Int!
 }
 
 input UpdateHiringJobInput {
@@ -78,6 +80,7 @@ input UpdateHiringJobInput {
   currency: CurrencyEnum!
   team_id: ID!
   created_by: ID!
+  priority: Int!
 }
 
 type HiringJob {
@@ -97,6 +100,7 @@ type HiringJob {
   total_candidates_recruited: Int!
   is_able_to_delete: Boolean!
   is_able_to_close: Boolean!
+  priority: Int!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

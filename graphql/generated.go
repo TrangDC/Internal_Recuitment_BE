@@ -278,6 +278,7 @@ type ComplexityRoot struct {
 		IsAbleToDelete           func(childComplexity int) int
 		Location                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
+		Priority                 func(childComplexity int) int
 		SalaryFrom               func(childComplexity int) int
 		SalaryTo                 func(childComplexity int) int
 		SalaryType               func(childComplexity int) int
@@ -1498,6 +1499,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.Name(childComplexity), true
+
+	case "HiringJob.priority":
+		if e.complexity.HiringJob.Priority == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.Priority(childComplexity), true
 
 	case "HiringJob.salary_from":
 		if e.complexity.HiringJob.SalaryFrom == nil {
@@ -3160,6 +3168,7 @@ enum HiringJobOrderByField {
   salary_to
   last_apply_date
   total_candidates_recruited
+  priority
 }
 
 enum HiringJobOrderByAdditionalField {
@@ -3193,6 +3202,7 @@ input NewHiringJobInput {
   currency: CurrencyEnum!
   team_id: ID!
   created_by: ID!
+  priority: Int!
 }
 
 input UpdateHiringJobInput {
@@ -3206,6 +3216,7 @@ input UpdateHiringJobInput {
   currency: CurrencyEnum!
   team_id: ID!
   created_by: ID!
+  priority: Int!
 }
 
 type HiringJob {
@@ -3225,6 +3236,7 @@ type HiringJob {
   total_candidates_recruited: Int!
   is_able_to_delete: Boolean!
   is_able_to_close: Boolean!
+  priority: Int!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -8084,6 +8096,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -11625,6 +11639,50 @@ func (ec *executionContext) fieldContext_HiringJob_is_able_to_close(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJob_priority(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_priority(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Priority, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_priority(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJob_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJob_created_at(ctx, field)
 	if err != nil {
@@ -11825,6 +11883,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -11950,6 +12010,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJob_created_at(ctx, field)
 			case "updated_at":
@@ -19960,7 +20022,7 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by"}
+	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by", "priority"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20052,6 +20114,14 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
 			it.CreatedBy, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "priority":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			it.Priority, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20548,7 +20618,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by", "priority"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20632,6 +20702,14 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
 			it.CreatedBy, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "priority":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			it.Priority, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23017,6 +23095,13 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "priority":
+
+			out.Values[i] = ec._HiringJob_priority(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._HiringJob_created_at(ctx, field, obj)

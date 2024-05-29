@@ -286,6 +286,7 @@ type NewHiringJobInput struct {
 	Currency    CurrencyEnum    `json:"currency"`
 	TeamID      string          `json:"team_id"`
 	CreatedBy   string          `json:"created_by"`
+	Priority    int             `json:"priority"`
 }
 
 type NewTeamInput struct {
@@ -380,6 +381,7 @@ type UpdateHiringJobInput struct {
 	Currency    CurrencyEnum   `json:"currency"`
 	TeamID      string         `json:"team_id"`
 	CreatedBy   string         `json:"created_by"`
+	Priority    int            `json:"priority"`
 }
 
 type UpdateTeamInput struct {
@@ -984,6 +986,7 @@ const (
 	HiringJobOrderByFieldSalaryTo                 HiringJobOrderByField = "salary_to"
 	HiringJobOrderByFieldLastApplyDate            HiringJobOrderByField = "last_apply_date"
 	HiringJobOrderByFieldTotalCandidatesRecruited HiringJobOrderByField = "total_candidates_recruited"
+	HiringJobOrderByFieldPriority                 HiringJobOrderByField = "priority"
 )
 
 var AllHiringJobOrderByField = []HiringJobOrderByField{
@@ -994,11 +997,12 @@ var AllHiringJobOrderByField = []HiringJobOrderByField{
 	HiringJobOrderByFieldSalaryTo,
 	HiringJobOrderByFieldLastApplyDate,
 	HiringJobOrderByFieldTotalCandidatesRecruited,
+	HiringJobOrderByFieldPriority,
 }
 
 func (e HiringJobOrderByField) IsValid() bool {
 	switch e {
-	case HiringJobOrderByFieldName, HiringJobOrderByFieldCreatedAt, HiringJobOrderByFieldAmount, HiringJobOrderByFieldSalaryFrom, HiringJobOrderByFieldSalaryTo, HiringJobOrderByFieldLastApplyDate, HiringJobOrderByFieldTotalCandidatesRecruited:
+	case HiringJobOrderByFieldName, HiringJobOrderByFieldCreatedAt, HiringJobOrderByFieldAmount, HiringJobOrderByFieldSalaryFrom, HiringJobOrderByFieldSalaryTo, HiringJobOrderByFieldLastApplyDate, HiringJobOrderByFieldTotalCandidatesRecruited, HiringJobOrderByFieldPriority:
 		return true
 	}
 	return false

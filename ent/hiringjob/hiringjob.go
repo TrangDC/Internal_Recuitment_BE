@@ -46,6 +46,8 @@ const (
 	FieldCurrency = "currency"
 	// FieldLastApplyDate holds the string denoting the last_apply_date field in the database.
 	FieldLastApplyDate = "last_apply_date"
+	// FieldPriority holds the string denoting the priority field in the database.
+	FieldPriority = "priority"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
@@ -96,6 +98,7 @@ var Columns = []string{
 	FieldSalaryTo,
 	FieldCurrency,
 	FieldLastApplyDate,
+	FieldPriority,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -123,6 +126,8 @@ var (
 	DefaultSalaryFrom int
 	// DefaultSalaryTo holds the default value on creation for the "salary_to" field.
 	DefaultSalaryTo int
+	// DefaultPriority holds the default value on creation for the "priority" field.
+	DefaultPriority int
 )
 
 // Status defines the type for the "status" enum field.

@@ -7810,6 +7810,8 @@ type HiringJobMutation struct {
 	addsalary_to               *int
 	currency                   *hiringjob.Currency
 	last_apply_date            *time.Time
+	priority                   *int
+	addpriority                *int
 	clearedFields              map[string]struct{}
 	owner_edge                 *uuid.UUID
 	clearedowner_edge          bool
@@ -8628,6 +8630,62 @@ func (m *HiringJobMutation) ResetLastApplyDate() {
 	delete(m.clearedFields, hiringjob.FieldLastApplyDate)
 }
 
+// SetPriority sets the "priority" field.
+func (m *HiringJobMutation) SetPriority(i int) {
+	m.priority = &i
+	m.addpriority = nil
+}
+
+// Priority returns the value of the "priority" field in the mutation.
+func (m *HiringJobMutation) Priority() (r int, exists bool) {
+	v := m.priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriority returns the old "priority" field's value of the HiringJob entity.
+// If the HiringJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobMutation) OldPriority(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriority: %w", err)
+	}
+	return oldValue.Priority, nil
+}
+
+// AddPriority adds i to the "priority" field.
+func (m *HiringJobMutation) AddPriority(i int) {
+	if m.addpriority != nil {
+		*m.addpriority += i
+	} else {
+		m.addpriority = &i
+	}
+}
+
+// AddedPriority returns the value that was added to the "priority" field in this mutation.
+func (m *HiringJobMutation) AddedPriority() (r int, exists bool) {
+	v := m.addpriority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPriority resets all changes to the "priority" field.
+func (m *HiringJobMutation) ResetPriority() {
+	m.priority = nil
+	m.addpriority = nil
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by id.
 func (m *HiringJobMutation) SetOwnerEdgeID(id uuid.UUID) {
 	m.owner_edge = &id
@@ -8779,7 +8837,7 @@ func (m *HiringJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringJobMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, hiringjob.FieldCreatedAt)
 	}
@@ -8828,6 +8886,9 @@ func (m *HiringJobMutation) Fields() []string {
 	if m.last_apply_date != nil {
 		fields = append(fields, hiringjob.FieldLastApplyDate)
 	}
+	if m.priority != nil {
+		fields = append(fields, hiringjob.FieldPriority)
+	}
 	return fields
 }
 
@@ -8868,6 +8929,8 @@ func (m *HiringJobMutation) Field(name string) (ent.Value, bool) {
 		return m.Currency()
 	case hiringjob.FieldLastApplyDate:
 		return m.LastApplyDate()
+	case hiringjob.FieldPriority:
+		return m.Priority()
 	}
 	return nil, false
 }
@@ -8909,6 +8972,8 @@ func (m *HiringJobMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCurrency(ctx)
 	case hiringjob.FieldLastApplyDate:
 		return m.OldLastApplyDate(ctx)
+	case hiringjob.FieldPriority:
+		return m.OldPriority(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -9030,6 +9095,13 @@ func (m *HiringJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLastApplyDate(v)
 		return nil
+	case hiringjob.FieldPriority:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriority(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -9047,6 +9119,9 @@ func (m *HiringJobMutation) AddedFields() []string {
 	if m.addsalary_to != nil {
 		fields = append(fields, hiringjob.FieldSalaryTo)
 	}
+	if m.addpriority != nil {
+		fields = append(fields, hiringjob.FieldPriority)
+	}
 	return fields
 }
 
@@ -9061,6 +9136,8 @@ func (m *HiringJobMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSalaryFrom()
 	case hiringjob.FieldSalaryTo:
 		return m.AddedSalaryTo()
+	case hiringjob.FieldPriority:
+		return m.AddedPriority()
 	}
 	return nil, false
 }
@@ -9090,6 +9167,13 @@ func (m *HiringJobMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddSalaryTo(v)
+		return nil
+	case hiringjob.FieldPriority:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPriority(v)
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob numeric field %s", name)
@@ -9198,6 +9282,9 @@ func (m *HiringJobMutation) ResetField(name string) error {
 		return nil
 	case hiringjob.FieldLastApplyDate:
 		m.ResetLastApplyDate()
+		return nil
+	case hiringjob.FieldPriority:
+		m.ResetPriority()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
