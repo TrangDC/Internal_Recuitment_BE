@@ -10,7 +10,6 @@ import (
 	"trec/ent/candidatejob"
 
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 )
 
 type CandidateRepository interface {
@@ -70,12 +69,9 @@ func (rps candidateRepoImpl) BuildDelete() *ent.CandidateUpdate {
 }
 
 func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
-	candidateJobStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(entity ent.CandidateJobStatusOpen, index int) candidatejob.Status {
-		return candidatejob.Status(entity.String())
-	})
 	return rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil()).WithCandidateJobEdges(
 		func(query *ent.CandidateJobQuery) {
-			query.Where(candidatejob.StatusIn(candidateJobStatusOpen...), candidatejob.DeletedAtIsNil()).Limit(1).WithHiringJobEdge()
+			query.Where(candidatejob.DeletedAtIsNil()).Order(ent.Desc(candidatejob.FieldUpdatedAt)).WithHiringJobEdge()
 		},
 	)
 }

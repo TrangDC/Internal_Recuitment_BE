@@ -57,8 +57,8 @@ func (svc exportDataSvcImpl) candidateHeader(i18nObj models.I18nObject) *exceliz
 	setCellValue(file, sheetName, "A1", i18nObj.Excel.Id)
 	setCellValue(file, sheetName, "B1", i18nObj.Model.Candidates.Name)
 	setCellValue(file, sheetName, "C1", i18nObj.Model.Candidates.Email)
-	setCellValue(file, sheetName, "E1", i18nObj.Model.Candidates.Phone)
-	setCellValue(file, sheetName, "D1", i18nObj.Model.Candidates.Dob)
+	setCellValue(file, sheetName, "D1", i18nObj.Model.Candidates.Phone)
+	setCellValue(file, sheetName, "E1", i18nObj.Model.Candidates.Dob)
 	return file
 }
 

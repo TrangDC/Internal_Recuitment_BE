@@ -173,7 +173,8 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if candidateJob.Edges.HiringJobEdge.Status != hiringjob.StatusOpened {
+	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
+		// return util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
 		return util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_still_hiring", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusOpened && !ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(candidateJob.Status)) {

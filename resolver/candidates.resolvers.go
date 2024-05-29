@@ -6,7 +6,10 @@ package resolver
 import (
 	"context"
 	"trec/ent"
+	"trec/ent/candidatejob"
 	graphql1 "trec/graphql"
+
+	"github.com/samber/lo"
 )
 
 // ID is the resolver for the id field.
@@ -21,18 +24,32 @@ func (r *candidateResolver) Status(ctx context.Context, obj *ent.Candidate) (ent
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *candidateResolver) IsAbleToDelete(ctx context.Context, obj *ent.Candidate) (bool, error) {
-	if len(obj.Edges.CandidateJobEdges) > 0 {
-		return false, nil
+	candidateJobStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(entity ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(entity.String())
+	})
+	var result bool
+	for _, entity := range obj.Edges.CandidateJobEdges {
+		if lo.Contains(candidateJobStatusOpen, entity.Status) {
+			result = true
+			break
+		}
 	}
-	return true, nil
+	return result, nil
 }
 
 // HiringJobTitle is the resolver for the hiring_job_title field.
 func (r *candidateResolver) HiringJobTitle(ctx context.Context, obj *ent.Candidate) (string, error) {
-	if len(obj.Edges.CandidateJobEdges) > 0 {
-		return obj.Edges.CandidateJobEdges[0].Edges.HiringJobEdge.Name, nil
+	candidateJobStatusOpen := lo.Map(ent.AllCandidateJobStatusOpen, func(entity ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(entity.String())
+	})
+	var result string
+	for _, entity := range obj.Edges.CandidateJobEdges {
+		if lo.Contains(candidateJobStatusOpen, entity.Status) {
+			result = entity.Edges.HiringJobEdge.Name
+			break
+		}
 	}
-	return "", nil
+	return result, nil
 }
 
 // Candidate returns graphql1.CandidateResolver implementation.

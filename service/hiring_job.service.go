@@ -139,7 +139,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	candidateJobWithStatusOpen := lo.Map(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
+	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
 		return ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(item.Status))
 	})
 	if len(candidateJobWithStatusOpen) > 0 && record.Status == hiringjob.StatusOpened && hiringjob.Status(status) == hiringjob.StatusClosed {
