@@ -3184,6 +3184,7 @@ input HiringJobFilter {
   name: String
   team_ids: [ID!]
   status: HiringJobStatus
+  priority: Int
 }
 
 input HiringJobFreeWord {
@@ -19570,7 +19571,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "team_ids", "status"}
+	fieldsInOrder := [...]string{"name", "team_ids", "status", "priority"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -19598,6 +19599,14 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "priority":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			it.Priority, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -252,7 +253,12 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
 	var result *ent.CandidateJobGroupByStatusResponse
 	var edges *ent.CandidateJobGroupByStatus
-	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID))).Order(ent.Desc(candidatejob.FieldCreatedAt))
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(
+		candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID)),
+		candidatejob.HasCandidateEdgeWith(
+			candidate.DeletedAtIsNil(),
+		)).
+		Order(ent.Desc(candidatejob.FieldCreatedAt))
 	if orderBy != nil {
 		order := ent.Desc(orderBy.Field.String())
 		if orderBy.Direction == ent.OrderDirectionAsc {

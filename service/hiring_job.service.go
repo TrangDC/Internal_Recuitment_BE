@@ -311,6 +311,9 @@ func (svc *hiringJobSvcImpl) filter(hiringJobQuery *ent.HiringJobQuery, input *e
 		if input.Status != nil {
 			hiringJobQuery.Where(hiringjob.StatusEQ(hiringjob.Status(*input.Status)))
 		}
+		if input.Priority != nil {
+			hiringJobQuery.Where(hiringjob.PriorityEQ(*input.Priority))
+		}
 	}
 }
 
