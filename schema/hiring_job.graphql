@@ -48,6 +48,7 @@ input HiringJobFilter {
   name: String
   team_ids: [ID!]
   status: HiringJobStatus
+  priority: Int
 }
 
 input HiringJobFreeWord {

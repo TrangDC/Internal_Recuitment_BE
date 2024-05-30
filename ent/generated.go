@@ -205,9 +205,10 @@ type CandidateResponseGetAll struct {
 }
 
 type HiringJobFilter struct {
-	Name    *string          `json:"name"`
-	TeamIds []string         `json:"team_ids"`
-	Status  *HiringJobStatus `json:"status"`
+	Name     *string          `json:"name"`
+	TeamIds  []string         `json:"team_ids"`
+	Status   *HiringJobStatus `json:"status"`
+	Priority *int             `json:"priority"`
 }
 
 type HiringJobFreeWord struct {
