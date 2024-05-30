@@ -265,6 +265,11 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 		if input.FromDate != nil && input.ToDate != nil {
 			candidateQuery.Where(candidate.CreatedAtGTE(*input.FromDate), candidate.CreatedAtLTE(*input.ToDate))
 		}
+		if input.IsAbleToInterview != nil && *input.IsAbleToInterview {
+			candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
+				candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
+			))
+		}
 		if input.Status != nil {
 			if ent.CandidateStatusEnum(input.Status.String()) == ent.CandidateStatusEnumNew {
 				candidates, _ := svc.repoRegistry.Candidate().BuildList(ctx,
