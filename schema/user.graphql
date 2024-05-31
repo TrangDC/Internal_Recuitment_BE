@@ -47,6 +47,7 @@ input UserFilter {
 
 input UserFreeWord {
   name: String
+  work_email: String
 }
 
 input NewUserInput {

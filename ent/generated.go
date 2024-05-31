@@ -409,7 +409,8 @@ type UserFilter struct {
 }
 
 type UserFreeWord struct {
-	Name *string `json:"name"`
+	Name      *string `json:"name"`
+	WorkEmail *string `json:"work_email"`
 }
 
 type UserResponse struct {
