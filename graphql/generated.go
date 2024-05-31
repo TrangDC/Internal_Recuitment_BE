@@ -3457,6 +3457,7 @@ input UserFilter {
 
 input UserFreeWord {
   name: String
+  work_email: String
 }
 
 input NewUserInput {
@@ -20903,7 +20904,7 @@ func (ec *executionContext) unmarshalInputUserFreeWord(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "work_email"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20915,6 +20916,14 @@ func (ec *executionContext) unmarshalInputUserFreeWord(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "work_email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("work_email"))
+			it.WorkEmail, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

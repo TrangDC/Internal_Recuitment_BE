@@ -245,6 +245,9 @@ func (svc *userSvcImpl) freeWord(userQuery *ent.UserQuery, input *ent.UserFreeWo
 		if input.Name != nil {
 			userQuery.Where(user.NameContainsFold(strings.TrimSpace(*input.Name)))
 		}
+		if input.WorkEmail != nil {
+			userQuery.Where(user.WorkEmailContainsFold(strings.TrimSpace(*input.WorkEmail)))
+		}
 	}
 }
 
