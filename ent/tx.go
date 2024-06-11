@@ -32,6 +32,8 @@ type Tx struct {
 	CandidateJobStep *CandidateJobStepClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// Skill is the client for interacting with the Skill builders.
+	Skill *SkillClient
 	// Team is the client for interacting with the Team builders.
 	Team *TeamClient
 	// TeamManager is the client for interacting with the TeamManager builders.
@@ -178,6 +180,7 @@ func (tx *Tx) init() {
 	tx.CandidateJobFeedback = NewCandidateJobFeedbackClient(tx.config)
 	tx.CandidateJobStep = NewCandidateJobStepClient(tx.config)
 	tx.HiringJob = NewHiringJobClient(tx.config)
+	tx.Skill = NewSkillClient(tx.config)
 	tx.Team = NewTeamClient(tx.config)
 	tx.TeamManager = NewTeamManagerClient(tx.config)
 	tx.User = NewUserClient(tx.config)

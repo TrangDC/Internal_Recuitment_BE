@@ -52,7 +52,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -295,6 +295,21 @@ var (
 			},
 		},
 	}
+	// SkillsColumns holds the columns for the "skills" table.
+	SkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+	}
+	// SkillsTable holds the schema information for the "skills" table.
+	SkillsTable = &schema.Table{
+		Name:       "skills",
+		Columns:    SkillsColumns,
+		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+	}
 	// TeamsColumns holds the columns for the "teams" table.
 	TeamsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -374,6 +389,7 @@ var (
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
 		HiringJobsTable,
+		SkillsTable,
 		TeamsTable,
 		TeamManagersTable,
 		UsersTable,

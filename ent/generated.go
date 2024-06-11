@@ -290,6 +290,11 @@ type NewHiringJobInput struct {
 	Priority    int             `json:"priority"`
 }
 
+type NewSkillInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}
+
 type NewTeamInput struct {
 	Name    string   `json:"name"`
 	Members []string `json:"members"`
@@ -309,6 +314,23 @@ type Pagination struct {
 type PaginationInput struct {
 	Page    *int `json:"page"`
 	PerPage *int `json:"perPage"`
+}
+
+type SkillFilter struct {
+	Name *string `json:"name"`
+}
+
+type SkillFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type SkillResponse struct {
+	Data *Skill `json:"data"`
+}
+
+type SkillResponseGetAll struct {
+	Edges      []*SkillEdge `json:"edges"`
+	Pagination *Pagination  `json:"pagination"`
 }
 
 type TeamFilter struct {
@@ -383,6 +405,11 @@ type UpdateHiringJobInput struct {
 	TeamID      string         `json:"team_id"`
 	CreatedBy   string         `json:"created_by"`
 	Priority    int            `json:"priority"`
+}
+
+type UpdateSkillInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
 }
 
 type UpdateTeamInput struct {
@@ -1381,17 +1408,19 @@ const (
 	ProjectModuleTeams      ProjectModule = "teams"
 	ProjectModuleHiringJobs ProjectModule = "hiring_jobs"
 	ProjectModuleCandidates ProjectModule = "candidates"
+	ProjectModuleSkills     ProjectModule = "skills"
 )
 
 var AllProjectModule = []ProjectModule{
 	ProjectModuleTeams,
 	ProjectModuleHiringJobs,
 	ProjectModuleCandidates,
+	ProjectModuleSkills,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleTeams, ProjectModuleHiringJobs, ProjectModuleCandidates:
+	case ProjectModuleTeams, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills:
 		return true
 	}
 	return false

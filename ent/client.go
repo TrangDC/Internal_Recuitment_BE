@@ -19,6 +19,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
+	"trec/ent/skill"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -52,6 +53,8 @@ type Client struct {
 	CandidateJobStep *CandidateJobStepClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// Skill is the client for interacting with the Skill builders.
+	Skill *SkillClient
 	// Team is the client for interacting with the Team builders.
 	Team *TeamClient
 	// TeamManager is the client for interacting with the TeamManager builders.
@@ -80,6 +83,7 @@ func (c *Client) init() {
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
+	c.Skill = NewSkillClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.TeamManager = NewTeamManagerClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -125,6 +129,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		Skill:                NewSkillClient(cfg),
 		Team:                 NewTeamClient(cfg),
 		TeamManager:          NewTeamManagerClient(cfg),
 		User:                 NewUserClient(cfg),
@@ -156,6 +161,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		Skill:                NewSkillClient(cfg),
 		Team:                 NewTeamClient(cfg),
 		TeamManager:          NewTeamManagerClient(cfg),
 		User:                 NewUserClient(cfg),
@@ -196,6 +202,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateJobFeedback.Use(hooks...)
 	c.CandidateJobStep.Use(hooks...)
 	c.HiringJob.Use(hooks...)
+	c.Skill.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.TeamManager.Use(hooks...)
 	c.User.Use(hooks...)
@@ -1425,6 +1432,96 @@ func (c *HiringJobClient) QueryCandidateJobEdges(hj *HiringJob) *CandidateJobQue
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
+}
+
+// SkillClient is a client for the Skill schema.
+type SkillClient struct {
+	config
+}
+
+// NewSkillClient returns a client for the Skill from the given config.
+func NewSkillClient(c config) *SkillClient {
+	return &SkillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `skill.Hooks(f(g(h())))`.
+func (c *SkillClient) Use(hooks ...Hook) {
+	c.hooks.Skill = append(c.hooks.Skill, hooks...)
+}
+
+// Create returns a builder for creating a Skill entity.
+func (c *SkillClient) Create() *SkillCreate {
+	mutation := newSkillMutation(c.config, OpCreate)
+	return &SkillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Skill entities.
+func (c *SkillClient) CreateBulk(builders ...*SkillCreate) *SkillCreateBulk {
+	return &SkillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Skill.
+func (c *SkillClient) Update() *SkillUpdate {
+	mutation := newSkillMutation(c.config, OpUpdate)
+	return &SkillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SkillClient) UpdateOne(s *Skill) *SkillUpdateOne {
+	mutation := newSkillMutation(c.config, OpUpdateOne, withSkill(s))
+	return &SkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SkillClient) UpdateOneID(id uuid.UUID) *SkillUpdateOne {
+	mutation := newSkillMutation(c.config, OpUpdateOne, withSkillID(id))
+	return &SkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Skill.
+func (c *SkillClient) Delete() *SkillDelete {
+	mutation := newSkillMutation(c.config, OpDelete)
+	return &SkillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SkillClient) DeleteOne(s *Skill) *SkillDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SkillClient) DeleteOneID(id uuid.UUID) *SkillDeleteOne {
+	builder := c.Delete().Where(skill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SkillDeleteOne{builder}
+}
+
+// Query returns a query builder for Skill.
+func (c *SkillClient) Query() *SkillQuery {
+	return &SkillQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Skill entity by its id.
+func (c *SkillClient) Get(ctx context.Context, id uuid.UUID) (*Skill, error) {
+	return c.Query().Where(skill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SkillClient) GetX(ctx context.Context, id uuid.UUID) *Skill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SkillClient) Hooks() []Hook {
+	return c.hooks.Skill
 }
 
 // TeamClient is a client for the Team schema.
