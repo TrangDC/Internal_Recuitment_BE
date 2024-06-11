@@ -183,6 +183,25 @@ func (r *mutationResolver) ImportCandidate(ctx context.Context, file graphql.Upl
 	return true, nil
 }
 
+// CreateSkill is the resolver for the CreateSkill field.
+func (r *mutationResolver) CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.SkillResponse, error) {
+	return r.serviceRegistry.Skill().CreateSkill(ctx, input)
+}
+
+// UpdateSkill is the resolver for the UpdateSkill field.
+func (r *mutationResolver) UpdateSkill(ctx context.Context, id string, input ent.UpdateSkillInput) (*ent.SkillResponse, error) {
+	return r.serviceRegistry.Skill().UpdateSkill(ctx, uuid.MustParse(id), input)
+}
+
+// DeleteSkill is the resolver for the DeleteSkill field.
+func (r *mutationResolver) DeleteSkill(ctx context.Context, id string) (bool, error) {
+	err := r.serviceRegistry.Skill().DeleteSkill(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

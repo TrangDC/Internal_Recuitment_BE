@@ -43,4 +43,9 @@ type Mutation {
 
   #import
   ImportCandidate(file: Upload!): Boolean!
+
+  #Skill
+  CreateSkill(input: NewSkillInput!): SkillResponse!
+  UpdateSkill(id: ID!, input: UpdateSkillInput!): SkillResponse!
+  DeleteSkill(id: ID!): Boolean!
 }

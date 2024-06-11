@@ -116,6 +116,16 @@ func (r *queryResolver) ExportSampleCandidate(ctx context.Context, lang ent.I18n
 	return r.serviceRegistry.ExportData().ExportSampleCandidates(ctx, lang)
 }
 
+// GetSkill is the resolver for the GetSkill field.
+func (r *queryResolver) GetSkill(ctx context.Context, id string) (*ent.SkillResponse, error) {
+	return r.serviceRegistry.Skill().GetSkill(ctx, uuid.MustParse(id))
+}
+
+// GetAllSkills is the resolver for the GetAllSkills field.
+func (r *queryResolver) GetAllSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error) {
+	return r.serviceRegistry.Skill().GetSkills(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

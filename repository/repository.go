@@ -22,6 +22,7 @@ type Repository interface {
 	ImportData() ImportDataRepository
 	CandidateJobStep() CandidateJobStepRepository
 	CandidateInterviewer() CandidateInterviewerRepository
+	Skill() SkillRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -43,6 +44,7 @@ type RepoImpl struct {
 	importData           ImportDataRepository
 	candidateJobStep     CandidateJobStepRepository
 	candidateInterviewer CandidateInterviewerRepository
+	skill                SkillRepository
 }
 
 // NewRepository creates new repository registry
@@ -61,6 +63,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		importData:           NewImportDataRepository(entClient),
 		candidateJobStep:     NewCandidateJobStepRepository(entClient),
 		candidateInterviewer: NewCandidateInterviewerRepository(entClient),
+		skill:                NewSkillRepository(entClient),
 	}
 }
 
@@ -112,6 +115,10 @@ func (r *RepoImpl) CandidateInterviewer() CandidateInterviewerRepository {
 	return r.candidateInterviewer
 }
 
+func (r *RepoImpl) Skill() SkillRepository {
+	return r.skill
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -146,6 +153,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		candidateInterview:   NewCandidateInterviewRepository(tx.Client()),
 		candidateJobStep:     NewCandidateJobStepRepository(tx.Client()),
 		candidateInterviewer: NewCandidateInterviewerRepository(tx.Client()),
+		skill:                NewSkillRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {
