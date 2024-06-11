@@ -35,8 +35,4 @@ type Query {
 	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
-
-	#Skill
-  GetSkill(id: ID!): SkillResponse!
-  GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
 	}

@@ -52,7 +52,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -301,7 +301,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
 	}
 	// SkillsTable holds the schema information for the "skills" table.

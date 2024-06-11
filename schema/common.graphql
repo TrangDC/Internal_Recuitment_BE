@@ -64,7 +64,6 @@ enum projectModule {
   teams
   hiring_jobs
   candidates
-  skills
 }
 
 enum auditTrailAction {

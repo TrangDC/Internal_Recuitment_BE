@@ -231,7 +231,21 @@ func init() {
 	// skillDescName is the schema descriptor for name field.
 	skillDescName := skillFields[0].Descriptor()
 	// skill.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	skill.NameValidator = skillDescName.Validators[0].(func(string) error)
+	skill.NameValidator = func() func(string) error {
+		validators := skillDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// skillDescDescription is the schema descriptor for description field.
 	skillDescDescription := skillFields[1].Descriptor()
 	// skill.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.

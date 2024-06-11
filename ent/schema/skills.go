@@ -12,7 +12,7 @@ type Skill struct {
 
 func (Skill) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").MaxLen(255).Unique().Annotations(entgql.OrderField("name")),
+		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.Text("description").MaxLen(255).Optional().Annotations(entgql.OrderField("description")),
 	}
 }
