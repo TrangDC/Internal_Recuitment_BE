@@ -19,6 +19,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
+	"trec/ent/skill"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -3122,6 +3123,336 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// SkillEdge is the edge representation of Skill.
+type SkillEdge struct {
+	Node   *Skill `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// SkillConnection is the connection containing edges to Skill.
+type SkillConnection struct {
+	Edges      []*SkillEdge `json:"edges"`
+	PageInfo   PageInfo     `json:"pageInfo"`
+	TotalCount int          `json:"totalCount"`
+}
+
+func (c *SkillConnection) build(nodes []*Skill, pager *skillPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Skill
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Skill {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Skill {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*SkillEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &SkillEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// SkillPaginateOption enables pagination customization.
+type SkillPaginateOption func(*skillPager) error
+
+// WithSkillOrder configures pagination ordering.
+func WithSkillOrder(order *SkillOrder) SkillPaginateOption {
+	if order == nil {
+		order = DefaultSkillOrder
+	}
+	o := *order
+	return func(pager *skillPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultSkillOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithSkillFilter configures pagination filter.
+func WithSkillFilter(filter func(*SkillQuery) (*SkillQuery, error)) SkillPaginateOption {
+	return func(pager *skillPager) error {
+		if filter == nil {
+			return errors.New("SkillQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type skillPager struct {
+	order  *SkillOrder
+	filter func(*SkillQuery) (*SkillQuery, error)
+}
+
+func newSkillPager(opts []SkillPaginateOption) (*skillPager, error) {
+	pager := &skillPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultSkillOrder
+	}
+	return pager, nil
+}
+
+func (p *skillPager) applyFilter(query *SkillQuery) (*SkillQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *skillPager) toCursor(s *Skill) Cursor {
+	return p.order.Field.toCursor(s)
+}
+
+func (p *skillPager) applyCursors(query *SkillQuery, after, before *Cursor) *SkillQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultSkillOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *skillPager) applyOrder(query *SkillQuery, reverse bool) *SkillQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultSkillOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultSkillOrder.Field.field))
+	}
+	return query
+}
+
+func (p *skillPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultSkillOrder.Field {
+			b.Comma().Ident(DefaultSkillOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Skill.
+func (s *SkillQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...SkillPaginateOption,
+) (*SkillConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newSkillPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if s, err = pager.applyFilter(s); err != nil {
+		return nil, err
+	}
+	conn := &SkillConnection{Edges: []*SkillEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = s.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	s = pager.applyCursors(s, after, before)
+	s = pager.applyOrder(s, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		s.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := s.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := s.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// SkillOrderFieldCreatedAt orders Skill by created_at.
+	SkillOrderFieldCreatedAt = &SkillOrderField{
+		field: skill.FieldCreatedAt,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{
+				ID:    s.ID,
+				Value: s.CreatedAt,
+			}
+		},
+	}
+	// SkillOrderFieldUpdatedAt orders Skill by updated_at.
+	SkillOrderFieldUpdatedAt = &SkillOrderField{
+		field: skill.FieldUpdatedAt,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{
+				ID:    s.ID,
+				Value: s.UpdatedAt,
+			}
+		},
+	}
+	// SkillOrderFieldDeletedAt orders Skill by deleted_at.
+	SkillOrderFieldDeletedAt = &SkillOrderField{
+		field: skill.FieldDeletedAt,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{
+				ID:    s.ID,
+				Value: s.DeletedAt,
+			}
+		},
+	}
+	// SkillOrderFieldName orders Skill by name.
+	SkillOrderFieldName = &SkillOrderField{
+		field: skill.FieldName,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{
+				ID:    s.ID,
+				Value: s.Name,
+			}
+		},
+	}
+	// SkillOrderFieldDescription orders Skill by description.
+	SkillOrderFieldDescription = &SkillOrderField{
+		field: skill.FieldDescription,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{
+				ID:    s.ID,
+				Value: s.Description,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f SkillOrderField) String() string {
+	var str string
+	switch f.field {
+	case skill.FieldCreatedAt:
+		str = "created_at"
+	case skill.FieldUpdatedAt:
+		str = "updated_at"
+	case skill.FieldDeletedAt:
+		str = "deleted_at"
+	case skill.FieldName:
+		str = "name"
+	case skill.FieldDescription:
+		str = "description"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f SkillOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *SkillOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("SkillOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *SkillOrderFieldCreatedAt
+	case "updated_at":
+		*f = *SkillOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *SkillOrderFieldDeletedAt
+	case "name":
+		*f = *SkillOrderFieldName
+	case "description":
+		*f = *SkillOrderFieldDescription
+	default:
+		return fmt.Errorf("%s is not a valid SkillOrderField", str)
+	}
+	return nil
+}
+
+// SkillOrderField defines the ordering field of Skill.
+type SkillOrderField struct {
+	field    string
+	toCursor func(*Skill) Cursor
+}
+
+// SkillOrder defines the ordering of Skill.
+type SkillOrder struct {
+	Direction OrderDirection   `json:"direction"`
+	Field     *SkillOrderField `json:"field"`
+}
+
+// DefaultSkillOrder is the default ordering of Skill.
+var DefaultSkillOrder = &SkillOrder{
+	Direction: OrderDirectionAsc,
+	Field: &SkillOrderField{
+		field: skill.FieldID,
+		toCursor: func(s *Skill) Cursor {
+			return Cursor{ID: s.ID}
+		},
+	},
+}
+
+// ToEdge converts Skill into SkillEdge.
+func (s *Skill) ToEdge(order *SkillOrder) *SkillEdge {
+	if order == nil {
+		order = DefaultSkillOrder
+	}
+	return &SkillEdge{
+		Node:   s,
+		Cursor: order.Field.toCursor(s),
 	}
 }
 

@@ -72,7 +72,7 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, 
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	record := models.AuditTrailData{
-		Module: "model.teams",
+		Module: "model.teams.model_name",
 		Update: make([]interface{}, 0),
 		Delete: make([]interface{}, 0),
 	}

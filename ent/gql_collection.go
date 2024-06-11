@@ -911,6 +911,71 @@ func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (s *SkillQuery) CollectFields(ctx context.Context, satisfies ...string) (*SkillQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return s, nil
+	}
+	if err := s.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (s *SkillQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type skillPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []SkillPaginateOption
+}
+
+func newSkillPaginateArgs(rv map[string]interface{}) *skillPaginateArgs {
+	args := &skillPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &SkillOrder{Field: &SkillOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithSkillOrder(order))
+			}
+		case *SkillOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithSkillOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TeamQuery) CollectFields(ctx context.Context, satisfies ...string) (*TeamQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
