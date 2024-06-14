@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"reflect"
 	"strings"
+	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/predicate"
 	"trec/ent/skill"
 	"trec/internal/util"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -17,9 +22,9 @@ import (
 
 type SkillService interface {
 	// mutation
-	CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.SkillResponse, error)
-	DeleteSkill(ctx context.Context, id uuid.UUID) error
-	UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput) (*ent.SkillResponse, error)
+	CreateSkill(ctx context.Context, input ent.NewSkillInput, note string) (*ent.SkillResponse, error)
+	DeleteSkill(ctx context.Context, id uuid.UUID, note string) error
+	UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error)
 	// query
 	GetSkill(ctx context.Context, id uuid.UUID) (*ent.SkillResponse, error)
 	GetSkills(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord, filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error)
@@ -38,7 +43,7 @@ func NewSkillService(repoRegistry repository.Repository, logger *zap.Logger) Ski
 }
 
 // mutation
-func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.SkillResponse, error) {
+func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInput, note string) (*ent.SkillResponse, error) {
 	var record *ent.Skill
 	stringError, err := svc.repoRegistry.Skill().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
@@ -57,12 +62,18 @@ func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInpu
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
+	}
 	return &ent.SkillResponse{
 		Data: record,
 	}, nil
 }
 
-func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID) error {
+func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note string) error {
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -76,10 +87,16 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID) error {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
+	}
 	return nil
 }
 
-func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput) (*ent.SkillResponse, error) {
+func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error) {
 	var result *ent.Skill
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
@@ -102,6 +119,12 @@ func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input en
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	recordChanges := svc.recordUpdate(record, result)
+	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
 	}
 	return &ent.SkillResponse{
 		Data: result,
@@ -189,4 +212,80 @@ func (svc *skillSvcImpl) filter(skillQuery *ent.SkillQuery, input *ent.SkillFilt
 			skillQuery.Where(skill.NameEqualFold(strings.TrimSpace(*input.Name)))
 		}
 	}
+}
+
+func (svc *skillSvcImpl) recordCreateDelete(record *ent.Skill, auditTrailType audittrail.ActionType) models.AuditTrailData {
+	auditTrail := models.AuditTrailData{
+		Module: "model.skills.model_name",
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	result := []interface{}{}
+	value := reflect.ValueOf(interface{}(record)).Elem()
+	recordType := reflect.TypeOf(record).Elem()
+	for i := 1; i < value.NumField(); i++ {
+		field := recordType.Field(i)
+		valueField := value.Field(i).Interface()
+		fieldName := dto.FormatSkillField(field.Name)
+		switch fieldName {
+		case "":
+			continue
+		case "model.skills.name":
+			valueField = record.Name
+		case "model.skills.description":
+			valueField = record.Description
+		}
+		result = append(result, models.AuditTrailCreateDelete{
+			Field: fieldName,
+			Value: valueField,
+		})
+	}
+	if auditTrailType == audittrail.ActionTypeCreate {
+		auditTrail.Create = append(auditTrail.Create, result...)
+	}
+	if auditTrailType == audittrail.ActionTypeDelete {
+		auditTrail.Delete = append(auditTrail.Delete, result...)
+	}
+	return auditTrail
+}
+
+func (svc *skillSvcImpl) recordUpdate(oldRecord *ent.Skill, newRecord *ent.Skill) models.AuditTrailData {
+	auditTrail := models.AuditTrailData{
+		Module: "model.skills.model_name",
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	result := []interface{}{}
+	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
+	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
+	recordType := reflect.TypeOf(oldRecord).Elem()
+	for i := 1; i < oldValue.NumField(); i++ {
+		field := recordType.Field(i)
+		oldValueField := oldValue.Field(i).Interface()
+		newValueField := newValue.Field(i).Interface()
+		fieldName := dto.FormatSkillField(field.Name)
+		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
+			switch fieldName {
+			case "":
+				continue
+			case "model.skills.name":
+				oldValueField = oldRecord.Name
+				newValueField = newRecord.Name
+			case "model.skills.description":
+				oldValueField = oldRecord.Description
+				newValueField = newRecord.Description
+			}
+			result = append(result, models.AuditTrailUpdate{
+				Field: fieldName,
+				Value: models.ValueChange{
+					OldValue: oldValueField,
+					NewValue: newValueField,
+				},
+			})
+		}
+	}
+	auditTrail.Update = append(auditTrail.Update, result...)
+	return auditTrail
 }

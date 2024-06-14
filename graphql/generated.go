@@ -313,14 +313,14 @@ type ComplexityRoot struct {
 		CreateCandidateJob                func(childComplexity int, input ent.NewCandidateJobInput) int
 		CreateCandidateJobFeedback        func(childComplexity int, input ent.NewCandidateJobFeedbackInput) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
-		CreateSkill                       func(childComplexity int, input ent.NewSkillInput) int
+		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
 		CreateTeam                        func(childComplexity int, input ent.NewTeamInput, note string) int
 		DeleteCandidate                   func(childComplexity int, id string, note string) int
 		DeleteCandidateInterview          func(childComplexity int, id string) int
 		DeleteCandidateJob                func(childComplexity int, id string) int
 		DeleteCandidateJobFeedback        func(childComplexity int, id string) int
 		DeleteHiringJob                   func(childComplexity int, id string, note string) int
-		DeleteSkill                       func(childComplexity int, id string) int
+		DeleteSkill                       func(childComplexity int, id string, note string) int
 		DeleteTeam                        func(childComplexity int, id string, note string) int
 		ImportCandidate                   func(childComplexity int, file graphql.Upload) int
 		SetBlackListCandidate             func(childComplexity int, id string, isBlackList bool, note string) int
@@ -332,7 +332,7 @@ type ComplexityRoot struct {
 		UpdateCandidateJobStatus          func(childComplexity int, id string, input ent.UpdateCandidateJobStatus) int
 		UpdateHiringJob                   func(childComplexity int, id string, input ent.UpdateHiringJobInput, note string) int
 		UpdateHiringJobStatus             func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
-		UpdateSkill                       func(childComplexity int, id string, input ent.UpdateSkillInput) int
+		UpdateSkill                       func(childComplexity int, id string, input ent.UpdateSkillInput, note string) int
 		UpdateTeam                        func(childComplexity int, id string, input ent.UpdateTeamInput, note string) int
 		UpdateUser                        func(childComplexity int, id string, input ent.UpdateUserInput, note string) int
 		UpdateUserStatus                  func(childComplexity int, id string, input ent.UpdateUserStatusInput, note string) int
@@ -566,9 +566,9 @@ type MutationResolver interface {
 	DeleteCandidateInterview(ctx context.Context, id string) (bool, error)
 	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (bool, error)
 	ImportCandidate(ctx context.Context, file graphql.Upload) (bool, error)
-	CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.SkillResponse, error)
-	UpdateSkill(ctx context.Context, id string, input ent.UpdateSkillInput) (*ent.SkillResponse, error)
-	DeleteSkill(ctx context.Context, id string) (bool, error)
+	CreateSkill(ctx context.Context, input ent.NewSkillInput, note string) (*ent.SkillResponse, error)
+	UpdateSkill(ctx context.Context, id string, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error)
+	DeleteSkill(ctx context.Context, id string, note string) (bool, error)
 }
 type QueryResolver interface {
 	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
@@ -1736,7 +1736,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSkill(childComplexity, args["input"].(ent.NewSkillInput)), true
+		return e.complexity.Mutation.CreateSkill(childComplexity, args["input"].(ent.NewSkillInput), args["note"].(string)), true
 
 	case "Mutation.CreateTeam":
 		if e.complexity.Mutation.CreateTeam == nil {
@@ -1820,7 +1820,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteSkill(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteSkill(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.DeleteTeam":
 		if e.complexity.Mutation.DeleteTeam == nil {
@@ -1964,7 +1964,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateSkill(childComplexity, args["id"].(string), args["input"].(ent.UpdateSkillInput)), true
+		return e.complexity.Mutation.UpdateSkill(childComplexity, args["id"].(string), args["input"].(ent.UpdateSkillInput), args["note"].(string)), true
 
 	case "Mutation.UpdateTeam":
 		if e.complexity.Mutation.UpdateTeam == nil {
@@ -3300,6 +3300,7 @@ enum projectModule {
   teams
   hiring_jobs
   candidates
+  skills
 }
 
 enum auditTrailAction {
@@ -3485,9 +3486,9 @@ type HiringJobResponseGetAll {
   ImportCandidate(file: Upload!): Boolean!
 
   #Skill
-  CreateSkill(input: NewSkillInput!): SkillResponse!
-  UpdateSkill(id: ID!, input: UpdateSkillInput!): SkillResponse!
-  DeleteSkill(id: ID!): Boolean!
+  CreateSkill(input: NewSkillInput!, note: String!): SkillResponse!
+  UpdateSkill(id: ID!, input: UpdateSkillInput!, note: String!): SkillResponse!
+  DeleteSkill(id: ID!, note: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
@@ -3886,6 +3887,15 @@ func (ec *executionContext) field_Mutation_CreateSkill_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -4018,6 +4028,15 @@ func (ec *executionContext) field_Mutation_DeleteSkill_args(ctx context.Context,
 		}
 	}
 	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -4333,6 +4352,15 @@ func (ec *executionContext) field_Mutation_UpdateSkill_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
 	return args, nil
 }
 
@@ -14057,7 +14085,7 @@ func (ec *executionContext) _Mutation_CreateSkill(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSkill(rctx, fc.Args["input"].(ent.NewSkillInput))
+		return ec.resolvers.Mutation().CreateSkill(rctx, fc.Args["input"].(ent.NewSkillInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14116,7 +14144,7 @@ func (ec *executionContext) _Mutation_UpdateSkill(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSkill(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateSkillInput))
+		return ec.resolvers.Mutation().UpdateSkill(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateSkillInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14175,7 +14203,7 @@ func (ec *executionContext) _Mutation_DeleteSkill(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSkill(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteSkill(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
