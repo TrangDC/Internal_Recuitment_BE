@@ -86,7 +86,7 @@ func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input en
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	stringError, err := svc.repoRegistry.Skill().ValidName(ctx, uuid.Nil, input.Name)
+	stringError, err := svc.repoRegistry.Skill().ValidName(ctx, id, input.Name)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
