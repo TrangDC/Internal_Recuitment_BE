@@ -24,6 +24,7 @@ func (CandidateInterview) Fields() []ent.Field {
 		field.Time("end_at").Optional(),
 		field.UUID("created_by", uuid.UUID{}).Optional(),
 		field.Text("description"),
+		field.Enum("candidate_interview_status").Values("invited_to_interview", "interviewing", "done", "cancelled").Default("invited_to_interview"),
 	}
 }
 

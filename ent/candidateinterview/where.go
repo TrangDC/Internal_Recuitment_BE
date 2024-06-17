@@ -940,6 +940,42 @@ func DescriptionContainsFold(v string) predicate.CandidateInterview {
 	})
 }
 
+// CandidateInterviewStatusEQ applies the EQ predicate on the "candidate_interview_status" field.
+func CandidateInterviewStatusEQ(v CandidateInterviewStatus) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCandidateInterviewStatus), v))
+	})
+}
+
+// CandidateInterviewStatusNEQ applies the NEQ predicate on the "candidate_interview_status" field.
+func CandidateInterviewStatusNEQ(v CandidateInterviewStatus) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCandidateInterviewStatus), v))
+	})
+}
+
+// CandidateInterviewStatusIn applies the In predicate on the "candidate_interview_status" field.
+func CandidateInterviewStatusIn(vs ...CandidateInterviewStatus) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCandidateInterviewStatus), v...))
+	})
+}
+
+// CandidateInterviewStatusNotIn applies the NotIn predicate on the "candidate_interview_status" field.
+func CandidateInterviewStatusNotIn(vs ...CandidateInterviewStatus) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCandidateInterviewStatus), v...))
+	})
+}
+
 // HasCandidateJobEdge applies the HasEdge predicate on the "candidate_job_edge" edge.
 func HasCandidateJobEdge() predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {

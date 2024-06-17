@@ -36,6 +36,8 @@ const (
 	FieldCreatedBy = "created_by"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldCandidateInterviewStatus holds the string denoting the candidate_interview_status field in the database.
+	FieldCandidateInterviewStatus = "candidate_interview_status"
 	// EdgeCandidateJobEdge holds the string denoting the candidate_job_edge edge name in mutations.
 	EdgeCandidateJobEdge = "candidate_job_edge"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
@@ -97,6 +99,7 @@ var Columns = []string{
 	FieldEndAt,
 	FieldCreatedBy,
 	FieldDescription,
+	FieldCandidateInterviewStatus,
 }
 
 var (
@@ -153,6 +156,34 @@ func CandidateJobStatusValidator(cjs CandidateJobStatus) error {
 	}
 }
 
+// CandidateInterviewStatus defines the type for the "candidate_interview_status" enum field.
+type CandidateInterviewStatus string
+
+// CandidateInterviewStatusInvitedToInterview is the default value of the CandidateInterviewStatus enum.
+const DefaultCandidateInterviewStatus = CandidateInterviewStatusInvitedToInterview
+
+// CandidateInterviewStatus values.
+const (
+	CandidateInterviewStatusInvitedToInterview CandidateInterviewStatus = "invited_to_interview"
+	CandidateInterviewStatusInterviewing       CandidateInterviewStatus = "interviewing"
+	CandidateInterviewStatusDone               CandidateInterviewStatus = "done"
+	CandidateInterviewStatusCancelled          CandidateInterviewStatus = "cancelled"
+)
+
+func (cis CandidateInterviewStatus) String() string {
+	return string(cis)
+}
+
+// CandidateInterviewStatusValidator is a validator for the "candidate_interview_status" field enum values. It is called by the builders before save.
+func CandidateInterviewStatusValidator(cis CandidateInterviewStatus) error {
+	switch cis {
+	case CandidateInterviewStatusInvitedToInterview, CandidateInterviewStatusInterviewing, CandidateInterviewStatusDone, CandidateInterviewStatusCancelled:
+		return nil
+	default:
+		return fmt.Errorf("candidateinterview: invalid enum value for candidate_interview_status field: %q", cis)
+	}
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (e CandidateJobStatus) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
@@ -167,6 +198,24 @@ func (e *CandidateJobStatus) UnmarshalGQL(val interface{}) error {
 	*e = CandidateJobStatus(str)
 	if err := CandidateJobStatusValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid CandidateJobStatus", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e CandidateInterviewStatus) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *CandidateInterviewStatus) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = CandidateInterviewStatus(str)
+	if err := CandidateInterviewStatusValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid CandidateInterviewStatus", str)
 	}
 	return nil
 }

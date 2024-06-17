@@ -588,6 +588,51 @@ func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CandidateInterviewStatus string
+
+const (
+	CandidateInterviewStatusInvitedToInterview CandidateInterviewStatus = "invited_to_interview"
+	CandidateInterviewStatusInterviewing       CandidateInterviewStatus = "interviewing"
+	CandidateInterviewStatusDone               CandidateInterviewStatus = "done"
+	CandidateInterviewStatusCancelled          CandidateInterviewStatus = "cancelled"
+)
+
+var AllCandidateInterviewStatus = []CandidateInterviewStatus{
+	CandidateInterviewStatusInvitedToInterview,
+	CandidateInterviewStatusInterviewing,
+	CandidateInterviewStatusDone,
+	CandidateInterviewStatusCancelled,
+}
+
+func (e CandidateInterviewStatus) IsValid() bool {
+	switch e {
+	case CandidateInterviewStatusInvitedToInterview, CandidateInterviewStatusInterviewing, CandidateInterviewStatusDone, CandidateInterviewStatusCancelled:
+		return true
+	}
+	return false
+}
+
+func (e CandidateInterviewStatus) String() string {
+	return string(e)
+}
+
+func (e *CandidateInterviewStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateInterviewStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateInterviewStatus", str)
+	}
+	return nil
+}
+
+func (e CandidateInterviewStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CandidateInterviewStatusEditable string
 
 const (

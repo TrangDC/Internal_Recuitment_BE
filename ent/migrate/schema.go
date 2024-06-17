@@ -103,6 +103,7 @@ var (
 		{Name: "start_from", Type: field.TypeTime, Nullable: true},
 		{Name: "end_at", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "candidate_interview_status", Type: field.TypeEnum, Enums: []string{"invited_to_interview", "interviewing", "done", "cancelled"}, Default: "invited_to_interview"},
 		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -114,13 +115,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_interviews_candidate_jobs_candidate_job_interview",
-				Columns:    []*schema.Column{CandidateInterviewsColumns[10]},
+				Columns:    []*schema.Column{CandidateInterviewsColumns[11]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "candidate_interviews_users_candidate_interview_edges",
-				Columns:    []*schema.Column{CandidateInterviewsColumns[11]},
+				Columns:    []*schema.Column{CandidateInterviewsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

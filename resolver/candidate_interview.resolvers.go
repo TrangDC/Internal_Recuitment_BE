@@ -42,6 +42,11 @@ func (r *candidateInterviewResolver) Owner(ctx context.Context, obj *ent.Candida
 	return obj.Edges.CreatedByEdge, nil
 }
 
+// CandidateInterviewStatus is the resolver for the candidate_interview_status field.
+func (r *candidateInterviewResolver) CandidateInterviewStatus(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error) {
+	return ent.CandidateInterviewStatus(obj.CandidateInterviewStatus), nil
+}
+
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.
 func (r *Resolver) CandidateInterview() graphql1.CandidateInterviewResolver {
 	return &candidateInterviewResolver{r}

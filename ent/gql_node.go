@@ -340,7 +340,7 @@ func (ci *CandidateInterview) Node(ctx context.Context) (node *Node, err error) 
 	node = &Node{
 		ID:     ci.ID,
 		Type:   "CandidateInterview",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 12),
 		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
@@ -430,6 +430,14 @@ func (ci *CandidateInterview) Node(ctx context.Context) (node *Node, err error) 
 	node.Fields[10] = &Field{
 		Type:  "string",
 		Name:  "description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ci.CandidateInterviewStatus); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "candidateinterview.CandidateInterviewStatus",
+		Name:  "candidate_interview_status",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
