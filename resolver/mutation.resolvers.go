@@ -99,18 +99,30 @@ func (r *mutationResolver) SetBlackListCandidate(ctx context.Context, id string,
 }
 
 // CreateCandidateJob is the resolver for the CreateCandidateJob field.
-func (r *mutationResolver) CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error) {
-	return r.serviceRegistry.CandidateJob().CreateCandidateJob(ctx, &input)
+func (r *mutationResolver) CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput, note *string) (*ent.CandidateJobResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateJob().CreateCandidateJob(ctx, &input, inputNote)
 }
 
 // UpdateCandidateJobAttachment is the resolver for the UpdateCandidateJobAttachment field.
-func (r *mutationResolver) UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment) (*ent.CandidateJobResponse, error) {
-	return r.serviceRegistry.CandidateJob().UpdateCandidateJobAttachment(ctx, input, uuid.MustParse(id))
+func (r *mutationResolver) UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment, note *string) (*ent.CandidateJobResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateJob().UpdateCandidateJobAttachment(ctx, input, uuid.MustParse(id), inputNote)
 }
 
 // DeleteCandidateJob is the resolver for the DeleteCandidateJob field.
-func (r *mutationResolver) DeleteCandidateJob(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.CandidateJob().DeleteCandidateJob(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteCandidateJob(ctx context.Context, id string, note *string) (bool, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	err := r.serviceRegistry.CandidateJob().DeleteCandidateJob(ctx, uuid.MustParse(id), inputNote)
 	if err != nil {
 		return false, err
 	}
@@ -118,23 +130,39 @@ func (r *mutationResolver) DeleteCandidateJob(ctx context.Context, id string) (b
 }
 
 // UpdateCandidateJobStatus is the resolver for the UpdateCandidateJobStatus field.
-func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus) (*ent.CandidateJobResponse, error) {
-	return r.serviceRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, input, uuid.MustParse(id))
+func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus, note *string) (*ent.CandidateJobResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, input, uuid.MustParse(id), inputNote)
 }
 
 // CreateCandidateJobFeedback is the resolver for the CreateCandidateJobFeedback field.
-func (r *mutationResolver) CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
-	return r.serviceRegistry.CandidateJobFeedback().CreateCandidateJobFeedback(ctx, &input)
+func (r *mutationResolver) CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput, note *string) (*ent.CandidateJobFeedbackResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateJobFeedback().CreateCandidateJobFeedback(ctx, &input, inputNote)
 }
 
 // UpdateCandidateJobFeedback is the resolver for the UpdateCandidateJobFeedback field.
-func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
-	return r.serviceRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, uuid.MustParse(id), &input)
+func (r *mutationResolver) UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput, note *string) (*ent.CandidateJobFeedbackResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, uuid.MustParse(id), &input, inputNote)
 }
 
 // DeleteCandidateJobFeedback is the resolver for the DeleteCandidateJobFeedback field.
-func (r *mutationResolver) DeleteCandidateJobFeedback(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteCandidateJobFeedback(ctx context.Context, id string, note *string) (bool, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	err := r.serviceRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, uuid.MustParse(id), inputNote)
 	if err != nil {
 		return false, err
 	}
@@ -142,13 +170,21 @@ func (r *mutationResolver) DeleteCandidateJobFeedback(ctx context.Context, id st
 }
 
 // CreateCandidateInterview is the resolver for the CreateCandidateInterview field.
-func (r *mutationResolver) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
-	return r.serviceRegistry.CandidateInterview().CreateCandidateInterview(ctx, input)
+func (r *mutationResolver) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, note *string) (*ent.CandidateInterviewResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateInterview().CreateCandidateInterview(ctx, input, inputNote)
 }
 
 // UpdateCandidateInterview is the resolver for the UpdateCandidateInterview field.
-func (r *mutationResolver) UpdateCandidateInterview(ctx context.Context, id string, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
-	return r.serviceRegistry.CandidateInterview().UpdateCandidateInterview(ctx, uuid.MustParse(id), input)
+func (r *mutationResolver) UpdateCandidateInterview(ctx context.Context, id string, input ent.UpdateCandidateInterviewInput, note *string) (*ent.CandidateInterviewResponse, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	return r.serviceRegistry.CandidateInterview().UpdateCandidateInterview(ctx, uuid.MustParse(id), input, inputNote)
 }
 
 // UpdateCandidateInterviewSchedule is the resolver for the UpdateCandidateInterviewSchedule field.
@@ -157,8 +193,12 @@ func (r *mutationResolver) UpdateCandidateInterviewSchedule(ctx context.Context,
 }
 
 // DeleteCandidateInterview is the resolver for the DeleteCandidateInterview field.
-func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.CandidateInterview().DeleteCandidateInterview(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id string, note *string) (bool, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	err := r.serviceRegistry.CandidateInterview().DeleteCandidateInterview(ctx, uuid.MustParse(id), inputNote)
 	if err != nil {
 		return false, err
 	}
@@ -166,8 +206,12 @@ func (r *mutationResolver) DeleteCandidateInterview(ctx context.Context, id stri
 }
 
 // CreateCandidateInterview4Calendar is the resolver for the CreateCandidateInterview4Calendar field.
-func (r *mutationResolver) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) (bool, error) {
-	err := r.serviceRegistry.CandidateInterview().CreateCandidateInterview4Calendar(ctx, input)
+func (r *mutationResolver) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note *string) (bool, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	err := r.serviceRegistry.CandidateInterview().CreateCandidateInterview4Calendar(ctx, input, inputNote)
 	if err != nil {
 		return false, err
 	}

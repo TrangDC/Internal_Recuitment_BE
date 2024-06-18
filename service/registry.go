@@ -1,6 +1,7 @@
 package service
 
 import (
+	"trec/dto"
 	"trec/ent"
 	"trec/internal/azuread"
 	"trec/internal/azurestorage"
@@ -51,6 +52,7 @@ type serviceImpl struct {
 // NewService creates a new Service.
 func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestorage.AzureStorage, i18n models.I18n, entClient *ent.Client, logger *zap.Logger) Service {
 	repoRegistry := repository.NewRepository(entClient)
+	dtoRegistry := dto.NewDto()
 
 	return &serviceImpl{
 		authService:                 NewAuthService(azureADOAuthClient, logger),
@@ -59,10 +61,10 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		teamService:                 NewTeamService(repoRegistry, logger),
 		hiringJobService:            NewHiringJobService(repoRegistry, logger),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
-		candidateService:            NewCandidateService(repoRegistry, logger),
-		candidateJobService:         NewCandidateJobService(repoRegistry, logger),
-		candidateJobFeedbackService: NewCandidateJobFeedbackService(repoRegistry, logger),
-		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, logger),
+		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
+		candidateJobService:         NewCandidateJobService(repoRegistry, dtoRegistry, logger),
+		candidateJobFeedbackService: NewCandidateJobFeedbackService(repoRegistry, dtoRegistry, logger),
+		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, dtoRegistry, logger),
 		attachmentService:           NewAttachmentService(repoRegistry, logger),
 		exportDataService:           NewExportDataService(repoRegistry, i18n, logger),
 		importDataService:           NewImportDataService(repoRegistry, logger),

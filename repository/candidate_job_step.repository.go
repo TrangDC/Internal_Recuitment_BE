@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"trec/ent"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobstep"
@@ -26,7 +27,7 @@ func NewCandidateJobStepRepository(client *ent.Client) CandidateJobStepRepositor
 
 // Base function
 func (rps candidateJobStepRepoImpl) BuildCreate() *ent.CandidateJobStepCreate {
-	return rps.client.CandidateJobStep.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
+	return rps.client.CandidateJobStep.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
 }
 
 // mutation

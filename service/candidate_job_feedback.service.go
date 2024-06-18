@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"trec/dto"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/audittrail"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -19,28 +21,30 @@ import (
 
 type CandidateJobFeedbackService interface {
 	// mutation
-	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
-	UpdateCandidateJobFeedback(ctx context.Context, id uuid.UUID, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error)
+	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error)
+	UpdateCandidateJobFeedback(ctx context.Context, id uuid.UUID, input *ent.UpdateCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error)
+	DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID, note string) error
 	// query
 	GetCandidateJobFeedback(ctx context.Context, id uuid.UUID) (*ent.CandidateJobFeedbackResponse, error)
 	GetCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFeedbackFreeWord, filter *ent.CandidateJobFeedbackFilter, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
-	DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID) error
 }
 type candidateJobFeedbackSvcImpl struct {
 	attachmentSvc AttachmentService
 	repoRegistry  repository.Repository
+	dtoRegistry   dto.Dto
 	logger        *zap.Logger
 }
 
-func NewCandidateJobFeedbackService(repoRegistry repository.Repository, logger *zap.Logger) CandidateJobFeedbackService {
+func NewCandidateJobFeedbackService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateJobFeedbackService {
 	return &candidateJobFeedbackSvcImpl{
 		attachmentSvc: NewAttachmentService(repoRegistry, logger),
 		repoRegistry:  repoRegistry,
+		dtoRegistry:   dtoRegistry,
 		logger:        logger,
 	}
 }
 
-func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
+func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
 	var candidateJobFeedback *ent.CandidateJobFeedback
 	status, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
@@ -72,39 +76,47 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateJobFeedbackResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.Context, id uuid.UUID, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedbackResponse, error) {
-	candidateJobFeedback, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
+func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.Context, id uuid.UUID, input *ent.UpdateCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
+	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	userId := ctx.Value("user_id").(uuid.UUID)
-	if candidateJobFeedback.CreatedBy != userId {
+	if record.CreatedBy != userId {
 		return nil, util.WrapGQLError(ctx, "model.candidate_job_feedbacks.validation.editor_not_is_owner", http.StatusBadGateway, util.ErrorFlagValidateFail)
 	}
-	_, err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, candidateJobFeedback.CandidateJobID)
+	_, err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, candidateJobFeedback.CandidateJobID)
+	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		var err error
-		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, candidateJobFeedback, input)
+		result, err := repoRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, record, input)
 		if err != nil {
 			return err
 		}
 		if input.Attachments != nil {
-			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJobFeedback.ID, attachment.RelationTypeCandidateJobFeedbacks, repoRegistry)
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, result.ID, attachment.RelationTypeCandidateJobFeedbacks, repoRegistry)
 		}
 		return err
 	})
@@ -117,12 +129,20 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateJobFeedbackResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID) error {
+func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID, note string) error {
 	candidateJobFeedback, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -146,6 +166,15 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateJobFeedback.ID, repoRegistry)
 		return err
 	})
+	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailDelete(candidateJobFeedback)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJobFeedback.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return err
 }
 

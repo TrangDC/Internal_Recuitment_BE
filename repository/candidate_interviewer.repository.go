@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 	"trec/ent"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ func NewCandidateInterviewerRepository(client *ent.Client) CandidateInterviewerR
 
 // Base functions
 func (rps *candidateInterviewerRepoImpl) BuildCreate() *ent.CandidateInterviewerCreate {
-	return rps.client.CandidateInterviewer.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
+	return rps.client.CandidateInterviewer.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
 }
 
 func (rps *candidateInterviewerRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateInterviewerCreate) ([]*ent.CandidateInterviewer, error) {

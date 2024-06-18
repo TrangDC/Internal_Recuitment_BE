@@ -42,7 +42,7 @@ func NewCandidateJobFeedbackRepository(client *ent.Client) CandidateJobFeedbackR
 
 // Base function
 func (rps CandidateJobFeedbackRepoImpl) BuildCreate() *ent.CandidateJobFeedbackCreate {
-	return rps.client.CandidateJobFeedback.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
+	return rps.client.CandidateJobFeedback.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
 }
 
 func (rps CandidateJobFeedbackRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateJobFeedbackCreate) ([]*ent.CandidateJobFeedback, error) {
@@ -58,13 +58,23 @@ func (rps CandidateJobFeedbackRepoImpl) BuildDelete() *ent.CandidateJobFeedbackU
 }
 
 func (rps CandidateJobFeedbackRepoImpl) BuildQuery() *ent.CandidateJobFeedbackQuery {
-	return rps.client.CandidateJobFeedback.Query().Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
-		func(query *ent.AttachmentQuery) {
-			query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
-		},
-	).WithCreatedByEdge(
+	return rps.client.CandidateJobFeedback.Query().Where(candidatejobfeedback.DeletedAtIsNil()).
+		WithAttachmentEdges(
+			func(query *ent.AttachmentQuery) {
+				query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
+			},
+		).WithCreatedByEdge(
 		func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
+		},
+	).WithCandidateJobEdge(
+		func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.DeletedAtIsNil()).
+				WithHiringJobEdge(
+					func(query *ent.HiringJobQuery) {
+						query.Where(hiringjob.DeletedAtIsNil())
+					},
+				)
 		},
 	)
 }
