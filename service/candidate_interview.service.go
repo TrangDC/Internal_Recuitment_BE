@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
@@ -25,11 +27,11 @@ import (
 
 type CandidateInterviewService interface {
 	// mutation
-	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
-	DeleteCandidateInterview(ctx context.Context, id uuid.UUID) error
-	UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error)
+	CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error)
+	DeleteCandidateInterview(ctx context.Context, id uuid.UUID, note string) error
+	UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error)
 	UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error)
-	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) error
+	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note string) error
 
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
@@ -40,18 +42,20 @@ type CandidateInterviewService interface {
 type candidateInterviewSvcImpl struct {
 	candidateInterviewerSvc CandidateInterviewerService
 	repoRegistry            repository.Repository
+	dtoRegistry             dto.Dto
 	logger                  *zap.Logger
 }
 
-func NewCandidateInterviewService(repoRegistry repository.Repository, logger *zap.Logger) CandidateInterviewService {
+func NewCandidateInterviewService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateInterviewService {
 	return &candidateInterviewSvcImpl{
 		candidateInterviewerSvc: NewCandidateInterviewerService(repoRegistry, logger),
 		repoRegistry:            repoRegistry,
+		dtoRegistry:             dtoRegistry,
 		logger:                  logger,
 	}
 }
 
-func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
+func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var memberIds []uuid.UUID
 	var inputValidate models.CandidateInterviewInputValidate
@@ -85,12 +89,20 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateInterviewResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) error {
+func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note string) error {
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -114,7 +126,7 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 	return nil
 }
 
-func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput) (*ent.CandidateInterviewResponse, error) {
+func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error) {
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
 	jsonString, _ := json.Marshal(input)
@@ -158,6 +170,15 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.CandidateInterviewResponse{
 		Data: result,
@@ -214,6 +235,15 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateInterviewResponse{
 		Data: result,
 	}, nil
@@ -230,7 +260,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterview(ctx context.Context,
 	}, nil
 }
 
-func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Context, id uuid.UUID) error {
+func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Context, id uuid.UUID, note string) error {
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -249,6 +279,15 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailDelete(record)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }

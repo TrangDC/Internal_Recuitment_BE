@@ -46,7 +46,7 @@ func NewCandidateInterviewRepository(client *ent.Client) CandidateInterviewRepos
 
 // Base functions
 func (rps *candidateInterviewRepoImpl) BuildCreate() *ent.CandidateInterviewCreate {
-	return rps.client.CandidateInterview.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
+	return rps.client.CandidateInterview.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
 }
 
 func (rps *candidateInterviewRepoImpl) BuildUpdate() *ent.CandidateInterviewUpdate {
@@ -58,11 +58,12 @@ func (rps *candidateInterviewRepoImpl) BuildDelete() *ent.CandidateInterviewUpda
 }
 
 func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery {
-	return rps.client.CandidateInterview.Query().Where(candidateinterview.DeletedAtIsNil()).WithInterviewerEdges(
-		func(query *ent.UserQuery) {
-			query.Where(user.DeletedAtIsNil())
-		},
-	).WithCandidateJobEdge(
+	return rps.client.CandidateInterview.Query().Where(candidateinterview.DeletedAtIsNil()).
+		WithInterviewerEdges(
+			func(query *ent.UserQuery) {
+				query.Where(user.DeletedAtIsNil())
+			},
+		).WithCandidateJobEdge(
 		func(query *ent.CandidateJobQuery) {
 			query.Where(candidatejob.DeletedAtIsNil()).WithCandidateEdge().WithHiringJobEdge(
 				func(query *ent.HiringJobQuery) {

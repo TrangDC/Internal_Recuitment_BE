@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"trec/dto"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
@@ -23,10 +25,10 @@ import (
 
 type CandidateJobService interface {
 	// mutation
-	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error)
-	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error)
-	DeleteCandidateJob(ctx context.Context, id uuid.UUID) error
-	UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID) (*ent.CandidateJobResponse, error)
+	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, note string) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
+	DeleteCandidateJob(ctx context.Context, id uuid.UUID, note string) error
+	UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
 
 	// query
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
@@ -40,19 +42,21 @@ type candidateJobSvcImpl struct {
 	attachmentSvc       AttachmentService
 	candidateJobStepSvc CandidateJobStepService
 	repoRegistry        repository.Repository
+	dtoRegistry         dto.Dto
 	logger              *zap.Logger
 }
 
-func NewCandidateJobService(repoRegistry repository.Repository, logger *zap.Logger) CandidateJobService {
+func NewCandidateJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateJobService {
 	return &candidateJobSvcImpl{
 		attachmentSvc:       NewAttachmentService(repoRegistry, logger),
 		candidateJobStepSvc: NewCandidateJobStepService(repoRegistry, logger),
 		repoRegistry:        repoRegistry,
+		dtoRegistry:         dtoRegistry,
 		logger:              logger,
 	}
 }
 
-func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJobResponse, error) {
+func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, note string) (*ent.CandidateJobResponse, error) {
 	var candidateJob *ent.CandidateJob
 	err := svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, uuid.MustParse(input.CandidateID))
 	if err != nil {
@@ -83,35 +87,43 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateJobResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID) (*ent.CandidateJobResponse, error) {
-	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
+func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
+	record, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
+	if record.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
 		return nil, util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, candidateJob.CandidateID)
+	err = svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, record.CandidateID)
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, candidateJob.CandidateID, id, &input.Status)
+	err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, record.CandidateID, id, &input.Status)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateJob, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, candidateJob, input)
+		result, err := repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input)
 		if err != nil {
 			return err
 		}
-		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidateJob.Status, candidateJob.ID, repoRegistry)
+		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
 		return err
 	})
 	if err != nil {
@@ -123,12 +135,20 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateJobResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID) (*ent.CandidateJobResponse, error) {
+func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -162,6 +182,14 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdate(candidateJob, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateJobResponse{
 		Data: result,
 	}, nil
@@ -178,7 +206,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJob(ctx context.Context, id uuid.UUI
 	}, nil
 }
 
-func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.UUID) error {
+func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.UUID, note string) error {
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -201,6 +229,14 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailCreate(candidateJob)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJob.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }

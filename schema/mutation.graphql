@@ -24,22 +24,22 @@ type Mutation {
   SetBlackListCandidate(id: ID!, is_black_list: Boolean!, note: String!): Boolean!
 
   # CandidateJob
-  CreateCandidateJob(input: NewCandidateJobInput!): CandidateJobResponse!
-  UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!): CandidateJobResponse!
-  DeleteCandidateJob(id: ID!): Boolean!
-  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!): CandidateJobResponse!
+  CreateCandidateJob(input: NewCandidateJobInput!, note: String): CandidateJobResponse!
+  UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!, note: String): CandidateJobResponse!
+  DeleteCandidateJob(id: ID!, note: String): Boolean!
+  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!, note: String): CandidateJobResponse!
 
   # CandidateJobFeedback
-  CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
-  UpdateCandidateJobFeedback(id: ID!, input: UpdateCandidateJobFeedbackInput!): CandidateJobFeedbackResponse!
-  DeleteCandidateJobFeedback(id: ID!): Boolean!
+  CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!, note: String): CandidateJobFeedbackResponse!
+  UpdateCandidateJobFeedback(id: ID!, input: UpdateCandidateJobFeedbackInput!, note: String): CandidateJobFeedbackResponse!
+  DeleteCandidateJobFeedback(id: ID!, note: String): Boolean!
 
   # CandidateInterview
-  CreateCandidateInterview(input: NewCandidateInterviewInput!): CandidateInterviewResponse!
-  UpdateCandidateInterview(id: ID!, input: UpdateCandidateInterviewInput!): CandidateInterviewResponse!
+  CreateCandidateInterview(input: NewCandidateInterviewInput!, note: String): CandidateInterviewResponse!
+  UpdateCandidateInterview(id: ID!, input: UpdateCandidateInterviewInput!, note: String): CandidateInterviewResponse!
   UpdateCandidateInterviewSchedule(id: ID!, input: UpdateCandidateInterviewScheduleInput!): CandidateInterviewResponse!
-  DeleteCandidateInterview(id: ID!): Boolean!
-  CreateCandidateInterview4Calendar(input: NewCandidateInterview4CalendarInput!): Boolean!
+  DeleteCandidateInterview(id: ID!, note: String): Boolean!
+  CreateCandidateInterview4Calendar(input: NewCandidateInterview4CalendarInput!, note: String): Boolean!
 
   #import
   ImportCandidate(file: Upload!): Boolean!

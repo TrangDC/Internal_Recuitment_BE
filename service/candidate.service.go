@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
-	"reflect"
 	"strings"
 	"trec/dto"
 	"trec/ent"
@@ -13,7 +11,6 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/predicate"
 	"trec/internal/util"
-	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -34,12 +31,14 @@ type CandidateService interface {
 
 type candidateSvcImpl struct {
 	repoRegistry repository.Repository
+	dtoRegistry  dto.Dto
 	logger       *zap.Logger
 }
 
-func NewCandidateService(repoRegistry repository.Repository, logger *zap.Logger) CandidateService {
+func NewCandidateService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateService {
 	return &candidateSvcImpl{
 		repoRegistry: repoRegistry,
+		dtoRegistry:  dtoRegistry,
 		logger:       logger,
 	}
 }
@@ -59,12 +58,13 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailCreate(record)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.CandidateResponse{
 		Data: record,
@@ -92,12 +92,14 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 		err = repoRegistry.Candidate().DeleteCandidate(ctx, record)
 		return err
 	})
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeDelete, note)
+	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return nil
 }
@@ -122,12 +124,13 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordUpdate(record, result)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.CandidateResponse{
 		Data: result,
@@ -149,9 +152,14 @@ func (svc *candidateSvcImpl) SetBlackListCandidate(ctx context.Context, id uuid.
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordUpdate(record, result)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return nil
 }
 
@@ -332,75 +340,4 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			}
 		}
 	}
-}
-
-func (svc *candidateSvcImpl) recordCreateDelete(record *ent.Candidate, auditTrailType audittrail.ActionType) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.candidates.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	value := reflect.ValueOf(interface{}(record)).Elem()
-	recordType := reflect.TypeOf(record).Elem()
-	for i := 1; i < value.NumField(); i++ {
-		field := recordType.Field(i)
-		valueField := value.Field(i).Interface()
-		fieldName := dto.FormatCandidateField(field.Name)
-		switch fieldName {
-		case "":
-			continue
-		case "model.candidates.is_blacklist":
-			valueField = dto.IsBlacklistI18n(record.IsBlacklist)
-		}
-		result = append(result, models.AuditTrailCreateDelete{
-			Field: fieldName,
-			Value: valueField,
-		})
-	}
-	if auditTrailType == audittrail.ActionTypeCreate {
-		auditTrail.Create = append(auditTrail.Create, result...)
-	}
-	if auditTrailType == audittrail.ActionTypeDelete {
-		auditTrail.Delete = append(auditTrail.Delete, result...)
-	}
-	return auditTrail
-}
-
-func (svc *candidateSvcImpl) recordUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.candidates.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
-	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
-	recordType := reflect.TypeOf(oldRecord).Elem()
-	for i := 1; i < oldValue.NumField(); i++ {
-		field := recordType.Field(i)
-		oldValueField := oldValue.Field(i).Interface()
-		newValueField := newValue.Field(i).Interface()
-		fieldName := dto.FormatCandidateField(field.Name)
-		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
-			switch fieldName {
-			case "":
-				continue
-			case "model.candidates.is_blacklist":
-				oldValueField = dto.IsBlacklistI18n(oldRecord.IsBlacklist)
-				newValueField = dto.IsBlacklistI18n(newRecord.IsBlacklist)
-			}
-			result = append(result, models.AuditTrailUpdate{
-				Field: fieldName,
-				Value: models.ValueChange{
-					OldValue: oldValueField,
-					NewValue: newValueField,
-				},
-			})
-		}
-	}
-	auditTrail.Update = append(auditTrail.Update, result...)
-	return auditTrail
 }

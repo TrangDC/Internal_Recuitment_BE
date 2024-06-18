@@ -36,7 +36,7 @@ func NewAttachmentRepository(client *ent.Client) AttachmentRepository {
 
 // Base functions
 func (rps *attachmentRepoImpl) BuildCreate() *ent.AttachmentCreate {
-	return rps.client.Attachment.Create().SetUpdatedAt(currentTime).SetCreatedAt(currentTime)
+	return rps.client.Attachment.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
 }
 
 func (rps *attachmentRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.AttachmentCreate) ([]*ent.Attachment, error) {
