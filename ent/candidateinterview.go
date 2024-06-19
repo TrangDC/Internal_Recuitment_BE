@@ -41,8 +41,8 @@ type CandidateInterview struct {
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// CandidateInterviewStatus holds the value of the "candidate_interview_status" field.
-	CandidateInterviewStatus candidateinterview.CandidateInterviewStatus `json:"candidate_interview_status,omitempty"`
+	// Status holds the value of the "status" field.
+	Status candidateinterview.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateInterviewQuery when eager-loading is set.
 	Edges CandidateInterviewEdges `json:"edges"`
@@ -129,7 +129,7 @@ func (*CandidateInterview) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case candidateinterview.FieldTitle, candidateinterview.FieldCandidateJobStatus, candidateinterview.FieldDescription, candidateinterview.FieldCandidateInterviewStatus:
+		case candidateinterview.FieldTitle, candidateinterview.FieldCandidateJobStatus, candidateinterview.FieldDescription, candidateinterview.FieldStatus:
 			values[i] = new(sql.NullString)
 		case candidateinterview.FieldCreatedAt, candidateinterview.FieldUpdatedAt, candidateinterview.FieldDeletedAt, candidateinterview.FieldInterviewDate, candidateinterview.FieldStartFrom, candidateinterview.FieldEndAt:
 			values[i] = new(sql.NullTime)
@@ -222,11 +222,11 @@ func (ci *CandidateInterview) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				ci.Description = value.String
 			}
-		case candidateinterview.FieldCandidateInterviewStatus:
+		case candidateinterview.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field candidate_interview_status", values[i])
+				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				ci.CandidateInterviewStatus = candidateinterview.CandidateInterviewStatus(value.String)
+				ci.Status = candidateinterview.Status(value.String)
 			}
 		}
 	}
@@ -314,8 +314,8 @@ func (ci *CandidateInterview) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(ci.Description)
 	builder.WriteString(", ")
-	builder.WriteString("candidate_interview_status=")
-	builder.WriteString(fmt.Sprintf("%v", ci.CandidateInterviewStatus))
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", ci.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

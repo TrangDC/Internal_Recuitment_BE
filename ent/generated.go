@@ -401,7 +401,7 @@ type UpdateCandidateInterviewScheduleInput struct {
 }
 
 type UpdateCandidateInterviewStatusInput struct {
-	CandidateInterviewStatus StatusInput `json:"candidate_interview_status"`
+	CandidateInterviewStatus CandidateInterviewStatusEditable `json:"candidate_interview_status"`
 }
 
 type UpdateCandidateJobFeedbackInput struct {
@@ -657,18 +657,18 @@ func (e CandidateInterviewStatus) MarshalGQL(w io.Writer) {
 type CandidateInterviewStatusEditable string
 
 const (
-	CandidateInterviewStatusEditableApplied      CandidateInterviewStatusEditable = "applied"
-	CandidateInterviewStatusEditableInterviewing CandidateInterviewStatusEditable = "interviewing"
+	CandidateInterviewStatusEditableDone      CandidateInterviewStatusEditable = "done"
+	CandidateInterviewStatusEditableCancelled CandidateInterviewStatusEditable = "cancelled"
 )
 
 var AllCandidateInterviewStatusEditable = []CandidateInterviewStatusEditable{
-	CandidateInterviewStatusEditableApplied,
-	CandidateInterviewStatusEditableInterviewing,
+	CandidateInterviewStatusEditableDone,
+	CandidateInterviewStatusEditableCancelled,
 }
 
 func (e CandidateInterviewStatusEditable) IsValid() bool {
 	switch e {
-	case CandidateInterviewStatusEditableApplied, CandidateInterviewStatusEditableInterviewing:
+	case CandidateInterviewStatusEditableDone, CandidateInterviewStatusEditableCancelled:
 		return true
 	}
 	return false
@@ -804,6 +804,47 @@ func (e *CandidateJobStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CandidateJobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobStatusEditable string
+
+const (
+	CandidateJobStatusEditableApplied      CandidateJobStatusEditable = "applied"
+	CandidateJobStatusEditableInterviewing CandidateJobStatusEditable = "interviewing"
+)
+
+var AllCandidateJobStatusEditable = []CandidateJobStatusEditable{
+	CandidateJobStatusEditableApplied,
+	CandidateJobStatusEditableInterviewing,
+}
+
+func (e CandidateJobStatusEditable) IsValid() bool {
+	switch e {
+	case CandidateJobStatusEditableApplied, CandidateJobStatusEditableInterviewing:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatusEditable) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatusEditable) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatusEditable(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatusEditable", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatusEditable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1495,47 +1536,6 @@ func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type StatusInput string
-
-const (
-	StatusInputDone      StatusInput = "done"
-	StatusInputCancelled StatusInput = "cancelled"
-)
-
-var AllStatusInput = []StatusInput{
-	StatusInputDone,
-	StatusInputCancelled,
-}
-
-func (e StatusInput) IsValid() bool {
-	switch e {
-	case StatusInputDone, StatusInputCancelled:
-		return true
-	}
-	return false
-}
-
-func (e StatusInput) String() string {
-	return string(e)
-}
-
-func (e *StatusInput) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = StatusInput(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid StatusInput", str)
-	}
-	return nil
-}
-
-func (e StatusInput) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

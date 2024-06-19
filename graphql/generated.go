@@ -140,20 +140,20 @@ type ComplexityRoot struct {
 	}
 
 	CandidateInterview struct {
-		CandidateInterviewStatus func(childComplexity int) int
-		CandidateJob             func(childComplexity int) int
-		CandidateJobID           func(childComplexity int) int
-		CreatedAt                func(childComplexity int) int
-		Description              func(childComplexity int) int
-		EditAble                 func(childComplexity int) int
-		EndAt                    func(childComplexity int) int
-		ID                       func(childComplexity int) int
-		InterviewDate            func(childComplexity int) int
-		Interviewer              func(childComplexity int) int
-		Owner                    func(childComplexity int) int
-		StartFrom                func(childComplexity int) int
-		Title                    func(childComplexity int) int
-		UpdatedAt                func(childComplexity int) int
+		CandidateJob   func(childComplexity int) int
+		CandidateJobID func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		Description    func(childComplexity int) int
+		EditAble       func(childComplexity int) int
+		EndAt          func(childComplexity int) int
+		ID             func(childComplexity int) int
+		InterviewDate  func(childComplexity int) int
+		Interviewer    func(childComplexity int) int
+		Owner          func(childComplexity int) int
+		StartFrom      func(childComplexity int) int
+		Status         func(childComplexity int) int
+		Title          func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
 	}
 
 	CandidateInterviewEdge struct {
@@ -511,7 +511,7 @@ type CandidateInterviewResolver interface {
 	CandidateJob(ctx context.Context, obj *ent.CandidateInterview) (*ent.CandidateJob, error)
 	EditAble(ctx context.Context, obj *ent.CandidateInterview) (bool, error)
 	Owner(ctx context.Context, obj *ent.CandidateInterview) (*ent.User, error)
-	CandidateInterviewStatus(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error)
+	Status(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error)
 }
 type CandidateJobResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJob) (string, error)
@@ -1002,13 +1002,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateEdge.Node(childComplexity), true
 
-	case "CandidateInterview.candidate_interview_status":
-		if e.complexity.CandidateInterview.CandidateInterviewStatus == nil {
-			break
-		}
-
-		return e.complexity.CandidateInterview.CandidateInterviewStatus(childComplexity), true
-
 	case "CandidateInterview.candidate_job":
 		if e.complexity.CandidateInterview.CandidateJob == nil {
 			break
@@ -1085,6 +1078,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateInterview.StartFrom(childComplexity), true
+
+	case "CandidateInterview.status":
+		if e.complexity.CandidateInterview.Status == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.Status(childComplexity), true
 
 	case "CandidateInterview.title":
 		if e.complexity.CandidateInterview.Title == nil {
@@ -2917,7 +2917,7 @@ type AuditTrailResponseGetAll {
   interview_date
 }
 
-enum CandidateInterviewStatusEditable {
+enum CandidateJobStatusEditable {
   applied
   interviewing
 }
@@ -2941,7 +2941,7 @@ type CandidateInterview {
   candidate_job: CandidateJob!
   edit_able: Boolean!
   owner: User
-  candidate_interview_status: CandidateInterviewStatus!
+  status: CandidateInterviewStatus!
   created_at: Time!
   updated_at: Time!
 }
@@ -3031,13 +3031,13 @@ type CandidateInterviewResponseGetAll {
   pagination: Pagination!
 }
 
-enum StatusInput {
+enum CandidateInterviewStatusEditable {
   done
   cancelled
 }
 
 input UpdateCandidateInterviewStatusInput {
-  candidate_interview_status: StatusInput!
+  candidate_interview_status: CandidateInterviewStatusEditable!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_job.graphql", Input: `enum CandidateJobStatusEnded {
@@ -8411,8 +8411,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateInterview_candidate_interview_status(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateInterview_candidate_interview_status(ctx, field)
+func (ec *executionContext) _CandidateInterview_status(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -8425,7 +8425,7 @@ func (ec *executionContext) _CandidateInterview_candidate_interview_status(ctx c
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CandidateInterview().CandidateInterviewStatus(rctx, obj)
+		return ec.resolvers.CandidateInterview().Status(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8442,7 +8442,7 @@ func (ec *executionContext) _CandidateInterview_candidate_interview_status(ctx c
 	return ec.marshalNCandidateInterviewStatus2trecᚋentᚐCandidateInterviewStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateInterview_candidate_interview_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateInterview_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CandidateInterview",
 		Field:      field,
@@ -8604,8 +8604,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewEdge_node(ctx context
 				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
-			case "candidate_interview_status":
-				return ec.fieldContext_CandidateInterview_candidate_interview_status(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -8719,8 +8719,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewResponse_data(ctx con
 				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
-			case "candidate_interview_status":
-				return ec.fieldContext_CandidateInterview_candidate_interview_status(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -11386,8 +11386,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_inte
 				return ec.fieldContext_CandidateInterview_edit_able(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
-			case "candidate_interview_status":
-				return ec.fieldContext_CandidateInterview_candidate_interview_status(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -22837,7 +22837,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewStatusInput(ct
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_interview_status"))
-			it.CandidateInterviewStatus, err = ec.unmarshalNStatusInput2trecᚋentᚐStatusInput(ctx, v)
+			it.CandidateInterviewStatus, err = ec.unmarshalNCandidateInterviewStatusEditable2trecᚋentᚐCandidateInterviewStatusEditable(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -24227,7 +24227,7 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 				return innerFunc(ctx)
 
 			})
-		case "candidate_interview_status":
+		case "status":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -24236,7 +24236,7 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._CandidateInterview_candidate_interview_status(ctx, field, obj)
+				res = ec._CandidateInterview_status(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -28067,6 +28067,16 @@ func (ec *executionContext) marshalNCandidateInterviewStatus2trecᚋentᚐCandid
 	return v
 }
 
+func (ec *executionContext) unmarshalNCandidateInterviewStatusEditable2trecᚋentᚐCandidateInterviewStatusEditable(ctx context.Context, v interface{}) (ent.CandidateInterviewStatusEditable, error) {
+	var res ent.CandidateInterviewStatusEditable
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateInterviewStatusEditable2trecᚋentᚐCandidateInterviewStatusEditable(ctx context.Context, sel ast.SelectionSet, v ent.CandidateInterviewStatusEditable) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNCandidateJob2trecᚋentᚐCandidateJob(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJob) graphql.Marshaler {
 	return ec._CandidateJob(ctx, sel, &v)
 }
@@ -28843,16 +28853,6 @@ func (ec *executionContext) marshalNSkillResponseGetAll2ᚖtrecᚋentᚐSkillRes
 		return graphql.Null
 	}
 	return ec._SkillResponseGetAll(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNStatusInput2trecᚋentᚐStatusInput(ctx context.Context, v interface{}) (ent.StatusInput, error) {
-	var res ent.StatusInput
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNStatusInput2trecᚋentᚐStatusInput(ctx context.Context, sel ast.SelectionSet, v ent.StatusInput) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

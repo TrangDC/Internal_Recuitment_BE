@@ -4,7 +4,7 @@ enum CandidateInterviewOrderField {
   interview_date
 }
 
-enum CandidateInterviewStatusEditable {
+enum CandidateJobStatusEditable {
   applied
   interviewing
 }
@@ -28,7 +28,7 @@ type CandidateInterview {
   candidate_job: CandidateJob!
   edit_able: Boolean!
   owner: User
-  candidate_interview_status: CandidateInterviewStatus!
+  status: CandidateInterviewStatus!
   created_at: Time!
   updated_at: Time!
 }
@@ -118,11 +118,11 @@ type CandidateInterviewResponseGetAll {
   pagination: Pagination!
 }
 
-enum StatusInput {
+enum CandidateInterviewStatusEditable {
   done
   cancelled
 }
 
 input UpdateCandidateInterviewStatusInput {
-  candidate_interview_status: StatusInput!
+  candidate_interview_status: CandidateInterviewStatusEditable!
 }

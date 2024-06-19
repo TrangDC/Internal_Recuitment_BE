@@ -33,7 +33,7 @@ type CandidateInterviewRepository interface {
 	// common function
 	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error)
 	ValidateCreateBulkInput(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateJob, error, error)
-	ValidCandidateInterviewStatus(record *ent.CandidateInterview, status string) error
+	ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) error
 }
 
 type candidateInterviewRepoImpl struct {
@@ -171,7 +171,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 }
 
 func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error) {
-	return rps.BuildUpdateOne(ctx, record).SetCandidateInterviewStatus(candidateinterview.CandidateInterviewStatus(input.CandidateInterviewStatus.String())).Save(ctx)
+	return rps.BuildUpdateOne(ctx, record).SetStatus(candidateinterview.Status(input.CandidateInterviewStatus.String())).Save(ctx)
 }
 
 // query
@@ -315,15 +315,12 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	return nil, nil
 }
 
-func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status string) error {
-	if ent.StatusInput.IsValid(ent.StatusInput(record.CandidateInterviewStatus)) {
+func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) error {
+	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(record.Status)) {
 		return fmt.Errorf("model.candidate_interviews.validation.invalid_editable")
 	}
-	switch status {
-	case candidateinterview.CandidateInterviewStatusDone.String():
-		if record.CandidateInterviewStatus == candidateinterview.CandidateInterviewStatusInvitedToInterview {
-			return fmt.Errorf("model.candidate_interviews.validation.invalid_input")
-		}
+	if status == ent.CandidateInterviewStatusEditableDone && record.Status == candidateinterview.StatusInvitedToInterview {
+		return fmt.Errorf("model.candidate_interviews.validation.invalid_input")
 	}
 	return nil
 }

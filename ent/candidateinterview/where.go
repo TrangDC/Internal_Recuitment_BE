@@ -940,39 +940,39 @@ func DescriptionContainsFold(v string) predicate.CandidateInterview {
 	})
 }
 
-// CandidateInterviewStatusEQ applies the EQ predicate on the "candidate_interview_status" field.
-func CandidateInterviewStatusEQ(v CandidateInterviewStatus) predicate.CandidateInterview {
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCandidateInterviewStatus), v))
+		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
-// CandidateInterviewStatusNEQ applies the NEQ predicate on the "candidate_interview_status" field.
-func CandidateInterviewStatusNEQ(v CandidateInterviewStatus) predicate.CandidateInterview {
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCandidateInterviewStatus), v))
+		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
-// CandidateInterviewStatusIn applies the In predicate on the "candidate_interview_status" field.
-func CandidateInterviewStatusIn(vs ...CandidateInterviewStatus) predicate.CandidateInterview {
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.CandidateInterview {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.CandidateInterview(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCandidateInterviewStatus), v...))
+		s.Where(sql.In(s.C(FieldStatus), v...))
 	})
 }
 
-// CandidateInterviewStatusNotIn applies the NotIn predicate on the "candidate_interview_status" field.
-func CandidateInterviewStatusNotIn(vs ...CandidateInterviewStatus) predicate.CandidateInterview {
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.CandidateInterview {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.CandidateInterview(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCandidateInterviewStatus), v...))
+		s.Where(sql.NotIn(s.C(FieldStatus), v...))
 	})
 }
 

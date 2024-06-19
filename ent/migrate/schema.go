@@ -123,7 +123,7 @@ var (
 		{Name: "start_from", Type: field.TypeTime, Nullable: true},
 		{Name: "end_at", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
-		{Name: "candidate_interview_status", Type: field.TypeEnum, Enums: []string{"invited_to_interview", "interviewing", "done", "cancelled"}, Default: "invited_to_interview"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"invited_to_interview", "interviewing", "done", "cancelled"}, Default: "invited_to_interview"},
 		{Name: "candidate_job_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}

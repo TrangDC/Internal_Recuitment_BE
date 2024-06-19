@@ -199,16 +199,16 @@ func (ciu *CandidateInterviewUpdate) SetDescription(s string) *CandidateIntervie
 	return ciu
 }
 
-// SetCandidateInterviewStatus sets the "candidate_interview_status" field.
-func (ciu *CandidateInterviewUpdate) SetCandidateInterviewStatus(cis candidateinterview.CandidateInterviewStatus) *CandidateInterviewUpdate {
-	ciu.mutation.SetCandidateInterviewStatus(cis)
+// SetStatus sets the "status" field.
+func (ciu *CandidateInterviewUpdate) SetStatus(c candidateinterview.Status) *CandidateInterviewUpdate {
+	ciu.mutation.SetStatus(c)
 	return ciu
 }
 
-// SetNillableCandidateInterviewStatus sets the "candidate_interview_status" field if the given value is not nil.
-func (ciu *CandidateInterviewUpdate) SetNillableCandidateInterviewStatus(cis *candidateinterview.CandidateInterviewStatus) *CandidateInterviewUpdate {
-	if cis != nil {
-		ciu.SetCandidateInterviewStatus(*cis)
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (ciu *CandidateInterviewUpdate) SetNillableStatus(c *candidateinterview.Status) *CandidateInterviewUpdate {
+	if c != nil {
+		ciu.SetStatus(*c)
 	}
 	return ciu
 }
@@ -448,9 +448,9 @@ func (ciu *CandidateInterviewUpdate) check() error {
 			return &ValidationError{Name: "candidate_job_status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.candidate_job_status": %w`, err)}
 		}
 	}
-	if v, ok := ciu.mutation.CandidateInterviewStatus(); ok {
-		if err := candidateinterview.CandidateInterviewStatusValidator(v); err != nil {
-			return &ValidationError{Name: "candidate_interview_status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.candidate_interview_status": %w`, err)}
+	if v, ok := ciu.mutation.Status(); ok {
+		if err := candidateinterview.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
 	return nil
@@ -513,8 +513,8 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 	if value, ok := ciu.mutation.Description(); ok {
 		_spec.SetField(candidateinterview.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := ciu.mutation.CandidateInterviewStatus(); ok {
-		_spec.SetField(candidateinterview.FieldCandidateInterviewStatus, field.TypeEnum, value)
+	if value, ok := ciu.mutation.Status(); ok {
+		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
 	}
 	if ciu.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -945,16 +945,16 @@ func (ciuo *CandidateInterviewUpdateOne) SetDescription(s string) *CandidateInte
 	return ciuo
 }
 
-// SetCandidateInterviewStatus sets the "candidate_interview_status" field.
-func (ciuo *CandidateInterviewUpdateOne) SetCandidateInterviewStatus(cis candidateinterview.CandidateInterviewStatus) *CandidateInterviewUpdateOne {
-	ciuo.mutation.SetCandidateInterviewStatus(cis)
+// SetStatus sets the "status" field.
+func (ciuo *CandidateInterviewUpdateOne) SetStatus(c candidateinterview.Status) *CandidateInterviewUpdateOne {
+	ciuo.mutation.SetStatus(c)
 	return ciuo
 }
 
-// SetNillableCandidateInterviewStatus sets the "candidate_interview_status" field if the given value is not nil.
-func (ciuo *CandidateInterviewUpdateOne) SetNillableCandidateInterviewStatus(cis *candidateinterview.CandidateInterviewStatus) *CandidateInterviewUpdateOne {
-	if cis != nil {
-		ciuo.SetCandidateInterviewStatus(*cis)
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (ciuo *CandidateInterviewUpdateOne) SetNillableStatus(c *candidateinterview.Status) *CandidateInterviewUpdateOne {
+	if c != nil {
+		ciuo.SetStatus(*c)
 	}
 	return ciuo
 }
@@ -1207,9 +1207,9 @@ func (ciuo *CandidateInterviewUpdateOne) check() error {
 			return &ValidationError{Name: "candidate_job_status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.candidate_job_status": %w`, err)}
 		}
 	}
-	if v, ok := ciuo.mutation.CandidateInterviewStatus(); ok {
-		if err := candidateinterview.CandidateInterviewStatusValidator(v); err != nil {
-			return &ValidationError{Name: "candidate_interview_status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.candidate_interview_status": %w`, err)}
+	if v, ok := ciuo.mutation.Status(); ok {
+		if err := candidateinterview.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
 	return nil
@@ -1289,8 +1289,8 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 	if value, ok := ciuo.mutation.Description(); ok {
 		_spec.SetField(candidateinterview.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := ciuo.mutation.CandidateInterviewStatus(); ok {
-		_spec.SetField(candidateinterview.FieldCandidateInterviewStatus, field.TypeEnum, value)
+	if value, ok := ciuo.mutation.Status(); ok {
+		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
 	}
 	if ciuo.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

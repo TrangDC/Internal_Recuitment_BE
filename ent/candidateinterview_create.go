@@ -163,16 +163,16 @@ func (cic *CandidateInterviewCreate) SetDescription(s string) *CandidateIntervie
 	return cic
 }
 
-// SetCandidateInterviewStatus sets the "candidate_interview_status" field.
-func (cic *CandidateInterviewCreate) SetCandidateInterviewStatus(cis candidateinterview.CandidateInterviewStatus) *CandidateInterviewCreate {
-	cic.mutation.SetCandidateInterviewStatus(cis)
+// SetStatus sets the "status" field.
+func (cic *CandidateInterviewCreate) SetStatus(c candidateinterview.Status) *CandidateInterviewCreate {
+	cic.mutation.SetStatus(c)
 	return cic
 }
 
-// SetNillableCandidateInterviewStatus sets the "candidate_interview_status" field if the given value is not nil.
-func (cic *CandidateInterviewCreate) SetNillableCandidateInterviewStatus(cis *candidateinterview.CandidateInterviewStatus) *CandidateInterviewCreate {
-	if cis != nil {
-		cic.SetCandidateInterviewStatus(*cis)
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cic *CandidateInterviewCreate) SetNillableStatus(c *candidateinterview.Status) *CandidateInterviewCreate {
+	if c != nil {
+		cic.SetStatus(*c)
 	}
 	return cic
 }
@@ -351,9 +351,9 @@ func (cic *CandidateInterviewCreate) defaults() {
 		v := candidateinterview.DefaultCandidateJobStatus
 		cic.mutation.SetCandidateJobStatus(v)
 	}
-	if _, ok := cic.mutation.CandidateInterviewStatus(); !ok {
-		v := candidateinterview.DefaultCandidateInterviewStatus
-		cic.mutation.SetCandidateInterviewStatus(v)
+	if _, ok := cic.mutation.Status(); !ok {
+		v := candidateinterview.DefaultStatus
+		cic.mutation.SetStatus(v)
 	}
 }
 
@@ -381,12 +381,12 @@ func (cic *CandidateInterviewCreate) check() error {
 	if _, ok := cic.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "CandidateInterview.description"`)}
 	}
-	if _, ok := cic.mutation.CandidateInterviewStatus(); !ok {
-		return &ValidationError{Name: "candidate_interview_status", err: errors.New(`ent: missing required field "CandidateInterview.candidate_interview_status"`)}
+	if _, ok := cic.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "CandidateInterview.status"`)}
 	}
-	if v, ok := cic.mutation.CandidateInterviewStatus(); ok {
-		if err := candidateinterview.CandidateInterviewStatusValidator(v); err != nil {
-			return &ValidationError{Name: "candidate_interview_status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.candidate_interview_status": %w`, err)}
+	if v, ok := cic.mutation.Status(); ok {
+		if err := candidateinterview.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
 	return nil
@@ -461,9 +461,9 @@ func (cic *CandidateInterviewCreate) createSpec() (*CandidateInterview, *sqlgrap
 		_spec.SetField(candidateinterview.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := cic.mutation.CandidateInterviewStatus(); ok {
-		_spec.SetField(candidateinterview.FieldCandidateInterviewStatus, field.TypeEnum, value)
-		_node.CandidateInterviewStatus = value
+	if value, ok := cic.mutation.Status(); ok {
+		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if nodes := cic.mutation.CandidateJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
