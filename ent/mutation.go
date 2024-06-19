@@ -2793,35 +2793,36 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 // CandidateInterviewMutation represents an operation that mutates the CandidateInterview nodes in the graph.
 type CandidateInterviewMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	created_at                *time.Time
-	updated_at                *time.Time
-	deleted_at                *time.Time
-	title                     *string
-	candidate_job_status      *candidateinterview.CandidateJobStatus
-	interview_date            *time.Time
-	start_from                *time.Time
-	end_at                    *time.Time
-	description               *string
-	clearedFields             map[string]struct{}
-	candidate_job_edge        *uuid.UUID
-	clearedcandidate_job_edge bool
-	attachment_edges          map[uuid.UUID]struct{}
-	removedattachment_edges   map[uuid.UUID]struct{}
-	clearedattachment_edges   bool
-	interviewer_edges         map[uuid.UUID]struct{}
-	removedinterviewer_edges  map[uuid.UUID]struct{}
-	clearedinterviewer_edges  bool
-	created_by_edge           *uuid.UUID
-	clearedcreated_by_edge    bool
-	user_interviewers         map[uuid.UUID]struct{}
-	removeduser_interviewers  map[uuid.UUID]struct{}
-	cleareduser_interviewers  bool
-	done                      bool
-	oldValue                  func(context.Context) (*CandidateInterview, error)
-	predicates                []predicate.CandidateInterview
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	deleted_at                 *time.Time
+	title                      *string
+	candidate_job_status       *candidateinterview.CandidateJobStatus
+	interview_date             *time.Time
+	start_from                 *time.Time
+	end_at                     *time.Time
+	description                *string
+	candidate_interview_status *candidateinterview.CandidateInterviewStatus
+	clearedFields              map[string]struct{}
+	candidate_job_edge         *uuid.UUID
+	clearedcandidate_job_edge  bool
+	attachment_edges           map[uuid.UUID]struct{}
+	removedattachment_edges    map[uuid.UUID]struct{}
+	clearedattachment_edges    bool
+	interviewer_edges          map[uuid.UUID]struct{}
+	removedinterviewer_edges   map[uuid.UUID]struct{}
+	clearedinterviewer_edges   bool
+	created_by_edge            *uuid.UUID
+	clearedcreated_by_edge     bool
+	user_interviewers          map[uuid.UUID]struct{}
+	removeduser_interviewers   map[uuid.UUID]struct{}
+	cleareduser_interviewers   bool
+	done                       bool
+	oldValue                   func(context.Context) (*CandidateInterview, error)
+	predicates                 []predicate.CandidateInterview
 }
 
 var _ ent.Mutation = (*CandidateInterviewMutation)(nil)
@@ -3415,6 +3416,42 @@ func (m *CandidateInterviewMutation) ResetDescription() {
 	m.description = nil
 }
 
+// SetCandidateInterviewStatus sets the "candidate_interview_status" field.
+func (m *CandidateInterviewMutation) SetCandidateInterviewStatus(cis candidateinterview.CandidateInterviewStatus) {
+	m.candidate_interview_status = &cis
+}
+
+// CandidateInterviewStatus returns the value of the "candidate_interview_status" field in the mutation.
+func (m *CandidateInterviewMutation) CandidateInterviewStatus() (r candidateinterview.CandidateInterviewStatus, exists bool) {
+	v := m.candidate_interview_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateInterviewStatus returns the old "candidate_interview_status" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldCandidateInterviewStatus(ctx context.Context) (v candidateinterview.CandidateInterviewStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateInterviewStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateInterviewStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateInterviewStatus: %w", err)
+	}
+	return oldValue.CandidateInterviewStatus, nil
+}
+
+// ResetCandidateInterviewStatus resets all changes to the "candidate_interview_status" field.
+func (m *CandidateInterviewMutation) ResetCandidateInterviewStatus() {
+	m.candidate_interview_status = nil
+}
+
 // SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by id.
 func (m *CandidateInterviewMutation) SetCandidateJobEdgeID(id uuid.UUID) {
 	m.candidate_job_edge = &id
@@ -3674,7 +3711,7 @@ func (m *CandidateInterviewMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateInterviewMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, candidateinterview.FieldCreatedAt)
 	}
@@ -3708,6 +3745,9 @@ func (m *CandidateInterviewMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, candidateinterview.FieldDescription)
 	}
+	if m.candidate_interview_status != nil {
+		fields = append(fields, candidateinterview.FieldCandidateInterviewStatus)
+	}
 	return fields
 }
 
@@ -3738,6 +3778,8 @@ func (m *CandidateInterviewMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedBy()
 	case candidateinterview.FieldDescription:
 		return m.Description()
+	case candidateinterview.FieldCandidateInterviewStatus:
+		return m.CandidateInterviewStatus()
 	}
 	return nil, false
 }
@@ -3769,6 +3811,8 @@ func (m *CandidateInterviewMutation) OldField(ctx context.Context, name string) 
 		return m.OldCreatedBy(ctx)
 	case candidateinterview.FieldDescription:
 		return m.OldDescription(ctx)
+	case candidateinterview.FieldCandidateInterviewStatus:
+		return m.OldCandidateInterviewStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateInterview field %s", name)
 }
@@ -3854,6 +3898,13 @@ func (m *CandidateInterviewMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case candidateinterview.FieldCandidateInterviewStatus:
+		v, ok := value.(candidateinterview.CandidateInterviewStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateInterviewStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateInterview field %s", name)
@@ -3981,6 +4032,9 @@ func (m *CandidateInterviewMutation) ResetField(name string) error {
 		return nil
 	case candidateinterview.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case candidateinterview.FieldCandidateInterviewStatus:
+		m.ResetCandidateInterviewStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateInterview field %s", name)

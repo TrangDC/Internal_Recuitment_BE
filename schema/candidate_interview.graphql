@@ -9,6 +9,13 @@ enum CandidateInterviewStatusEditable {
   interviewing
 }
 
+enum CandidateInterviewStatus {
+  invited_to_interview
+  interviewing
+  done
+  cancelled
+}
+
 type CandidateInterview {
   id: ID!
   title: String!
@@ -21,6 +28,7 @@ type CandidateInterview {
   candidate_job: CandidateJob!
   edit_able: Boolean!
   owner: User
+  candidate_interview_status: CandidateInterviewStatus!
   created_at: Time!
   updated_at: Time!
 }
