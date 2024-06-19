@@ -383,6 +383,10 @@ type UpdateCandidateInterviewScheduleInput struct {
 	Interviewer   []string  `json:"interviewer"`
 }
 
+type UpdateCandidateInterviewStatusInput struct {
+	CandidateInterviewStatus StatusInput `json:"candidate_interview_status"`
+}
+
 type UpdateCandidateJobFeedbackInput struct {
 	Feedback    string                `json:"feedback"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
@@ -1274,6 +1278,47 @@ func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type StatusInput string
+
+const (
+	StatusInputDone      StatusInput = "done"
+	StatusInputCancelled StatusInput = "cancelled"
+)
+
+var AllStatusInput = []StatusInput{
+	StatusInputDone,
+	StatusInputCancelled,
+}
+
+func (e StatusInput) IsValid() bool {
+	switch e {
+	case StatusInputDone, StatusInputCancelled:
+		return true
+	}
+	return false
+}
+
+func (e StatusInput) String() string {
+	return string(e)
+}
+
+func (e *StatusInput) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = StatusInput(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid StatusInput", str)
+	}
+	return nil
+}
+
+func (e StatusInput) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

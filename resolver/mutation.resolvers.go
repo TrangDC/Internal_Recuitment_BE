@@ -218,6 +218,15 @@ func (r *mutationResolver) CreateCandidateInterview4Calendar(ctx context.Context
 	return true, nil
 }
 
+// UpdateCandidateInterviewStatus is the resolver for the UpdateCandidateInterviewStatus field.
+func (r *mutationResolver) UpdateCandidateInterviewStatus(ctx context.Context, id string, input ent.UpdateCandidateInterviewStatusInput) (bool, error) {
+	err := r.serviceRegistry.CandidateInterview().UpdateCandidateInterviewStatus(ctx, uuid.MustParse(id), input)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // ImportCandidate is the resolver for the ImportCandidate field.
 func (r *mutationResolver) ImportCandidate(ctx context.Context, file graphql.Upload) (bool, error) {
 	err := r.serviceRegistry.ImportData().ImportCandidate(ctx, file)

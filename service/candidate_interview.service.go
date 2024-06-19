@@ -32,6 +32,7 @@ type CandidateInterviewService interface {
 	UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error)
 	UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error)
 	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note string) error
+	UpdateCandidateInterviewStatus(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewStatusInput) error
 
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
@@ -183,6 +184,36 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	return &ent.CandidateInterviewResponse{
 		Data: result,
 	}, nil
+}
+
+func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewStatusInput) error {
+	var candidateInterview *ent.CandidateInterview
+	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if candidatejob.Status(record.CandidateJobStatus) != record.Edges.CandidateJobEdge.Status {
+		return util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
+	}
+	err = svc.repoRegistry.CandidateInterview().ValidCandidateInterviewStatus(record, input.CandidateInterviewStatus.String())
+	if err != nil {
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewStatus(ctx, record, input)
+		return err
+	})
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	_, err = svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return nil
 }
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error) {
