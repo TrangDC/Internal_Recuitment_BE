@@ -117,3 +117,12 @@ type CandidateInterviewResponseGetAll {
   edges: [CandidateInterviewEdge!]!
   pagination: Pagination!
 }
+
+enum StatusInput {
+  done
+  cancelled
+}
+
+input UpdateCandidateInterviewStatusInput {
+  candidate_interview_status: StatusInput!
+}

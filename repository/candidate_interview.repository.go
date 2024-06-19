@@ -23,6 +23,7 @@ type CandidateInterviewRepository interface {
 	UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error)
+	UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error)
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error)
 	BuildQuery() *ent.CandidateInterviewQuery
@@ -32,6 +33,7 @@ type CandidateInterviewRepository interface {
 	// common function
 	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error)
 	ValidateCreateBulkInput(ctx context.Context, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateJob, error, error)
+	ValidCandidateInterviewStatus(record *ent.CandidateInterview, status string) error
 }
 
 type candidateInterviewRepoImpl struct {
@@ -166,6 +168,10 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 	}
 	_, err = rps.client.CandidateInterviewer.CreateBulk(createInterviewers...).Save(ctx)
 	return candidateInterviews, err
+}
+
+func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error) {
+	return rps.BuildUpdateOne(ctx, record).SetCandidateInterviewStatus(candidateinterview.CandidateInterviewStatus(input.CandidateInterviewStatus.String())).Save(ctx)
 }
 
 // query
@@ -307,4 +313,17 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 		return fmt.Errorf("model.candidate_interviews.validation.schedule_exist"), nil
 	}
 	return nil, nil
+}
+
+func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status string) error {
+	if ent.StatusInput.IsValid(ent.StatusInput(record.CandidateInterviewStatus)) {
+		return fmt.Errorf("model.candidate_interviews.validation.invalid_editable")
+	}
+	switch status {
+	case candidateinterview.CandidateInterviewStatusDone.String():
+		if record.CandidateInterviewStatus == candidateinterview.CandidateInterviewStatusInvitedToInterview {
+			return fmt.Errorf("model.candidate_interviews.validation.invalid_input")
+		}
+	}
+	return nil
 }

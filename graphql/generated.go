@@ -328,6 +328,7 @@ type ComplexityRoot struct {
 		UpdateCandidate                   func(childComplexity int, id string, input ent.UpdateCandidateInput, note string) int
 		UpdateCandidateInterview          func(childComplexity int, id string, input ent.UpdateCandidateInterviewInput, note *string) int
 		UpdateCandidateInterviewSchedule  func(childComplexity int, id string, input ent.UpdateCandidateInterviewScheduleInput) int
+		UpdateCandidateInterviewStatus    func(childComplexity int, id string, input ent.UpdateCandidateInterviewStatusInput) int
 		UpdateCandidateJobAttachment      func(childComplexity int, id string, input ent.UpdateCandidateAttachment, note *string) int
 		UpdateCandidateJobFeedback        func(childComplexity int, id string, input ent.UpdateCandidateJobFeedbackInput, note *string) int
 		UpdateCandidateJobStatus          func(childComplexity int, id string, input ent.UpdateCandidateJobStatus, note *string) int
@@ -567,6 +568,7 @@ type MutationResolver interface {
 	UpdateCandidateInterviewSchedule(ctx context.Context, id string, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error)
 	DeleteCandidateInterview(ctx context.Context, id string, note *string) (bool, error)
 	CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note *string) (bool, error)
+	UpdateCandidateInterviewStatus(ctx context.Context, id string, input ent.UpdateCandidateInterviewStatusInput) (bool, error)
 	ImportCandidate(ctx context.Context, file graphql.Upload) (bool, error)
 	CreateSkill(ctx context.Context, input ent.NewSkillInput, note string) (*ent.SkillResponse, error)
 	UpdateSkill(ctx context.Context, id string, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error)
@@ -1903,6 +1905,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateCandidateInterviewSchedule(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateInterviewScheduleInput)), true
 
+	case "Mutation.UpdateCandidateInterviewStatus":
+		if e.complexity.Mutation.UpdateCandidateInterviewStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateCandidateInterviewStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCandidateInterviewStatus(childComplexity, args["id"].(string), args["input"].(ent.UpdateCandidateInterviewStatusInput)), true
+
 	case "Mutation.UpdateCandidateJobAttachment":
 		if e.complexity.Mutation.UpdateCandidateJobAttachment == nil {
 			break
@@ -2680,6 +2694,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateCandidateInput,
 		ec.unmarshalInputUpdateCandidateInterviewInput,
 		ec.unmarshalInputUpdateCandidateInterviewScheduleInput,
+		ec.unmarshalInputUpdateCandidateInterviewStatusInput,
 		ec.unmarshalInputUpdateCandidateJobFeedbackInput,
 		ec.unmarshalInputUpdateCandidateJobStatus,
 		ec.unmarshalInputUpdateHiringJobInput,
@@ -2944,6 +2959,15 @@ type CandidateInterviewEdge {
 type CandidateInterviewResponseGetAll {
   edges: [CandidateInterviewEdge!]!
   pagination: Pagination!
+}
+
+enum StatusInput {
+  done
+  cancelled
+}
+
+input UpdateCandidateInterviewStatusInput {
+  candidate_interview_status: StatusInput!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_job.graphql", Input: `enum CandidateJobStatusEnded {
@@ -3498,6 +3522,7 @@ type HiringJobResponseGetAll {
   UpdateCandidateInterviewSchedule(id: ID!, input: UpdateCandidateInterviewScheduleInput!): CandidateInterviewResponse!
   DeleteCandidateInterview(id: ID!, note: String): Boolean!
   CreateCandidateInterview4Calendar(input: NewCandidateInterview4CalendarInput!, note: String): Boolean!
+  UpdateCandidateInterviewStatus(id: ID!, input: UpdateCandidateInterviewStatusInput!): Boolean!
 
   #import
   ImportCandidate(file: Upload!): Boolean!
@@ -4208,6 +4233,30 @@ func (ec *executionContext) field_Mutation_UpdateCandidateInterviewSchedule_args
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg1, err = ec.unmarshalNUpdateCandidateInterviewScheduleInput2trecᚋentᚐUpdateCandidateInterviewScheduleInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateCandidateInterviewStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateCandidateInterviewStatusInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateCandidateInterviewStatusInput2trecᚋentᚐUpdateCandidateInterviewStatusInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14182,6 +14231,61 @@ func (ec *executionContext) fieldContext_Mutation_CreateCandidateInterview4Calen
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_UpdateCandidateInterviewStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateCandidateInterviewStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCandidateInterviewStatus(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateCandidateInterviewStatusInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateCandidateInterviewStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateCandidateInterviewStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_ImportCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_ImportCandidate(ctx, field)
 	if err != nil {
@@ -22035,6 +22139,34 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewScheduleInput(
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateCandidateInterviewStatusInput(ctx context.Context, obj interface{}) (ent.UpdateCandidateInterviewStatusInput, error) {
+	var it ent.UpdateCandidateInterviewStatusInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"candidate_interview_status"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "candidate_interview_status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_interview_status"))
+			it.CandidateInterviewStatus, err = ec.unmarshalNStatusInput2trecᚋentᚐStatusInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateCandidateJobFeedbackInput(ctx context.Context, obj interface{}) (ent.UpdateCandidateJobFeedbackInput, error) {
 	var it ent.UpdateCandidateJobFeedbackInput
 	asMap := map[string]interface{}{}
@@ -25039,6 +25171,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "UpdateCandidateInterviewStatus":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateCandidateInterviewStatus(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "ImportCandidate":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -27915,6 +28056,16 @@ func (ec *executionContext) marshalNSkillResponseGetAll2ᚖtrecᚋentᚐSkillRes
 	return ec._SkillResponseGetAll(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNStatusInput2trecᚋentᚐStatusInput(ctx context.Context, v interface{}) (ent.StatusInput, error) {
+	var res ent.StatusInput
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatusInput2trecᚋentᚐStatusInput(ctx context.Context, sel ast.SelectionSet, v ent.StatusInput) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -28073,6 +28224,11 @@ func (ec *executionContext) unmarshalNUpdateCandidateInterviewInput2trecᚋent�
 
 func (ec *executionContext) unmarshalNUpdateCandidateInterviewScheduleInput2trecᚋentᚐUpdateCandidateInterviewScheduleInput(ctx context.Context, v interface{}) (ent.UpdateCandidateInterviewScheduleInput, error) {
 	res, err := ec.unmarshalInputUpdateCandidateInterviewScheduleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateCandidateInterviewStatusInput2trecᚋentᚐUpdateCandidateInterviewStatusInput(ctx context.Context, v interface{}) (ent.UpdateCandidateInterviewStatusInput, error) {
+	res, err := ec.unmarshalInputUpdateCandidateInterviewStatusInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
