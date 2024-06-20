@@ -310,7 +310,10 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			))
 		}
 		if input.ReferenceUID != nil {
-			candidateQuery.Where(candidate.ReferenceUIDEQ(uuid.MustParse(*input.ReferenceUID)))
+			memberIds := lo.Map(input.ReferenceUID, func(uid string, index int) uuid.UUID {
+				return uuid.MustParse(uid)
+			})
+			candidateQuery.Where(candidate.ReferenceUIDIn(memberIds...))
 		}
 		if input.RecruitTimeFromDate != nil && input.RecruitTimeToDate != nil {
 			candidateQuery.Where(candidate.RecruitTimeGTE(*input.RecruitTimeFromDate), candidate.RecruitTimeLTE(*input.RecruitTimeToDate))
