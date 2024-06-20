@@ -401,7 +401,7 @@ type UpdateCandidateInterviewScheduleInput struct {
 }
 
 type UpdateCandidateInterviewStatusInput struct {
-	CandidateInterviewStatus CandidateInterviewStatusEditable `json:"candidate_interview_status"`
+	Status CandidateInterviewStatusEditable `json:"status"`
 }
 
 type UpdateCandidateJobFeedbackInput struct {

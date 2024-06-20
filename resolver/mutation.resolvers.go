@@ -219,8 +219,12 @@ func (r *mutationResolver) CreateCandidateInterview4Calendar(ctx context.Context
 }
 
 // UpdateCandidateInterviewStatus is the resolver for the UpdateCandidateInterviewStatus field.
-func (r *mutationResolver) UpdateCandidateInterviewStatus(ctx context.Context, id string, input ent.UpdateCandidateInterviewStatusInput) (bool, error) {
-	err := r.serviceRegistry.CandidateInterview().UpdateCandidateInterviewStatus(ctx, uuid.MustParse(id), input)
+func (r *mutationResolver) UpdateCandidateInterviewStatus(ctx context.Context, id string, input ent.UpdateCandidateInterviewStatusInput, note *string) (bool, error) {
+	var inputNote string
+	if note != nil {
+		inputNote = *note
+	}
+	err := r.serviceRegistry.CandidateInterview().UpdateCandidateInterviewStatus(ctx, uuid.MustParse(id), input, inputNote)
 	if err != nil {
 		return false, err
 	}

@@ -124,5 +124,5 @@ enum CandidateInterviewStatusEditable {
 }
 
 input UpdateCandidateInterviewStatusInput {
-  candidate_interview_status: CandidateInterviewStatusEditable!
+  status: CandidateInterviewStatusEditable!
 }
