@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -110,61 +111,80 @@ func (au *AttachmentUpdate) ClearRelationID() *AttachmentUpdate {
 	return au
 }
 
-// SetCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID.
-func (au *AttachmentUpdate) SetCandidateJobID(id uuid.UUID) *AttachmentUpdate {
-	au.mutation.SetCandidateJobID(id)
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
+func (au *AttachmentUpdate) SetCandidateJobEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateJobEdgeID(id)
 	return au
 }
 
-// SetNillableCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID if the given value is not nil.
-func (au *AttachmentUpdate) SetNillableCandidateJobID(id *uuid.UUID) *AttachmentUpdate {
+// SetNillableCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateJobEdgeID(id *uuid.UUID) *AttachmentUpdate {
 	if id != nil {
-		au = au.SetCandidateJobID(*id)
+		au = au.SetCandidateJobEdgeID(*id)
 	}
 	return au
 }
 
-// SetCandidateJob sets the "candidate_job" edge to the CandidateJob entity.
-func (au *AttachmentUpdate) SetCandidateJob(c *CandidateJob) *AttachmentUpdate {
-	return au.SetCandidateJobID(c.ID)
+// SetCandidateJobEdge sets the "candidate_job_edge" edge to the CandidateJob entity.
+func (au *AttachmentUpdate) SetCandidateJobEdge(c *CandidateJob) *AttachmentUpdate {
+	return au.SetCandidateJobEdgeID(c.ID)
 }
 
-// SetCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID.
-func (au *AttachmentUpdate) SetCandidateJobFeedbackID(id uuid.UUID) *AttachmentUpdate {
-	au.mutation.SetCandidateJobFeedbackID(id)
+// SetCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID.
+func (au *AttachmentUpdate) SetCandidateJobFeedbackEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateJobFeedbackEdgeID(id)
 	return au
 }
 
-// SetNillableCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
-func (au *AttachmentUpdate) SetNillableCandidateJobFeedbackID(id *uuid.UUID) *AttachmentUpdate {
+// SetNillableCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateJobFeedbackEdgeID(id *uuid.UUID) *AttachmentUpdate {
 	if id != nil {
-		au = au.SetCandidateJobFeedbackID(*id)
+		au = au.SetCandidateJobFeedbackEdgeID(*id)
 	}
 	return au
 }
 
-// SetCandidateJobFeedback sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (au *AttachmentUpdate) SetCandidateJobFeedback(c *CandidateJobFeedback) *AttachmentUpdate {
-	return au.SetCandidateJobFeedbackID(c.ID)
+// SetCandidateJobFeedbackEdge sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (au *AttachmentUpdate) SetCandidateJobFeedbackEdge(c *CandidateJobFeedback) *AttachmentUpdate {
+	return au.SetCandidateJobFeedbackEdgeID(c.ID)
 }
 
-// SetCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID.
-func (au *AttachmentUpdate) SetCandidateInterviewID(id uuid.UUID) *AttachmentUpdate {
-	au.mutation.SetCandidateInterviewID(id)
+// SetCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID.
+func (au *AttachmentUpdate) SetCandidateInterviewEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateInterviewEdgeID(id)
 	return au
 }
 
-// SetNillableCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID if the given value is not nil.
-func (au *AttachmentUpdate) SetNillableCandidateInterviewID(id *uuid.UUID) *AttachmentUpdate {
+// SetNillableCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateInterviewEdgeID(id *uuid.UUID) *AttachmentUpdate {
 	if id != nil {
-		au = au.SetCandidateInterviewID(*id)
+		au = au.SetCandidateInterviewEdgeID(*id)
 	}
 	return au
 }
 
-// SetCandidateInterview sets the "candidate_interview" edge to the CandidateInterview entity.
-func (au *AttachmentUpdate) SetCandidateInterview(c *CandidateInterview) *AttachmentUpdate {
-	return au.SetCandidateInterviewID(c.ID)
+// SetCandidateInterviewEdge sets the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (au *AttachmentUpdate) SetCandidateInterviewEdge(c *CandidateInterview) *AttachmentUpdate {
+	return au.SetCandidateInterviewEdgeID(c.ID)
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
+func (au *AttachmentUpdate) SetCandidateEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateEdgeID(id)
+	return au
+}
+
+// SetNillableCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateEdgeID(id *uuid.UUID) *AttachmentUpdate {
+	if id != nil {
+		au = au.SetCandidateEdgeID(*id)
+	}
+	return au
+}
+
+// SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
+func (au *AttachmentUpdate) SetCandidateEdge(c *Candidate) *AttachmentUpdate {
+	return au.SetCandidateEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -172,21 +192,27 @@ func (au *AttachmentUpdate) Mutation() *AttachmentMutation {
 	return au.mutation
 }
 
-// ClearCandidateJob clears the "candidate_job" edge to the CandidateJob entity.
-func (au *AttachmentUpdate) ClearCandidateJob() *AttachmentUpdate {
-	au.mutation.ClearCandidateJob()
+// ClearCandidateJobEdge clears the "candidate_job_edge" edge to the CandidateJob entity.
+func (au *AttachmentUpdate) ClearCandidateJobEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateJobEdge()
 	return au
 }
 
-// ClearCandidateJobFeedback clears the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (au *AttachmentUpdate) ClearCandidateJobFeedback() *AttachmentUpdate {
-	au.mutation.ClearCandidateJobFeedback()
+// ClearCandidateJobFeedbackEdge clears the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (au *AttachmentUpdate) ClearCandidateJobFeedbackEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateJobFeedbackEdge()
 	return au
 }
 
-// ClearCandidateInterview clears the "candidate_interview" edge to the CandidateInterview entity.
-func (au *AttachmentUpdate) ClearCandidateInterview() *AttachmentUpdate {
-	au.mutation.ClearCandidateInterview()
+// ClearCandidateInterviewEdge clears the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (au *AttachmentUpdate) ClearCandidateInterviewEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateInterviewEdge()
+	return au
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (au *AttachmentUpdate) ClearCandidateEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateEdge()
 	return au
 }
 
@@ -304,12 +330,12 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := au.mutation.RelationType(); ok {
 		_spec.SetField(attachment.FieldRelationType, field.TypeEnum, value)
 	}
-	if au.mutation.CandidateJobCleared() {
+	if au.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobTable,
-			Columns: []string{attachment.CandidateJobColumn},
+			Table:   attachment.CandidateJobEdgeTable,
+			Columns: []string{attachment.CandidateJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -320,12 +346,12 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.CandidateJobIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.CandidateJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobTable,
-			Columns: []string{attachment.CandidateJobColumn},
+			Table:   attachment.CandidateJobEdgeTable,
+			Columns: []string{attachment.CandidateJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -339,12 +365,12 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.CandidateJobFeedbackCleared() {
+	if au.mutation.CandidateJobFeedbackEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobFeedbackTable,
-			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Table:   attachment.CandidateJobFeedbackEdgeTable,
+			Columns: []string{attachment.CandidateJobFeedbackEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -355,12 +381,12 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.CandidateJobFeedbackEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobFeedbackTable,
-			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Table:   attachment.CandidateJobFeedbackEdgeTable,
+			Columns: []string{attachment.CandidateJobFeedbackEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -374,12 +400,12 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.CandidateInterviewCleared() {
+	if au.mutation.CandidateInterviewEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateInterviewTable,
-			Columns: []string{attachment.CandidateInterviewColumn},
+			Table:   attachment.CandidateInterviewEdgeTable,
+			Columns: []string{attachment.CandidateInterviewEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -390,17 +416,52 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.CandidateInterviewIDs(); len(nodes) > 0 {
+	if nodes := au.mutation.CandidateInterviewEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateInterviewTable,
-			Columns: []string{attachment.CandidateInterviewColumn},
+			Table:   attachment.CandidateInterviewEdgeTable,
+			Columns: []string{attachment.CandidateInterviewEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CandidateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEdgeTable,
+			Columns: []string{attachment.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEdgeTable,
+			Columns: []string{attachment.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
 				},
 			},
 		}
@@ -506,61 +567,80 @@ func (auo *AttachmentUpdateOne) ClearRelationID() *AttachmentUpdateOne {
 	return auo
 }
 
-// SetCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID.
-func (auo *AttachmentUpdateOne) SetCandidateJobID(id uuid.UUID) *AttachmentUpdateOne {
-	auo.mutation.SetCandidateJobID(id)
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateJobEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateJobEdgeID(id)
 	return auo
 }
 
-// SetNillableCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID if the given value is not nil.
-func (auo *AttachmentUpdateOne) SetNillableCandidateJobID(id *uuid.UUID) *AttachmentUpdateOne {
+// SetNillableCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateJobEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
 	if id != nil {
-		auo = auo.SetCandidateJobID(*id)
+		auo = auo.SetCandidateJobEdgeID(*id)
 	}
 	return auo
 }
 
-// SetCandidateJob sets the "candidate_job" edge to the CandidateJob entity.
-func (auo *AttachmentUpdateOne) SetCandidateJob(c *CandidateJob) *AttachmentUpdateOne {
-	return auo.SetCandidateJobID(c.ID)
+// SetCandidateJobEdge sets the "candidate_job_edge" edge to the CandidateJob entity.
+func (auo *AttachmentUpdateOne) SetCandidateJobEdge(c *CandidateJob) *AttachmentUpdateOne {
+	return auo.SetCandidateJobEdgeID(c.ID)
 }
 
-// SetCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID.
-func (auo *AttachmentUpdateOne) SetCandidateJobFeedbackID(id uuid.UUID) *AttachmentUpdateOne {
-	auo.mutation.SetCandidateJobFeedbackID(id)
+// SetCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateJobFeedbackEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateJobFeedbackEdgeID(id)
 	return auo
 }
 
-// SetNillableCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
-func (auo *AttachmentUpdateOne) SetNillableCandidateJobFeedbackID(id *uuid.UUID) *AttachmentUpdateOne {
+// SetNillableCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateJobFeedbackEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
 	if id != nil {
-		auo = auo.SetCandidateJobFeedbackID(*id)
+		auo = auo.SetCandidateJobFeedbackEdgeID(*id)
 	}
 	return auo
 }
 
-// SetCandidateJobFeedback sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (auo *AttachmentUpdateOne) SetCandidateJobFeedback(c *CandidateJobFeedback) *AttachmentUpdateOne {
-	return auo.SetCandidateJobFeedbackID(c.ID)
+// SetCandidateJobFeedbackEdge sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (auo *AttachmentUpdateOne) SetCandidateJobFeedbackEdge(c *CandidateJobFeedback) *AttachmentUpdateOne {
+	return auo.SetCandidateJobFeedbackEdgeID(c.ID)
 }
 
-// SetCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID.
-func (auo *AttachmentUpdateOne) SetCandidateInterviewID(id uuid.UUID) *AttachmentUpdateOne {
-	auo.mutation.SetCandidateInterviewID(id)
+// SetCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateInterviewEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateInterviewEdgeID(id)
 	return auo
 }
 
-// SetNillableCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID if the given value is not nil.
-func (auo *AttachmentUpdateOne) SetNillableCandidateInterviewID(id *uuid.UUID) *AttachmentUpdateOne {
+// SetNillableCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateInterviewEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
 	if id != nil {
-		auo = auo.SetCandidateInterviewID(*id)
+		auo = auo.SetCandidateInterviewEdgeID(*id)
 	}
 	return auo
 }
 
-// SetCandidateInterview sets the "candidate_interview" edge to the CandidateInterview entity.
-func (auo *AttachmentUpdateOne) SetCandidateInterview(c *CandidateInterview) *AttachmentUpdateOne {
-	return auo.SetCandidateInterviewID(c.ID)
+// SetCandidateInterviewEdge sets the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (auo *AttachmentUpdateOne) SetCandidateInterviewEdge(c *CandidateInterview) *AttachmentUpdateOne {
+	return auo.SetCandidateInterviewEdgeID(c.ID)
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateEdgeID(id)
+	return auo
+}
+
+// SetNillableCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
+	if id != nil {
+		auo = auo.SetCandidateEdgeID(*id)
+	}
+	return auo
+}
+
+// SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
+func (auo *AttachmentUpdateOne) SetCandidateEdge(c *Candidate) *AttachmentUpdateOne {
+	return auo.SetCandidateEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -568,21 +648,27 @@ func (auo *AttachmentUpdateOne) Mutation() *AttachmentMutation {
 	return auo.mutation
 }
 
-// ClearCandidateJob clears the "candidate_job" edge to the CandidateJob entity.
-func (auo *AttachmentUpdateOne) ClearCandidateJob() *AttachmentUpdateOne {
-	auo.mutation.ClearCandidateJob()
+// ClearCandidateJobEdge clears the "candidate_job_edge" edge to the CandidateJob entity.
+func (auo *AttachmentUpdateOne) ClearCandidateJobEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateJobEdge()
 	return auo
 }
 
-// ClearCandidateJobFeedback clears the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (auo *AttachmentUpdateOne) ClearCandidateJobFeedback() *AttachmentUpdateOne {
-	auo.mutation.ClearCandidateJobFeedback()
+// ClearCandidateJobFeedbackEdge clears the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (auo *AttachmentUpdateOne) ClearCandidateJobFeedbackEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateJobFeedbackEdge()
 	return auo
 }
 
-// ClearCandidateInterview clears the "candidate_interview" edge to the CandidateInterview entity.
-func (auo *AttachmentUpdateOne) ClearCandidateInterview() *AttachmentUpdateOne {
-	auo.mutation.ClearCandidateInterview()
+// ClearCandidateInterviewEdge clears the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (auo *AttachmentUpdateOne) ClearCandidateInterviewEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateInterviewEdge()
+	return auo
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (auo *AttachmentUpdateOne) ClearCandidateEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateEdge()
 	return auo
 }
 
@@ -730,12 +816,12 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 	if value, ok := auo.mutation.RelationType(); ok {
 		_spec.SetField(attachment.FieldRelationType, field.TypeEnum, value)
 	}
-	if auo.mutation.CandidateJobCleared() {
+	if auo.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobTable,
-			Columns: []string{attachment.CandidateJobColumn},
+			Table:   attachment.CandidateJobEdgeTable,
+			Columns: []string{attachment.CandidateJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -746,12 +832,12 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.CandidateJobIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.CandidateJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobTable,
-			Columns: []string{attachment.CandidateJobColumn},
+			Table:   attachment.CandidateJobEdgeTable,
+			Columns: []string{attachment.CandidateJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -765,12 +851,12 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.CandidateJobFeedbackCleared() {
+	if auo.mutation.CandidateJobFeedbackEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobFeedbackTable,
-			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Table:   attachment.CandidateJobFeedbackEdgeTable,
+			Columns: []string{attachment.CandidateJobFeedbackEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -781,12 +867,12 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.CandidateJobFeedbackEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobFeedbackTable,
-			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Table:   attachment.CandidateJobFeedbackEdgeTable,
+			Columns: []string{attachment.CandidateJobFeedbackEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -800,12 +886,12 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.CandidateInterviewCleared() {
+	if auo.mutation.CandidateInterviewEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateInterviewTable,
-			Columns: []string{attachment.CandidateInterviewColumn},
+			Table:   attachment.CandidateInterviewEdgeTable,
+			Columns: []string{attachment.CandidateInterviewEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -816,17 +902,52 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.CandidateInterviewIDs(); len(nodes) > 0 {
+	if nodes := auo.mutation.CandidateInterviewEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateInterviewTable,
-			Columns: []string{attachment.CandidateInterviewColumn},
+			Table:   attachment.CandidateInterviewEdgeTable,
+			Columns: []string{attachment.CandidateInterviewEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CandidateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEdgeTable,
+			Columns: []string{attachment.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEdgeTable,
+			Columns: []string{attachment.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
 				},
 			},
 		}

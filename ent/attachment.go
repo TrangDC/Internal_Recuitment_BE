@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -41,56 +42,71 @@ type Attachment struct {
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
 type AttachmentEdges struct {
-	// CandidateJob holds the value of the candidate_job edge.
-	CandidateJob *CandidateJob `json:"candidate_job,omitempty"`
-	// CandidateJobFeedback holds the value of the candidate_job_feedback edge.
-	CandidateJobFeedback *CandidateJobFeedback `json:"candidate_job_feedback,omitempty"`
-	// CandidateInterview holds the value of the candidate_interview edge.
-	CandidateInterview *CandidateInterview `json:"candidate_interview,omitempty"`
+	// CandidateJobEdge holds the value of the candidate_job_edge edge.
+	CandidateJobEdge *CandidateJob `json:"candidate_job_edge,omitempty"`
+	// CandidateJobFeedbackEdge holds the value of the candidate_job_feedback_edge edge.
+	CandidateJobFeedbackEdge *CandidateJobFeedback `json:"candidate_job_feedback_edge,omitempty"`
+	// CandidateInterviewEdge holds the value of the candidate_interview_edge edge.
+	CandidateInterviewEdge *CandidateInterview `json:"candidate_interview_edge,omitempty"`
+	// CandidateEdge holds the value of the candidate_edge edge.
+	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 }
 
-// CandidateJobOrErr returns the CandidateJob value or an error if the edge
+// CandidateJobEdgeOrErr returns the CandidateJobEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AttachmentEdges) CandidateJobOrErr() (*CandidateJob, error) {
+func (e AttachmentEdges) CandidateJobEdgeOrErr() (*CandidateJob, error) {
 	if e.loadedTypes[0] {
-		if e.CandidateJob == nil {
+		if e.CandidateJobEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: candidatejob.Label}
 		}
-		return e.CandidateJob, nil
+		return e.CandidateJobEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "candidate_job"}
+	return nil, &NotLoadedError{edge: "candidate_job_edge"}
 }
 
-// CandidateJobFeedbackOrErr returns the CandidateJobFeedback value or an error if the edge
+// CandidateJobFeedbackEdgeOrErr returns the CandidateJobFeedbackEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AttachmentEdges) CandidateJobFeedbackOrErr() (*CandidateJobFeedback, error) {
+func (e AttachmentEdges) CandidateJobFeedbackEdgeOrErr() (*CandidateJobFeedback, error) {
 	if e.loadedTypes[1] {
-		if e.CandidateJobFeedback == nil {
+		if e.CandidateJobFeedbackEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: candidatejobfeedback.Label}
 		}
-		return e.CandidateJobFeedback, nil
+		return e.CandidateJobFeedbackEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "candidate_job_feedback"}
+	return nil, &NotLoadedError{edge: "candidate_job_feedback_edge"}
 }
 
-// CandidateInterviewOrErr returns the CandidateInterview value or an error if the edge
+// CandidateInterviewEdgeOrErr returns the CandidateInterviewEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AttachmentEdges) CandidateInterviewOrErr() (*CandidateInterview, error) {
+func (e AttachmentEdges) CandidateInterviewEdgeOrErr() (*CandidateInterview, error) {
 	if e.loadedTypes[2] {
-		if e.CandidateInterview == nil {
+		if e.CandidateInterviewEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: candidateinterview.Label}
 		}
-		return e.CandidateInterview, nil
+		return e.CandidateInterviewEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "candidate_interview"}
+	return nil, &NotLoadedError{edge: "candidate_interview_edge"}
+}
+
+// CandidateEdgeOrErr returns the CandidateEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateEdgeOrErr() (*Candidate, error) {
+	if e.loadedTypes[3] {
+		if e.CandidateEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidate.Label}
+		}
+		return e.CandidateEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -172,19 +188,24 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryCandidateJob queries the "candidate_job" edge of the Attachment entity.
-func (a *Attachment) QueryCandidateJob() *CandidateJobQuery {
-	return (&AttachmentClient{config: a.config}).QueryCandidateJob(a)
+// QueryCandidateJobEdge queries the "candidate_job_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateJobEdge() *CandidateJobQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateJobEdge(a)
 }
 
-// QueryCandidateJobFeedback queries the "candidate_job_feedback" edge of the Attachment entity.
-func (a *Attachment) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
-	return (&AttachmentClient{config: a.config}).QueryCandidateJobFeedback(a)
+// QueryCandidateJobFeedbackEdge queries the "candidate_job_feedback_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateJobFeedbackEdge() *CandidateJobFeedbackQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateJobFeedbackEdge(a)
 }
 
-// QueryCandidateInterview queries the "candidate_interview" edge of the Attachment entity.
-func (a *Attachment) QueryCandidateInterview() *CandidateInterviewQuery {
-	return (&AttachmentClient{config: a.config}).QueryCandidateInterview(a)
+// QueryCandidateInterviewEdge queries the "candidate_interview_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateInterviewEdge() *CandidateInterviewQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateInterviewEdge(a)
+}
+
+// QueryCandidateEdge queries the "candidate_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateEdge() *CandidateQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateEdge(a)
 }
 
 // Update returns a builder for updating this Attachment.

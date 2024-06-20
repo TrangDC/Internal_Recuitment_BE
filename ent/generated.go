@@ -245,6 +245,7 @@ type NewCandidateInput struct {
 	RecruitTime    *time.Time             `json:"recruit_time"`
 	Description    string                 `json:"description"`
 	Country        string                 `json:"country"`
+	Attachments    []*NewAttachmentInput  `json:"attachments"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -376,6 +377,7 @@ type UpdateCandidateInput struct {
 	RecruitTime    *time.Time             `json:"recruit_time"`
 	Description    string                 `json:"description"`
 	Country        string                 `json:"country"`
+	Attachments    []*NewAttachmentInput  `json:"attachments"`
 }
 
 type UpdateCandidateInterviewInput struct {

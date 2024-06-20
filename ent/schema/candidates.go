@@ -28,7 +28,6 @@ func (Candidate) Fields() []ent.Field {
 		field.Time("recruit_time").Optional().Annotations(entgql.OrderField("recruit_time")),
 		field.String("description").MaxLen(255).Optional(),
 		field.String("country").MaxLen(255).Optional(),
-		field.UUID("attachment_id", uuid.UUID{}).Optional(),
 	}
 }
 
@@ -37,6 +36,7 @@ func (Candidate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("candidate_job_edges", CandidateJob.Type),
 		edge.From("reference_user_edge", User.Type).Ref("candidate_reference_edges").Unique().Field("reference_uid"),
+		edge.To("attachment_edges", Attachment.Type),
 	}
 }
 

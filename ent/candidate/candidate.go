@@ -44,12 +44,12 @@ const (
 	FieldDescription = "description"
 	// FieldCountry holds the string denoting the country field in the database.
 	FieldCountry = "country"
-	// FieldAttachmentID holds the string denoting the attachment_id field in the database.
-	FieldAttachmentID = "attachment_id"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// EdgeReferenceUserEdge holds the string denoting the reference_user_edge edge name in mutations.
 	EdgeReferenceUserEdge = "reference_user_edge"
+	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
+	EdgeAttachmentEdges = "attachment_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -66,6 +66,13 @@ const (
 	ReferenceUserEdgeInverseTable = "users"
 	// ReferenceUserEdgeColumn is the table column denoting the reference_user_edge relation/edge.
 	ReferenceUserEdgeColumn = "reference_uid"
+	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
+	AttachmentEdgesTable = "attachments"
+	// AttachmentEdgesInverseTable is the table name for the Attachment entity.
+	// It exists in this package in order to avoid circular dependency with the "attachment" package.
+	AttachmentEdgesInverseTable = "attachments"
+	// AttachmentEdgesColumn is the table column denoting the attachment_edges relation/edge.
+	AttachmentEdgesColumn = "relation_id"
 )
 
 // Columns holds all SQL columns for candidate fields.
@@ -86,7 +93,6 @@ var Columns = []string{
 	FieldRecruitTime,
 	FieldDescription,
 	FieldCountry,
-	FieldAttachmentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

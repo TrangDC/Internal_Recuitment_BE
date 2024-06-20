@@ -48,8 +48,6 @@ type Candidate struct {
 	Description string `json:"description,omitempty"`
 	// Country holds the value of the "country" field.
 	Country string `json:"country,omitempty"`
-	// AttachmentID holds the value of the "attachment_id" field.
-	AttachmentID uuid.UUID `json:"attachment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateQuery when eager-loading is set.
 	Edges CandidateEdges `json:"edges"`
@@ -61,13 +59,16 @@ type CandidateEdges struct {
 	CandidateJobEdges []*CandidateJob `json:"candidate_job_edges,omitempty"`
 	// ReferenceUserEdge holds the value of the reference_user_edge edge.
 	ReferenceUserEdge *User `json:"reference_user_edge,omitempty"`
+	// AttachmentEdges holds the value of the attachment_edges edge.
+	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
 	namedCandidateJobEdges map[string][]*CandidateJob
+	namedAttachmentEdges   map[string][]*Attachment
 }
 
 // CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
@@ -92,6 +93,15 @@ func (e CandidateEdges) ReferenceUserEdgeOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "reference_user_edge"}
 }
 
+// AttachmentEdgesOrErr returns the AttachmentEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) AttachmentEdgesOrErr() ([]*Attachment, error) {
+	if e.loadedTypes[2] {
+		return e.AttachmentEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment_edges"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Candidate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -103,7 +113,7 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate, candidate.FieldRecruitTime:
 			values[i] = new(sql.NullTime)
-		case candidate.FieldID, candidate.FieldReferenceUID, candidate.FieldAttachmentID:
+		case candidate.FieldID, candidate.FieldReferenceUID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Candidate", columns[i])
@@ -216,12 +226,6 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Country = value.String
 			}
-		case candidate.FieldAttachmentID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field attachment_id", values[i])
-			} else if value != nil {
-				c.AttachmentID = *value
-			}
 		}
 	}
 	return nil
@@ -235,6 +239,11 @@ func (c *Candidate) QueryCandidateJobEdges() *CandidateJobQuery {
 // QueryReferenceUserEdge queries the "reference_user_edge" edge of the Candidate entity.
 func (c *Candidate) QueryReferenceUserEdge() *UserQuery {
 	return (&CandidateClient{config: c.config}).QueryReferenceUserEdge(c)
+}
+
+// QueryAttachmentEdges queries the "attachment_edges" edge of the Candidate entity.
+func (c *Candidate) QueryAttachmentEdges() *AttachmentQuery {
+	return (&CandidateClient{config: c.config}).QueryAttachmentEdges(c)
 }
 
 // Update returns a builder for updating this Candidate.
@@ -304,9 +313,6 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("country=")
 	builder.WriteString(c.Country)
-	builder.WriteString(", ")
-	builder.WriteString("attachment_id=")
-	builder.WriteString(fmt.Sprintf("%v", c.AttachmentID))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -332,6 +338,30 @@ func (c *Candidate) appendNamedCandidateJobEdges(name string, edges ...*Candidat
 		c.Edges.namedCandidateJobEdges[name] = []*CandidateJob{}
 	} else {
 		c.Edges.namedCandidateJobEdges[name] = append(c.Edges.namedCandidateJobEdges[name], edges...)
+	}
+}
+
+// NamedAttachmentEdges returns the AttachmentEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedAttachmentEdges(name string) ([]*Attachment, error) {
+	if c.Edges.namedAttachmentEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedAttachmentEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedAttachmentEdges(name string, edges ...*Attachment) {
+	if c.Edges.namedAttachmentEdges == nil {
+		c.Edges.namedAttachmentEdges = make(map[string][]*Attachment)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedAttachmentEdges[name] = []*Attachment{}
+	} else {
+		c.Edges.namedAttachmentEdges[name] = append(c.Edges.namedAttachmentEdges[name], edges...)
 	}
 }
 

@@ -293,15 +293,15 @@ func (c *AttachmentClient) GetX(ctx context.Context, id uuid.UUID) *Attachment {
 	return obj
 }
 
-// QueryCandidateJob queries the candidate_job edge of a Attachment.
-func (c *AttachmentClient) QueryCandidateJob(a *Attachment) *CandidateJobQuery {
+// QueryCandidateJobEdge queries the candidate_job_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateJobEdge(a *Attachment) *CandidateJobQuery {
 	query := &CandidateJobQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobTable, attachment.CandidateJobColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobEdgeTable, attachment.CandidateJobEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -309,15 +309,15 @@ func (c *AttachmentClient) QueryCandidateJob(a *Attachment) *CandidateJobQuery {
 	return query
 }
 
-// QueryCandidateJobFeedback queries the candidate_job_feedback edge of a Attachment.
-func (c *AttachmentClient) QueryCandidateJobFeedback(a *Attachment) *CandidateJobFeedbackQuery {
+// QueryCandidateJobFeedbackEdge queries the candidate_job_feedback_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateJobFeedbackEdge(a *Attachment) *CandidateJobFeedbackQuery {
 	query := &CandidateJobFeedbackQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackTable, attachment.CandidateJobFeedbackColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackEdgeTable, attachment.CandidateJobFeedbackEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -325,15 +325,31 @@ func (c *AttachmentClient) QueryCandidateJobFeedback(a *Attachment) *CandidateJo
 	return query
 }
 
-// QueryCandidateInterview queries the candidate_interview edge of a Attachment.
-func (c *AttachmentClient) QueryCandidateInterview(a *Attachment) *CandidateInterviewQuery {
+// QueryCandidateInterviewEdge queries the candidate_interview_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateInterviewEdge(a *Attachment) *CandidateInterviewQuery {
 	query := &CandidateInterviewQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateInterviewTable, attachment.CandidateInterviewColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateInterviewEdgeTable, attachment.CandidateInterviewEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateEdge(a *Attachment) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEdgeTable, attachment.CandidateEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -562,6 +578,22 @@ func (c *CandidateClient) QueryReferenceUserEdge(ca *Candidate) *UserQuery {
 			sqlgraph.From(candidate.Table, candidate.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, candidate.ReferenceUserEdgeTable, candidate.ReferenceUserEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a Candidate.
+func (c *CandidateClient) QueryAttachmentEdges(ca *Candidate) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.AttachmentEdgesTable, candidate.AttachmentEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
 		return fromV, nil

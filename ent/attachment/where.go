@@ -593,25 +593,25 @@ func RelationIDNotNil() predicate.Attachment {
 	})
 }
 
-// HasCandidateJob applies the HasEdge predicate on the "candidate_job" edge.
-func HasCandidateJob() predicate.Attachment {
+// HasCandidateJobEdge applies the HasEdge predicate on the "candidate_job_edge" edge.
+func HasCandidateJobEdge() predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateJobTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobTable, CandidateJobColumn),
+			sqlgraph.To(CandidateJobEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobEdgeTable, CandidateJobEdgeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCandidateJobWith applies the HasEdge predicate on the "candidate_job" edge with a given conditions (other predicates).
-func HasCandidateJobWith(preds ...predicate.CandidateJob) predicate.Attachment {
+// HasCandidateJobEdgeWith applies the HasEdge predicate on the "candidate_job_edge" edge with a given conditions (other predicates).
+func HasCandidateJobEdgeWith(preds ...predicate.CandidateJob) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateJobInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobTable, CandidateJobColumn),
+			sqlgraph.To(CandidateJobEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobEdgeTable, CandidateJobEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -621,25 +621,25 @@ func HasCandidateJobWith(preds ...predicate.CandidateJob) predicate.Attachment {
 	})
 }
 
-// HasCandidateJobFeedback applies the HasEdge predicate on the "candidate_job_feedback" edge.
-func HasCandidateJobFeedback() predicate.Attachment {
+// HasCandidateJobFeedbackEdge applies the HasEdge predicate on the "candidate_job_feedback_edge" edge.
+func HasCandidateJobFeedbackEdge() predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateJobFeedbackTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobFeedbackTable, CandidateJobFeedbackColumn),
+			sqlgraph.To(CandidateJobFeedbackEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobFeedbackEdgeTable, CandidateJobFeedbackEdgeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCandidateJobFeedbackWith applies the HasEdge predicate on the "candidate_job_feedback" edge with a given conditions (other predicates).
-func HasCandidateJobFeedbackWith(preds ...predicate.CandidateJobFeedback) predicate.Attachment {
+// HasCandidateJobFeedbackEdgeWith applies the HasEdge predicate on the "candidate_job_feedback_edge" edge with a given conditions (other predicates).
+func HasCandidateJobFeedbackEdgeWith(preds ...predicate.CandidateJobFeedback) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateJobFeedbackInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobFeedbackTable, CandidateJobFeedbackColumn),
+			sqlgraph.To(CandidateJobFeedbackEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateJobFeedbackEdgeTable, CandidateJobFeedbackEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -649,25 +649,53 @@ func HasCandidateJobFeedbackWith(preds ...predicate.CandidateJobFeedback) predic
 	})
 }
 
-// HasCandidateInterview applies the HasEdge predicate on the "candidate_interview" edge.
-func HasCandidateInterview() predicate.Attachment {
+// HasCandidateInterviewEdge applies the HasEdge predicate on the "candidate_interview_edge" edge.
+func HasCandidateInterviewEdge() predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateInterviewTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewTable, CandidateInterviewColumn),
+			sqlgraph.To(CandidateInterviewEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewEdgeTable, CandidateInterviewEdgeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCandidateInterviewWith applies the HasEdge predicate on the "candidate_interview" edge with a given conditions (other predicates).
-func HasCandidateInterviewWith(preds ...predicate.CandidateInterview) predicate.Attachment {
+// HasCandidateInterviewEdgeWith applies the HasEdge predicate on the "candidate_interview_edge" edge with a given conditions (other predicates).
+func HasCandidateInterviewEdgeWith(preds ...predicate.CandidateInterview) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CandidateInterviewInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewTable, CandidateInterviewColumn),
+			sqlgraph.To(CandidateInterviewEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateInterviewEdgeTable, CandidateInterviewEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateEdge applies the HasEdge predicate on the "candidate_edge" edge.
+func HasCandidateEdge() predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateEdgeWith applies the HasEdge predicate on the "candidate_edge" edge with a given conditions (other predicates).
+func HasCandidateEdgeWith(preds ...predicate.Candidate) predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

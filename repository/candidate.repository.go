@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 
@@ -26,7 +27,6 @@ type CandidateRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateQuery) ([]*ent.Candidate, error)
 	// common function
 	ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) error
-	ValidCandidateReferenceType(referenceType ent.CandidateReferenceType, referenceValue string) error
 }
 
 type candidateRepoImpl struct {
@@ -74,7 +74,11 @@ func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
 		func(query *ent.CandidateJobQuery) {
 			query.Where(candidatejob.DeletedAtIsNil()).Order(ent.Desc(candidatejob.FieldUpdatedAt)).WithHiringJobEdge()
 		},
-	).WithReferenceUserEdge()
+	).WithReferenceUserEdge().WithAttachmentEdges(
+		func(query *ent.AttachmentQuery) {
+			query.Where(attachment.DeletedAtIsNil())
+		},
+	)
 }
 
 func (rps candidateRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateQuery) (*ent.Candidate, error) {
@@ -111,13 +115,13 @@ func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.New
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
 		SetDescription(strings.TrimSpace(input.Description))
-	if input.Dob != nil && input.Dob.IsZero() {
+	if input.Dob != nil && !input.Dob.IsZero() {
 		create.SetDob(*input.Dob)
 	}
 	if input.ReferenceUID != "" {
 		create.SetReferenceUID(uuid.MustParse(input.ReferenceUID))
 	}
-	if input.RecruitTime != nil && input.RecruitTime.IsZero(){
+	if input.RecruitTime != nil && !input.RecruitTime.IsZero() {
 		create.SetRecruitTime(*input.RecruitTime)
 	}
 	return create.Save(ctx)
@@ -132,13 +136,13 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
 		SetDescription(strings.TrimSpace(input.Description))
-	if input.Dob != nil && input.Dob.IsZero() {
+	if input.Dob != nil && !input.Dob.IsZero() {
 		update.SetDob(*input.Dob)
 	}
 	if input.ReferenceUID != "" {
 		update.SetReferenceUID(uuid.MustParse(input.ReferenceUID))
 	}
-	if input.RecruitTime != nil && input.RecruitTime.IsZero(){
+	if input.RecruitTime != nil && !input.RecruitTime.IsZero() {
 		update.SetRecruitTime(*input.RecruitTime)
 	}
 	return update.Save(ctx)
@@ -167,24 +171,6 @@ func (rps candidateRepoImpl) ValidEmail(ctx context.Context, candidateId uuid.UU
 	isExist, _ := rps.BuildExist(ctx, query)
 	if isExist {
 		return fmt.Errorf("model.candidates.validation.email_exist")
-	}
-	return nil
-}
-
-func (rps candidateRepoImpl) ValidCandidateReferenceType(referenceType ent.CandidateReferenceType, referenceValue string) error {
-	switch referenceType {
-	case ent.CandidateReferenceTypeEb:
-		if !ent.CandidateReferenceEb.IsValid(ent.CandidateReferenceEb(referenceValue)) {
-			return fmt.Errorf("model.candidates.validation.reference_value_invalid")
-		}
-	case ent.CandidateReferenceTypeRec:
-		if !ent.CandidateReferenceRec.IsValid(ent.CandidateReferenceRec(referenceValue)) {
-			return fmt.Errorf("model.candidates.validation.reference_value_invalid")
-		}
-	case ent.CandidateReferenceTypeHiringPlatform:
-		if !ent.CandidateReferenceHiringPlatform.IsValid(ent.CandidateReferenceHiringPlatform(referenceValue)) {
-			return fmt.Errorf("model.candidates.validation.reference_value_invalid")
-		}
 	}
 	return nil
 }

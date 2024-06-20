@@ -162,10 +162,6 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err := svc.repoRegistry.CandidateJob().UpsetCandidateAttachment(ctx, candidateJob)
-		if err != nil {
-			return err
-		}
 		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateJob.ID, repoRegistry)
 		if err != nil {
 			return err

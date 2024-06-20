@@ -6,6 +6,8 @@ import (
 	"trec/ent"
 	"trec/ent/candidate"
 	"trec/models"
+
+	"github.com/samber/lo"
 )
 
 type CandidateDto interface {
@@ -50,7 +52,7 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 		Update: []interface{}{},
 		Delete: []interface{}{},
 	}
-	result := []interface{}{}
+	entity := []interface{}{}
 	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
 	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
 	recordType := reflect.TypeOf(oldRecord).Elem()
@@ -66,8 +68,26 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 			case "model.candidates.is_blacklist":
 				oldValueField = d.isBlacklistI18n(oldRecord.IsBlacklist)
 				newValueField = d.isBlacklistI18n(newRecord.IsBlacklist)
+			case "model.candidates.reference_type":
+				oldValueField = d.referenceTypeI18n(oldRecord.ReferenceType)
+				newValueField = d.referenceTypeI18n(newRecord.ReferenceType)
+			case "model.candidates.reference_value":
+				oldValueField = d.referenceTypeValueI18n(oldRecord.ReferenceType, oldRecord.ReferenceValue)
+				newValueField = d.referenceTypeValueI18n(newRecord.ReferenceType, newRecord.ReferenceValue)
+			case "model.candidates.reference_user":
+				oldValueField = oldRecord.Edges.ReferenceUserEdge.Name
+				newValueField = newRecord.Edges.ReferenceUserEdge.Name
+			case "model.candidates.recruit_time":
+				oldValueField = oldRecord.RecruitTime
+				newValueField = newRecord.RecruitTime
+			case "model.candidates.country":
+				oldValueField = oldRecord.Country
+				newValueField = newRecord.Country
+			case "model.candidates.description":
+				oldValueField = oldRecord.Description
+				newValueField = newRecord.Description
 			}
-			result = append(result, models.AuditTrailUpdate{
+			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
 				Value: models.ValueChange{
 					OldValue: oldValueField,
@@ -76,8 +96,9 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 			})
 		}
 	}
-	auditTrail.Update = append(auditTrail.Update, result...)
-	jsonObj, err := json.Marshal(result)
+	entity = d.attachmentAuditTrailUpdate(oldRecord, newRecord, entity)
+	auditTrail.Update = append(auditTrail.Update, entity...)
+	jsonObj, err := json.Marshal(entity)
 	return string(jsonObj), err
 }
 
@@ -94,13 +115,62 @@ func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {
 			continue
 		case "model.candidates.is_blacklist":
 			valueField = d.isBlacklistI18n(record.IsBlacklist)
+		case "model.candidates.reference_type":
+			valueField = d.referenceTypeI18n(record.ReferenceType)
+		case "model.candidates.reference_value":
+			valueField = d.referenceTypeValueI18n(record.ReferenceType, record.ReferenceValue)
+		case "model.candidates.reference_user":
+			valueField = record.Edges.ReferenceUserEdge.Name
+		case "model.candidates.recruit_time":
+			valueField = record.RecruitTime
+		case "model.candidates.country":
+			valueField = record.Country
+		case "model.candidates.description":
+			valueField = record.Description
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
 			Value: valueField,
 		})
 	}
+	entity = d.attachmentAuditTrail(record, entity)
 	return entity
+}
+
+func (d candidateDtoImpl) attachmentAuditTrail(record *ent.Candidate, atInterface []interface{}) []interface{} {
+	if len(record.Edges.AttachmentEdges) == 0 {
+		return atInterface
+	}
+	attachmentNames := lo.Map(record.Edges.AttachmentEdges, func(document *ent.Attachment, index int) string {
+		return document.DocumentName
+	})
+	atInterface = append(atInterface, models.AuditTrailCreateDelete{
+		Field: "model.candidates.document",
+		Value: attachmentNames,
+	})
+	return atInterface
+}
+
+func (d candidateDtoImpl) attachmentAuditTrailUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate, atInterface []interface{}) []interface{} {
+	if len(oldRecord.Edges.AttachmentEdges) == 0 && len(newRecord.Edges.AttachmentEdges) == 0 {
+		return atInterface
+	}
+	oldAttachmentNames := lo.Map(oldRecord.Edges.AttachmentEdges, func(document *ent.Attachment, index int) string {
+		return document.DocumentName
+	})
+	newAttachmentNames := lo.Map(newRecord.Edges.AttachmentEdges, func(document *ent.Attachment, index int) string {
+		return document.DocumentName
+	})
+	if !CompareArray(oldAttachmentNames, newAttachmentNames) {
+		atInterface = append(atInterface, models.AuditTrailUpdate{
+			Field: "model.candidates.document",
+			Value: models.ValueChange{
+				OldValue: oldAttachmentNames,
+				NewValue: newAttachmentNames,
+			},
+		})
+	}
+	return atInterface
 }
 
 func (d *candidateDtoImpl) formatFieldI18n(input string) string {
@@ -115,6 +185,18 @@ func (d *candidateDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidates.dob"
 	case "IsBlacklist":
 		return "model.candidates.is_blacklist"
+	case "ReferenceType":
+		return "model.candidates.reference_type"
+	case "ReferenceValue":
+		return "model.candidates.reference_value"
+	case "ReferenceUid":
+		return "model.candidates.reference_user"
+	case "RecruitTime":
+		return "model.candidates.recruit_time"
+	case "Description":
+		return "model.candidates.description"
+	case "Country":
+		return "model.candidates.country"
 	}
 	return ""
 }
@@ -143,45 +225,63 @@ func (d *candidateDtoImpl) referenceTypeI18n(input candidate.ReferenceType) stri
 	}
 }
 
-func (d *candidateDtoImpl) referenceTypeValueI18n(input string) string {
-	// tiktok_techvify_official
-  // tiktok_thedevdad
-  // linkedin_junie_truong
-  // other_linkedin
-  // group_seeding
-  // fanpage_techvify_careers
-  // google_search
-  // youtube_techvify_careers
-  // thread
-  // instagram
-  // twitter
-  // others
-	switch input {
-	case ent.CandidateReferenceEbTiktokTechvifyOfficial.String():
-		return "model.candidates.reference_value.tiktok_techvify_official"
-	case ent.CandidateReferenceEbTiktokThedevdad.String():
-		return "model.candidates.reference_value.tiktok_thedevdad"
-	case ent.CandidateReferenceEbLinkedinJunieTruong.String():
-		return "model.candidates.reference_value.linkedin_junie_truong"
-	case ent.CandidateReferenceEbOtherLinkedin.String():
-		return "model.candidates.reference_value.other_linkedin"
-	case ent.CandidateReferenceEbGroupSeeding.String():
-		return "model.candidates.reference_value.group_seeding"
-	case ent.CandidateReferenceEbFanpageTechvifyCareers.String():
-		return "model.candidates.reference_value.fanpage_techvify_careers"
-	case ent.CandidateReferenceEbGoogleSearch.String():
-		return "model.candidates.reference_value.google_search"
-	case ent.CandidateReferenceEbYoutubeTechvifyCareers.String():
-		return "model.candidates.reference_value.youtube_techvify_careers"
-	case ent.CandidateReferenceEbThread.String():
-		return "model.candidates.reference_value.thread"
-	case ent.CandidateReferenceEbInstagram.String():
-		return "model.candidates.reference_value.instagram"
-	case ent.CandidateReferenceEbTwitter.String():
-		return "model.candidates.reference_value.twitter"
-	case ent.CandidateReferenceEbOthers.String():
-		return "model.candidates.reference_value.others"
-	default:
-		return input
+func (d *candidateDtoImpl) referenceTypeValueI18n(referenceType candidate.ReferenceType, input string) string {
+	switch referenceType {
+	case candidate.ReferenceTypeEb:
+		switch input {
+		case ent.CandidateReferenceEbTiktokTechvifyOfficial.String():
+			return "model.candidates.reference_type.eb.reference_value.tiktok_techvify_official"
+		case ent.CandidateReferenceEbTiktokThedevdad.String():
+			return "model.candidates.reference_type.eb.reference_value.tiktok_thedevdad"
+		case ent.CandidateReferenceEbLinkedinJunieTruong.String():
+			return "model.candidates.reference_type.eb.reference_value.linkedin_junie_truong"
+		case ent.CandidateReferenceEbOtherLinkedin.String():
+			return "model.candidates.reference_type.eb.reference_value.other_linkedin"
+		case ent.CandidateReferenceEbGroupSeeding.String():
+			return "model.candidates.reference_type.eb.reference_value.group_seeding"
+		case ent.CandidateReferenceEbFanpageTechvifyCareers.String():
+			return "model.candidates.reference_type.eb.reference_value.fanpage_techvify_careers"
+		case ent.CandidateReferenceEbGoogleSearch.String():
+			return "model.candidates.reference_type.eb.reference_value.google_search"
+		case ent.CandidateReferenceEbYoutubeTechvifyCareers.String():
+			return "model.candidates.reference_type.eb.reference_value.youtube_techvify_careers"
+		case ent.CandidateReferenceEbThread.String():
+			return "model.candidates.reference_type.eb.reference_value.thread"
+		case ent.CandidateReferenceEbInstagram.String():
+			return "model.candidates.reference_type.eb.reference_value.instagram"
+		case ent.CandidateReferenceEbTwitter.String():
+			return "model.candidates.reference_type.eb.reference_value.twitter"
+		case ent.CandidateReferenceEbOthers.String():
+			return "model.candidates.reference_type.eb.reference_value.others"
+		default:
+			return input
+		}
+	case candidate.ReferenceTypeRec:
+		switch input {
+		case ent.CandidateReferenceRecLinkedin.String():
+			return "model.candidates.reference_type.rec.reference_value.linkedin"
+		case ent.CandidateReferenceRecFacebook.String():
+			return "model.candidates.reference_type.rec.reference_value.facebook"
+		case ent.CandidateReferenceRecInstagram.String():
+			return "model.candidates.reference_type.rec.reference_value.instagram"
+		case ent.CandidateReferenceRecThread.String():
+			return "model.candidates.reference_type.rec.reference_value.thread"
+		case ent.CandidateReferenceRecGithub.String():
+			return "model.candidates.reference_type.rec.reference_value.github"
+		default:
+			return input
+		}
+	case candidate.ReferenceTypeHiringPlatform:
+		switch input {
+		case ent.CandidateReferenceHiringPlatformTopcv.String():
+			return "model.candidates.reference_type.hiring_platform.reference_value.topcv"
+		case ent.CandidateReferenceHiringPlatformVietnamWorks.String():
+			return "model.candidates.reference_type.hiring_platform.reference_value.vietnam_works"
+		case ent.CandidateReferenceHiringPlatformItviec.String():
+			return "model.candidates.reference_type.hiring_platform.reference_value.itviec"
+		default:
+			return input
+		}
 	}
+	return input
 }

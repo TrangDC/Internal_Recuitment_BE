@@ -58,7 +58,7 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     a.ID,
 		Type:   "Attachment",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(a.CreatedAt); err != nil {
@@ -119,9 +119,9 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[0] = &Edge{
 		Type: "CandidateJob",
-		Name: "candidate_job",
+		Name: "candidate_job_edge",
 	}
-	err = a.QueryCandidateJob().
+	err = a.QueryCandidateJobEdge().
 		Select(candidatejob.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -129,9 +129,9 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1] = &Edge{
 		Type: "CandidateJobFeedback",
-		Name: "candidate_job_feedback",
+		Name: "candidate_job_feedback_edge",
 	}
-	err = a.QueryCandidateJobFeedback().
+	err = a.QueryCandidateJobFeedbackEdge().
 		Select(candidatejobfeedback.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -139,11 +139,21 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[2] = &Edge{
 		Type: "CandidateInterview",
-		Name: "candidate_interview",
+		Name: "candidate_interview_edge",
 	}
-	err = a.QueryCandidateInterview().
+	err = a.QueryCandidateInterviewEdge().
 		Select(candidateinterview.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = a.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -247,8 +257,8 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Candidate",
-		Fields: make([]*Field, 16),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 15),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreatedAt); err != nil {
@@ -371,14 +381,6 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "country",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.AttachmentID); err != nil {
-		return nil, err
-	}
-	node.Fields[15] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "attachment_id",
-		Value: string(buf),
-	}
 	node.Edges[0] = &Edge{
 		Type: "CandidateJob",
 		Name: "candidate_job_edges",
@@ -396,6 +398,16 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	err = c.QueryReferenceUserEdge().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = c.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
