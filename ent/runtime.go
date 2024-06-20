@@ -117,6 +117,18 @@ func init() {
 	candidateDescIsBlacklist := candidateFields[4].Descriptor()
 	// candidate.DefaultIsBlacklist holds the default value on creation for the is_blacklist field.
 	candidate.DefaultIsBlacklist = candidateDescIsBlacklist.Default.(bool)
+	// candidateDescReferenceValue is the schema descriptor for reference_value field.
+	candidateDescReferenceValue := candidateFields[7].Descriptor()
+	// candidate.ReferenceValueValidator is a validator for the "reference_value" field. It is called by the builders before save.
+	candidate.ReferenceValueValidator = candidateDescReferenceValue.Validators[0].(func(string) error)
+	// candidateDescDescription is the schema descriptor for description field.
+	candidateDescDescription := candidateFields[10].Descriptor()
+	// candidate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	candidate.DescriptionValidator = candidateDescDescription.Validators[0].(func(string) error)
+	// candidateDescCountry is the schema descriptor for country field.
+	candidateDescCountry := candidateFields[11].Descriptor()
+	// candidate.CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	candidate.CountryValidator = candidateDescCountry.Validators[0].(func(string) error)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
 	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
 	_ = candidateinterviewMixinFields0

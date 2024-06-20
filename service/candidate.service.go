@@ -47,8 +47,14 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 	var record *ent.Candidate
 	err := svc.repoRegistry.Candidate().ValidEmail(ctx, uuid.Nil, input.Email)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.Candidate().ValidCandidateReferenceType(input.ReferenceType, input.ReferenceValue)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
+		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.Candidate().CreateCandidate(ctx, input)
@@ -113,8 +119,14 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 	}
 	err = svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.Candidate().ValidCandidateReferenceType(input.ReferenceType, input.ReferenceValue)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
+		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.Candidate().UpdateCandidate(ctx, record, input)

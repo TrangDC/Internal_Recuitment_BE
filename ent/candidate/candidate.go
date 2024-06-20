@@ -3,6 +3,9 @@
 package candidate
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -29,8 +32,24 @@ const (
 	FieldIsBlacklist = "is_blacklist"
 	// FieldLastApplyDate holds the string denoting the last_apply_date field in the database.
 	FieldLastApplyDate = "last_apply_date"
+	// FieldReferenceType holds the string denoting the reference_type field in the database.
+	FieldReferenceType = "reference_type"
+	// FieldReferenceValue holds the string denoting the reference_value field in the database.
+	FieldReferenceValue = "reference_value"
+	// FieldReferenceUID holds the string denoting the reference_uid field in the database.
+	FieldReferenceUID = "reference_uid"
+	// FieldRecruitTime holds the string denoting the recruit_time field in the database.
+	FieldRecruitTime = "recruit_time"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldCountry holds the string denoting the country field in the database.
+	FieldCountry = "country"
+	// FieldAttachmentID holds the string denoting the attachment_id field in the database.
+	FieldAttachmentID = "attachment_id"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
+	// EdgeReferenceUserEdge holds the string denoting the reference_user_edge edge name in mutations.
+	EdgeReferenceUserEdge = "reference_user_edge"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -40,6 +59,13 @@ const (
 	CandidateJobEdgesInverseTable = "candidate_jobs"
 	// CandidateJobEdgesColumn is the table column denoting the candidate_job_edges relation/edge.
 	CandidateJobEdgesColumn = "candidate_id"
+	// ReferenceUserEdgeTable is the table that holds the reference_user_edge relation/edge.
+	ReferenceUserEdgeTable = "candidates"
+	// ReferenceUserEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	ReferenceUserEdgeInverseTable = "users"
+	// ReferenceUserEdgeColumn is the table column denoting the reference_user_edge relation/edge.
+	ReferenceUserEdgeColumn = "reference_uid"
 )
 
 // Columns holds all SQL columns for candidate fields.
@@ -54,6 +80,13 @@ var Columns = []string{
 	FieldDob,
 	FieldIsBlacklist,
 	FieldLastApplyDate,
+	FieldReferenceType,
+	FieldReferenceValue,
+	FieldReferenceUID,
+	FieldRecruitTime,
+	FieldDescription,
+	FieldCountry,
+	FieldAttachmentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -77,4 +110,57 @@ var (
 	PhoneValidator func(string) error
 	// DefaultIsBlacklist holds the default value on creation for the "is_blacklist" field.
 	DefaultIsBlacklist bool
+	// ReferenceValueValidator is a validator for the "reference_value" field. It is called by the builders before save.
+	ReferenceValueValidator func(string) error
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
+	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	CountryValidator func(string) error
 )
+
+// ReferenceType defines the type for the "reference_type" enum field.
+type ReferenceType string
+
+// ReferenceTypeEb is the default value of the ReferenceType enum.
+const DefaultReferenceType = ReferenceTypeEb
+
+// ReferenceType values.
+const (
+	ReferenceTypeEb             ReferenceType = "eb"
+	ReferenceTypeRec            ReferenceType = "rec"
+	ReferenceTypeHiringPlatform ReferenceType = "hiring_platform"
+	ReferenceTypeReference      ReferenceType = "reference"
+	ReferenceTypeHeadhunt       ReferenceType = "headhunt"
+)
+
+func (rt ReferenceType) String() string {
+	return string(rt)
+}
+
+// ReferenceTypeValidator is a validator for the "reference_type" field enum values. It is called by the builders before save.
+func ReferenceTypeValidator(rt ReferenceType) error {
+	switch rt {
+	case ReferenceTypeEb, ReferenceTypeRec, ReferenceTypeHiringPlatform, ReferenceTypeReference, ReferenceTypeHeadhunt:
+		return nil
+	default:
+		return fmt.Errorf("candidate: invalid enum value for reference_type field: %q", rt)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e ReferenceType) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *ReferenceType) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = ReferenceType(str)
+	if err := ReferenceTypeValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid ReferenceType", str)
+	}
+	return nil
+}

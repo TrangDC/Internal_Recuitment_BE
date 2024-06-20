@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,7 @@ type CandidateQuery struct {
 	fields                     []string
 	predicates                 []predicate.Candidate
 	withCandidateJobEdges      *CandidateJobQuery
+	withReferenceUserEdge      *UserQuery
 	modifiers                  []func(*sql.Selector)
 	loadTotal                  []func(context.Context, []*Candidate) error
 	withNamedCandidateJobEdges map[string]*CandidateJobQuery
@@ -81,6 +83,28 @@ func (cq *CandidateQuery) QueryCandidateJobEdges() *CandidateJobQuery {
 			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateJobEdgesTable, candidate.CandidateJobEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReferenceUserEdge chains the current query on the "reference_user_edge" edge.
+func (cq *CandidateQuery) QueryReferenceUserEdge() *UserQuery {
+	query := &UserQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidate.ReferenceUserEdgeTable, candidate.ReferenceUserEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,6 +294,7 @@ func (cq *CandidateQuery) Clone() *CandidateQuery {
 		order:                 append([]OrderFunc{}, cq.order...),
 		predicates:            append([]predicate.Candidate{}, cq.predicates...),
 		withCandidateJobEdges: cq.withCandidateJobEdges.Clone(),
+		withReferenceUserEdge: cq.withReferenceUserEdge.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
@@ -285,6 +310,17 @@ func (cq *CandidateQuery) WithCandidateJobEdges(opts ...func(*CandidateJobQuery)
 		opt(query)
 	}
 	cq.withCandidateJobEdges = query
+	return cq
+}
+
+// WithReferenceUserEdge tells the query-builder to eager-load the nodes that are connected to
+// the "reference_user_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithReferenceUserEdge(opts ...func(*UserQuery)) *CandidateQuery {
+	query := &UserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withReferenceUserEdge = query
 	return cq
 }
 
@@ -361,8 +397,9 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	var (
 		nodes       = []*Candidate{}
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			cq.withCandidateJobEdges != nil,
+			cq.withReferenceUserEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -390,6 +427,12 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *Candidate) { n.Edges.CandidateJobEdges = []*CandidateJob{} },
 			func(n *Candidate, e *CandidateJob) { n.Edges.CandidateJobEdges = append(n.Edges.CandidateJobEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withReferenceUserEdge; query != nil {
+		if err := cq.loadReferenceUserEdge(ctx, query, nodes, nil,
+			func(n *Candidate, e *User) { n.Edges.ReferenceUserEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -432,6 +475,32 @@ func (cq *CandidateQuery) loadCandidateJobEdges(ctx context.Context, query *Cand
 			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (cq *CandidateQuery) loadReferenceUserEdge(ctx context.Context, query *UserQuery, nodes []*Candidate, init func(*Candidate), assign func(*Candidate, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Candidate)
+	for i := range nodes {
+		fk := nodes[i].ReferenceUID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "reference_uid" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

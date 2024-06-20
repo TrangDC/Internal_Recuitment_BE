@@ -17,11 +17,55 @@ enum CandidateOrderField {
   email
 }
 
+enum CandidateReferenceType {
+  eb
+  rec
+  hiring_platform
+  reference
+  headhunt
+}
+
+enum CandidateReferenceEB {
+  tiktok_techvify_official
+  tiktok_thedevdad
+  linkedin_junie_truong
+  other_linkedin
+  group_seeding
+  fanpage_techvify_careers
+  google_search
+  youtube_techvify_careers
+  thread
+  instagram
+  twitter
+  others
+}
+
+enum CandidateReferenceRec {
+  linkedin
+  facebook
+  instagram
+  thread
+  github
+  others
+}
+
+enum CandidateReferenceHiringPlatform {
+  topcv
+  vietnam_works
+  itviec
+}
+
 input NewCandidateInput{
   name: String!
   email: String!
   phone: String!
   dob: Time
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
 }
 
 input UpdateCandidateInput {
@@ -29,6 +73,12 @@ input UpdateCandidateInput {
   email: String!
   phone: String!
   dob: Time
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
 }
 
 input CandidateFilter {
@@ -68,6 +118,14 @@ type Candidate {
   last_apply_date: Time
   is_able_to_delete: Boolean!
   hiring_job_title: String!
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
+  attachment_id: ID!
+  reference_user: User
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

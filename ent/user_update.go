@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/audittrail"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -214,6 +215,21 @@ func (uu *UserUpdate) AddCandidateInterviewEdges(c ...*CandidateInterview) *User
 	return uu.AddCandidateInterviewEdgeIDs(ids...)
 }
 
+// AddCandidateReferenceEdgeIDs adds the "candidate_reference_edges" edge to the Candidate entity by IDs.
+func (uu *UserUpdate) AddCandidateReferenceEdgeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddCandidateReferenceEdgeIDs(ids...)
+	return uu
+}
+
+// AddCandidateReferenceEdges adds the "candidate_reference_edges" edges to the Candidate entity.
+func (uu *UserUpdate) AddCandidateReferenceEdges(c ...*Candidate) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCandidateReferenceEdgeIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uu *UserUpdate) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddTeamUserIDs(ids...)
@@ -394,6 +410,27 @@ func (uu *UserUpdate) RemoveCandidateInterviewEdges(c ...*CandidateInterview) *U
 		ids[i] = c[i].ID
 	}
 	return uu.RemoveCandidateInterviewEdgeIDs(ids...)
+}
+
+// ClearCandidateReferenceEdges clears all "candidate_reference_edges" edges to the Candidate entity.
+func (uu *UserUpdate) ClearCandidateReferenceEdges() *UserUpdate {
+	uu.mutation.ClearCandidateReferenceEdges()
+	return uu
+}
+
+// RemoveCandidateReferenceEdgeIDs removes the "candidate_reference_edges" edge to Candidate entities by IDs.
+func (uu *UserUpdate) RemoveCandidateReferenceEdgeIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveCandidateReferenceEdgeIDs(ids...)
+	return uu
+}
+
+// RemoveCandidateReferenceEdges removes "candidate_reference_edges" edges to Candidate entities.
+func (uu *UserUpdate) RemoveCandidateReferenceEdges(c ...*Candidate) *UserUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCandidateReferenceEdgeIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -967,6 +1004,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.CandidateReferenceEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCandidateReferenceEdgesIDs(); len(nodes) > 0 && !uu.mutation.CandidateReferenceEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CandidateReferenceEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.TeamUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1271,6 +1362,21 @@ func (uuo *UserUpdateOne) AddCandidateInterviewEdges(c ...*CandidateInterview) *
 	return uuo.AddCandidateInterviewEdgeIDs(ids...)
 }
 
+// AddCandidateReferenceEdgeIDs adds the "candidate_reference_edges" edge to the Candidate entity by IDs.
+func (uuo *UserUpdateOne) AddCandidateReferenceEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddCandidateReferenceEdgeIDs(ids...)
+	return uuo
+}
+
+// AddCandidateReferenceEdges adds the "candidate_reference_edges" edges to the Candidate entity.
+func (uuo *UserUpdateOne) AddCandidateReferenceEdges(c ...*Candidate) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCandidateReferenceEdgeIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uuo *UserUpdateOne) AddTeamUserIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddTeamUserIDs(ids...)
@@ -1451,6 +1557,27 @@ func (uuo *UserUpdateOne) RemoveCandidateInterviewEdges(c ...*CandidateInterview
 		ids[i] = c[i].ID
 	}
 	return uuo.RemoveCandidateInterviewEdgeIDs(ids...)
+}
+
+// ClearCandidateReferenceEdges clears all "candidate_reference_edges" edges to the Candidate entity.
+func (uuo *UserUpdateOne) ClearCandidateReferenceEdges() *UserUpdateOne {
+	uuo.mutation.ClearCandidateReferenceEdges()
+	return uuo
+}
+
+// RemoveCandidateReferenceEdgeIDs removes the "candidate_reference_edges" edge to Candidate entities by IDs.
+func (uuo *UserUpdateOne) RemoveCandidateReferenceEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveCandidateReferenceEdgeIDs(ids...)
+	return uuo
+}
+
+// RemoveCandidateReferenceEdges removes "candidate_reference_edges" edges to Candidate entities.
+func (uuo *UserUpdateOne) RemoveCandidateReferenceEdges(c ...*Candidate) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCandidateReferenceEdgeIDs(ids...)
 }
 
 // ClearTeamUsers clears all "team_users" edges to the TeamManager entity.
@@ -2046,6 +2173,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CandidateReferenceEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCandidateReferenceEdgesIDs(); len(nodes) > 0 && !uuo.mutation.CandidateReferenceEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CandidateReferenceEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateReferenceEdgesTable,
+			Columns: []string{user.CandidateReferenceEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
 				},
 			},
 		}

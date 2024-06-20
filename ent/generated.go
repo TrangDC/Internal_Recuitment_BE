@@ -235,10 +235,16 @@ type NewAttachmentInput struct {
 }
 
 type NewCandidateInput struct {
-	Name  string     `json:"name"`
-	Email string     `json:"email"`
-	Phone string     `json:"phone"`
-	Dob   *time.Time `json:"dob"`
+	Name           string                 `json:"name"`
+	Email          string                 `json:"email"`
+	Phone          string                 `json:"phone"`
+	Dob            *time.Time             `json:"dob"`
+	ReferenceType  CandidateReferenceType `json:"reference_type"`
+	ReferenceValue string                 `json:"reference_value"`
+	ReferenceUID   string                 `json:"reference_uid"`
+	RecruitTime    *time.Time             `json:"recruit_time"`
+	Description    string                 `json:"description"`
+	Country        string                 `json:"country"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -360,10 +366,16 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateInput struct {
-	Name  string     `json:"name"`
-	Email string     `json:"email"`
-	Phone string     `json:"phone"`
-	Dob   *time.Time `json:"dob"`
+	Name           string                 `json:"name"`
+	Email          string                 `json:"email"`
+	Phone          string                 `json:"phone"`
+	Dob            *time.Time             `json:"dob"`
+	ReferenceType  CandidateReferenceType `json:"reference_type"`
+	ReferenceValue string                 `json:"reference_value"`
+	ReferenceUID   string                 `json:"reference_uid"`
+	RecruitTime    *time.Time             `json:"recruit_time"`
+	Description    string                 `json:"description"`
+	Country        string                 `json:"country"`
 }
 
 type UpdateCandidateInterviewInput struct {
@@ -916,6 +928,206 @@ func (e *CandidateJobStatusOpen) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CandidateJobStatusOpen) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateReferenceEb string
+
+const (
+	CandidateReferenceEbTiktokTechvifyOfficial CandidateReferenceEb = "tiktok_techvify_official"
+	CandidateReferenceEbTiktokThedevdad        CandidateReferenceEb = "tiktok_thedevdad"
+	CandidateReferenceEbLinkedinJunieTruong    CandidateReferenceEb = "linkedin_junie_truong"
+	CandidateReferenceEbOtherLinkedin          CandidateReferenceEb = "other_linkedin"
+	CandidateReferenceEbGroupSeeding           CandidateReferenceEb = "group_seeding"
+	CandidateReferenceEbFanpageTechvifyCareers CandidateReferenceEb = "fanpage_techvify_careers"
+	CandidateReferenceEbGoogleSearch           CandidateReferenceEb = "google_search"
+	CandidateReferenceEbYoutubeTechvifyCareers CandidateReferenceEb = "youtube_techvify_careers"
+	CandidateReferenceEbThread                 CandidateReferenceEb = "thread"
+	CandidateReferenceEbInstagram              CandidateReferenceEb = "instagram"
+	CandidateReferenceEbTwitter                CandidateReferenceEb = "twitter"
+	CandidateReferenceEbOthers                 CandidateReferenceEb = "others"
+)
+
+var AllCandidateReferenceEb = []CandidateReferenceEb{
+	CandidateReferenceEbTiktokTechvifyOfficial,
+	CandidateReferenceEbTiktokThedevdad,
+	CandidateReferenceEbLinkedinJunieTruong,
+	CandidateReferenceEbOtherLinkedin,
+	CandidateReferenceEbGroupSeeding,
+	CandidateReferenceEbFanpageTechvifyCareers,
+	CandidateReferenceEbGoogleSearch,
+	CandidateReferenceEbYoutubeTechvifyCareers,
+	CandidateReferenceEbThread,
+	CandidateReferenceEbInstagram,
+	CandidateReferenceEbTwitter,
+	CandidateReferenceEbOthers,
+}
+
+func (e CandidateReferenceEb) IsValid() bool {
+	switch e {
+	case CandidateReferenceEbTiktokTechvifyOfficial, CandidateReferenceEbTiktokThedevdad, CandidateReferenceEbLinkedinJunieTruong, CandidateReferenceEbOtherLinkedin, CandidateReferenceEbGroupSeeding, CandidateReferenceEbFanpageTechvifyCareers, CandidateReferenceEbGoogleSearch, CandidateReferenceEbYoutubeTechvifyCareers, CandidateReferenceEbThread, CandidateReferenceEbInstagram, CandidateReferenceEbTwitter, CandidateReferenceEbOthers:
+		return true
+	}
+	return false
+}
+
+func (e CandidateReferenceEb) String() string {
+	return string(e)
+}
+
+func (e *CandidateReferenceEb) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateReferenceEb(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateReferenceEB", str)
+	}
+	return nil
+}
+
+func (e CandidateReferenceEb) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateReferenceHiringPlatform string
+
+const (
+	CandidateReferenceHiringPlatformTopcv        CandidateReferenceHiringPlatform = "topcv"
+	CandidateReferenceHiringPlatformVietnamWorks CandidateReferenceHiringPlatform = "vietnam_works"
+	CandidateReferenceHiringPlatformItviec       CandidateReferenceHiringPlatform = "itviec"
+)
+
+var AllCandidateReferenceHiringPlatform = []CandidateReferenceHiringPlatform{
+	CandidateReferenceHiringPlatformTopcv,
+	CandidateReferenceHiringPlatformVietnamWorks,
+	CandidateReferenceHiringPlatformItviec,
+}
+
+func (e CandidateReferenceHiringPlatform) IsValid() bool {
+	switch e {
+	case CandidateReferenceHiringPlatformTopcv, CandidateReferenceHiringPlatformVietnamWorks, CandidateReferenceHiringPlatformItviec:
+		return true
+	}
+	return false
+}
+
+func (e CandidateReferenceHiringPlatform) String() string {
+	return string(e)
+}
+
+func (e *CandidateReferenceHiringPlatform) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateReferenceHiringPlatform(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateReferenceHiringPlatform", str)
+	}
+	return nil
+}
+
+func (e CandidateReferenceHiringPlatform) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateReferenceRec string
+
+const (
+	CandidateReferenceRecLinkedin  CandidateReferenceRec = "linkedin"
+	CandidateReferenceRecFacebook  CandidateReferenceRec = "facebook"
+	CandidateReferenceRecInstagram CandidateReferenceRec = "instagram"
+	CandidateReferenceRecThread    CandidateReferenceRec = "thread"
+	CandidateReferenceRecGithub    CandidateReferenceRec = "github"
+	CandidateReferenceRecOthers    CandidateReferenceRec = "others"
+)
+
+var AllCandidateReferenceRec = []CandidateReferenceRec{
+	CandidateReferenceRecLinkedin,
+	CandidateReferenceRecFacebook,
+	CandidateReferenceRecInstagram,
+	CandidateReferenceRecThread,
+	CandidateReferenceRecGithub,
+	CandidateReferenceRecOthers,
+}
+
+func (e CandidateReferenceRec) IsValid() bool {
+	switch e {
+	case CandidateReferenceRecLinkedin, CandidateReferenceRecFacebook, CandidateReferenceRecInstagram, CandidateReferenceRecThread, CandidateReferenceRecGithub, CandidateReferenceRecOthers:
+		return true
+	}
+	return false
+}
+
+func (e CandidateReferenceRec) String() string {
+	return string(e)
+}
+
+func (e *CandidateReferenceRec) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateReferenceRec(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateReferenceRec", str)
+	}
+	return nil
+}
+
+func (e CandidateReferenceRec) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateReferenceType string
+
+const (
+	CandidateReferenceTypeEb             CandidateReferenceType = "eb"
+	CandidateReferenceTypeRec            CandidateReferenceType = "rec"
+	CandidateReferenceTypeHiringPlatform CandidateReferenceType = "hiring_platform"
+	CandidateReferenceTypeReference      CandidateReferenceType = "reference"
+	CandidateReferenceTypeHeadhunt       CandidateReferenceType = "headhunt"
+)
+
+var AllCandidateReferenceType = []CandidateReferenceType{
+	CandidateReferenceTypeEb,
+	CandidateReferenceTypeRec,
+	CandidateReferenceTypeHiringPlatform,
+	CandidateReferenceTypeReference,
+	CandidateReferenceTypeHeadhunt,
+}
+
+func (e CandidateReferenceType) IsValid() bool {
+	switch e {
+	case CandidateReferenceTypeEb, CandidateReferenceTypeRec, CandidateReferenceTypeHiringPlatform, CandidateReferenceTypeReference, CandidateReferenceTypeHeadhunt:
+		return true
+	}
+	return false
+}
+
+func (e CandidateReferenceType) String() string {
+	return string(e)
+}
+
+func (e *CandidateReferenceType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateReferenceType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateReferenceType", str)
+	}
+	return nil
+}
+
+func (e CandidateReferenceType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

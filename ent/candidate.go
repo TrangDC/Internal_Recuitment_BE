@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -35,6 +36,20 @@ type Candidate struct {
 	IsBlacklist bool `json:"is_blacklist,omitempty"`
 	// LastApplyDate holds the value of the "last_apply_date" field.
 	LastApplyDate time.Time `json:"last_apply_date,omitempty"`
+	// ReferenceType holds the value of the "reference_type" field.
+	ReferenceType candidate.ReferenceType `json:"reference_type,omitempty"`
+	// ReferenceValue holds the value of the "reference_value" field.
+	ReferenceValue string `json:"reference_value,omitempty"`
+	// ReferenceUID holds the value of the "reference_uid" field.
+	ReferenceUID uuid.UUID `json:"reference_uid,omitempty"`
+	// RecruitTime holds the value of the "recruit_time" field.
+	RecruitTime time.Time `json:"recruit_time,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Country holds the value of the "country" field.
+	Country string `json:"country,omitempty"`
+	// AttachmentID holds the value of the "attachment_id" field.
+	AttachmentID uuid.UUID `json:"attachment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateQuery when eager-loading is set.
 	Edges CandidateEdges `json:"edges"`
@@ -44,11 +59,13 @@ type Candidate struct {
 type CandidateEdges struct {
 	// CandidateJobEdges holds the value of the candidate_job_edges edge.
 	CandidateJobEdges []*CandidateJob `json:"candidate_job_edges,omitempty"`
+	// ReferenceUserEdge holds the value of the reference_user_edge edge.
+	ReferenceUserEdge *User `json:"reference_user_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
 	namedCandidateJobEdges map[string][]*CandidateJob
 }
@@ -62,6 +79,19 @@ func (e CandidateEdges) CandidateJobEdgesOrErr() ([]*CandidateJob, error) {
 	return nil, &NotLoadedError{edge: "candidate_job_edges"}
 }
 
+// ReferenceUserEdgeOrErr returns the ReferenceUserEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CandidateEdges) ReferenceUserEdgeOrErr() (*User, error) {
+	if e.loadedTypes[1] {
+		if e.ReferenceUserEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.ReferenceUserEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "reference_user_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Candidate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -69,11 +99,11 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case candidate.FieldIsBlacklist:
 			values[i] = new(sql.NullBool)
-		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone:
+		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone, candidate.FieldReferenceType, candidate.FieldReferenceValue, candidate.FieldDescription, candidate.FieldCountry:
 			values[i] = new(sql.NullString)
-		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate:
+		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate, candidate.FieldRecruitTime:
 			values[i] = new(sql.NullTime)
-		case candidate.FieldID:
+		case candidate.FieldID, candidate.FieldReferenceUID, candidate.FieldAttachmentID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Candidate", columns[i])
@@ -150,6 +180,48 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.LastApplyDate = value.Time
 			}
+		case candidate.FieldReferenceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reference_type", values[i])
+			} else if value.Valid {
+				c.ReferenceType = candidate.ReferenceType(value.String)
+			}
+		case candidate.FieldReferenceValue:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reference_value", values[i])
+			} else if value.Valid {
+				c.ReferenceValue = value.String
+			}
+		case candidate.FieldReferenceUID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field reference_uid", values[i])
+			} else if value != nil {
+				c.ReferenceUID = *value
+			}
+		case candidate.FieldRecruitTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field recruit_time", values[i])
+			} else if value.Valid {
+				c.RecruitTime = value.Time
+			}
+		case candidate.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				c.Description = value.String
+			}
+		case candidate.FieldCountry:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field country", values[i])
+			} else if value.Valid {
+				c.Country = value.String
+			}
+		case candidate.FieldAttachmentID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field attachment_id", values[i])
+			} else if value != nil {
+				c.AttachmentID = *value
+			}
 		}
 	}
 	return nil
@@ -158,6 +230,11 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 // QueryCandidateJobEdges queries the "candidate_job_edges" edge of the Candidate entity.
 func (c *Candidate) QueryCandidateJobEdges() *CandidateJobQuery {
 	return (&CandidateClient{config: c.config}).QueryCandidateJobEdges(c)
+}
+
+// QueryReferenceUserEdge queries the "reference_user_edge" edge of the Candidate entity.
+func (c *Candidate) QueryReferenceUserEdge() *UserQuery {
+	return (&CandidateClient{config: c.config}).QueryReferenceUserEdge(c)
 }
 
 // Update returns a builder for updating this Candidate.
@@ -209,6 +286,27 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_apply_date=")
 	builder.WriteString(c.LastApplyDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("reference_type=")
+	builder.WriteString(fmt.Sprintf("%v", c.ReferenceType))
+	builder.WriteString(", ")
+	builder.WriteString("reference_value=")
+	builder.WriteString(c.ReferenceValue)
+	builder.WriteString(", ")
+	builder.WriteString("reference_uid=")
+	builder.WriteString(fmt.Sprintf("%v", c.ReferenceUID))
+	builder.WriteString(", ")
+	builder.WriteString("recruit_time=")
+	builder.WriteString(c.RecruitTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(c.Description)
+	builder.WriteString(", ")
+	builder.WriteString("country=")
+	builder.WriteString(c.Country)
+	builder.WriteString(", ")
+	builder.WriteString("attachment_id=")
+	builder.WriteString(fmt.Sprintf("%v", c.AttachmentID))
 	builder.WriteByte(')')
 	return builder.String()
 }

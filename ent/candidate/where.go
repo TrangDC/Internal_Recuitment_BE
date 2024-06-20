@@ -145,6 +145,48 @@ func LastApplyDate(v time.Time) predicate.Candidate {
 	})
 }
 
+// ReferenceValue applies equality check predicate on the "reference_value" field. It's identical to ReferenceValueEQ.
+func ReferenceValue(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceUID applies equality check predicate on the "reference_uid" field. It's identical to ReferenceUIDEQ.
+func ReferenceUID(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReferenceUID), v))
+	})
+}
+
+// RecruitTime applies equality check predicate on the "recruit_time" field. It's identical to RecruitTimeEQ.
+func RecruitTime(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecruitTime), v))
+	})
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDescription), v))
+	})
+}
+
+// Country applies equality check predicate on the "country" field. It's identical to CountryEQ.
+func Country(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCountry), v))
+	})
+}
+
+// AttachmentID applies equality check predicate on the "attachment_id" field. It's identical to AttachmentIDEQ.
+func AttachmentID(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAttachmentID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -832,6 +874,587 @@ func LastApplyDateNotNil() predicate.Candidate {
 	})
 }
 
+// ReferenceTypeEQ applies the EQ predicate on the "reference_type" field.
+func ReferenceTypeEQ(v ReferenceType) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReferenceType), v))
+	})
+}
+
+// ReferenceTypeNEQ applies the NEQ predicate on the "reference_type" field.
+func ReferenceTypeNEQ(v ReferenceType) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReferenceType), v))
+	})
+}
+
+// ReferenceTypeIn applies the In predicate on the "reference_type" field.
+func ReferenceTypeIn(vs ...ReferenceType) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldReferenceType), v...))
+	})
+}
+
+// ReferenceTypeNotIn applies the NotIn predicate on the "reference_type" field.
+func ReferenceTypeNotIn(vs ...ReferenceType) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldReferenceType), v...))
+	})
+}
+
+// ReferenceValueEQ applies the EQ predicate on the "reference_value" field.
+func ReferenceValueEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueNEQ applies the NEQ predicate on the "reference_value" field.
+func ReferenceValueNEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueIn applies the In predicate on the "reference_value" field.
+func ReferenceValueIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldReferenceValue), v...))
+	})
+}
+
+// ReferenceValueNotIn applies the NotIn predicate on the "reference_value" field.
+func ReferenceValueNotIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldReferenceValue), v...))
+	})
+}
+
+// ReferenceValueGT applies the GT predicate on the "reference_value" field.
+func ReferenceValueGT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueGTE applies the GTE predicate on the "reference_value" field.
+func ReferenceValueGTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueLT applies the LT predicate on the "reference_value" field.
+func ReferenceValueLT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueLTE applies the LTE predicate on the "reference_value" field.
+func ReferenceValueLTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueContains applies the Contains predicate on the "reference_value" field.
+func ReferenceValueContains(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueHasPrefix applies the HasPrefix predicate on the "reference_value" field.
+func ReferenceValueHasPrefix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueHasSuffix applies the HasSuffix predicate on the "reference_value" field.
+func ReferenceValueHasSuffix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueIsNil applies the IsNil predicate on the "reference_value" field.
+func ReferenceValueIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldReferenceValue)))
+	})
+}
+
+// ReferenceValueNotNil applies the NotNil predicate on the "reference_value" field.
+func ReferenceValueNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldReferenceValue)))
+	})
+}
+
+// ReferenceValueEqualFold applies the EqualFold predicate on the "reference_value" field.
+func ReferenceValueEqualFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceValueContainsFold applies the ContainsFold predicate on the "reference_value" field.
+func ReferenceValueContainsFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldReferenceValue), v))
+	})
+}
+
+// ReferenceUIDEQ applies the EQ predicate on the "reference_uid" field.
+func ReferenceUIDEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReferenceUID), v))
+	})
+}
+
+// ReferenceUIDNEQ applies the NEQ predicate on the "reference_uid" field.
+func ReferenceUIDNEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReferenceUID), v))
+	})
+}
+
+// ReferenceUIDIn applies the In predicate on the "reference_uid" field.
+func ReferenceUIDIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldReferenceUID), v...))
+	})
+}
+
+// ReferenceUIDNotIn applies the NotIn predicate on the "reference_uid" field.
+func ReferenceUIDNotIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldReferenceUID), v...))
+	})
+}
+
+// ReferenceUIDIsNil applies the IsNil predicate on the "reference_uid" field.
+func ReferenceUIDIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldReferenceUID)))
+	})
+}
+
+// ReferenceUIDNotNil applies the NotNil predicate on the "reference_uid" field.
+func ReferenceUIDNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldReferenceUID)))
+	})
+}
+
+// RecruitTimeEQ applies the EQ predicate on the "recruit_time" field.
+func RecruitTimeEQ(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeNEQ applies the NEQ predicate on the "recruit_time" field.
+func RecruitTimeNEQ(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeIn applies the In predicate on the "recruit_time" field.
+func RecruitTimeIn(vs ...time.Time) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldRecruitTime), v...))
+	})
+}
+
+// RecruitTimeNotIn applies the NotIn predicate on the "recruit_time" field.
+func RecruitTimeNotIn(vs ...time.Time) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldRecruitTime), v...))
+	})
+}
+
+// RecruitTimeGT applies the GT predicate on the "recruit_time" field.
+func RecruitTimeGT(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeGTE applies the GTE predicate on the "recruit_time" field.
+func RecruitTimeGTE(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeLT applies the LT predicate on the "recruit_time" field.
+func RecruitTimeLT(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeLTE applies the LTE predicate on the "recruit_time" field.
+func RecruitTimeLTE(v time.Time) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldRecruitTime), v))
+	})
+}
+
+// RecruitTimeIsNil applies the IsNil predicate on the "recruit_time" field.
+func RecruitTimeIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldRecruitTime)))
+	})
+}
+
+// RecruitTimeNotNil applies the NotNil predicate on the "recruit_time" field.
+func RecruitTimeNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldRecruitTime)))
+	})
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldDescription), v...))
+	})
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldDescription), v...))
+	})
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDescription)))
+	})
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDescription)))
+	})
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldDescription), v))
+	})
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
+	})
+}
+
+// CountryEQ applies the EQ predicate on the "country" field.
+func CountryEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCountry), v))
+	})
+}
+
+// CountryNEQ applies the NEQ predicate on the "country" field.
+func CountryNEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCountry), v))
+	})
+}
+
+// CountryIn applies the In predicate on the "country" field.
+func CountryIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCountry), v...))
+	})
+}
+
+// CountryNotIn applies the NotIn predicate on the "country" field.
+func CountryNotIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCountry), v...))
+	})
+}
+
+// CountryGT applies the GT predicate on the "country" field.
+func CountryGT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCountry), v))
+	})
+}
+
+// CountryGTE applies the GTE predicate on the "country" field.
+func CountryGTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCountry), v))
+	})
+}
+
+// CountryLT applies the LT predicate on the "country" field.
+func CountryLT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCountry), v))
+	})
+}
+
+// CountryLTE applies the LTE predicate on the "country" field.
+func CountryLTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCountry), v))
+	})
+}
+
+// CountryContains applies the Contains predicate on the "country" field.
+func CountryContains(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldCountry), v))
+	})
+}
+
+// CountryHasPrefix applies the HasPrefix predicate on the "country" field.
+func CountryHasPrefix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldCountry), v))
+	})
+}
+
+// CountryHasSuffix applies the HasSuffix predicate on the "country" field.
+func CountryHasSuffix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldCountry), v))
+	})
+}
+
+// CountryIsNil applies the IsNil predicate on the "country" field.
+func CountryIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCountry)))
+	})
+}
+
+// CountryNotNil applies the NotNil predicate on the "country" field.
+func CountryNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCountry)))
+	})
+}
+
+// CountryEqualFold applies the EqualFold predicate on the "country" field.
+func CountryEqualFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldCountry), v))
+	})
+}
+
+// CountryContainsFold applies the ContainsFold predicate on the "country" field.
+func CountryContainsFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldCountry), v))
+	})
+}
+
+// AttachmentIDEQ applies the EQ predicate on the "attachment_id" field.
+func AttachmentIDEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDNEQ applies the NEQ predicate on the "attachment_id" field.
+func AttachmentIDNEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDIn applies the In predicate on the "attachment_id" field.
+func AttachmentIDIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldAttachmentID), v...))
+	})
+}
+
+// AttachmentIDNotIn applies the NotIn predicate on the "attachment_id" field.
+func AttachmentIDNotIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldAttachmentID), v...))
+	})
+}
+
+// AttachmentIDGT applies the GT predicate on the "attachment_id" field.
+func AttachmentIDGT(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDGTE applies the GTE predicate on the "attachment_id" field.
+func AttachmentIDGTE(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDLT applies the LT predicate on the "attachment_id" field.
+func AttachmentIDLT(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDLTE applies the LTE predicate on the "attachment_id" field.
+func AttachmentIDLTE(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAttachmentID), v))
+	})
+}
+
+// AttachmentIDIsNil applies the IsNil predicate on the "attachment_id" field.
+func AttachmentIDIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAttachmentID)))
+	})
+}
+
+// AttachmentIDNotNil applies the NotNil predicate on the "attachment_id" field.
+func AttachmentIDNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAttachmentID)))
+	})
+}
+
 // HasCandidateJobEdges applies the HasEdge predicate on the "candidate_job_edges" edge.
 func HasCandidateJobEdges() predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -851,6 +1474,34 @@ func HasCandidateJobEdgesWith(preds ...predicate.CandidateJob) predicate.Candida
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CandidateJobEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CandidateJobEdgesTable, CandidateJobEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReferenceUserEdge applies the HasEdge predicate on the "reference_user_edge" edge.
+func HasReferenceUserEdge() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReferenceUserEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ReferenceUserEdgeTable, ReferenceUserEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReferenceUserEdgeWith applies the HasEdge predicate on the "reference_user_edge" edge with a given conditions (other predicates).
+func HasReferenceUserEdgeWith(preds ...predicate.User) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReferenceUserEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ReferenceUserEdgeTable, ReferenceUserEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

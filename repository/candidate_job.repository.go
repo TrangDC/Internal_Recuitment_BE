@@ -172,7 +172,6 @@ func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uui
 	if candidateJobId != uuid.Nil {
 		query.Where(candidatejob.IDNEQ(candidateJobId))
 	}
-
 	query = query.Where(candidatejob.StatusIn(openStatus...))
 	isExist, _ := rps.BuildExist(ctx, query)
 	if isExist {

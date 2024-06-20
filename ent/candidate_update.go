@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -142,6 +143,140 @@ func (cu *CandidateUpdate) ClearLastApplyDate() *CandidateUpdate {
 	return cu
 }
 
+// SetReferenceType sets the "reference_type" field.
+func (cu *CandidateUpdate) SetReferenceType(ct candidate.ReferenceType) *CandidateUpdate {
+	cu.mutation.SetReferenceType(ct)
+	return cu
+}
+
+// SetNillableReferenceType sets the "reference_type" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableReferenceType(ct *candidate.ReferenceType) *CandidateUpdate {
+	if ct != nil {
+		cu.SetReferenceType(*ct)
+	}
+	return cu
+}
+
+// SetReferenceValue sets the "reference_value" field.
+func (cu *CandidateUpdate) SetReferenceValue(s string) *CandidateUpdate {
+	cu.mutation.SetReferenceValue(s)
+	return cu
+}
+
+// SetNillableReferenceValue sets the "reference_value" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableReferenceValue(s *string) *CandidateUpdate {
+	if s != nil {
+		cu.SetReferenceValue(*s)
+	}
+	return cu
+}
+
+// ClearReferenceValue clears the value of the "reference_value" field.
+func (cu *CandidateUpdate) ClearReferenceValue() *CandidateUpdate {
+	cu.mutation.ClearReferenceValue()
+	return cu
+}
+
+// SetReferenceUID sets the "reference_uid" field.
+func (cu *CandidateUpdate) SetReferenceUID(u uuid.UUID) *CandidateUpdate {
+	cu.mutation.SetReferenceUID(u)
+	return cu
+}
+
+// SetNillableReferenceUID sets the "reference_uid" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableReferenceUID(u *uuid.UUID) *CandidateUpdate {
+	if u != nil {
+		cu.SetReferenceUID(*u)
+	}
+	return cu
+}
+
+// ClearReferenceUID clears the value of the "reference_uid" field.
+func (cu *CandidateUpdate) ClearReferenceUID() *CandidateUpdate {
+	cu.mutation.ClearReferenceUID()
+	return cu
+}
+
+// SetRecruitTime sets the "recruit_time" field.
+func (cu *CandidateUpdate) SetRecruitTime(t time.Time) *CandidateUpdate {
+	cu.mutation.SetRecruitTime(t)
+	return cu
+}
+
+// SetNillableRecruitTime sets the "recruit_time" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableRecruitTime(t *time.Time) *CandidateUpdate {
+	if t != nil {
+		cu.SetRecruitTime(*t)
+	}
+	return cu
+}
+
+// ClearRecruitTime clears the value of the "recruit_time" field.
+func (cu *CandidateUpdate) ClearRecruitTime() *CandidateUpdate {
+	cu.mutation.ClearRecruitTime()
+	return cu
+}
+
+// SetDescription sets the "description" field.
+func (cu *CandidateUpdate) SetDescription(s string) *CandidateUpdate {
+	cu.mutation.SetDescription(s)
+	return cu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableDescription(s *string) *CandidateUpdate {
+	if s != nil {
+		cu.SetDescription(*s)
+	}
+	return cu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (cu *CandidateUpdate) ClearDescription() *CandidateUpdate {
+	cu.mutation.ClearDescription()
+	return cu
+}
+
+// SetCountry sets the "country" field.
+func (cu *CandidateUpdate) SetCountry(s string) *CandidateUpdate {
+	cu.mutation.SetCountry(s)
+	return cu
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableCountry(s *string) *CandidateUpdate {
+	if s != nil {
+		cu.SetCountry(*s)
+	}
+	return cu
+}
+
+// ClearCountry clears the value of the "country" field.
+func (cu *CandidateUpdate) ClearCountry() *CandidateUpdate {
+	cu.mutation.ClearCountry()
+	return cu
+}
+
+// SetAttachmentID sets the "attachment_id" field.
+func (cu *CandidateUpdate) SetAttachmentID(u uuid.UUID) *CandidateUpdate {
+	cu.mutation.SetAttachmentID(u)
+	return cu
+}
+
+// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableAttachmentID(u *uuid.UUID) *CandidateUpdate {
+	if u != nil {
+		cu.SetAttachmentID(*u)
+	}
+	return cu
+}
+
+// ClearAttachmentID clears the value of the "attachment_id" field.
+func (cu *CandidateUpdate) ClearAttachmentID() *CandidateUpdate {
+	cu.mutation.ClearAttachmentID()
+	return cu
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
 	cu.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -155,6 +290,25 @@ func (cu *CandidateUpdate) AddCandidateJobEdges(c ...*CandidateJob) *CandidateUp
 		ids[i] = c[i].ID
 	}
 	return cu.AddCandidateJobEdgeIDs(ids...)
+}
+
+// SetReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID.
+func (cu *CandidateUpdate) SetReferenceUserEdgeID(id uuid.UUID) *CandidateUpdate {
+	cu.mutation.SetReferenceUserEdgeID(id)
+	return cu
+}
+
+// SetNillableReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableReferenceUserEdgeID(id *uuid.UUID) *CandidateUpdate {
+	if id != nil {
+		cu = cu.SetReferenceUserEdgeID(*id)
+	}
+	return cu
+}
+
+// SetReferenceUserEdge sets the "reference_user_edge" edge to the User entity.
+func (cu *CandidateUpdate) SetReferenceUserEdge(u *User) *CandidateUpdate {
+	return cu.SetReferenceUserEdgeID(u.ID)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -181,6 +335,12 @@ func (cu *CandidateUpdate) RemoveCandidateJobEdges(c ...*CandidateJob) *Candidat
 		ids[i] = c[i].ID
 	}
 	return cu.RemoveCandidateJobEdgeIDs(ids...)
+}
+
+// ClearReferenceUserEdge clears the "reference_user_edge" edge to the User entity.
+func (cu *CandidateUpdate) ClearReferenceUserEdge() *CandidateUpdate {
+	cu.mutation.ClearReferenceUserEdge()
+	return cu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -260,6 +420,26 @@ func (cu *CandidateUpdate) check() error {
 			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Candidate.phone": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.ReferenceType(); ok {
+		if err := candidate.ReferenceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.ReferenceValue(); ok {
+		if err := candidate.ReferenceValueValidator(v); err != nil {
+			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.Description(); ok {
+		if err := candidate.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.Country(); ok {
+		if err := candidate.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -317,6 +497,39 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.LastApplyDateCleared() {
 		_spec.ClearField(candidate.FieldLastApplyDate, field.TypeTime)
 	}
+	if value, ok := cu.mutation.ReferenceType(); ok {
+		_spec.SetField(candidate.FieldReferenceType, field.TypeEnum, value)
+	}
+	if value, ok := cu.mutation.ReferenceValue(); ok {
+		_spec.SetField(candidate.FieldReferenceValue, field.TypeString, value)
+	}
+	if cu.mutation.ReferenceValueCleared() {
+		_spec.ClearField(candidate.FieldReferenceValue, field.TypeString)
+	}
+	if value, ok := cu.mutation.RecruitTime(); ok {
+		_spec.SetField(candidate.FieldRecruitTime, field.TypeTime, value)
+	}
+	if cu.mutation.RecruitTimeCleared() {
+		_spec.ClearField(candidate.FieldRecruitTime, field.TypeTime)
+	}
+	if value, ok := cu.mutation.Description(); ok {
+		_spec.SetField(candidate.FieldDescription, field.TypeString, value)
+	}
+	if cu.mutation.DescriptionCleared() {
+		_spec.ClearField(candidate.FieldDescription, field.TypeString)
+	}
+	if value, ok := cu.mutation.Country(); ok {
+		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
+	}
+	if cu.mutation.CountryCleared() {
+		_spec.ClearField(candidate.FieldCountry, field.TypeString)
+	}
+	if value, ok := cu.mutation.AttachmentID(); ok {
+		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
+	}
+	if cu.mutation.AttachmentIDCleared() {
+		_spec.ClearField(candidate.FieldAttachmentID, field.TypeUUID)
+	}
 	if cu.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -363,6 +576,41 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.ReferenceUserEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidate.ReferenceUserEdgeTable,
+			Columns: []string{candidate.ReferenceUserEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ReferenceUserEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidate.ReferenceUserEdgeTable,
+			Columns: []string{candidate.ReferenceUserEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}
@@ -502,6 +750,140 @@ func (cuo *CandidateUpdateOne) ClearLastApplyDate() *CandidateUpdateOne {
 	return cuo
 }
 
+// SetReferenceType sets the "reference_type" field.
+func (cuo *CandidateUpdateOne) SetReferenceType(ct candidate.ReferenceType) *CandidateUpdateOne {
+	cuo.mutation.SetReferenceType(ct)
+	return cuo
+}
+
+// SetNillableReferenceType sets the "reference_type" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableReferenceType(ct *candidate.ReferenceType) *CandidateUpdateOne {
+	if ct != nil {
+		cuo.SetReferenceType(*ct)
+	}
+	return cuo
+}
+
+// SetReferenceValue sets the "reference_value" field.
+func (cuo *CandidateUpdateOne) SetReferenceValue(s string) *CandidateUpdateOne {
+	cuo.mutation.SetReferenceValue(s)
+	return cuo
+}
+
+// SetNillableReferenceValue sets the "reference_value" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableReferenceValue(s *string) *CandidateUpdateOne {
+	if s != nil {
+		cuo.SetReferenceValue(*s)
+	}
+	return cuo
+}
+
+// ClearReferenceValue clears the value of the "reference_value" field.
+func (cuo *CandidateUpdateOne) ClearReferenceValue() *CandidateUpdateOne {
+	cuo.mutation.ClearReferenceValue()
+	return cuo
+}
+
+// SetReferenceUID sets the "reference_uid" field.
+func (cuo *CandidateUpdateOne) SetReferenceUID(u uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.SetReferenceUID(u)
+	return cuo
+}
+
+// SetNillableReferenceUID sets the "reference_uid" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableReferenceUID(u *uuid.UUID) *CandidateUpdateOne {
+	if u != nil {
+		cuo.SetReferenceUID(*u)
+	}
+	return cuo
+}
+
+// ClearReferenceUID clears the value of the "reference_uid" field.
+func (cuo *CandidateUpdateOne) ClearReferenceUID() *CandidateUpdateOne {
+	cuo.mutation.ClearReferenceUID()
+	return cuo
+}
+
+// SetRecruitTime sets the "recruit_time" field.
+func (cuo *CandidateUpdateOne) SetRecruitTime(t time.Time) *CandidateUpdateOne {
+	cuo.mutation.SetRecruitTime(t)
+	return cuo
+}
+
+// SetNillableRecruitTime sets the "recruit_time" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableRecruitTime(t *time.Time) *CandidateUpdateOne {
+	if t != nil {
+		cuo.SetRecruitTime(*t)
+	}
+	return cuo
+}
+
+// ClearRecruitTime clears the value of the "recruit_time" field.
+func (cuo *CandidateUpdateOne) ClearRecruitTime() *CandidateUpdateOne {
+	cuo.mutation.ClearRecruitTime()
+	return cuo
+}
+
+// SetDescription sets the "description" field.
+func (cuo *CandidateUpdateOne) SetDescription(s string) *CandidateUpdateOne {
+	cuo.mutation.SetDescription(s)
+	return cuo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableDescription(s *string) *CandidateUpdateOne {
+	if s != nil {
+		cuo.SetDescription(*s)
+	}
+	return cuo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (cuo *CandidateUpdateOne) ClearDescription() *CandidateUpdateOne {
+	cuo.mutation.ClearDescription()
+	return cuo
+}
+
+// SetCountry sets the "country" field.
+func (cuo *CandidateUpdateOne) SetCountry(s string) *CandidateUpdateOne {
+	cuo.mutation.SetCountry(s)
+	return cuo
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableCountry(s *string) *CandidateUpdateOne {
+	if s != nil {
+		cuo.SetCountry(*s)
+	}
+	return cuo
+}
+
+// ClearCountry clears the value of the "country" field.
+func (cuo *CandidateUpdateOne) ClearCountry() *CandidateUpdateOne {
+	cuo.mutation.ClearCountry()
+	return cuo
+}
+
+// SetAttachmentID sets the "attachment_id" field.
+func (cuo *CandidateUpdateOne) SetAttachmentID(u uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.SetAttachmentID(u)
+	return cuo
+}
+
+// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableAttachmentID(u *uuid.UUID) *CandidateUpdateOne {
+	if u != nil {
+		cuo.SetAttachmentID(*u)
+	}
+	return cuo
+}
+
+// ClearAttachmentID clears the value of the "attachment_id" field.
+func (cuo *CandidateUpdateOne) ClearAttachmentID() *CandidateUpdateOne {
+	cuo.mutation.ClearAttachmentID()
+	return cuo
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cuo *CandidateUpdateOne) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
 	cuo.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -515,6 +897,25 @@ func (cuo *CandidateUpdateOne) AddCandidateJobEdges(c ...*CandidateJob) *Candida
 		ids[i] = c[i].ID
 	}
 	return cuo.AddCandidateJobEdgeIDs(ids...)
+}
+
+// SetReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID.
+func (cuo *CandidateUpdateOne) SetReferenceUserEdgeID(id uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.SetReferenceUserEdgeID(id)
+	return cuo
+}
+
+// SetNillableReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableReferenceUserEdgeID(id *uuid.UUID) *CandidateUpdateOne {
+	if id != nil {
+		cuo = cuo.SetReferenceUserEdgeID(*id)
+	}
+	return cuo
+}
+
+// SetReferenceUserEdge sets the "reference_user_edge" edge to the User entity.
+func (cuo *CandidateUpdateOne) SetReferenceUserEdge(u *User) *CandidateUpdateOne {
+	return cuo.SetReferenceUserEdgeID(u.ID)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -541,6 +942,12 @@ func (cuo *CandidateUpdateOne) RemoveCandidateJobEdges(c ...*CandidateJob) *Cand
 		ids[i] = c[i].ID
 	}
 	return cuo.RemoveCandidateJobEdgeIDs(ids...)
+}
+
+// ClearReferenceUserEdge clears the "reference_user_edge" edge to the User entity.
+func (cuo *CandidateUpdateOne) ClearReferenceUserEdge() *CandidateUpdateOne {
+	cuo.mutation.ClearReferenceUserEdge()
+	return cuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -633,6 +1040,26 @@ func (cuo *CandidateUpdateOne) check() error {
 			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "Candidate.phone": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.ReferenceType(); ok {
+		if err := candidate.ReferenceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.ReferenceValue(); ok {
+		if err := candidate.ReferenceValueValidator(v); err != nil {
+			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.Description(); ok {
+		if err := candidate.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.Country(); ok {
+		if err := candidate.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -707,6 +1134,39 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	if cuo.mutation.LastApplyDateCleared() {
 		_spec.ClearField(candidate.FieldLastApplyDate, field.TypeTime)
 	}
+	if value, ok := cuo.mutation.ReferenceType(); ok {
+		_spec.SetField(candidate.FieldReferenceType, field.TypeEnum, value)
+	}
+	if value, ok := cuo.mutation.ReferenceValue(); ok {
+		_spec.SetField(candidate.FieldReferenceValue, field.TypeString, value)
+	}
+	if cuo.mutation.ReferenceValueCleared() {
+		_spec.ClearField(candidate.FieldReferenceValue, field.TypeString)
+	}
+	if value, ok := cuo.mutation.RecruitTime(); ok {
+		_spec.SetField(candidate.FieldRecruitTime, field.TypeTime, value)
+	}
+	if cuo.mutation.RecruitTimeCleared() {
+		_spec.ClearField(candidate.FieldRecruitTime, field.TypeTime)
+	}
+	if value, ok := cuo.mutation.Description(); ok {
+		_spec.SetField(candidate.FieldDescription, field.TypeString, value)
+	}
+	if cuo.mutation.DescriptionCleared() {
+		_spec.ClearField(candidate.FieldDescription, field.TypeString)
+	}
+	if value, ok := cuo.mutation.Country(); ok {
+		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
+	}
+	if cuo.mutation.CountryCleared() {
+		_spec.ClearField(candidate.FieldCountry, field.TypeString)
+	}
+	if value, ok := cuo.mutation.AttachmentID(); ok {
+		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
+	}
+	if cuo.mutation.AttachmentIDCleared() {
+		_spec.ClearField(candidate.FieldAttachmentID, field.TypeUUID)
+	}
 	if cuo.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -753,6 +1213,41 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatejob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.ReferenceUserEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidate.ReferenceUserEdgeTable,
+			Columns: []string{candidate.ReferenceUserEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ReferenceUserEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidate.ReferenceUserEdgeTable,
+			Columns: []string{candidate.ReferenceUserEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

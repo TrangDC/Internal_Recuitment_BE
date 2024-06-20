@@ -215,6 +215,16 @@ func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.Operation
 			c.WithNamedCandidateJobEdges(alias, func(wq *CandidateJobQuery) {
 				*wq = *query
 			})
+		case "referenceUserEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.withReferenceUserEdge = query
 		}
 	}
 	return nil
@@ -1267,6 +1277,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedCandidateInterviewEdges(alias, func(wq *CandidateInterviewQuery) {
+				*wq = *query
+			})
+		case "candidateReferenceEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedCandidateReferenceEdges(alias, func(wq *CandidateQuery) {
 				*wq = *query
 			})
 		case "teamUsers":
