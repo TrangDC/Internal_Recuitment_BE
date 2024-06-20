@@ -1116,6 +1116,16 @@ var (
 			}
 		},
 	}
+	// CandidateOrderFieldRecruitTime orders Candidate by recruit_time.
+	CandidateOrderFieldRecruitTime = &CandidateOrderField{
+		field: candidate.FieldRecruitTime,
+		toCursor: func(c *Candidate) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.RecruitTime,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -1134,6 +1144,8 @@ func (f CandidateOrderField) String() string {
 		str = "email"
 	case candidate.FieldLastApplyDate:
 		str = "last_apply_date"
+	case candidate.FieldRecruitTime:
+		str = "recruit_time"
 	}
 	return str
 }
@@ -1162,6 +1174,8 @@ func (f *CandidateOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *CandidateOrderFieldEmail
 	case "last_apply_date":
 		*f = *CandidateOrderFieldLastApplyDate
+	case "recruit_time":
+		*f = *CandidateOrderFieldRecruitTime
 	default:
 		return fmt.Errorf("%s is not a valid CandidateOrderField", str)
 	}

@@ -52,6 +52,14 @@ func (c *Candidate) CandidateJobEdges(ctx context.Context) (result []*CandidateJ
 	return result, err
 }
 
+func (c *Candidate) ReferenceUserEdge(ctx context.Context) (*User, error) {
+	result, err := c.Edges.ReferenceUserEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = c.QueryReferenceUserEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (ci *CandidateInterview) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {
 	result, err := ci.Edges.CandidateJobEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -388,6 +396,18 @@ func (u *User) CandidateInterviewEdges(ctx context.Context) (result []*Candidate
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryCandidateInterviewEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) CandidateReferenceEdges(ctx context.Context) (result []*Candidate, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateReferenceEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateReferenceEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateReferenceEdges().All(ctx)
 	}
 	return result, err
 }

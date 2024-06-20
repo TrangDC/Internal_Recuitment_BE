@@ -52,15 +52,17 @@ type UserEdges struct {
 	CandidateJobEdges []*CandidateJob `json:"candidate_job_edges,omitempty"`
 	// CandidateInterviewEdges holds the value of the candidate_interview_edges edge.
 	CandidateInterviewEdges []*CandidateInterview `json:"candidate_interview_edges,omitempty"`
+	// CandidateReferenceEdges holds the value of the candidate_reference_edges edge.
+	CandidateReferenceEdges []*Candidate `json:"candidate_reference_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
 	InterviewUsers []*CandidateInterviewer `json:"interview_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 	// totalCount holds the count of the edges above.
-	totalCount [9]map[string]int
+	totalCount [10]map[string]int
 
 	namedAuditEdge               map[string][]*AuditTrail
 	namedHiringOwner             map[string][]*HiringJob
@@ -69,6 +71,7 @@ type UserEdges struct {
 	namedInterviewEdges          map[string][]*CandidateInterview
 	namedCandidateJobEdges       map[string][]*CandidateJob
 	namedCandidateInterviewEdges map[string][]*CandidateInterview
+	namedCandidateReferenceEdges map[string][]*Candidate
 	namedTeamUsers               map[string][]*TeamManager
 	namedInterviewUsers          map[string][]*CandidateInterviewer
 }
@@ -136,10 +139,19 @@ func (e UserEdges) CandidateInterviewEdgesOrErr() ([]*CandidateInterview, error)
 	return nil, &NotLoadedError{edge: "candidate_interview_edges"}
 }
 
+// CandidateReferenceEdgesOrErr returns the CandidateReferenceEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CandidateReferenceEdgesOrErr() ([]*Candidate, error) {
+	if e.loadedTypes[7] {
+		return e.CandidateReferenceEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_reference_edges"}
+}
+
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.TeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "team_users"}
@@ -148,7 +160,7 @@ func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
 // InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.InterviewUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "interview_users"}
@@ -266,6 +278,11 @@ func (u *User) QueryCandidateJobEdges() *CandidateJobQuery {
 // QueryCandidateInterviewEdges queries the "candidate_interview_edges" edge of the User entity.
 func (u *User) QueryCandidateInterviewEdges() *CandidateInterviewQuery {
 	return (&UserClient{config: u.config}).QueryCandidateInterviewEdges(u)
+}
+
+// QueryCandidateReferenceEdges queries the "candidate_reference_edges" edge of the User entity.
+func (u *User) QueryCandidateReferenceEdges() *CandidateQuery {
+	return (&UserClient{config: u.config}).QueryCandidateReferenceEdges(u)
 }
 
 // QueryTeamUsers queries the "team_users" edge of the User entity.
@@ -490,6 +507,30 @@ func (u *User) appendNamedCandidateInterviewEdges(name string, edges ...*Candida
 		u.Edges.namedCandidateInterviewEdges[name] = []*CandidateInterview{}
 	} else {
 		u.Edges.namedCandidateInterviewEdges[name] = append(u.Edges.namedCandidateInterviewEdges[name], edges...)
+	}
+}
+
+// NamedCandidateReferenceEdges returns the CandidateReferenceEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedCandidateReferenceEdges(name string) ([]*Candidate, error) {
+	if u.Edges.namedCandidateReferenceEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedCandidateReferenceEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedCandidateReferenceEdges(name string, edges ...*Candidate) {
+	if u.Edges.namedCandidateReferenceEdges == nil {
+		u.Edges.namedCandidateReferenceEdges = make(map[string][]*Candidate)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedCandidateReferenceEdges[name] = []*Candidate{}
+	} else {
+		u.Edges.namedCandidateReferenceEdges[name] = append(u.Edges.namedCandidateReferenceEdges[name], edges...)
 	}
 }
 

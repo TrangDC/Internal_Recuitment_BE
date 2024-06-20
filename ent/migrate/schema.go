@@ -84,12 +84,27 @@ var (
 		{Name: "dob", Type: field.TypeTime, Nullable: true},
 		{Name: "is_blacklist", Type: field.TypeBool, Default: false},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
+		{Name: "reference_type", Type: field.TypeEnum, Enums: []string{"eb", "rec", "hiring_platform", "reference", "headhunt"}, Default: "eb"},
+		{Name: "reference_value", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "country", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "attachment_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
 	CandidatesTable = &schema.Table{
 		Name:       "candidates",
 		Columns:    CandidatesColumns,
 		PrimaryKey: []*schema.Column{CandidatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidates_users_candidate_reference_edges",
+				Columns:    []*schema.Column{CandidatesColumns[16]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CandidateInterviewsColumns holds the columns for the "candidate_interviews" table.
 	CandidateInterviewsColumns = []*schema.Column{
@@ -402,6 +417,7 @@ func init() {
 	AttachmentsTable.ForeignKeys[1].RefTable = CandidateJobsTable
 	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
+	CandidatesTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateInterviewsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable

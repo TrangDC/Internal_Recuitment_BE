@@ -52,6 +52,26 @@ func (r *candidateResolver) HiringJobTitle(ctx context.Context, obj *ent.Candida
 	return result, nil
 }
 
+// ReferenceType is the resolver for the reference_type field.
+func (r *candidateResolver) ReferenceType(ctx context.Context, obj *ent.Candidate) (ent.CandidateReferenceType, error) {
+	return ent.CandidateReferenceType(obj.ReferenceType), nil
+}
+
+// ReferenceUID is the resolver for the reference_uid field.
+func (r *candidateResolver) ReferenceUID(ctx context.Context, obj *ent.Candidate) (string, error) {
+	return obj.ReferenceUID.String(), nil
+}
+
+// AttachmentID is the resolver for the attachment_id field.
+func (r *candidateResolver) AttachmentID(ctx context.Context, obj *ent.Candidate) (string, error) {
+	return obj.AttachmentID.String(), nil
+}
+
+// ReferenceUser is the resolver for the reference_user field.
+func (r *candidateResolver) ReferenceUser(ctx context.Context, obj *ent.Candidate) (*ent.User, error) {
+	return obj.Edges.ReferenceUserEdge, nil
+}
+
 // Candidate returns graphql1.CandidateResolver implementation.
 func (r *Resolver) Candidate() graphql1.CandidateResolver { return &candidateResolver{r} }
 

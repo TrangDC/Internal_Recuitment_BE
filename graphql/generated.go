@@ -111,8 +111,11 @@ type ComplexityRoot struct {
 	}
 
 	Candidate struct {
+		AttachmentID   func(childComplexity int) int
+		Country        func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		DeletedAt      func(childComplexity int) int
+		Description    func(childComplexity int) int
 		Dob            func(childComplexity int) int
 		Email          func(childComplexity int) int
 		HiringJobTitle func(childComplexity int) int
@@ -122,6 +125,11 @@ type ComplexityRoot struct {
 		LastApplyDate  func(childComplexity int) int
 		Name           func(childComplexity int) int
 		Phone          func(childComplexity int) int
+		RecruitTime    func(childComplexity int) int
+		ReferenceType  func(childComplexity int) int
+		ReferenceUID   func(childComplexity int) int
+		ReferenceUser  func(childComplexity int) int
+		ReferenceValue func(childComplexity int) int
 		Status         func(childComplexity int) int
 		UpdatedAt      func(childComplexity int) int
 	}
@@ -487,6 +495,12 @@ type CandidateResolver interface {
 
 	IsAbleToDelete(ctx context.Context, obj *ent.Candidate) (bool, error)
 	HiringJobTitle(ctx context.Context, obj *ent.Candidate) (string, error)
+	ReferenceType(ctx context.Context, obj *ent.Candidate) (ent.CandidateReferenceType, error)
+
+	ReferenceUID(ctx context.Context, obj *ent.Candidate) (string, error)
+
+	AttachmentID(ctx context.Context, obj *ent.Candidate) (string, error)
+	ReferenceUser(ctx context.Context, obj *ent.Candidate) (*ent.User, error)
 }
 type CandidateInterviewResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateInterview) (string, error)
@@ -827,6 +841,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Base64Response.Data(childComplexity), true
 
+	case "Candidate.attachment_id":
+		if e.complexity.Candidate.AttachmentID == nil {
+			break
+		}
+
+		return e.complexity.Candidate.AttachmentID(childComplexity), true
+
+	case "Candidate.country":
+		if e.complexity.Candidate.Country == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Country(childComplexity), true
+
 	case "Candidate.created_at":
 		if e.complexity.Candidate.CreatedAt == nil {
 			break
@@ -840,6 +868,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Candidate.DeletedAt(childComplexity), true
+
+	case "Candidate.description":
+		if e.complexity.Candidate.Description == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Description(childComplexity), true
 
 	case "Candidate.dob":
 		if e.complexity.Candidate.Dob == nil {
@@ -903,6 +938,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Candidate.Phone(childComplexity), true
+
+	case "Candidate.recruit_time":
+		if e.complexity.Candidate.RecruitTime == nil {
+			break
+		}
+
+		return e.complexity.Candidate.RecruitTime(childComplexity), true
+
+	case "Candidate.reference_type":
+		if e.complexity.Candidate.ReferenceType == nil {
+			break
+		}
+
+		return e.complexity.Candidate.ReferenceType(childComplexity), true
+
+	case "Candidate.reference_uid":
+		if e.complexity.Candidate.ReferenceUID == nil {
+			break
+		}
+
+		return e.complexity.Candidate.ReferenceUID(childComplexity), true
+
+	case "Candidate.reference_user":
+		if e.complexity.Candidate.ReferenceUser == nil {
+			break
+		}
+
+		return e.complexity.Candidate.ReferenceUser(childComplexity), true
+
+	case "Candidate.reference_value":
+		if e.complexity.Candidate.ReferenceValue == nil {
+			break
+		}
+
+		return e.complexity.Candidate.ReferenceValue(childComplexity), true
 
 	case "Candidate.status":
 		if e.complexity.Candidate.Status == nil {
@@ -3205,11 +3275,55 @@ enum CandidateOrderField {
   email
 }
 
+enum CandidateReferenceType {
+  eb
+  rec
+  hiring_platform
+  reference
+  headhunt
+}
+
+enum CandidateReferenceEB {
+  tiktok_techvify_official
+  tiktok_thedevdad
+  linkedin_junie_truong
+  other_linkedin
+  group_seeding
+  fanpage_techvify_careers
+  google_search
+  youtube_techvify_careers
+  thread
+  instagram
+  twitter
+  others
+}
+
+enum CandidateReferenceRec {
+  linkedin
+  facebook
+  instagram
+  thread
+  github
+  others
+}
+
+enum CandidateReferenceHiringPlatform {
+  topcv
+  vietnam_works
+  itviec
+}
+
 input NewCandidateInput{
   name: String!
   email: String!
   phone: String!
   dob: Time
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
 }
 
 input UpdateCandidateInput {
@@ -3217,6 +3331,12 @@ input UpdateCandidateInput {
   email: String!
   phone: String!
   dob: Time
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
 }
 
 input CandidateFilter {
@@ -3256,6 +3376,14 @@ type Candidate {
   last_apply_date: Time
   is_able_to_delete: Boolean!
   hiring_job_title: String!
+  reference_type: CandidateReferenceType!
+  reference_value: String!
+  reference_uid: ID!
+  recruit_time: Time
+  description: String!
+  country: String!
+  attachment_id: ID!
+  reference_user: User
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -7122,6 +7250,364 @@ func (ec *executionContext) fieldContext_Candidate_hiring_job_title(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Candidate_reference_type(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_reference_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().ReferenceType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.CandidateReferenceType)
+	fc.Result = res
+	return ec.marshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_reference_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateReferenceType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_reference_value(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_reference_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReferenceValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_reference_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_reference_uid(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_reference_uid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().ReferenceUID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_reference_uid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_recruit_time(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_recruit_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RecruitTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_recruit_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_description(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_country(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_country(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Country, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_country(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_attachment_id(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_attachment_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().AttachmentID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_attachment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Candidate_reference_user(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_reference_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().ReferenceUser(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_reference_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Candidate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Candidate_created_at(ctx, field)
 	if err != nil {
@@ -7310,6 +7796,22 @@ func (ec *executionContext) fieldContext_CandidateEdge_node(ctx context.Context,
 				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
 			case "hiring_job_title":
 				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
+			case "reference_type":
+				return ec.fieldContext_Candidate_reference_type(ctx, field)
+			case "reference_value":
+				return ec.fieldContext_Candidate_reference_value(ctx, field)
+			case "reference_uid":
+				return ec.fieldContext_Candidate_reference_uid(ctx, field)
+			case "recruit_time":
+				return ec.fieldContext_Candidate_recruit_time(ctx, field)
+			case "description":
+				return ec.fieldContext_Candidate_description(ctx, field)
+			case "country":
+				return ec.fieldContext_Candidate_country(ctx, field)
+			case "attachment_id":
+				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "reference_user":
+				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -8606,6 +9108,22 @@ func (ec *executionContext) fieldContext_CandidateJob_candidate(ctx context.Cont
 				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
 			case "hiring_job_title":
 				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
+			case "reference_type":
+				return ec.fieldContext_Candidate_reference_type(ctx, field)
+			case "reference_value":
+				return ec.fieldContext_Candidate_reference_value(ctx, field)
+			case "reference_uid":
+				return ec.fieldContext_Candidate_reference_uid(ctx, field)
+			case "recruit_time":
+				return ec.fieldContext_Candidate_recruit_time(ctx, field)
+			case "description":
+				return ec.fieldContext_Candidate_description(ctx, field)
+			case "country":
+				return ec.fieldContext_Candidate_country(ctx, field)
+			case "attachment_id":
+				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "reference_user":
+				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -11384,6 +11902,22 @@ func (ec *executionContext) fieldContext_CandidateResponse_data(ctx context.Cont
 				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
 			case "hiring_job_title":
 				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
+			case "reference_type":
+				return ec.fieldContext_Candidate_reference_type(ctx, field)
+			case "reference_value":
+				return ec.fieldContext_Candidate_reference_value(ctx, field)
+			case "reference_uid":
+				return ec.fieldContext_Candidate_reference_uid(ctx, field)
+			case "recruit_time":
+				return ec.fieldContext_Candidate_recruit_time(ctx, field)
+			case "description":
+				return ec.fieldContext_Candidate_description(ctx, field)
+			case "country":
+				return ec.fieldContext_Candidate_country(ctx, field)
+			case "attachment_id":
+				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "reference_user":
+				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -21186,7 +21720,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -21222,6 +21756,54 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
 			it.Dob, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_type"))
+			it.ReferenceType, err = ec.unmarshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_value"))
+			it.ReferenceValue, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_uid":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_uid"))
+			it.ReferenceUID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "recruit_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recruit_time"))
+			it.RecruitTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "country":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
+			it.Country, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21966,7 +22548,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22002,6 +22584,54 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dob"))
 			it.Dob, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_type"))
+			it.ReferenceType, err = ec.unmarshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_value"))
+			it.ReferenceValue, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_uid":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_uid"))
+			it.ReferenceUID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "recruit_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recruit_time"))
+			it.RecruitTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "country":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
+			it.Country, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23218,6 +23848,108 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "reference_type":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_reference_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "reference_value":
+
+			out.Values[i] = ec._Candidate_reference_value(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "reference_uid":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_reference_uid(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "recruit_time":
+
+			out.Values[i] = ec._Candidate_recruit_time(ctx, field, obj)
+
+		case "description":
+
+			out.Values[i] = ec._Candidate_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "country":
+
+			out.Values[i] = ec._Candidate_country(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "attachment_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_attachment_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "reference_user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_reference_user(ctx, field, obj)
 				return res
 			}
 
@@ -27594,6 +28326,16 @@ func (ec *executionContext) marshalNCandidateOrderField2ᚖtrecᚋentᚐCandidat
 		}
 		return graphql.Null
 	}
+	return v
+}
+
+func (ec *executionContext) unmarshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx context.Context, v interface{}) (ent.CandidateReferenceType, error) {
+	var res ent.CandidateReferenceType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx context.Context, sel ast.SelectionSet, v ent.CandidateReferenceType) graphql.Marshaler {
 	return v
 }
 

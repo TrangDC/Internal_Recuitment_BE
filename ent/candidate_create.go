@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -124,6 +125,104 @@ func (cc *CandidateCreate) SetNillableLastApplyDate(t *time.Time) *CandidateCrea
 	return cc
 }
 
+// SetReferenceType sets the "reference_type" field.
+func (cc *CandidateCreate) SetReferenceType(ct candidate.ReferenceType) *CandidateCreate {
+	cc.mutation.SetReferenceType(ct)
+	return cc
+}
+
+// SetNillableReferenceType sets the "reference_type" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableReferenceType(ct *candidate.ReferenceType) *CandidateCreate {
+	if ct != nil {
+		cc.SetReferenceType(*ct)
+	}
+	return cc
+}
+
+// SetReferenceValue sets the "reference_value" field.
+func (cc *CandidateCreate) SetReferenceValue(s string) *CandidateCreate {
+	cc.mutation.SetReferenceValue(s)
+	return cc
+}
+
+// SetNillableReferenceValue sets the "reference_value" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableReferenceValue(s *string) *CandidateCreate {
+	if s != nil {
+		cc.SetReferenceValue(*s)
+	}
+	return cc
+}
+
+// SetReferenceUID sets the "reference_uid" field.
+func (cc *CandidateCreate) SetReferenceUID(u uuid.UUID) *CandidateCreate {
+	cc.mutation.SetReferenceUID(u)
+	return cc
+}
+
+// SetNillableReferenceUID sets the "reference_uid" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableReferenceUID(u *uuid.UUID) *CandidateCreate {
+	if u != nil {
+		cc.SetReferenceUID(*u)
+	}
+	return cc
+}
+
+// SetRecruitTime sets the "recruit_time" field.
+func (cc *CandidateCreate) SetRecruitTime(t time.Time) *CandidateCreate {
+	cc.mutation.SetRecruitTime(t)
+	return cc
+}
+
+// SetNillableRecruitTime sets the "recruit_time" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableRecruitTime(t *time.Time) *CandidateCreate {
+	if t != nil {
+		cc.SetRecruitTime(*t)
+	}
+	return cc
+}
+
+// SetDescription sets the "description" field.
+func (cc *CandidateCreate) SetDescription(s string) *CandidateCreate {
+	cc.mutation.SetDescription(s)
+	return cc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableDescription(s *string) *CandidateCreate {
+	if s != nil {
+		cc.SetDescription(*s)
+	}
+	return cc
+}
+
+// SetCountry sets the "country" field.
+func (cc *CandidateCreate) SetCountry(s string) *CandidateCreate {
+	cc.mutation.SetCountry(s)
+	return cc
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableCountry(s *string) *CandidateCreate {
+	if s != nil {
+		cc.SetCountry(*s)
+	}
+	return cc
+}
+
+// SetAttachmentID sets the "attachment_id" field.
+func (cc *CandidateCreate) SetAttachmentID(u uuid.UUID) *CandidateCreate {
+	cc.mutation.SetAttachmentID(u)
+	return cc
+}
+
+// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableAttachmentID(u *uuid.UUID) *CandidateCreate {
+	if u != nil {
+		cc.SetAttachmentID(*u)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	cc.mutation.SetID(u)
@@ -143,6 +242,25 @@ func (cc *CandidateCreate) AddCandidateJobEdges(c ...*CandidateJob) *CandidateCr
 		ids[i] = c[i].ID
 	}
 	return cc.AddCandidateJobEdgeIDs(ids...)
+}
+
+// SetReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID.
+func (cc *CandidateCreate) SetReferenceUserEdgeID(id uuid.UUID) *CandidateCreate {
+	cc.mutation.SetReferenceUserEdgeID(id)
+	return cc
+}
+
+// SetNillableReferenceUserEdgeID sets the "reference_user_edge" edge to the User entity by ID if the given value is not nil.
+func (cc *CandidateCreate) SetNillableReferenceUserEdgeID(id *uuid.UUID) *CandidateCreate {
+	if id != nil {
+		cc = cc.SetReferenceUserEdgeID(*id)
+	}
+	return cc
+}
+
+// SetReferenceUserEdge sets the "reference_user_edge" edge to the User entity.
+func (cc *CandidateCreate) SetReferenceUserEdge(u *User) *CandidateCreate {
+	return cc.SetReferenceUserEdgeID(u.ID)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -230,6 +348,10 @@ func (cc *CandidateCreate) defaults() {
 		v := candidate.DefaultIsBlacklist
 		cc.mutation.SetIsBlacklist(v)
 	}
+	if _, ok := cc.mutation.ReferenceType(); !ok {
+		v := candidate.DefaultReferenceType
+		cc.mutation.SetReferenceType(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -263,6 +385,29 @@ func (cc *CandidateCreate) check() error {
 	}
 	if _, ok := cc.mutation.IsBlacklist(); !ok {
 		return &ValidationError{Name: "is_blacklist", err: errors.New(`ent: missing required field "Candidate.is_blacklist"`)}
+	}
+	if _, ok := cc.mutation.ReferenceType(); !ok {
+		return &ValidationError{Name: "reference_type", err: errors.New(`ent: missing required field "Candidate.reference_type"`)}
+	}
+	if v, ok := cc.mutation.ReferenceType(); ok {
+		if err := candidate.ReferenceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
+		}
+	}
+	if v, ok := cc.mutation.ReferenceValue(); ok {
+		if err := candidate.ReferenceValueValidator(v); err != nil {
+			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
+		}
+	}
+	if v, ok := cc.mutation.Description(); ok {
+		if err := candidate.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
+		}
+	}
+	if v, ok := cc.mutation.Country(); ok {
+		if err := candidate.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -336,6 +481,30 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 		_spec.SetField(candidate.FieldLastApplyDate, field.TypeTime, value)
 		_node.LastApplyDate = value
 	}
+	if value, ok := cc.mutation.ReferenceType(); ok {
+		_spec.SetField(candidate.FieldReferenceType, field.TypeEnum, value)
+		_node.ReferenceType = value
+	}
+	if value, ok := cc.mutation.ReferenceValue(); ok {
+		_spec.SetField(candidate.FieldReferenceValue, field.TypeString, value)
+		_node.ReferenceValue = value
+	}
+	if value, ok := cc.mutation.RecruitTime(); ok {
+		_spec.SetField(candidate.FieldRecruitTime, field.TypeTime, value)
+		_node.RecruitTime = value
+	}
+	if value, ok := cc.mutation.Description(); ok {
+		_spec.SetField(candidate.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := cc.mutation.Country(); ok {
+		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
+		_node.Country = value
+	}
+	if value, ok := cc.mutation.AttachmentID(); ok {
+		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
+		_node.AttachmentID = value
+	}
 	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -353,6 +522,26 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ReferenceUserEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidate.ReferenceUserEdgeTable,
+			Columns: []string{candidate.ReferenceUserEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ReferenceUID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

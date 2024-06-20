@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"trec/ent"
+	"trec/ent/candidate"
 	"trec/models"
 )
 
@@ -80,8 +81,7 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 	return string(jsonObj), err
 }
 
-
-func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) ([]interface{}) {
+func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {
 	entity := []interface{}{}
 	value := reflect.ValueOf(interface{}(record)).Elem()
 	recordType := reflect.TypeOf(record).Elem()
@@ -125,5 +125,63 @@ func (d *candidateDtoImpl) isBlacklistI18n(input bool) string {
 		return "model.candidates.is_blacklist_enum.yes"
 	default:
 		return "model.candidates.is_blacklist_enum.no"
+	}
+}
+
+func (d *candidateDtoImpl) referenceTypeI18n(input candidate.ReferenceType) string {
+	switch input {
+	case candidate.ReferenceTypeEb:
+		return "model.candidates.reference_type.eb"
+	case candidate.ReferenceTypeRec:
+		return "model.candidates.reference_type.rec"
+	case candidate.ReferenceTypeHiringPlatform:
+		return "model.candidates.reference_type.hiring_platform"
+	case candidate.ReferenceTypeReference:
+		return "model.candidates.reference_type.reference"
+	default:
+		return "model.candidates.reference_type.headhunt"
+	}
+}
+
+func (d *candidateDtoImpl) referenceTypeValueI18n(input string) string {
+	// tiktok_techvify_official
+  // tiktok_thedevdad
+  // linkedin_junie_truong
+  // other_linkedin
+  // group_seeding
+  // fanpage_techvify_careers
+  // google_search
+  // youtube_techvify_careers
+  // thread
+  // instagram
+  // twitter
+  // others
+	switch input {
+	case ent.CandidateReferenceEbTiktokTechvifyOfficial.String():
+		return "model.candidates.reference_value.tiktok_techvify_official"
+	case ent.CandidateReferenceEbTiktokThedevdad.String():
+		return "model.candidates.reference_value.tiktok_thedevdad"
+	case ent.CandidateReferenceEbLinkedinJunieTruong.String():
+		return "model.candidates.reference_value.linkedin_junie_truong"
+	case ent.CandidateReferenceEbOtherLinkedin.String():
+		return "model.candidates.reference_value.other_linkedin"
+	case ent.CandidateReferenceEbGroupSeeding.String():
+		return "model.candidates.reference_value.group_seeding"
+	case ent.CandidateReferenceEbFanpageTechvifyCareers.String():
+		return "model.candidates.reference_value.fanpage_techvify_careers"
+	case ent.CandidateReferenceEbGoogleSearch.String():
+		return "model.candidates.reference_value.google_search"
+	case ent.CandidateReferenceEbYoutubeTechvifyCareers.String():
+		return "model.candidates.reference_value.youtube_techvify_careers"
+	case ent.CandidateReferenceEbThread.String():
+		return "model.candidates.reference_value.thread"
+	case ent.CandidateReferenceEbInstagram.String():
+		return "model.candidates.reference_value.instagram"
+	case ent.CandidateReferenceEbTwitter.String():
+		return "model.candidates.reference_value.twitter"
+	case ent.CandidateReferenceEbOthers.String():
+		return "model.candidates.reference_value.others"
+	default:
+		return input
 	}
 }
