@@ -309,6 +309,12 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 				candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
 			))
 		}
+		if input.ReferenceUID != nil {
+			candidateQuery.Where(candidate.ReferenceUIDEQ(uuid.MustParse(*input.ReferenceUID)))
+		}
+		if input.RecruitTimeFromDate != nil && input.RecruitTimeToDate != nil {
+			candidateQuery.Where(candidate.RecruitTimeGTE(*input.RecruitTimeFromDate), candidate.RecruitTimeLTE(*input.RecruitTimeToDate))
+		}
 		if input.Status != nil {
 			if ent.CandidateStatusEnum(input.Status.String()) == ent.CandidateStatusEnumNew {
 				candidates, _ := svc.repoRegistry.Candidate().BuildList(ctx,

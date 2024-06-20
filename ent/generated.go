@@ -57,18 +57,21 @@ type Base64Response struct {
 }
 
 type CandidateFilter struct {
-	Name              *string                    `json:"name"`
-	Email             *string                    `json:"email"`
-	Phone             *string                    `json:"phone"`
-	DobFromDate       *time.Time                 `json:"dob_from_date"`
-	DobToDate         *time.Time                 `json:"dob_to_date"`
-	Status            *CandidateStatusEnum       `json:"status"`
-	FromDate          *time.Time                 `json:"from_date"`
-	ToDate            *time.Time                 `json:"to_date"`
-	IsBlackList       *bool                      `json:"is_black_list"`
-	JobID             *string                    `json:"job_id"`
-	IsAbleToInterview *bool                      `json:"is_able_to_interview"`
-	FailedReason      []CandidateJobFailedReason `json:"failed_reason"`
+	Name                *string                    `json:"name"`
+	Email               *string                    `json:"email"`
+	Phone               *string                    `json:"phone"`
+	DobFromDate         *time.Time                 `json:"dob_from_date"`
+	DobToDate           *time.Time                 `json:"dob_to_date"`
+	Status              *CandidateStatusEnum       `json:"status"`
+	FromDate            *time.Time                 `json:"from_date"`
+	ToDate              *time.Time                 `json:"to_date"`
+	IsBlackList         *bool                      `json:"is_black_list"`
+	JobID               *string                    `json:"job_id"`
+	IsAbleToInterview   *bool                      `json:"is_able_to_interview"`
+	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
+	ReferenceUID        *string                    `json:"reference_uid"`
+	RecruitTimeFromDate *time.Time                 `json:"recruit_time_from_date"`
+	RecruitTimeToDate   *time.Time                 `json:"recruit_time_to_date"`
 }
 
 type CandidateFreeWord struct {

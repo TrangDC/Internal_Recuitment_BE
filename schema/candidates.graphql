@@ -96,6 +96,9 @@ input CandidateFilter {
   job_id: ID
   is_able_to_interview: Boolean
   failed_reason: [CandidateJobFailedReason!]
+  reference_uid: ID
+  recruit_time_from_date: Time
+  recruit_time_to_date: Time
 }
 
 input CandidateFreeWord {

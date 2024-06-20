@@ -3354,6 +3354,9 @@ input CandidateFilter {
   job_id: ID
   is_able_to_interview: Boolean
   failed_reason: [CandidateJobFailedReason!]
+  reference_uid: ID
+  recruit_time_from_date: Time
+  recruit_time_to_date: Time
 }
 
 input CandidateFreeWord {
@@ -20839,7 +20842,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -20939,6 +20942,30 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
 			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_uid":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_uid"))
+			it.ReferenceUID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "recruit_time_from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recruit_time_from_date"))
+			it.RecruitTimeFromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "recruit_time_to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recruit_time_to_date"))
+			it.RecruitTimeToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
