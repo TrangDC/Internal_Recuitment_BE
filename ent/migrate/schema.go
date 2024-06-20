@@ -16,7 +16,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
 		{Name: "document_name", Type: field.TypeString, Size: 255},
-		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks"}},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
@@ -25,6 +25,12 @@ var (
 		Columns:    AttachmentsColumns,
 		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attachments_candidates_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
 			{
 				Symbol:     "attachments_candidate_interviews_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
@@ -89,7 +95,6 @@ var (
 		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "country", Type: field.TypeString, Nullable: true, Size: 255},
-		{Name: "attachment_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
@@ -100,7 +105,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidates_users_candidate_reference_edges",
-				Columns:    []*schema.Column{CandidatesColumns[16]},
+				Columns:    []*schema.Column{CandidatesColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -413,9 +418,10 @@ var (
 )
 
 func init() {
-	AttachmentsTable.ForeignKeys[0].RefTable = CandidateInterviewsTable
-	AttachmentsTable.ForeignKeys[1].RefTable = CandidateJobsTable
-	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobFeedbacksTable
+	AttachmentsTable.ForeignKeys[0].RefTable = CandidatesTable
+	AttachmentsTable.ForeignKeys[1].RefTable = CandidateInterviewsTable
+	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobsTable
+	AttachmentsTable.ForeignKeys[3].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
 	CandidatesTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable

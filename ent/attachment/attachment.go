@@ -28,35 +28,44 @@ const (
 	FieldRelationType = "relation_type"
 	// FieldRelationID holds the string denoting the relation_id field in the database.
 	FieldRelationID = "relation_id"
-	// EdgeCandidateJob holds the string denoting the candidate_job edge name in mutations.
-	EdgeCandidateJob = "candidate_job"
-	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
-	EdgeCandidateJobFeedback = "candidate_job_feedback"
-	// EdgeCandidateInterview holds the string denoting the candidate_interview edge name in mutations.
-	EdgeCandidateInterview = "candidate_interview"
+	// EdgeCandidateJobEdge holds the string denoting the candidate_job_edge edge name in mutations.
+	EdgeCandidateJobEdge = "candidate_job_edge"
+	// EdgeCandidateJobFeedbackEdge holds the string denoting the candidate_job_feedback_edge edge name in mutations.
+	EdgeCandidateJobFeedbackEdge = "candidate_job_feedback_edge"
+	// EdgeCandidateInterviewEdge holds the string denoting the candidate_interview_edge edge name in mutations.
+	EdgeCandidateInterviewEdge = "candidate_interview_edge"
+	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
+	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
-	// CandidateJobTable is the table that holds the candidate_job relation/edge.
-	CandidateJobTable = "attachments"
-	// CandidateJobInverseTable is the table name for the CandidateJob entity.
+	// CandidateJobEdgeTable is the table that holds the candidate_job_edge relation/edge.
+	CandidateJobEdgeTable = "attachments"
+	// CandidateJobEdgeInverseTable is the table name for the CandidateJob entity.
 	// It exists in this package in order to avoid circular dependency with the "candidatejob" package.
-	CandidateJobInverseTable = "candidate_jobs"
-	// CandidateJobColumn is the table column denoting the candidate_job relation/edge.
-	CandidateJobColumn = "relation_id"
-	// CandidateJobFeedbackTable is the table that holds the candidate_job_feedback relation/edge.
-	CandidateJobFeedbackTable = "attachments"
-	// CandidateJobFeedbackInverseTable is the table name for the CandidateJobFeedback entity.
+	CandidateJobEdgeInverseTable = "candidate_jobs"
+	// CandidateJobEdgeColumn is the table column denoting the candidate_job_edge relation/edge.
+	CandidateJobEdgeColumn = "relation_id"
+	// CandidateJobFeedbackEdgeTable is the table that holds the candidate_job_feedback_edge relation/edge.
+	CandidateJobFeedbackEdgeTable = "attachments"
+	// CandidateJobFeedbackEdgeInverseTable is the table name for the CandidateJobFeedback entity.
 	// It exists in this package in order to avoid circular dependency with the "candidatejobfeedback" package.
-	CandidateJobFeedbackInverseTable = "candidate_job_feedbacks"
-	// CandidateJobFeedbackColumn is the table column denoting the candidate_job_feedback relation/edge.
-	CandidateJobFeedbackColumn = "relation_id"
-	// CandidateInterviewTable is the table that holds the candidate_interview relation/edge.
-	CandidateInterviewTable = "attachments"
-	// CandidateInterviewInverseTable is the table name for the CandidateInterview entity.
+	CandidateJobFeedbackEdgeInverseTable = "candidate_job_feedbacks"
+	// CandidateJobFeedbackEdgeColumn is the table column denoting the candidate_job_feedback_edge relation/edge.
+	CandidateJobFeedbackEdgeColumn = "relation_id"
+	// CandidateInterviewEdgeTable is the table that holds the candidate_interview_edge relation/edge.
+	CandidateInterviewEdgeTable = "attachments"
+	// CandidateInterviewEdgeInverseTable is the table name for the CandidateInterview entity.
 	// It exists in this package in order to avoid circular dependency with the "candidateinterview" package.
-	CandidateInterviewInverseTable = "candidate_interviews"
-	// CandidateInterviewColumn is the table column denoting the candidate_interview relation/edge.
-	CandidateInterviewColumn = "relation_id"
+	CandidateInterviewEdgeInverseTable = "candidate_interviews"
+	// CandidateInterviewEdgeColumn is the table column denoting the candidate_interview_edge relation/edge.
+	CandidateInterviewEdgeColumn = "relation_id"
+	// CandidateEdgeTable is the table that holds the candidate_edge relation/edge.
+	CandidateEdgeTable = "attachments"
+	// CandidateEdgeInverseTable is the table name for the Candidate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidate" package.
+	CandidateEdgeInverseTable = "candidates"
+	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
+	CandidateEdgeColumn = "relation_id"
 )
 
 // Columns holds all SQL columns for attachment fields.
@@ -95,6 +104,7 @@ type RelationType string
 const (
 	RelationTypeCandidateJobs         RelationType = "candidate_jobs"
 	RelationTypeCandidateJobFeedbacks RelationType = "candidate_job_feedbacks"
+	RelationTypeCandidates            RelationType = "candidates"
 )
 
 func (rt RelationType) String() string {
@@ -104,7 +114,7 @@ func (rt RelationType) String() string {
 // RelationTypeValidator is a validator for the "relation_type" field enum values. It is called by the builders before save.
 func RelationTypeValidator(rt RelationType) error {
 	switch rt {
-	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks:
+	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks, RelationTypeCandidates:
 		return nil
 	default:
 		return fmt.Errorf("attachment: invalid enum value for relation_type field: %q", rt)

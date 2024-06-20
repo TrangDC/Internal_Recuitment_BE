@@ -111,7 +111,7 @@ type ComplexityRoot struct {
 	}
 
 	Candidate struct {
-		AttachmentID   func(childComplexity int) int
+		Attachments    func(childComplexity int) int
 		Country        func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		DeletedAt      func(childComplexity int) int
@@ -499,7 +499,7 @@ type CandidateResolver interface {
 
 	ReferenceUID(ctx context.Context, obj *ent.Candidate) (string, error)
 
-	AttachmentID(ctx context.Context, obj *ent.Candidate) (string, error)
+	Attachments(ctx context.Context, obj *ent.Candidate) ([]*ent.Attachment, error)
 	ReferenceUser(ctx context.Context, obj *ent.Candidate) (*ent.User, error)
 }
 type CandidateInterviewResolver interface {
@@ -841,12 +841,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Base64Response.Data(childComplexity), true
 
-	case "Candidate.attachment_id":
-		if e.complexity.Candidate.AttachmentID == nil {
+	case "Candidate.attachments":
+		if e.complexity.Candidate.Attachments == nil {
 			break
 		}
 
-		return e.complexity.Candidate.AttachmentID(childComplexity), true
+		return e.complexity.Candidate.Attachments(childComplexity), true
 
 	case "Candidate.country":
 		if e.complexity.Candidate.Country == nil {
@@ -3324,6 +3324,7 @@ input NewCandidateInput{
   recruit_time: Time
   description: String!
   country: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input UpdateCandidateInput {
@@ -3337,6 +3338,7 @@ input UpdateCandidateInput {
   recruit_time: Time
   description: String!
   country: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input CandidateFilter {
@@ -3382,7 +3384,7 @@ type Candidate {
   recruit_time: Time
   description: String!
   country: String!
-  attachment_id: ID!
+  attachments: [Attachment!]
   reference_user: User
   created_at: Time!
   updated_at: Time!
@@ -7511,8 +7513,8 @@ func (ec *executionContext) fieldContext_Candidate_country(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Candidate_attachment_id(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Candidate_attachment_id(ctx, field)
+func (ec *executionContext) _Candidate_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_attachments(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7525,31 +7527,36 @@ func (ec *executionContext) _Candidate_attachment_id(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Candidate().AttachmentID(rctx, obj)
+		return ec.resolvers.Candidate().Attachments(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]*ent.Attachment)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Candidate_attachment_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Candidate_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Candidate",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
 		},
 	}
 	return fc, nil
@@ -7808,8 +7815,8 @@ func (ec *executionContext) fieldContext_CandidateEdge_node(ctx context.Context,
 				return ec.fieldContext_Candidate_description(ctx, field)
 			case "country":
 				return ec.fieldContext_Candidate_country(ctx, field)
-			case "attachment_id":
-				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "attachments":
+				return ec.fieldContext_Candidate_attachments(ctx, field)
 			case "reference_user":
 				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
@@ -9120,8 +9127,8 @@ func (ec *executionContext) fieldContext_CandidateJob_candidate(ctx context.Cont
 				return ec.fieldContext_Candidate_description(ctx, field)
 			case "country":
 				return ec.fieldContext_Candidate_country(ctx, field)
-			case "attachment_id":
-				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "attachments":
+				return ec.fieldContext_Candidate_attachments(ctx, field)
 			case "reference_user":
 				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
@@ -11914,8 +11921,8 @@ func (ec *executionContext) fieldContext_CandidateResponse_data(ctx context.Cont
 				return ec.fieldContext_Candidate_description(ctx, field)
 			case "country":
 				return ec.fieldContext_Candidate_country(ctx, field)
-			case "attachment_id":
-				return ec.fieldContext_Candidate_attachment_id(ctx, field)
+			case "attachments":
+				return ec.fieldContext_Candidate_attachments(ctx, field)
 			case "reference_user":
 				return ec.fieldContext_Candidate_reference_user(ctx, field)
 			case "created_at":
@@ -21720,7 +21727,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "attachments"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -21804,6 +21811,14 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
 			it.Country, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22548,7 +22563,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "attachments"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -22632,6 +22647,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
 			it.Country, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23920,7 +23943,7 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "attachment_id":
+		case "attachments":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -23929,10 +23952,7 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Candidate_attachment_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._Candidate_attachments(ctx, field, obj)
 				return res
 			}
 

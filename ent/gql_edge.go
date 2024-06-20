@@ -8,26 +8,34 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (a *Attachment) CandidateJob(ctx context.Context) (*CandidateJob, error) {
-	result, err := a.Edges.CandidateJobOrErr()
+func (a *Attachment) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {
+	result, err := a.Edges.CandidateJobEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = a.QueryCandidateJob().Only(ctx)
+		result, err = a.QueryCandidateJobEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (a *Attachment) CandidateJobFeedback(ctx context.Context) (*CandidateJobFeedback, error) {
-	result, err := a.Edges.CandidateJobFeedbackOrErr()
+func (a *Attachment) CandidateJobFeedbackEdge(ctx context.Context) (*CandidateJobFeedback, error) {
+	result, err := a.Edges.CandidateJobFeedbackEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = a.QueryCandidateJobFeedback().Only(ctx)
+		result, err = a.QueryCandidateJobFeedbackEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (a *Attachment) CandidateInterview(ctx context.Context) (*CandidateInterview, error) {
-	result, err := a.Edges.CandidateInterviewOrErr()
+func (a *Attachment) CandidateInterviewEdge(ctx context.Context) (*CandidateInterview, error) {
+	result, err := a.Edges.CandidateInterviewEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = a.QueryCandidateInterview().Only(ctx)
+		result, err = a.QueryCandidateInterviewEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (a *Attachment) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := a.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
@@ -58,6 +66,18 @@ func (c *Candidate) ReferenceUserEdge(ctx context.Context) (*User, error) {
 		result, err = c.QueryReferenceUserEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (c *Candidate) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (ci *CandidateInterview) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {

@@ -55,25 +55,27 @@ const (
 // AttachmentMutation represents an operation that mutates the Attachment nodes in the graph.
 type AttachmentMutation struct {
 	config
-	op                            Op
-	typ                           string
-	id                            *uuid.UUID
-	created_at                    *time.Time
-	updated_at                    *time.Time
-	deleted_at                    *time.Time
-	document_id                   *uuid.UUID
-	document_name                 *string
-	relation_type                 *attachment.RelationType
-	clearedFields                 map[string]struct{}
-	candidate_job                 *uuid.UUID
-	clearedcandidate_job          bool
-	candidate_job_feedback        *uuid.UUID
-	clearedcandidate_job_feedback bool
-	candidate_interview           *uuid.UUID
-	clearedcandidate_interview    bool
-	done                          bool
-	oldValue                      func(context.Context) (*Attachment, error)
-	predicates                    []predicate.Attachment
+	op                                 Op
+	typ                                string
+	id                                 *uuid.UUID
+	created_at                         *time.Time
+	updated_at                         *time.Time
+	deleted_at                         *time.Time
+	document_id                        *uuid.UUID
+	document_name                      *string
+	relation_type                      *attachment.RelationType
+	clearedFields                      map[string]struct{}
+	candidate_job_edge                 *uuid.UUID
+	clearedcandidate_job_edge          bool
+	candidate_job_feedback_edge        *uuid.UUID
+	clearedcandidate_job_feedback_edge bool
+	candidate_interview_edge           *uuid.UUID
+	clearedcandidate_interview_edge    bool
+	candidate_edge                     *uuid.UUID
+	clearedcandidate_edge              bool
+	done                               bool
+	oldValue                           func(context.Context) (*Attachment, error)
+	predicates                         []predicate.Attachment
 }
 
 var _ ent.Mutation = (*AttachmentMutation)(nil)
@@ -424,12 +426,12 @@ func (m *AttachmentMutation) ResetRelationType() {
 
 // SetRelationID sets the "relation_id" field.
 func (m *AttachmentMutation) SetRelationID(u uuid.UUID) {
-	m.candidate_job_feedback = &u
+	m.candidate_job_feedback_edge = &u
 }
 
 // RelationID returns the value of the "relation_id" field in the mutation.
 func (m *AttachmentMutation) RelationID() (r uuid.UUID, exists bool) {
-	v := m.candidate_job_feedback
+	v := m.candidate_job_feedback_edge
 	if v == nil {
 		return
 	}
@@ -455,7 +457,7 @@ func (m *AttachmentMutation) OldRelationID(ctx context.Context) (v uuid.UUID, er
 
 // ClearRelationID clears the value of the "relation_id" field.
 func (m *AttachmentMutation) ClearRelationID() {
-	m.candidate_job_feedback = nil
+	m.candidate_job_feedback_edge = nil
 	m.clearedFields[attachment.FieldRelationID] = struct{}{}
 }
 
@@ -467,125 +469,164 @@ func (m *AttachmentMutation) RelationIDCleared() bool {
 
 // ResetRelationID resets all changes to the "relation_id" field.
 func (m *AttachmentMutation) ResetRelationID() {
-	m.candidate_job_feedback = nil
+	m.candidate_job_feedback_edge = nil
 	delete(m.clearedFields, attachment.FieldRelationID)
 }
 
-// SetCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by id.
-func (m *AttachmentMutation) SetCandidateJobID(id uuid.UUID) {
-	m.candidate_job = &id
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by id.
+func (m *AttachmentMutation) SetCandidateJobEdgeID(id uuid.UUID) {
+	m.candidate_job_edge = &id
 }
 
-// ClearCandidateJob clears the "candidate_job" edge to the CandidateJob entity.
-func (m *AttachmentMutation) ClearCandidateJob() {
-	m.clearedcandidate_job = true
+// ClearCandidateJobEdge clears the "candidate_job_edge" edge to the CandidateJob entity.
+func (m *AttachmentMutation) ClearCandidateJobEdge() {
+	m.clearedcandidate_job_edge = true
 }
 
-// CandidateJobCleared reports if the "candidate_job" edge to the CandidateJob entity was cleared.
-func (m *AttachmentMutation) CandidateJobCleared() bool {
-	return m.RelationIDCleared() || m.clearedcandidate_job
+// CandidateJobEdgeCleared reports if the "candidate_job_edge" edge to the CandidateJob entity was cleared.
+func (m *AttachmentMutation) CandidateJobEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_job_edge
 }
 
-// CandidateJobID returns the "candidate_job" edge ID in the mutation.
-func (m *AttachmentMutation) CandidateJobID() (id uuid.UUID, exists bool) {
-	if m.candidate_job != nil {
-		return *m.candidate_job, true
+// CandidateJobEdgeID returns the "candidate_job_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateJobEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_job_edge != nil {
+		return *m.candidate_job_edge, true
 	}
 	return
 }
 
-// CandidateJobIDs returns the "candidate_job" edge IDs in the mutation.
+// CandidateJobEdgeIDs returns the "candidate_job_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CandidateJobID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) CandidateJobIDs() (ids []uuid.UUID) {
-	if id := m.candidate_job; id != nil {
+// CandidateJobEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateJobEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_job_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCandidateJob resets all changes to the "candidate_job" edge.
-func (m *AttachmentMutation) ResetCandidateJob() {
-	m.candidate_job = nil
-	m.clearedcandidate_job = false
+// ResetCandidateJobEdge resets all changes to the "candidate_job_edge" edge.
+func (m *AttachmentMutation) ResetCandidateJobEdge() {
+	m.candidate_job_edge = nil
+	m.clearedcandidate_job_edge = false
 }
 
-// SetCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by id.
-func (m *AttachmentMutation) SetCandidateJobFeedbackID(id uuid.UUID) {
-	m.candidate_job_feedback = &id
+// SetCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by id.
+func (m *AttachmentMutation) SetCandidateJobFeedbackEdgeID(id uuid.UUID) {
+	m.candidate_job_feedback_edge = &id
 }
 
-// ClearCandidateJobFeedback clears the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (m *AttachmentMutation) ClearCandidateJobFeedback() {
-	m.clearedcandidate_job_feedback = true
+// ClearCandidateJobFeedbackEdge clears the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (m *AttachmentMutation) ClearCandidateJobFeedbackEdge() {
+	m.clearedcandidate_job_feedback_edge = true
 }
 
-// CandidateJobFeedbackCleared reports if the "candidate_job_feedback" edge to the CandidateJobFeedback entity was cleared.
-func (m *AttachmentMutation) CandidateJobFeedbackCleared() bool {
-	return m.RelationIDCleared() || m.clearedcandidate_job_feedback
+// CandidateJobFeedbackEdgeCleared reports if the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity was cleared.
+func (m *AttachmentMutation) CandidateJobFeedbackEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_job_feedback_edge
 }
 
-// CandidateJobFeedbackID returns the "candidate_job_feedback" edge ID in the mutation.
-func (m *AttachmentMutation) CandidateJobFeedbackID() (id uuid.UUID, exists bool) {
-	if m.candidate_job_feedback != nil {
-		return *m.candidate_job_feedback, true
+// CandidateJobFeedbackEdgeID returns the "candidate_job_feedback_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateJobFeedbackEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_job_feedback_edge != nil {
+		return *m.candidate_job_feedback_edge, true
 	}
 	return
 }
 
-// CandidateJobFeedbackIDs returns the "candidate_job_feedback" edge IDs in the mutation.
+// CandidateJobFeedbackEdgeIDs returns the "candidate_job_feedback_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CandidateJobFeedbackID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) CandidateJobFeedbackIDs() (ids []uuid.UUID) {
-	if id := m.candidate_job_feedback; id != nil {
+// CandidateJobFeedbackEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateJobFeedbackEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_job_feedback_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCandidateJobFeedback resets all changes to the "candidate_job_feedback" edge.
-func (m *AttachmentMutation) ResetCandidateJobFeedback() {
-	m.candidate_job_feedback = nil
-	m.clearedcandidate_job_feedback = false
+// ResetCandidateJobFeedbackEdge resets all changes to the "candidate_job_feedback_edge" edge.
+func (m *AttachmentMutation) ResetCandidateJobFeedbackEdge() {
+	m.candidate_job_feedback_edge = nil
+	m.clearedcandidate_job_feedback_edge = false
 }
 
-// SetCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by id.
-func (m *AttachmentMutation) SetCandidateInterviewID(id uuid.UUID) {
-	m.candidate_interview = &id
+// SetCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by id.
+func (m *AttachmentMutation) SetCandidateInterviewEdgeID(id uuid.UUID) {
+	m.candidate_interview_edge = &id
 }
 
-// ClearCandidateInterview clears the "candidate_interview" edge to the CandidateInterview entity.
-func (m *AttachmentMutation) ClearCandidateInterview() {
-	m.clearedcandidate_interview = true
+// ClearCandidateInterviewEdge clears the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (m *AttachmentMutation) ClearCandidateInterviewEdge() {
+	m.clearedcandidate_interview_edge = true
 }
 
-// CandidateInterviewCleared reports if the "candidate_interview" edge to the CandidateInterview entity was cleared.
-func (m *AttachmentMutation) CandidateInterviewCleared() bool {
-	return m.RelationIDCleared() || m.clearedcandidate_interview
+// CandidateInterviewEdgeCleared reports if the "candidate_interview_edge" edge to the CandidateInterview entity was cleared.
+func (m *AttachmentMutation) CandidateInterviewEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_interview_edge
 }
 
-// CandidateInterviewID returns the "candidate_interview" edge ID in the mutation.
-func (m *AttachmentMutation) CandidateInterviewID() (id uuid.UUID, exists bool) {
-	if m.candidate_interview != nil {
-		return *m.candidate_interview, true
+// CandidateInterviewEdgeID returns the "candidate_interview_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateInterviewEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_interview_edge != nil {
+		return *m.candidate_interview_edge, true
 	}
 	return
 }
 
-// CandidateInterviewIDs returns the "candidate_interview" edge IDs in the mutation.
+// CandidateInterviewEdgeIDs returns the "candidate_interview_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CandidateInterviewID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) CandidateInterviewIDs() (ids []uuid.UUID) {
-	if id := m.candidate_interview; id != nil {
+// CandidateInterviewEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateInterviewEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_interview_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCandidateInterview resets all changes to the "candidate_interview" edge.
-func (m *AttachmentMutation) ResetCandidateInterview() {
-	m.candidate_interview = nil
-	m.clearedcandidate_interview = false
+// ResetCandidateInterviewEdge resets all changes to the "candidate_interview_edge" edge.
+func (m *AttachmentMutation) ResetCandidateInterviewEdge() {
+	m.candidate_interview_edge = nil
+	m.clearedcandidate_interview_edge = false
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *AttachmentMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *AttachmentMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *AttachmentMutation) CandidateEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *AttachmentMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
 }
 
 // Where appends a list predicates to the AttachmentMutation builder.
@@ -626,7 +667,7 @@ func (m *AttachmentMutation) Fields() []string {
 	if m.relation_type != nil {
 		fields = append(fields, attachment.FieldRelationType)
 	}
-	if m.candidate_job_feedback != nil {
+	if m.candidate_job_feedback_edge != nil {
 		fields = append(fields, attachment.FieldRelationID)
 	}
 	return fields
@@ -829,15 +870,18 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.candidate_job != nil {
-		edges = append(edges, attachment.EdgeCandidateJob)
+	edges := make([]string, 0, 4)
+	if m.candidate_job_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
-	if m.candidate_job_feedback != nil {
-		edges = append(edges, attachment.EdgeCandidateJobFeedback)
+	if m.candidate_job_feedback_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateJobFeedbackEdge)
 	}
-	if m.candidate_interview != nil {
-		edges = append(edges, attachment.EdgeCandidateInterview)
+	if m.candidate_interview_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateInterviewEdge)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateEdge)
 	}
 	return edges
 }
@@ -846,16 +890,20 @@ func (m *AttachmentMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case attachment.EdgeCandidateJob:
-		if id := m.candidate_job; id != nil {
+	case attachment.EdgeCandidateJobEdge:
+		if id := m.candidate_job_edge; id != nil {
 			return []ent.Value{*id}
 		}
-	case attachment.EdgeCandidateJobFeedback:
-		if id := m.candidate_job_feedback; id != nil {
+	case attachment.EdgeCandidateJobFeedbackEdge:
+		if id := m.candidate_job_feedback_edge; id != nil {
 			return []ent.Value{*id}
 		}
-	case attachment.EdgeCandidateInterview:
-		if id := m.candidate_interview; id != nil {
+	case attachment.EdgeCandidateInterviewEdge:
+		if id := m.candidate_interview_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case attachment.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -864,7 +912,7 @@ func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -876,15 +924,18 @@ func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.clearedcandidate_job {
-		edges = append(edges, attachment.EdgeCandidateJob)
+	edges := make([]string, 0, 4)
+	if m.clearedcandidate_job_edge {
+		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
-	if m.clearedcandidate_job_feedback {
-		edges = append(edges, attachment.EdgeCandidateJobFeedback)
+	if m.clearedcandidate_job_feedback_edge {
+		edges = append(edges, attachment.EdgeCandidateJobFeedbackEdge)
 	}
-	if m.clearedcandidate_interview {
-		edges = append(edges, attachment.EdgeCandidateInterview)
+	if m.clearedcandidate_interview_edge {
+		edges = append(edges, attachment.EdgeCandidateInterviewEdge)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, attachment.EdgeCandidateEdge)
 	}
 	return edges
 }
@@ -893,12 +944,14 @@ func (m *AttachmentMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *AttachmentMutation) EdgeCleared(name string) bool {
 	switch name {
-	case attachment.EdgeCandidateJob:
-		return m.clearedcandidate_job
-	case attachment.EdgeCandidateJobFeedback:
-		return m.clearedcandidate_job_feedback
-	case attachment.EdgeCandidateInterview:
-		return m.clearedcandidate_interview
+	case attachment.EdgeCandidateJobEdge:
+		return m.clearedcandidate_job_edge
+	case attachment.EdgeCandidateJobFeedbackEdge:
+		return m.clearedcandidate_job_feedback_edge
+	case attachment.EdgeCandidateInterviewEdge:
+		return m.clearedcandidate_interview_edge
+	case attachment.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
 	}
 	return false
 }
@@ -907,14 +960,17 @@ func (m *AttachmentMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *AttachmentMutation) ClearEdge(name string) error {
 	switch name {
-	case attachment.EdgeCandidateJob:
-		m.ClearCandidateJob()
+	case attachment.EdgeCandidateJobEdge:
+		m.ClearCandidateJobEdge()
 		return nil
-	case attachment.EdgeCandidateJobFeedback:
-		m.ClearCandidateJobFeedback()
+	case attachment.EdgeCandidateJobFeedbackEdge:
+		m.ClearCandidateJobFeedbackEdge()
 		return nil
-	case attachment.EdgeCandidateInterview:
-		m.ClearCandidateInterview()
+	case attachment.EdgeCandidateInterviewEdge:
+		m.ClearCandidateInterviewEdge()
+		return nil
+	case attachment.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
@@ -924,14 +980,17 @@ func (m *AttachmentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AttachmentMutation) ResetEdge(name string) error {
 	switch name {
-	case attachment.EdgeCandidateJob:
-		m.ResetCandidateJob()
+	case attachment.EdgeCandidateJobEdge:
+		m.ResetCandidateJobEdge()
 		return nil
-	case attachment.EdgeCandidateJobFeedback:
-		m.ResetCandidateJobFeedback()
+	case attachment.EdgeCandidateJobFeedbackEdge:
+		m.ResetCandidateJobFeedbackEdge()
 		return nil
-	case attachment.EdgeCandidateInterview:
-		m.ResetCandidateInterview()
+	case attachment.EdgeCandidateInterviewEdge:
+		m.ResetCandidateInterviewEdge()
+		return nil
+	case attachment.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
@@ -1889,13 +1948,15 @@ type CandidateMutation struct {
 	recruit_time               *time.Time
 	description                *string
 	country                    *string
-	attachment_id              *uuid.UUID
 	clearedFields              map[string]struct{}
 	candidate_job_edges        map[uuid.UUID]struct{}
 	removedcandidate_job_edges map[uuid.UUID]struct{}
 	clearedcandidate_job_edges bool
 	reference_user_edge        *uuid.UUID
 	clearedreference_user_edge bool
+	attachment_edges           map[uuid.UUID]struct{}
+	removedattachment_edges    map[uuid.UUID]struct{}
+	clearedattachment_edges    bool
 	done                       bool
 	oldValue                   func(context.Context) (*Candidate, error)
 	predicates                 []predicate.Candidate
@@ -2662,55 +2723,6 @@ func (m *CandidateMutation) ResetCountry() {
 	delete(m.clearedFields, candidate.FieldCountry)
 }
 
-// SetAttachmentID sets the "attachment_id" field.
-func (m *CandidateMutation) SetAttachmentID(u uuid.UUID) {
-	m.attachment_id = &u
-}
-
-// AttachmentID returns the value of the "attachment_id" field in the mutation.
-func (m *CandidateMutation) AttachmentID() (r uuid.UUID, exists bool) {
-	v := m.attachment_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAttachmentID returns the old "attachment_id" field's value of the Candidate entity.
-// If the Candidate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CandidateMutation) OldAttachmentID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAttachmentID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAttachmentID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAttachmentID: %w", err)
-	}
-	return oldValue.AttachmentID, nil
-}
-
-// ClearAttachmentID clears the value of the "attachment_id" field.
-func (m *CandidateMutation) ClearAttachmentID() {
-	m.attachment_id = nil
-	m.clearedFields[candidate.FieldAttachmentID] = struct{}{}
-}
-
-// AttachmentIDCleared returns if the "attachment_id" field was cleared in this mutation.
-func (m *CandidateMutation) AttachmentIDCleared() bool {
-	_, ok := m.clearedFields[candidate.FieldAttachmentID]
-	return ok
-}
-
-// ResetAttachmentID resets all changes to the "attachment_id" field.
-func (m *CandidateMutation) ResetAttachmentID() {
-	m.attachment_id = nil
-	delete(m.clearedFields, candidate.FieldAttachmentID)
-}
-
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by ids.
 func (m *CandidateMutation) AddCandidateJobEdgeIDs(ids ...uuid.UUID) {
 	if m.candidate_job_edges == nil {
@@ -2804,6 +2816,60 @@ func (m *CandidateMutation) ResetReferenceUserEdge() {
 	m.clearedreference_user_edge = false
 }
 
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
 // Where appends a list predicates to the CandidateMutation builder.
 func (m *CandidateMutation) Where(ps ...predicate.Candidate) {
 	m.predicates = append(m.predicates, ps...)
@@ -2823,7 +2889,7 @@ func (m *CandidateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, candidate.FieldCreatedAt)
 	}
@@ -2869,9 +2935,6 @@ func (m *CandidateMutation) Fields() []string {
 	if m.country != nil {
 		fields = append(fields, candidate.FieldCountry)
 	}
-	if m.attachment_id != nil {
-		fields = append(fields, candidate.FieldAttachmentID)
-	}
 	return fields
 }
 
@@ -2910,8 +2973,6 @@ func (m *CandidateMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case candidate.FieldCountry:
 		return m.Country()
-	case candidate.FieldAttachmentID:
-		return m.AttachmentID()
 	}
 	return nil, false
 }
@@ -2951,8 +3012,6 @@ func (m *CandidateMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDescription(ctx)
 	case candidate.FieldCountry:
 		return m.OldCountry(ctx)
-	case candidate.FieldAttachmentID:
-		return m.OldAttachmentID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -3067,13 +3126,6 @@ func (m *CandidateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCountry(v)
 		return nil
-	case candidate.FieldAttachmentID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAttachmentID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -3131,9 +3183,6 @@ func (m *CandidateMutation) ClearedFields() []string {
 	if m.FieldCleared(candidate.FieldCountry) {
 		fields = append(fields, candidate.FieldCountry)
 	}
-	if m.FieldCleared(candidate.FieldAttachmentID) {
-		fields = append(fields, candidate.FieldAttachmentID)
-	}
 	return fields
 }
 
@@ -3174,9 +3223,6 @@ func (m *CandidateMutation) ClearField(name string) error {
 		return nil
 	case candidate.FieldCountry:
 		m.ClearCountry()
-		return nil
-	case candidate.FieldAttachmentID:
-		m.ClearAttachmentID()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate nullable field %s", name)
@@ -3231,21 +3277,21 @@ func (m *CandidateMutation) ResetField(name string) error {
 	case candidate.FieldCountry:
 		m.ResetCountry()
 		return nil
-	case candidate.FieldAttachmentID:
-		m.ResetAttachmentID()
-		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.candidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
 	if m.reference_user_edge != nil {
 		edges = append(edges, candidate.EdgeReferenceUserEdge)
+	}
+	if m.attachment_edges != nil {
+		edges = append(edges, candidate.EdgeAttachmentEdges)
 	}
 	return edges
 }
@@ -3264,15 +3310,24 @@ func (m *CandidateMutation) AddedIDs(name string) []ent.Value {
 		if id := m.reference_user_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case candidate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
+	}
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidate.EdgeAttachmentEdges)
 	}
 	return edges
 }
@@ -3287,18 +3342,27 @@ func (m *CandidateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcandidate_job_edges {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
 	if m.clearedreference_user_edge {
 		edges = append(edges, candidate.EdgeReferenceUserEdge)
+	}
+	if m.clearedattachment_edges {
+		edges = append(edges, candidate.EdgeAttachmentEdges)
 	}
 	return edges
 }
@@ -3311,6 +3375,8 @@ func (m *CandidateMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_job_edges
 	case candidate.EdgeReferenceUserEdge:
 		return m.clearedreference_user_edge
+	case candidate.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
 	}
 	return false
 }
@@ -3335,6 +3401,9 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 		return nil
 	case candidate.EdgeReferenceUserEdge:
 		m.ResetReferenceUserEdge()
+		return nil
+	case candidate.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate edge %s", name)

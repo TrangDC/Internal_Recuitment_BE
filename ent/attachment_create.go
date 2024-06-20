@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -104,61 +105,80 @@ func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	return ac
 }
 
-// SetCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID.
-func (ac *AttachmentCreate) SetCandidateJobID(id uuid.UUID) *AttachmentCreate {
-	ac.mutation.SetCandidateJobID(id)
+// SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
+func (ac *AttachmentCreate) SetCandidateJobEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateJobEdgeID(id)
 	return ac
 }
 
-// SetNillableCandidateJobID sets the "candidate_job" edge to the CandidateJob entity by ID if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableCandidateJobID(id *uuid.UUID) *AttachmentCreate {
+// SetNillableCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateJobEdgeID(id *uuid.UUID) *AttachmentCreate {
 	if id != nil {
-		ac = ac.SetCandidateJobID(*id)
+		ac = ac.SetCandidateJobEdgeID(*id)
 	}
 	return ac
 }
 
-// SetCandidateJob sets the "candidate_job" edge to the CandidateJob entity.
-func (ac *AttachmentCreate) SetCandidateJob(c *CandidateJob) *AttachmentCreate {
-	return ac.SetCandidateJobID(c.ID)
+// SetCandidateJobEdge sets the "candidate_job_edge" edge to the CandidateJob entity.
+func (ac *AttachmentCreate) SetCandidateJobEdge(c *CandidateJob) *AttachmentCreate {
+	return ac.SetCandidateJobEdgeID(c.ID)
 }
 
-// SetCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID.
-func (ac *AttachmentCreate) SetCandidateJobFeedbackID(id uuid.UUID) *AttachmentCreate {
-	ac.mutation.SetCandidateJobFeedbackID(id)
+// SetCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID.
+func (ac *AttachmentCreate) SetCandidateJobFeedbackEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateJobFeedbackEdgeID(id)
 	return ac
 }
 
-// SetNillableCandidateJobFeedbackID sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableCandidateJobFeedbackID(id *uuid.UUID) *AttachmentCreate {
+// SetNillableCandidateJobFeedbackEdgeID sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateJobFeedbackEdgeID(id *uuid.UUID) *AttachmentCreate {
 	if id != nil {
-		ac = ac.SetCandidateJobFeedbackID(*id)
+		ac = ac.SetCandidateJobFeedbackEdgeID(*id)
 	}
 	return ac
 }
 
-// SetCandidateJobFeedback sets the "candidate_job_feedback" edge to the CandidateJobFeedback entity.
-func (ac *AttachmentCreate) SetCandidateJobFeedback(c *CandidateJobFeedback) *AttachmentCreate {
-	return ac.SetCandidateJobFeedbackID(c.ID)
+// SetCandidateJobFeedbackEdge sets the "candidate_job_feedback_edge" edge to the CandidateJobFeedback entity.
+func (ac *AttachmentCreate) SetCandidateJobFeedbackEdge(c *CandidateJobFeedback) *AttachmentCreate {
+	return ac.SetCandidateJobFeedbackEdgeID(c.ID)
 }
 
-// SetCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID.
-func (ac *AttachmentCreate) SetCandidateInterviewID(id uuid.UUID) *AttachmentCreate {
-	ac.mutation.SetCandidateInterviewID(id)
+// SetCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID.
+func (ac *AttachmentCreate) SetCandidateInterviewEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateInterviewEdgeID(id)
 	return ac
 }
 
-// SetNillableCandidateInterviewID sets the "candidate_interview" edge to the CandidateInterview entity by ID if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableCandidateInterviewID(id *uuid.UUID) *AttachmentCreate {
+// SetNillableCandidateInterviewEdgeID sets the "candidate_interview_edge" edge to the CandidateInterview entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateInterviewEdgeID(id *uuid.UUID) *AttachmentCreate {
 	if id != nil {
-		ac = ac.SetCandidateInterviewID(*id)
+		ac = ac.SetCandidateInterviewEdgeID(*id)
 	}
 	return ac
 }
 
-// SetCandidateInterview sets the "candidate_interview" edge to the CandidateInterview entity.
-func (ac *AttachmentCreate) SetCandidateInterview(c *CandidateInterview) *AttachmentCreate {
-	return ac.SetCandidateInterviewID(c.ID)
+// SetCandidateInterviewEdge sets the "candidate_interview_edge" edge to the CandidateInterview entity.
+func (ac *AttachmentCreate) SetCandidateInterviewEdge(c *CandidateInterview) *AttachmentCreate {
+	return ac.SetCandidateInterviewEdgeID(c.ID)
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
+func (ac *AttachmentCreate) SetCandidateEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
+func (ac *AttachmentCreate) SetCandidateEdge(c *Candidate) *AttachmentCreate {
+	return ac.SetCandidateEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -328,12 +348,12 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_spec.SetField(attachment.FieldRelationType, field.TypeEnum, value)
 		_node.RelationType = value
 	}
-	if nodes := ac.mutation.CandidateJobIDs(); len(nodes) > 0 {
+	if nodes := ac.mutation.CandidateJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobTable,
-			Columns: []string{attachment.CandidateJobColumn},
+			Table:   attachment.CandidateJobEdgeTable,
+			Columns: []string{attachment.CandidateJobEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -348,12 +368,12 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_node.RelationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ac.mutation.CandidateJobFeedbackIDs(); len(nodes) > 0 {
+	if nodes := ac.mutation.CandidateJobFeedbackEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateJobFeedbackTable,
-			Columns: []string{attachment.CandidateJobFeedbackColumn},
+			Table:   attachment.CandidateJobFeedbackEdgeTable,
+			Columns: []string{attachment.CandidateJobFeedbackEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -368,17 +388,37 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_node.RelationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ac.mutation.CandidateInterviewIDs(); len(nodes) > 0 {
+	if nodes := ac.mutation.CandidateInterviewEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   attachment.CandidateInterviewTable,
-			Columns: []string{attachment.CandidateInterviewColumn},
+			Table:   attachment.CandidateInterviewEdgeTable,
+			Columns: []string{attachment.CandidateInterviewEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterview.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEdgeTable,
+			Columns: []string{attachment.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
 				},
 			},
 		}

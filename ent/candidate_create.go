@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/user"
@@ -209,20 +210,6 @@ func (cc *CandidateCreate) SetNillableCountry(s *string) *CandidateCreate {
 	return cc
 }
 
-// SetAttachmentID sets the "attachment_id" field.
-func (cc *CandidateCreate) SetAttachmentID(u uuid.UUID) *CandidateCreate {
-	cc.mutation.SetAttachmentID(u)
-	return cc
-}
-
-// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
-func (cc *CandidateCreate) SetNillableAttachmentID(u *uuid.UUID) *CandidateCreate {
-	if u != nil {
-		cc.SetAttachmentID(*u)
-	}
-	return cc
-}
-
 // SetID sets the "id" field.
 func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	cc.mutation.SetID(u)
@@ -261,6 +248,21 @@ func (cc *CandidateCreate) SetNillableReferenceUserEdgeID(id *uuid.UUID) *Candid
 // SetReferenceUserEdge sets the "reference_user_edge" edge to the User entity.
 func (cc *CandidateCreate) SetReferenceUserEdge(u *User) *CandidateCreate {
 	return cc.SetReferenceUserEdgeID(u.ID)
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
+func (cc *CandidateCreate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddAttachmentEdgeIDs(ids...)
+	return cc
+}
+
+// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
+func (cc *CandidateCreate) AddAttachmentEdges(a ...*Attachment) *CandidateCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cc.AddAttachmentEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -501,10 +503,6 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
 		_node.Country = value
 	}
-	if value, ok := cc.mutation.AttachmentID(); ok {
-		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
-		_node.AttachmentID = value
-	}
 	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -542,6 +540,25 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ReferenceUID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

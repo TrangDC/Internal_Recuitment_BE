@@ -62,9 +62,9 @@ func (r *candidateResolver) ReferenceUID(ctx context.Context, obj *ent.Candidate
 	return obj.ReferenceUID.String(), nil
 }
 
-// AttachmentID is the resolver for the attachment_id field.
-func (r *candidateResolver) AttachmentID(ctx context.Context, obj *ent.Candidate) (string, error) {
-	return obj.AttachmentID.String(), nil
+// Attachments is the resolver for the attachments field.
+func (r *candidateResolver) Attachments(ctx context.Context, obj *ent.Candidate) ([]*ent.Attachment, error) {
+	return obj.Edges.AttachmentEdges, nil
 }
 
 // ReferenceUser is the resolver for the reference_user field.

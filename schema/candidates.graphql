@@ -66,6 +66,7 @@ input NewCandidateInput{
   recruit_time: Time
   description: String!
   country: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input UpdateCandidateInput {
@@ -79,6 +80,7 @@ input UpdateCandidateInput {
   recruit_time: Time
   description: String!
   country: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input CandidateFilter {
@@ -124,7 +126,7 @@ type Candidate {
   recruit_time: Time
   description: String!
   country: String!
-  attachment_id: ID!
+  attachments: [Attachment!]
   reference_user: User
   created_at: Time!
   updated_at: Time!

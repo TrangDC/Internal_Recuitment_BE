@@ -25,7 +25,7 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "candidateJob":
+		case "candidateJobEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -34,8 +34,8 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			a.withCandidateJob = query
-		case "candidateJobFeedback":
+			a.withCandidateJobEdge = query
+		case "candidateJobFeedbackEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -44,8 +44,8 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			a.withCandidateJobFeedback = query
-		case "candidateInterview":
+			a.withCandidateJobFeedbackEdge = query
+		case "candidateInterviewEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -54,7 +54,17 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			a.withCandidateInterview = query
+			a.withCandidateInterviewEdge = query
+		case "candidateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: a.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			a.withCandidateEdge = query
 		}
 	}
 	return nil
@@ -225,6 +235,18 @@ func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.Operation
 				return err
 			}
 			c.withReferenceUserEdge = query
+		case "attachmentEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AttachmentQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil

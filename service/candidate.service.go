@@ -6,6 +6,7 @@ import (
 	"strings"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
@@ -30,16 +31,18 @@ type CandidateService interface {
 }
 
 type candidateSvcImpl struct {
-	repoRegistry repository.Repository
-	dtoRegistry  dto.Dto
-	logger       *zap.Logger
+	attachmentSvc AttachmentService
+	repoRegistry  repository.Repository
+	dtoRegistry   dto.Dto
+	logger        *zap.Logger
 }
 
 func NewCandidateService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateService {
 	return &candidateSvcImpl{
-		repoRegistry: repoRegistry,
-		dtoRegistry:  dtoRegistry,
-		logger:       logger,
+		attachmentSvc: NewAttachmentService(repoRegistry, logger),
+		repoRegistry:  repoRegistry,
+		dtoRegistry:   dtoRegistry,
+		logger:        logger,
 	}
 }
 
@@ -49,31 +52,35 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.Candidate().ValidCandidateReferenceType(input.ReferenceType, input.ReferenceValue)
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
 		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.Candidate().CreateCandidate(ctx, input)
+		if err != nil {
+			return err
+		}
+		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, record.ID, attachment.RelationTypeCandidates, repoRegistry)
+		if err != nil {
+			return err
+		}
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailCreate(record)
+	result, _ := svc.repoRegistry.Candidate().GetCandidate(ctx, record.ID)
+	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.CandidateResponse{
-		Data: record,
+		Data: result,
 	}, nil
 }
 
@@ -96,6 +103,13 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.Candidate().DeleteCandidate(ctx, record)
+		if err != nil {
+			return err
+		}
+		err = svc.attachmentSvc.RemoveAttachment(ctx, record.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
@@ -121,21 +135,26 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.Candidate().ValidCandidateReferenceType(input.ReferenceType, input.ReferenceValue)
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
 		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.Candidate().UpdateCandidate(ctx, record, input)
+		candidateResult, err := repoRegistry.Candidate().UpdateCandidate(ctx, record, input)
+		if err != nil {
+			return err
+		}
+		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateResult.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
+		_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateResult.ID, attachment.RelationTypeCandidates, repoRegistry)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ = svc.repoRegistry.Candidate().GetCandidate(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

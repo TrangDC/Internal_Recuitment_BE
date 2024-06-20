@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/predicate"
@@ -257,26 +258,6 @@ func (cu *CandidateUpdate) ClearCountry() *CandidateUpdate {
 	return cu
 }
 
-// SetAttachmentID sets the "attachment_id" field.
-func (cu *CandidateUpdate) SetAttachmentID(u uuid.UUID) *CandidateUpdate {
-	cu.mutation.SetAttachmentID(u)
-	return cu
-}
-
-// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
-func (cu *CandidateUpdate) SetNillableAttachmentID(u *uuid.UUID) *CandidateUpdate {
-	if u != nil {
-		cu.SetAttachmentID(*u)
-	}
-	return cu
-}
-
-// ClearAttachmentID clears the value of the "attachment_id" field.
-func (cu *CandidateUpdate) ClearAttachmentID() *CandidateUpdate {
-	cu.mutation.ClearAttachmentID()
-	return cu
-}
-
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
 	cu.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -311,6 +292,21 @@ func (cu *CandidateUpdate) SetReferenceUserEdge(u *User) *CandidateUpdate {
 	return cu.SetReferenceUserEdgeID(u.ID)
 }
 
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
+func (cu *CandidateUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddAttachmentEdgeIDs(ids...)
+	return cu
+}
+
+// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
+func (cu *CandidateUpdate) AddAttachmentEdges(a ...*Attachment) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.AddAttachmentEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
@@ -341,6 +337,27 @@ func (cu *CandidateUpdate) RemoveCandidateJobEdges(c ...*CandidateJob) *Candidat
 func (cu *CandidateUpdate) ClearReferenceUserEdge() *CandidateUpdate {
 	cu.mutation.ClearReferenceUserEdge()
 	return cu
+}
+
+// ClearAttachmentEdges clears all "attachment_edges" edges to the Attachment entity.
+func (cu *CandidateUpdate) ClearAttachmentEdges() *CandidateUpdate {
+	cu.mutation.ClearAttachmentEdges()
+	return cu
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to Attachment entities by IDs.
+func (cu *CandidateUpdate) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveAttachmentEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveAttachmentEdges removes "attachment_edges" edges to Attachment entities.
+func (cu *CandidateUpdate) RemoveAttachmentEdges(a ...*Attachment) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.RemoveAttachmentEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -524,12 +541,6 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.CountryCleared() {
 		_spec.ClearField(candidate.FieldCountry, field.TypeString)
 	}
-	if value, ok := cu.mutation.AttachmentID(); ok {
-		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
-	}
-	if cu.mutation.AttachmentIDCleared() {
-		_spec.ClearField(candidate.FieldAttachmentID, field.TypeUUID)
-	}
 	if cu.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -611,6 +622,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.AttachmentEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedAttachmentEdgesIDs(); len(nodes) > 0 && !cu.mutation.AttachmentEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
 				},
 			},
 		}
@@ -864,26 +929,6 @@ func (cuo *CandidateUpdateOne) ClearCountry() *CandidateUpdateOne {
 	return cuo
 }
 
-// SetAttachmentID sets the "attachment_id" field.
-func (cuo *CandidateUpdateOne) SetAttachmentID(u uuid.UUID) *CandidateUpdateOne {
-	cuo.mutation.SetAttachmentID(u)
-	return cuo
-}
-
-// SetNillableAttachmentID sets the "attachment_id" field if the given value is not nil.
-func (cuo *CandidateUpdateOne) SetNillableAttachmentID(u *uuid.UUID) *CandidateUpdateOne {
-	if u != nil {
-		cuo.SetAttachmentID(*u)
-	}
-	return cuo
-}
-
-// ClearAttachmentID clears the value of the "attachment_id" field.
-func (cuo *CandidateUpdateOne) ClearAttachmentID() *CandidateUpdateOne {
-	cuo.mutation.ClearAttachmentID()
-	return cuo
-}
-
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cuo *CandidateUpdateOne) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
 	cuo.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -918,6 +963,21 @@ func (cuo *CandidateUpdateOne) SetReferenceUserEdge(u *User) *CandidateUpdateOne
 	return cuo.SetReferenceUserEdgeID(u.ID)
 }
 
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
+func (cuo *CandidateUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddAttachmentEdgeIDs(ids...)
+	return cuo
+}
+
+// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
+func (cuo *CandidateUpdateOne) AddAttachmentEdges(a ...*Attachment) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.AddAttachmentEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
@@ -948,6 +1008,27 @@ func (cuo *CandidateUpdateOne) RemoveCandidateJobEdges(c ...*CandidateJob) *Cand
 func (cuo *CandidateUpdateOne) ClearReferenceUserEdge() *CandidateUpdateOne {
 	cuo.mutation.ClearReferenceUserEdge()
 	return cuo
+}
+
+// ClearAttachmentEdges clears all "attachment_edges" edges to the Attachment entity.
+func (cuo *CandidateUpdateOne) ClearAttachmentEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearAttachmentEdges()
+	return cuo
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to Attachment entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveAttachmentEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveAttachmentEdges removes "attachment_edges" edges to Attachment entities.
+func (cuo *CandidateUpdateOne) RemoveAttachmentEdges(a ...*Attachment) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.RemoveAttachmentEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1161,12 +1242,6 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	if cuo.mutation.CountryCleared() {
 		_spec.ClearField(candidate.FieldCountry, field.TypeString)
 	}
-	if value, ok := cuo.mutation.AttachmentID(); ok {
-		_spec.SetField(candidate.FieldAttachmentID, field.TypeUUID, value)
-	}
-	if cuo.mutation.AttachmentIDCleared() {
-		_spec.ClearField(candidate.FieldAttachmentID, field.TypeUUID)
-	}
 	if cuo.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1248,6 +1323,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.AttachmentEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedAttachmentEdgesIDs(); len(nodes) > 0 && !cuo.mutation.AttachmentEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.AttachmentEdgesTable,
+			Columns: []string{candidate.AttachmentEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
 				},
 			},
 		}

@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
 	"trec/ent/predicate"
@@ -29,9 +30,11 @@ type CandidateQuery struct {
 	predicates                 []predicate.Candidate
 	withCandidateJobEdges      *CandidateJobQuery
 	withReferenceUserEdge      *UserQuery
+	withAttachmentEdges        *AttachmentQuery
 	modifiers                  []func(*sql.Selector)
 	loadTotal                  []func(context.Context, []*Candidate) error
 	withNamedCandidateJobEdges map[string]*CandidateJobQuery
+	withNamedAttachmentEdges   map[string]*AttachmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -105,6 +108,28 @@ func (cq *CandidateQuery) QueryReferenceUserEdge() *UserQuery {
 			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, candidate.ReferenceUserEdgeTable, candidate.ReferenceUserEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAttachmentEdges chains the current query on the "attachment_edges" edge.
+func (cq *CandidateQuery) QueryAttachmentEdges() *AttachmentQuery {
+	query := &AttachmentQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.AttachmentEdgesTable, candidate.AttachmentEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,6 +320,7 @@ func (cq *CandidateQuery) Clone() *CandidateQuery {
 		predicates:            append([]predicate.Candidate{}, cq.predicates...),
 		withCandidateJobEdges: cq.withCandidateJobEdges.Clone(),
 		withReferenceUserEdge: cq.withReferenceUserEdge.Clone(),
+		withAttachmentEdges:   cq.withAttachmentEdges.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
@@ -321,6 +347,17 @@ func (cq *CandidateQuery) WithReferenceUserEdge(opts ...func(*UserQuery)) *Candi
 		opt(query)
 	}
 	cq.withReferenceUserEdge = query
+	return cq
+}
+
+// WithAttachmentEdges tells the query-builder to eager-load the nodes that are connected to
+// the "attachment_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithAttachmentEdges(opts ...func(*AttachmentQuery)) *CandidateQuery {
+	query := &AttachmentQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withAttachmentEdges = query
 	return cq
 }
 
@@ -397,9 +434,10 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	var (
 		nodes       = []*Candidate{}
 		_spec       = cq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			cq.withCandidateJobEdges != nil,
 			cq.withReferenceUserEdge != nil,
+			cq.withAttachmentEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -436,10 +474,24 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 			return nil, err
 		}
 	}
+	if query := cq.withAttachmentEdges; query != nil {
+		if err := cq.loadAttachmentEdges(ctx, query, nodes,
+			func(n *Candidate) { n.Edges.AttachmentEdges = []*Attachment{} },
+			func(n *Candidate, e *Attachment) { n.Edges.AttachmentEdges = append(n.Edges.AttachmentEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range cq.withNamedCandidateJobEdges {
 		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *Candidate) { n.appendNamedCandidateJobEdges(name) },
 			func(n *Candidate, e *CandidateJob) { n.appendNamedCandidateJobEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedAttachmentEdges {
+		if err := cq.loadAttachmentEdges(ctx, query, nodes,
+			func(n *Candidate) { n.appendNamedAttachmentEdges(name) },
+			func(n *Candidate, e *Attachment) { n.appendNamedAttachmentEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -501,6 +553,33 @@ func (cq *CandidateQuery) loadReferenceUserEdge(ctx context.Context, query *User
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (cq *CandidateQuery) loadAttachmentEdges(ctx context.Context, query *AttachmentQuery, nodes []*Candidate, init func(*Candidate), assign func(*Candidate, *Attachment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Candidate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Attachment(func(s *sql.Selector) {
+		s.Where(sql.InValues(candidate.AttachmentEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RelationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -619,6 +698,20 @@ func (cq *CandidateQuery) WithNamedCandidateJobEdges(name string, opts ...func(*
 		cq.withNamedCandidateJobEdges = make(map[string]*CandidateJobQuery)
 	}
 	cq.withNamedCandidateJobEdges[name] = query
+	return cq
+}
+
+// WithNamedAttachmentEdges tells the query-builder to eager-load the nodes that are connected to the "attachment_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithNamedAttachmentEdges(name string, opts ...func(*AttachmentQuery)) *CandidateQuery {
+	query := &AttachmentQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedAttachmentEdges == nil {
+		cq.withNamedAttachmentEdges = make(map[string]*AttachmentQuery)
+	}
+	cq.withNamedAttachmentEdges[name] = query
 	return cq
 }
 

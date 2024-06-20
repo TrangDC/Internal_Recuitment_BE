@@ -180,13 +180,6 @@ func Country(v string) predicate.Candidate {
 	})
 }
 
-// AttachmentID applies equality check predicate on the "attachment_id" field. It's identical to AttachmentIDEQ.
-func AttachmentID(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAttachmentID), v))
-	})
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -1377,84 +1370,6 @@ func CountryContainsFold(v string) predicate.Candidate {
 	})
 }
 
-// AttachmentIDEQ applies the EQ predicate on the "attachment_id" field.
-func AttachmentIDEQ(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDNEQ applies the NEQ predicate on the "attachment_id" field.
-func AttachmentIDNEQ(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDIn applies the In predicate on the "attachment_id" field.
-func AttachmentIDIn(vs ...uuid.UUID) predicate.Candidate {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldAttachmentID), v...))
-	})
-}
-
-// AttachmentIDNotIn applies the NotIn predicate on the "attachment_id" field.
-func AttachmentIDNotIn(vs ...uuid.UUID) predicate.Candidate {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldAttachmentID), v...))
-	})
-}
-
-// AttachmentIDGT applies the GT predicate on the "attachment_id" field.
-func AttachmentIDGT(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDGTE applies the GTE predicate on the "attachment_id" field.
-func AttachmentIDGTE(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDLT applies the LT predicate on the "attachment_id" field.
-func AttachmentIDLT(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDLTE applies the LTE predicate on the "attachment_id" field.
-func AttachmentIDLTE(v uuid.UUID) predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldAttachmentID), v))
-	})
-}
-
-// AttachmentIDIsNil applies the IsNil predicate on the "attachment_id" field.
-func AttachmentIDIsNil() predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldAttachmentID)))
-	})
-}
-
-// AttachmentIDNotNil applies the NotNil predicate on the "attachment_id" field.
-func AttachmentIDNotNil() predicate.Candidate {
-	return predicate.Candidate(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldAttachmentID)))
-	})
-}
-
 // HasCandidateJobEdges applies the HasEdge predicate on the "candidate_job_edges" edge.
 func HasCandidateJobEdges() predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -1502,6 +1417,34 @@ func HasReferenceUserEdgeWith(preds ...predicate.User) predicate.Candidate {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ReferenceUserEdgeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ReferenceUserEdgeTable, ReferenceUserEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAttachmentEdges applies the HasEdge predicate on the "attachment_edges" edge.
+func HasAttachmentEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AttachmentEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentEdgesTable, AttachmentEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttachmentEdgesWith applies the HasEdge predicate on the "attachment_edges" edge with a given conditions (other predicates).
+func HasAttachmentEdgesWith(preds ...predicate.Attachment) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AttachmentEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentEdgesTable, AttachmentEdgesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

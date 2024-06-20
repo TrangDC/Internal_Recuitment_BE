@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/attachment"
+	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -21,17 +22,18 @@ import (
 // AttachmentQuery is the builder for querying Attachment entities.
 type AttachmentQuery struct {
 	config
-	limit                    *int
-	offset                   *int
-	unique                   *bool
-	order                    []OrderFunc
-	fields                   []string
-	predicates               []predicate.Attachment
-	withCandidateJob         *CandidateJobQuery
-	withCandidateJobFeedback *CandidateJobFeedbackQuery
-	withCandidateInterview   *CandidateInterviewQuery
-	modifiers                []func(*sql.Selector)
-	loadTotal                []func(context.Context, []*Attachment) error
+	limit                        *int
+	offset                       *int
+	unique                       *bool
+	order                        []OrderFunc
+	fields                       []string
+	predicates                   []predicate.Attachment
+	withCandidateJobEdge         *CandidateJobQuery
+	withCandidateJobFeedbackEdge *CandidateJobFeedbackQuery
+	withCandidateInterviewEdge   *CandidateInterviewQuery
+	withCandidateEdge            *CandidateQuery
+	modifiers                    []func(*sql.Selector)
+	loadTotal                    []func(context.Context, []*Attachment) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -68,8 +70,8 @@ func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
 	return aq
 }
 
-// QueryCandidateJob chains the current query on the "candidate_job" edge.
-func (aq *AttachmentQuery) QueryCandidateJob() *CandidateJobQuery {
+// QueryCandidateJobEdge chains the current query on the "candidate_job_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateJobEdge() *CandidateJobQuery {
 	query := &CandidateJobQuery{config: aq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
@@ -82,7 +84,7 @@ func (aq *AttachmentQuery) QueryCandidateJob() *CandidateJobQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobTable, attachment.CandidateJobColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobEdgeTable, attachment.CandidateJobEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -90,8 +92,8 @@ func (aq *AttachmentQuery) QueryCandidateJob() *CandidateJobQuery {
 	return query
 }
 
-// QueryCandidateJobFeedback chains the current query on the "candidate_job_feedback" edge.
-func (aq *AttachmentQuery) QueryCandidateJobFeedback() *CandidateJobFeedbackQuery {
+// QueryCandidateJobFeedbackEdge chains the current query on the "candidate_job_feedback_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateJobFeedbackEdge() *CandidateJobFeedbackQuery {
 	query := &CandidateJobFeedbackQuery{config: aq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
@@ -104,7 +106,7 @@ func (aq *AttachmentQuery) QueryCandidateJobFeedback() *CandidateJobFeedbackQuer
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
 			sqlgraph.To(candidatejobfeedback.Table, candidatejobfeedback.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackTable, attachment.CandidateJobFeedbackColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateJobFeedbackEdgeTable, attachment.CandidateJobFeedbackEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -112,8 +114,8 @@ func (aq *AttachmentQuery) QueryCandidateJobFeedback() *CandidateJobFeedbackQuer
 	return query
 }
 
-// QueryCandidateInterview chains the current query on the "candidate_interview" edge.
-func (aq *AttachmentQuery) QueryCandidateInterview() *CandidateInterviewQuery {
+// QueryCandidateInterviewEdge chains the current query on the "candidate_interview_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateInterviewEdge() *CandidateInterviewQuery {
 	query := &CandidateInterviewQuery{config: aq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
@@ -126,7 +128,29 @@ func (aq *AttachmentQuery) QueryCandidateInterview() *CandidateInterviewQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
 			sqlgraph.To(candidateinterview.Table, candidateinterview.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateInterviewTable, attachment.CandidateInterviewColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateInterviewEdgeTable, attachment.CandidateInterviewEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge chains the current query on the "candidate_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateEdge() *CandidateQuery {
+	query := &CandidateQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEdgeTable, attachment.CandidateEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -310,14 +334,15 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		return nil
 	}
 	return &AttachmentQuery{
-		config:                   aq.config,
-		limit:                    aq.limit,
-		offset:                   aq.offset,
-		order:                    append([]OrderFunc{}, aq.order...),
-		predicates:               append([]predicate.Attachment{}, aq.predicates...),
-		withCandidateJob:         aq.withCandidateJob.Clone(),
-		withCandidateJobFeedback: aq.withCandidateJobFeedback.Clone(),
-		withCandidateInterview:   aq.withCandidateInterview.Clone(),
+		config:                       aq.config,
+		limit:                        aq.limit,
+		offset:                       aq.offset,
+		order:                        append([]OrderFunc{}, aq.order...),
+		predicates:                   append([]predicate.Attachment{}, aq.predicates...),
+		withCandidateJobEdge:         aq.withCandidateJobEdge.Clone(),
+		withCandidateJobFeedbackEdge: aq.withCandidateJobFeedbackEdge.Clone(),
+		withCandidateInterviewEdge:   aq.withCandidateInterviewEdge.Clone(),
+		withCandidateEdge:            aq.withCandidateEdge.Clone(),
 		// clone intermediate query.
 		sql:    aq.sql.Clone(),
 		path:   aq.path,
@@ -325,36 +350,47 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 	}
 }
 
-// WithCandidateJob tells the query-builder to eager-load the nodes that are connected to
-// the "candidate_job" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AttachmentQuery) WithCandidateJob(opts ...func(*CandidateJobQuery)) *AttachmentQuery {
+// WithCandidateJobEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateJobEdge(opts ...func(*CandidateJobQuery)) *AttachmentQuery {
 	query := &CandidateJobQuery{config: aq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withCandidateJob = query
+	aq.withCandidateJobEdge = query
 	return aq
 }
 
-// WithCandidateJobFeedback tells the query-builder to eager-load the nodes that are connected to
-// the "candidate_job_feedback" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AttachmentQuery) WithCandidateJobFeedback(opts ...func(*CandidateJobFeedbackQuery)) *AttachmentQuery {
+// WithCandidateJobFeedbackEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_job_feedback_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateJobFeedbackEdge(opts ...func(*CandidateJobFeedbackQuery)) *AttachmentQuery {
 	query := &CandidateJobFeedbackQuery{config: aq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withCandidateJobFeedback = query
+	aq.withCandidateJobFeedbackEdge = query
 	return aq
 }
 
-// WithCandidateInterview tells the query-builder to eager-load the nodes that are connected to
-// the "candidate_interview" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AttachmentQuery) WithCandidateInterview(opts ...func(*CandidateInterviewQuery)) *AttachmentQuery {
+// WithCandidateInterviewEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_interview_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateInterviewEdge(opts ...func(*CandidateInterviewQuery)) *AttachmentQuery {
 	query := &CandidateInterviewQuery{config: aq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	aq.withCandidateInterview = query
+	aq.withCandidateInterviewEdge = query
+	return aq
+}
+
+// WithCandidateEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateEdge(opts ...func(*CandidateQuery)) *AttachmentQuery {
+	query := &CandidateQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateEdge = query
 	return aq
 }
 
@@ -431,10 +467,11 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	var (
 		nodes       = []*Attachment{}
 		_spec       = aq.querySpec()
-		loadedTypes = [3]bool{
-			aq.withCandidateJob != nil,
-			aq.withCandidateJobFeedback != nil,
-			aq.withCandidateInterview != nil,
+		loadedTypes = [4]bool{
+			aq.withCandidateJobEdge != nil,
+			aq.withCandidateJobFeedbackEdge != nil,
+			aq.withCandidateInterviewEdge != nil,
+			aq.withCandidateEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -458,21 +495,27 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := aq.withCandidateJob; query != nil {
-		if err := aq.loadCandidateJob(ctx, query, nodes, nil,
-			func(n *Attachment, e *CandidateJob) { n.Edges.CandidateJob = e }); err != nil {
+	if query := aq.withCandidateJobEdge; query != nil {
+		if err := aq.loadCandidateJobEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateJob) { n.Edges.CandidateJobEdge = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := aq.withCandidateJobFeedback; query != nil {
-		if err := aq.loadCandidateJobFeedback(ctx, query, nodes, nil,
-			func(n *Attachment, e *CandidateJobFeedback) { n.Edges.CandidateJobFeedback = e }); err != nil {
+	if query := aq.withCandidateJobFeedbackEdge; query != nil {
+		if err := aq.loadCandidateJobFeedbackEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateJobFeedback) { n.Edges.CandidateJobFeedbackEdge = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := aq.withCandidateInterview; query != nil {
-		if err := aq.loadCandidateInterview(ctx, query, nodes, nil,
-			func(n *Attachment, e *CandidateInterview) { n.Edges.CandidateInterview = e }); err != nil {
+	if query := aq.withCandidateInterviewEdge; query != nil {
+		if err := aq.loadCandidateInterviewEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateInterview) { n.Edges.CandidateInterviewEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateEdge; query != nil {
+		if err := aq.loadCandidateEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -484,7 +527,7 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	return nodes, nil
 }
 
-func (aq *AttachmentQuery) loadCandidateJob(ctx context.Context, query *CandidateJobQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateJob)) error {
+func (aq *AttachmentQuery) loadCandidateJobEdge(ctx context.Context, query *CandidateJobQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateJob)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Attachment)
 	for i := range nodes {
@@ -510,7 +553,7 @@ func (aq *AttachmentQuery) loadCandidateJob(ctx context.Context, query *Candidat
 	}
 	return nil
 }
-func (aq *AttachmentQuery) loadCandidateJobFeedback(ctx context.Context, query *CandidateJobFeedbackQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateJobFeedback)) error {
+func (aq *AttachmentQuery) loadCandidateJobFeedbackEdge(ctx context.Context, query *CandidateJobFeedbackQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateJobFeedback)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Attachment)
 	for i := range nodes {
@@ -536,7 +579,7 @@ func (aq *AttachmentQuery) loadCandidateJobFeedback(ctx context.Context, query *
 	}
 	return nil
 }
-func (aq *AttachmentQuery) loadCandidateInterview(ctx context.Context, query *CandidateInterviewQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateInterview)) error {
+func (aq *AttachmentQuery) loadCandidateInterviewEdge(ctx context.Context, query *CandidateInterviewQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateInterview)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Attachment)
 	for i := range nodes {
@@ -547,6 +590,32 @@ func (aq *AttachmentQuery) loadCandidateInterview(ctx context.Context, query *Ca
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
 	query.Where(candidateinterview.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateEdge(ctx context.Context, query *CandidateQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *Candidate)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidate.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
