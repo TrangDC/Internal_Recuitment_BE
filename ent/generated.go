@@ -69,7 +69,7 @@ type CandidateFilter struct {
 	JobID               *string                    `json:"job_id"`
 	IsAbleToInterview   *bool                      `json:"is_able_to_interview"`
 	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
-	ReferenceUID        *string                    `json:"reference_uid"`
+	ReferenceUID        []string                   `json:"reference_uid"`
 	RecruitTimeFromDate *time.Time                 `json:"recruit_time_from_date"`
 	RecruitTimeToDate   *time.Time                 `json:"recruit_time_to_date"`
 }

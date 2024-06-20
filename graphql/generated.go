@@ -3354,7 +3354,7 @@ input CandidateFilter {
   job_id: ID
   is_able_to_interview: Boolean
   failed_reason: [CandidateJobFailedReason!]
-  reference_uid: ID
+  reference_uid: [ID!]
   recruit_time_from_date: Time
   recruit_time_to_date: Time
 }
@@ -20949,7 +20949,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_uid"))
-			it.ReferenceUID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ReferenceUID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
