@@ -510,12 +510,12 @@ func (ci *CandidateInterview) Node(ctx context.Context) (node *Node, err error) 
 		Name:  "description",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(ci.CandidateInterviewStatus); err != nil {
+	if buf, err = json.Marshal(ci.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[11] = &Field{
-		Type:  "candidateinterview.CandidateInterviewStatus",
-		Name:  "candidate_interview_status",
+		Type:  "candidateinterview.Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

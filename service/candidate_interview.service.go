@@ -196,7 +196,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 	if candidatejob.Status(record.CandidateJobStatus) != record.Edges.CandidateJobEdge.Status {
 		return util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
 	}
-	err = svc.repoRegistry.CandidateInterview().ValidCandidateInterviewStatus(record, input.CandidateInterviewStatus.String())
+	err = svc.repoRegistry.CandidateInterview().ValidCandidateInterviewStatus(record, input.CandidateInterviewStatus)
 	if err != nil {
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}

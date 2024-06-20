@@ -31,7 +31,7 @@ func (r *candidateInterviewResolver) CandidateJob(ctx context.Context, obj *ent.
 
 // EditAble is the resolver for the edit_able field.
 func (r *candidateInterviewResolver) EditAble(ctx context.Context, obj *ent.CandidateInterview) (bool, error) {
-	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(obj.Edges.CandidateJobEdge.Status.String())) {
+	if ent.CandidateJobStatusEditable.IsValid(ent.CandidateJobStatusEditable(obj.Edges.CandidateJobEdge.Status.String())) {
 		return true, nil
 	}
 	return false, nil
@@ -42,9 +42,9 @@ func (r *candidateInterviewResolver) Owner(ctx context.Context, obj *ent.Candida
 	return obj.Edges.CreatedByEdge, nil
 }
 
-// CandidateInterviewStatus is the resolver for the candidate_interview_status field.
-func (r *candidateInterviewResolver) CandidateInterviewStatus(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error) {
-	return ent.CandidateInterviewStatus(obj.CandidateInterviewStatus), nil
+// Status is the resolver for the status field.
+func (r *candidateInterviewResolver) Status(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error) {
+	return ent.CandidateInterviewStatus(obj.Status), nil
 }
 
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.
