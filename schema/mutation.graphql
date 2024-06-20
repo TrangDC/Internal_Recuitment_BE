@@ -40,7 +40,7 @@ type Mutation {
   UpdateCandidateInterviewSchedule(id: ID!, input: UpdateCandidateInterviewScheduleInput!): CandidateInterviewResponse!
   DeleteCandidateInterview(id: ID!, note: String): Boolean!
   CreateCandidateInterview4Calendar(input: NewCandidateInterview4CalendarInput!, note: String): Boolean!
-  UpdateCandidateInterviewStatus(id: ID!, input: UpdateCandidateInterviewStatusInput!): Boolean!
+  UpdateCandidateInterviewStatus(id: ID!, input: UpdateCandidateInterviewStatusInput!, note: String): Boolean!
 
   #import
   ImportCandidate(file: Upload!): Boolean!

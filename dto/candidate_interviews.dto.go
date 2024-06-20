@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"trec/ent"
+	"trec/ent/candidateinterview"
 	"trec/models"
 
 	"github.com/samber/lo"
@@ -109,6 +110,9 @@ func (d *candidateInterviewDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateInt
 			case "model.candidate_interviews.end_at":
 				oldValueField = oldRecord.EndAt
 				newValueField = newRecord.EndAt
+			case "model.candidate_interviews.status":
+				oldValueField = d.statusI18n(oldRecord.Status)
+				newValueField = d.statusI18n(newRecord.Status)
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -151,6 +155,8 @@ func (d *candidateInterviewDtoImpl) recordAudit(record *ent.CandidateInterview) 
 			valueField = record.EndAt
 		case "model.candidate_interviews.created_by":
 			valueField = record.Edges.CreatedByEdge.Name
+		case "model.candidate_interviews.status":
+			valueField = d.statusI18n(record.Status)
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -211,6 +217,22 @@ func (d candidateInterviewDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidate_interviews.end_at"
 	case "CreatedBy":
 		return "model.candidate_interviews.created_by"
+	case "Status":
+		return "model.candidate_interviews.status"
+	}
+	return ""
+}
+
+func (d candidateInterviewDtoImpl) statusI18n(input candidateinterview.Status) string {
+	switch input {
+	case candidateinterview.StatusInvitedToInterview:
+		return "model.candidate_interviews.status_enum.invited_to_interview"
+	case candidateinterview.StatusInterviewing:
+		return "model.candidate_interviews.status_enum.interviewing"
+	case candidateinterview.StatusDone:
+		return "model.candidate_interviews.status_enum.done"
+	case candidateinterview.StatusCancelled:
+		return "model.candidate_interviews.status_enum.cancelled"
 	}
 	return ""
 }

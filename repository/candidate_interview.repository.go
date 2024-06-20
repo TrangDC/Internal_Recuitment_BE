@@ -171,7 +171,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 }
 
 func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error) {
-	return rps.BuildUpdateOne(ctx, record).SetStatus(candidateinterview.Status(input.CandidateInterviewStatus.String())).Save(ctx)
+	return rps.BuildUpdateOne(ctx, record).SetStatus(candidateinterview.Status(input.Status.String())).Save(ctx)
 }
 
 // query
