@@ -48,6 +48,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Skill() SkillResolver
+	SkillType() SkillTypeResolver
 	Team() TeamResolver
 	User() UserResolver
 }
@@ -410,6 +411,29 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	SkillType struct {
+		CreatedAt   func(childComplexity int) int
+		DeletedAt   func(childComplexity int) int
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
+	SkillTypeEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	SkillTypeResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	SkillTypeResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	Team struct {
 		CreatedAt       func(childComplexity int) int
 		DeletedAt       func(childComplexity int) int
@@ -615,6 +639,9 @@ type QueryResolver interface {
 }
 type SkillResolver interface {
 	ID(ctx context.Context, obj *ent.Skill) (string, error)
+}
+type SkillTypeResolver interface {
+	ID(ctx context.Context, obj *ent.SkillType) (string, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *ent.Team) (string, error)
@@ -2497,6 +2524,83 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SkillResponseGetAll.Pagination(childComplexity), true
 
+	case "SkillType.created_at":
+		if e.complexity.SkillType.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SkillType.CreatedAt(childComplexity), true
+
+	case "SkillType.deleted_at":
+		if e.complexity.SkillType.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.SkillType.DeletedAt(childComplexity), true
+
+	case "SkillType.description":
+		if e.complexity.SkillType.Description == nil {
+			break
+		}
+
+		return e.complexity.SkillType.Description(childComplexity), true
+
+	case "SkillType.id":
+		if e.complexity.SkillType.ID == nil {
+			break
+		}
+
+		return e.complexity.SkillType.ID(childComplexity), true
+
+	case "SkillType.name":
+		if e.complexity.SkillType.Name == nil {
+			break
+		}
+
+		return e.complexity.SkillType.Name(childComplexity), true
+
+	case "SkillType.updated_at":
+		if e.complexity.SkillType.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.SkillType.UpdatedAt(childComplexity), true
+
+	case "SkillTypeEdge.cursor":
+		if e.complexity.SkillTypeEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.SkillTypeEdge.Cursor(childComplexity), true
+
+	case "SkillTypeEdge.node":
+		if e.complexity.SkillTypeEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.SkillTypeEdge.Node(childComplexity), true
+
+	case "SkillTypeResponse.data":
+		if e.complexity.SkillTypeResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.SkillTypeResponse.Data(childComplexity), true
+
+	case "SkillTypeResponseGetAll.edges":
+		if e.complexity.SkillTypeResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.SkillTypeResponseGetAll.Edges(childComplexity), true
+
+	case "SkillTypeResponseGetAll.pagination":
+		if e.complexity.SkillTypeResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.SkillTypeResponseGetAll.Pagination(childComplexity), true
+
 	case "Team.created_at":
 		if e.complexity.Team.CreatedAt == nil {
 			break
@@ -2751,12 +2855,16 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewCandidateJobInput,
 		ec.unmarshalInputNewHiringJobInput,
 		ec.unmarshalInputNewSkillInput,
+		ec.unmarshalInputNewSkillTypeInput,
 		ec.unmarshalInputNewTeamInput,
 		ec.unmarshalInputNewUserInput,
 		ec.unmarshalInputPaginationInput,
 		ec.unmarshalInputSkillFilter,
 		ec.unmarshalInputSkillFreeWord,
 		ec.unmarshalInputSkillOrder,
+		ec.unmarshalInputSkillTypeFilter,
+		ec.unmarshalInputSkillTypeFreeWord,
+		ec.unmarshalInputSkillTypeOrder,
 		ec.unmarshalInputTeamFilter,
 		ec.unmarshalInputTeamFreeWord,
 		ec.unmarshalInputTeamOrderBy,
@@ -2769,6 +2877,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateCandidateJobStatus,
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateSkillInput,
+		ec.unmarshalInputUpdateSkillTypeInput,
 		ec.unmarshalInputUpdateTeamInput,
 		ec.unmarshalInputUpdateUserInput,
 		ec.unmarshalInputUpdateUserStatusInput,
@@ -3712,6 +3821,58 @@ type HiringJobResponseGetAll {
   GetSkill(id: ID!): SkillResponse!
   GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
 	}
+`, BuiltIn: false},
+	{Name: "../schema/skill_type.graphql", Input: `enum SkillTypeOrderField {
+  name
+  description
+  created_at
+}
+
+input SkillTypeOrder {
+  direction: OrderDirection!
+  field: SkillTypeOrderField!
+}
+
+input SkillTypeFilter {
+  name: String
+}
+
+input SkillTypeFreeWord {
+  name: String
+}
+
+input NewSkillTypeInput {
+  name: String!
+  description: String!
+}
+
+input UpdateSkillTypeInput {
+  name: String!
+  description: String!
+}
+
+type SkillType {
+  id: ID!
+  name: String!
+  description: String
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type SkillTypeResponse {
+  data: SkillType!
+}
+
+type SkillTypeEdge {
+  node: SkillType!
+  cursor: Cursor!
+}
+
+type SkillTypeResponseGetAll {
+  edges: [SkillTypeEdge!]!
+  pagination: Pagination!
+}
 `, BuiltIn: false},
 	{Name: "../schema/skills.graphql", Input: `enum SkillOrderField {
   name
@@ -17401,6 +17562,526 @@ func (ec *executionContext) fieldContext_SkillResponseGetAll_pagination(ctx cont
 	return fc, nil
 }
 
+func (ec *executionContext) _SkillType_id(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SkillType().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillType_name(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillType_description(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillType_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillType_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillType_deleted_at(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_deleted_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_deleted_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.SkillTypeEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillTypeEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.SkillType)
+	fc.Result = res
+	return ec.marshalNSkillType2ᚖtrecᚋentᚐSkillType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillTypeEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillTypeEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SkillType_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SkillType_name(ctx, field)
+			case "description":
+				return ec.fieldContext_SkillType_description(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SkillType_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SkillType_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_SkillType_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SkillType", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.SkillTypeEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillTypeEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillTypeEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillTypeEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillTypeResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.SkillTypeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillTypeResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.SkillType)
+	fc.Result = res
+	return ec.marshalNSkillType2ᚖtrecᚋentᚐSkillType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillTypeResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillTypeResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SkillType_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SkillType_name(ctx, field)
+			case "description":
+				return ec.fieldContext_SkillType_description(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SkillType_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SkillType_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_SkillType_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SkillType", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillTypeResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.SkillTypeResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillTypeResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.SkillTypeEdge)
+	fc.Result = res
+	return ec.marshalNSkillTypeEdge2ᚕᚖtrecᚋentᚐSkillTypeEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillTypeResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillTypeResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_SkillTypeEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_SkillTypeEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SkillTypeEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SkillTypeResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.SkillTypeResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillTypeResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillTypeResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillTypeResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Team_id(ctx context.Context, field graphql.CollectedField, obj *ent.Team) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Team_id(ctx, field)
 	if err != nil {
@@ -22276,6 +22957,42 @@ func (ec *executionContext) unmarshalInputNewSkillInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewSkillTypeInput(ctx context.Context, obj interface{}) (ent.NewSkillTypeInput, error) {
+	var it ent.NewSkillTypeInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewTeamInput(ctx context.Context, obj interface{}) (ent.NewTeamInput, error) {
 	var it ent.NewTeamInput
 	asMap := map[string]interface{}{}
@@ -22467,6 +23184,98 @@ func (ec *executionContext) unmarshalInputSkillOrder(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			it.Field, err = ec.unmarshalNSkillOrderField2ᚖtrecᚋentᚐSkillOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSkillTypeFilter(ctx context.Context, obj interface{}) (ent.SkillTypeFilter, error) {
+	var it ent.SkillTypeFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSkillTypeFreeWord(ctx context.Context, obj interface{}) (ent.SkillTypeFreeWord, error) {
+	var it ent.SkillTypeFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSkillTypeOrder(ctx context.Context, obj interface{}) (ent.SkillTypeOrder, error) {
+	var it ent.SkillTypeOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNSkillTypeOrderField2ᚖtrecᚋentᚐSkillTypeOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23042,6 +23851,42 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 
 func (ec *executionContext) unmarshalInputUpdateSkillInput(ctx context.Context, obj interface{}) (ent.UpdateSkillInput, error) {
 	var it ent.UpdateSkillInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateSkillTypeInput(ctx context.Context, obj interface{}) (ent.UpdateSkillTypeInput, error) {
+	var it ent.UpdateSkillTypeInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -26843,6 +27688,174 @@ func (ec *executionContext) _SkillResponseGetAll(ctx context.Context, sel ast.Se
 	return out
 }
 
+var skillTypeImplementors = []string{"SkillType"}
+
+func (ec *executionContext) _SkillType(ctx context.Context, sel ast.SelectionSet, obj *ent.SkillType) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, skillTypeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SkillType")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SkillType_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "name":
+
+			out.Values[i] = ec._SkillType_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+
+			out.Values[i] = ec._SkillType_description(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._SkillType_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._SkillType_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "deleted_at":
+
+			out.Values[i] = ec._SkillType_deleted_at(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var skillTypeEdgeImplementors = []string{"SkillTypeEdge"}
+
+func (ec *executionContext) _SkillTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.SkillTypeEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, skillTypeEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SkillTypeEdge")
+		case "node":
+
+			out.Values[i] = ec._SkillTypeEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._SkillTypeEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var skillTypeResponseImplementors = []string{"SkillTypeResponse"}
+
+func (ec *executionContext) _SkillTypeResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.SkillTypeResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, skillTypeResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SkillTypeResponse")
+		case "data":
+
+			out.Values[i] = ec._SkillTypeResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var skillTypeResponseGetAllImplementors = []string{"SkillTypeResponseGetAll"}
+
+func (ec *executionContext) _SkillTypeResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.SkillTypeResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, skillTypeResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SkillTypeResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._SkillTypeResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._SkillTypeResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var teamImplementors = []string{"Team"}
 
 func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj *ent.Team) graphql.Marshaler {
@@ -28866,6 +29879,86 @@ func (ec *executionContext) marshalNSkillResponseGetAll2ᚖtrecᚋentᚐSkillRes
 		return graphql.Null
 	}
 	return ec._SkillResponseGetAll(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSkillType2ᚖtrecᚋentᚐSkillType(ctx context.Context, sel ast.SelectionSet, v *ent.SkillType) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SkillType(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSkillTypeEdge2ᚕᚖtrecᚋentᚐSkillTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.SkillTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSkillTypeEdge2ᚖtrecᚋentᚐSkillTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNSkillTypeEdge2ᚖtrecᚋentᚐSkillTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.SkillTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SkillTypeEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSkillTypeOrderField2ᚖtrecᚋentᚐSkillTypeOrderField(ctx context.Context, v interface{}) (*ent.SkillTypeOrderField, error) {
+	var res = new(ent.SkillTypeOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSkillTypeOrderField2ᚖtrecᚋentᚐSkillTypeOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.SkillTypeOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

@@ -305,6 +305,11 @@ type NewSkillInput struct {
 	Description string `json:"description"`
 }
 
+type NewSkillTypeInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type NewTeamInput struct {
 	Name    string   `json:"name"`
 	Members []string `json:"members"`
@@ -341,6 +346,23 @@ type SkillResponse struct {
 type SkillResponseGetAll struct {
 	Edges      []*SkillEdge `json:"edges"`
 	Pagination *Pagination  `json:"pagination"`
+}
+
+type SkillTypeFilter struct {
+	Name *string `json:"name"`
+}
+
+type SkillTypeFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type SkillTypeResponse struct {
+	Data *SkillType `json:"data"`
+}
+
+type SkillTypeResponseGetAll struct {
+	Edges      []*SkillTypeEdge `json:"edges"`
+	Pagination *Pagination      `json:"pagination"`
 }
 
 type TeamFilter struct {
@@ -429,6 +451,11 @@ type UpdateHiringJobInput struct {
 }
 
 type UpdateSkillInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type UpdateSkillTypeInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }

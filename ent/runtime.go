@@ -15,6 +15,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -262,6 +263,37 @@ func init() {
 	skillDescDescription := skillFields[1].Descriptor()
 	// skill.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	skill.DescriptionValidator = skillDescDescription.Validators[0].(func(string) error)
+	skilltypeMixin := schema.SkillType{}.Mixin()
+	skilltypeMixinFields0 := skilltypeMixin[0].Fields()
+	_ = skilltypeMixinFields0
+	skilltypeFields := schema.SkillType{}.Fields()
+	_ = skilltypeFields
+	// skilltypeDescCreatedAt is the schema descriptor for created_at field.
+	skilltypeDescCreatedAt := skilltypeMixinFields0[1].Descriptor()
+	// skilltype.DefaultCreatedAt holds the default value on creation for the created_at field.
+	skilltype.DefaultCreatedAt = skilltypeDescCreatedAt.Default.(func() time.Time)
+	// skilltypeDescName is the schema descriptor for name field.
+	skilltypeDescName := skilltypeFields[0].Descriptor()
+	// skilltype.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	skilltype.NameValidator = func() func(string) error {
+		validators := skilltypeDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// skilltypeDescDescription is the schema descriptor for description field.
+	skilltypeDescDescription := skilltypeFields[1].Descriptor()
+	// skilltype.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	skilltype.DescriptionValidator = skilltypeDescDescription.Validators[0].(func(string) error)
 	teamMixin := schema.Team{}.Mixin()
 	teamMixinFields0 := teamMixin[0].Fields()
 	_ = teamMixinFields0

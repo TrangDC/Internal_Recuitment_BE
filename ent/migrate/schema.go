@@ -331,6 +331,21 @@ var (
 		Columns:    SkillsColumns,
 		PrimaryKey: []*schema.Column{SkillsColumns[0]},
 	}
+	// SkillTypesColumns holds the columns for the "skill_types" table.
+	SkillTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+	}
+	// SkillTypesTable holds the schema information for the "skill_types" table.
+	SkillTypesTable = &schema.Table{
+		Name:       "skill_types",
+		Columns:    SkillTypesColumns,
+		PrimaryKey: []*schema.Column{SkillTypesColumns[0]},
+	}
 	// TeamsColumns holds the columns for the "teams" table.
 	TeamsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -411,6 +426,7 @@ var (
 		CandidateJobStepsTable,
 		HiringJobsTable,
 		SkillsTable,
+		SkillTypesTable,
 		TeamsTable,
 		TeamManagersTable,
 		UsersTable,

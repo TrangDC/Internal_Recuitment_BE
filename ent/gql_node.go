@@ -16,6 +16,7 @@ import (
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
@@ -1173,6 +1174,57 @@ func (s *Skill) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (st *SkillType) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     st.ID,
+		Type:   "SkillType",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(st.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(st.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
@@ -1678,6 +1730,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case skilltype.Table:
+		query := c.SkillType.Query().
+			Where(skilltype.ID(id))
+		query, err := query.CollectFields(ctx, "SkillType")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case team.Table:
 		query := c.Team.Query().
 			Where(team.ID(id))
@@ -1935,6 +1999,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.Skill.Query().
 			Where(skill.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Skill")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case skilltype.Table:
+		query := c.SkillType.Query().
+			Where(skilltype.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "SkillType")
 		if err != nil {
 			return nil, err
 		}
