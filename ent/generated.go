@@ -807,6 +807,47 @@ func (e CandidateJobStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CandidateJobStatusAbleToClose string
+
+const (
+	CandidateJobStatusAbleToCloseInterviewing CandidateJobStatusAbleToClose = "interviewing"
+	CandidateJobStatusAbleToCloseOffering     CandidateJobStatusAbleToClose = "offering"
+)
+
+var AllCandidateJobStatusAbleToClose = []CandidateJobStatusAbleToClose{
+	CandidateJobStatusAbleToCloseInterviewing,
+	CandidateJobStatusAbleToCloseOffering,
+}
+
+func (e CandidateJobStatusAbleToClose) IsValid() bool {
+	switch e {
+	case CandidateJobStatusAbleToCloseInterviewing, CandidateJobStatusAbleToCloseOffering:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobStatusAbleToClose) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobStatusAbleToClose) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobStatusAbleToClose(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobStatusAbleToClose", str)
+	}
+	return nil
+}
+
+func (e CandidateJobStatusAbleToClose) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CandidateJobStatusEditable string
 
 const (
