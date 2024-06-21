@@ -3052,6 +3052,10 @@ enum CandidateJobStatusOpen{
   interviewing
   offering
 }
+enum CandidateJobStatusAbleToClose{
+  interviewing
+  offering
+}
 
 enum CandidateJobStatusFailed{
   offer_lost
