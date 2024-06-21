@@ -426,7 +426,7 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 func (svc *candidateJobSvcImpl) GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum {
 	var candidateJobs []*ent.CandidateJob
 	var err error
-	openStatus := lo.Map(ent.AllCandidateJobStatusAbleToClose, func(s ent.CandidateJobStatusAbleToClose, index int) candidatejob.Status {
+	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
 		return candidatejob.Status(s)
 	})
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.CandidateIDEQ(id)).Order(ent.Desc(candidatejob.FieldUpdatedAt)).Limit(1)
