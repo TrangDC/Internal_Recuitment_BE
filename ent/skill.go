@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -27,6 +28,35 @@ type Skill struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// SkillTypeID holds the value of the "skill_type_id" field.
+	SkillTypeID uuid.UUID `json:"skill_type_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SkillQuery when eager-loading is set.
+	Edges SkillEdges `json:"edges"`
+}
+
+// SkillEdges holds the relations/edges for other nodes in the graph.
+type SkillEdges struct {
+	// SkillTypeEdge holds the value of the skill_type_edge edge.
+	SkillTypeEdge *SkillType `json:"skill_type_edge,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+}
+
+// SkillTypeEdgeOrErr returns the SkillTypeEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SkillEdges) SkillTypeEdgeOrErr() (*SkillType, error) {
+	if e.loadedTypes[0] {
+		if e.SkillTypeEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: skilltype.Label}
+		}
+		return e.SkillTypeEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "skill_type_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -38,7 +68,7 @@ func (*Skill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case skill.FieldCreatedAt, skill.FieldUpdatedAt, skill.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case skill.FieldID:
+		case skill.FieldID, skill.FieldSkillTypeID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Skill", columns[i])
@@ -91,9 +121,20 @@ func (s *Skill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Description = value.String
 			}
+		case skill.FieldSkillTypeID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_type_id", values[i])
+			} else if value != nil {
+				s.SkillTypeID = *value
+			}
 		}
 	}
 	return nil
+}
+
+// QuerySkillTypeEdge queries the "skill_type_edge" edge of the Skill entity.
+func (s *Skill) QuerySkillTypeEdge() *SkillTypeQuery {
+	return (&SkillClient{config: s.config}).QuerySkillTypeEdge(s)
 }
 
 // Update returns a builder for updating this Skill.
@@ -133,6 +174,9 @@ func (s *Skill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(s.Description)
+	builder.WriteString(", ")
+	builder.WriteString("skill_type_id=")
+	builder.WriteString(fmt.Sprintf("%v", s.SkillTypeID))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -20,20 +20,23 @@ input SkillFreeWord {
 input NewSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 input UpdateSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 type Skill {
   id: ID!
   name: String!
   description: String
-  createdAt: Time!
-  updatedAt: Time!
-  deletedAt: Time
+  skill_type: SkillType
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
 }
 
 type SkillResponse {

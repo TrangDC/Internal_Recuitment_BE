@@ -21,8 +21,17 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// EdgeSkillEdges holds the string denoting the skill_edges edge name in mutations.
+	EdgeSkillEdges = "skill_edges"
 	// Table holds the table name of the skilltype in the database.
 	Table = "skill_types"
+	// SkillEdgesTable is the table that holds the skill_edges relation/edge.
+	SkillEdgesTable = "skills"
+	// SkillEdgesInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	SkillEdgesInverseTable = "skills"
+	// SkillEdgesColumn is the table column denoting the skill_edges relation/edge.
+	SkillEdgesColumn = "skill_type_id"
 )
 
 // Columns holds all SQL columns for skilltype fields.

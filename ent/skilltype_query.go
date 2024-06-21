@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"trec/ent/predicate"
+	"trec/ent/skill"
 	"trec/ent/skilltype"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,14 +20,16 @@ import (
 // SkillTypeQuery is the builder for querying SkillType entities.
 type SkillTypeQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.SkillType
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*SkillType) error
+	limit               *int
+	offset              *int
+	unique              *bool
+	order               []OrderFunc
+	fields              []string
+	predicates          []predicate.SkillType
+	withSkillEdges      *SkillQuery
+	modifiers           []func(*sql.Selector)
+	loadTotal           []func(context.Context, []*SkillType) error
+	withNamedSkillEdges map[string]*SkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +64,28 @@ func (stq *SkillTypeQuery) Unique(unique bool) *SkillTypeQuery {
 func (stq *SkillTypeQuery) Order(o ...OrderFunc) *SkillTypeQuery {
 	stq.order = append(stq.order, o...)
 	return stq
+}
+
+// QuerySkillEdges chains the current query on the "skill_edges" edge.
+func (stq *SkillTypeQuery) QuerySkillEdges() *SkillQuery {
+	query := &SkillQuery{config: stq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := stq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skilltype.Table, skilltype.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, skilltype.SkillEdgesTable, skilltype.SkillEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first SkillType entity from the query.
@@ -238,16 +264,28 @@ func (stq *SkillTypeQuery) Clone() *SkillTypeQuery {
 		return nil
 	}
 	return &SkillTypeQuery{
-		config:     stq.config,
-		limit:      stq.limit,
-		offset:     stq.offset,
-		order:      append([]OrderFunc{}, stq.order...),
-		predicates: append([]predicate.SkillType{}, stq.predicates...),
+		config:         stq.config,
+		limit:          stq.limit,
+		offset:         stq.offset,
+		order:          append([]OrderFunc{}, stq.order...),
+		predicates:     append([]predicate.SkillType{}, stq.predicates...),
+		withSkillEdges: stq.withSkillEdges.Clone(),
 		// clone intermediate query.
 		sql:    stq.sql.Clone(),
 		path:   stq.path,
 		unique: stq.unique,
 	}
+}
+
+// WithSkillEdges tells the query-builder to eager-load the nodes that are connected to
+// the "skill_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (stq *SkillTypeQuery) WithSkillEdges(opts ...func(*SkillQuery)) *SkillTypeQuery {
+	query := &SkillQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withSkillEdges = query
+	return stq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +359,11 @@ func (stq *SkillTypeQuery) prepareQuery(ctx context.Context) error {
 
 func (stq *SkillTypeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*SkillType, error) {
 	var (
-		nodes = []*SkillType{}
-		_spec = stq.querySpec()
+		nodes       = []*SkillType{}
+		_spec       = stq.querySpec()
+		loadedTypes = [1]bool{
+			stq.withSkillEdges != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*SkillType).scanValues(nil, columns)
@@ -330,6 +371,7 @@ func (stq *SkillTypeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*S
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &SkillType{config: stq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(stq.modifiers) > 0 {
@@ -344,12 +386,54 @@ func (stq *SkillTypeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*S
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := stq.withSkillEdges; query != nil {
+		if err := stq.loadSkillEdges(ctx, query, nodes,
+			func(n *SkillType) { n.Edges.SkillEdges = []*Skill{} },
+			func(n *SkillType, e *Skill) { n.Edges.SkillEdges = append(n.Edges.SkillEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range stq.withNamedSkillEdges {
+		if err := stq.loadSkillEdges(ctx, query, nodes,
+			func(n *SkillType) { n.appendNamedSkillEdges(name) },
+			func(n *SkillType, e *Skill) { n.appendNamedSkillEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range stq.loadTotal {
 		if err := stq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (stq *SkillTypeQuery) loadSkillEdges(ctx context.Context, query *SkillQuery, nodes []*SkillType, init func(*SkillType), assign func(*SkillType, *Skill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SkillType)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.InValues(skilltype.SkillEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SkillTypeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "skill_type_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (stq *SkillTypeQuery) sqlCount(ctx context.Context) (int, error) {
@@ -453,6 +537,20 @@ func (stq *SkillTypeQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedSkillEdges tells the query-builder to eager-load the nodes that are connected to the "skill_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (stq *SkillTypeQuery) WithNamedSkillEdges(name string, opts ...func(*SkillQuery)) *SkillTypeQuery {
+	query := &SkillQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if stq.withNamedSkillEdges == nil {
+		stq.withNamedSkillEdges = make(map[string]*SkillQuery)
+	}
+	stq.withNamedSkillEdges[name] = query
+	return stq
 }
 
 // SkillTypeGroupBy is the group-by builder for SkillType entities.

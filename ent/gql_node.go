@@ -1127,8 +1127,8 @@ func (s *Skill) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Skill",
-		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(s.CreatedAt); err != nil {
@@ -1171,6 +1171,24 @@ func (s *Skill) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "description",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(s.SkillTypeID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "skill_type_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "SkillType",
+		Name: "skill_type_edge",
+	}
+	err = s.QuerySkillTypeEdge().
+		Select(skilltype.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -1179,7 +1197,7 @@ func (st *SkillType) Node(ctx context.Context) (node *Node, err error) {
 		ID:     st.ID,
 		Type:   "SkillType",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(st.CreatedAt); err != nil {
@@ -1221,6 +1239,16 @@ func (st *SkillType) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "description",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Skill",
+		Name: "skill_edges",
+	}
+	err = st.QuerySkillEdges().
+		Select(skill.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }

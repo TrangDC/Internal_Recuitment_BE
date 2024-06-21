@@ -956,6 +956,20 @@ func (s *SkillQuery) CollectFields(ctx context.Context, satisfies ...string) (*S
 
 func (s *SkillQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "skillTypeEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &SkillTypeQuery{config: s.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			s.withSkillTypeEdge = query
+		}
+	}
 	return nil
 }
 
@@ -1021,6 +1035,22 @@ func (st *SkillTypeQuery) CollectFields(ctx context.Context, satisfies ...string
 
 func (st *SkillTypeQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "skillEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &SkillQuery{config: st.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			st.WithNamedSkillEdges(alias, func(wq *SkillQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 

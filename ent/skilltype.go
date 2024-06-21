@@ -27,6 +27,31 @@ type SkillType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SkillTypeQuery when eager-loading is set.
+	Edges SkillTypeEdges `json:"edges"`
+}
+
+// SkillTypeEdges holds the relations/edges for other nodes in the graph.
+type SkillTypeEdges struct {
+	// SkillEdges holds the value of the skill_edges edge.
+	SkillEdges []*Skill `json:"skill_edges,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedSkillEdges map[string][]*Skill
+}
+
+// SkillEdgesOrErr returns the SkillEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillTypeEdges) SkillEdgesOrErr() ([]*Skill, error) {
+	if e.loadedTypes[0] {
+		return e.SkillEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "skill_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +121,11 @@ func (st *SkillType) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QuerySkillEdges queries the "skill_edges" edge of the SkillType entity.
+func (st *SkillType) QuerySkillEdges() *SkillQuery {
+	return (&SkillTypeClient{config: st.config}).QuerySkillEdges(st)
+}
+
 // Update returns a builder for updating this SkillType.
 // Note that you need to call SkillType.Unwrap() before calling this method if this SkillType
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -135,6 +165,30 @@ func (st *SkillType) String() string {
 	builder.WriteString(st.Description)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedSkillEdges returns the SkillEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (st *SkillType) NamedSkillEdges(name string) ([]*Skill, error) {
+	if st.Edges.namedSkillEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := st.Edges.namedSkillEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (st *SkillType) appendNamedSkillEdges(name string, edges ...*Skill) {
+	if st.Edges.namedSkillEdges == nil {
+		st.Edges.namedSkillEdges = make(map[string][]*Skill)
+	}
+	if len(edges) == 0 {
+		st.Edges.namedSkillEdges[name] = []*Skill{}
+	} else {
+		st.Edges.namedSkillEdges[name] = append(st.Edges.namedSkillEdges[name], edges...)
+	}
 }
 
 // SkillTypes is a parsable slice of SkillType.

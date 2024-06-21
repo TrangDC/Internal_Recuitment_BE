@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -545,6 +546,34 @@ func DescriptionEqualFold(v string) predicate.SkillType {
 func DescriptionContainsFold(v string) predicate.SkillType {
 	return predicate.SkillType(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
+	})
+}
+
+// HasSkillEdges applies the HasEdge predicate on the "skill_edges" edge.
+func HasSkillEdges() predicate.SkillType {
+	return predicate.SkillType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SkillEdgesTable, SkillEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSkillEdgesWith applies the HasEdge predicate on the "skill_edges" edge with a given conditions (other predicates).
+func HasSkillEdgesWith(preds ...predicate.Skill) predicate.SkillType {
+	return predicate.SkillType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SkillEdgesTable, SkillEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

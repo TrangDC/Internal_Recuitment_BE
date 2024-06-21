@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -83,10 +84,43 @@ func (sc *SkillCreate) SetNillableDescription(s *string) *SkillCreate {
 	return sc
 }
 
+// SetSkillTypeID sets the "skill_type_id" field.
+func (sc *SkillCreate) SetSkillTypeID(u uuid.UUID) *SkillCreate {
+	sc.mutation.SetSkillTypeID(u)
+	return sc
+}
+
+// SetNillableSkillTypeID sets the "skill_type_id" field if the given value is not nil.
+func (sc *SkillCreate) SetNillableSkillTypeID(u *uuid.UUID) *SkillCreate {
+	if u != nil {
+		sc.SetSkillTypeID(*u)
+	}
+	return sc
+}
+
 // SetID sets the "id" field.
 func (sc *SkillCreate) SetID(u uuid.UUID) *SkillCreate {
 	sc.mutation.SetID(u)
 	return sc
+}
+
+// SetSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID.
+func (sc *SkillCreate) SetSkillTypeEdgeID(id uuid.UUID) *SkillCreate {
+	sc.mutation.SetSkillTypeEdgeID(id)
+	return sc
+}
+
+// SetNillableSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID if the given value is not nil.
+func (sc *SkillCreate) SetNillableSkillTypeEdgeID(id *uuid.UUID) *SkillCreate {
+	if id != nil {
+		sc = sc.SetSkillTypeEdgeID(*id)
+	}
+	return sc
+}
+
+// SetSkillTypeEdge sets the "skill_type_edge" edge to the SkillType entity.
+func (sc *SkillCreate) SetSkillTypeEdge(s *SkillType) *SkillCreate {
+	return sc.SetSkillTypeEdgeID(s.ID)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -245,6 +279,26 @@ func (sc *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Description(); ok {
 		_spec.SetField(skill.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if nodes := sc.mutation.SkillTypeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.SkillTypeEdgeTable,
+			Columns: []string{skill.SkillTypeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skilltype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SkillTypeID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

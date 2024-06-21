@@ -21,8 +21,19 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldSkillTypeID holds the string denoting the skill_type_id field in the database.
+	FieldSkillTypeID = "skill_type_id"
+	// EdgeSkillTypeEdge holds the string denoting the skill_type_edge edge name in mutations.
+	EdgeSkillTypeEdge = "skill_type_edge"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
+	// SkillTypeEdgeTable is the table that holds the skill_type_edge relation/edge.
+	SkillTypeEdgeTable = "skills"
+	// SkillTypeEdgeInverseTable is the table name for the SkillType entity.
+	// It exists in this package in order to avoid circular dependency with the "skilltype" package.
+	SkillTypeEdgeInverseTable = "skill_types"
+	// SkillTypeEdgeColumn is the table column denoting the skill_type_edge relation/edge.
+	SkillTypeEdgeColumn = "skill_type_id"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -33,6 +44,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldName,
 	FieldDescription,
+	FieldSkillTypeID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
