@@ -150,7 +150,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
-		return ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(item.Status))
+		return ent.CandidateJobStatusAbleToClose.IsValid(ent.CandidateJobStatusAbleToClose(item.Status))
 	})
 	if len(candidateJobWithStatusOpen) > 0 && record.Status == hiringjob.StatusOpened && hiringjob.Status(status) == hiringjob.StatusClosed {
 		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.candidate_job_open_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
