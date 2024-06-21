@@ -1,0 +1,51 @@
+enum SkillTypeOrderField {
+  name
+  description
+  created_at
+}
+
+input SkillTypeOrder {
+  direction: OrderDirection!
+  field: SkillTypeOrderField!
+}
+
+input SkillTypeFilter {
+  name: String
+}
+
+input SkillTypeFreeWord {
+  name: String
+}
+
+input NewSkillTypeInput {
+  name: String!
+  description: String!
+}
+
+input UpdateSkillTypeInput {
+  name: String!
+  description: String!
+}
+
+type SkillType {
+  id: ID!
+  name: String!
+  description: String
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type SkillTypeResponse {
+  data: SkillType!
+}
+
+type SkillTypeEdge {
+  node: SkillType!
+  cursor: Cursor!
+}
+
+type SkillTypeResponseGetAll {
+  edges: [SkillTypeEdge!]!
+  pagination: Pagination!
+}

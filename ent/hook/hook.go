@@ -138,6 +138,19 @@ func (f SkillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return f(ctx, mv)
 }
 
+// The SkillTypeFunc type is an adapter to allow the use of ordinary
+// function as SkillType mutator.
+type SkillTypeFunc func(context.Context, *ent.SkillTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SkillTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SkillTypeMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkillTypeMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TeamFunc type is an adapter to allow the use of ordinary
 // function as Team mutator.
 type TeamFunc func(context.Context, *ent.TeamMutation) (ent.Value, error)

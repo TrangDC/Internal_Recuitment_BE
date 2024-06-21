@@ -36,6 +36,9 @@ type HiringJob func(*sql.Selector)
 // Skill is the predicate function for skill builders.
 type Skill func(*sql.Selector)
 
+// SkillType is the predicate function for skilltype builders.
+type SkillType func(*sql.Selector)
+
 // Team is the predicate function for team builders.
 type Team func(*sql.Selector)
 
