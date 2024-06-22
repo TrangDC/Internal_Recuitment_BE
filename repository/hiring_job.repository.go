@@ -26,8 +26,8 @@ type HiringJobRepository interface {
 	BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
 	// common function
-	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error
-	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) error
+	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error)
+	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) (error, error)
 }
 
 type hiringJobRepoImpl struct {
@@ -148,31 +148,37 @@ func (rps *hiringJobRepoImpl) GetHiringJob(ctx context.Context, hiringJobId uuid
 }
 
 // common function
-func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) error {
+func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error) {
 	query := rps.BuildQuery().Where(hiringjob.NameEqualFold(strings.TrimSpace(name)))
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
-	if isExist {
-		return fmt.Errorf("model.hiring_jobs.validation.name_exist")
+	if err != nil {
+		return nil, err
 	}
-	return err
+	if isExist {
+		return fmt.Errorf("model.hiring_jobs.validation.name_exist"), nil
+	}
+	return nil, nil
 }
 
-func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) error {
+func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) (error, error) {
 	query := rps.BuildQuery().Where(hiringjob.PriorityEQ(priority), hiringjob.TeamIDEQ(teamId))
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
+	if err != nil {
+		return nil, err
+	}
 	if isExist {
 		switch priority {
 		case 1:
-			return fmt.Errorf("model.hiring_jobs.validation.priority_ugent_exist")
+			return fmt.Errorf("model.hiring_jobs.validation.priority_ugent_exist"), nil
 		case 2:
-			return fmt.Errorf("model.hiring_jobs.validation.priority_high_exist")
+			return fmt.Errorf("model.hiring_jobs.validation.priority_high_exist"), nil
 		}
 	}
-	return err
+	return nil, nil
 }

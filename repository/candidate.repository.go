@@ -26,7 +26,7 @@ type CandidateRepository interface {
 	BuildCount(ctx context.Context, query *ent.CandidateQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateQuery) ([]*ent.Candidate, error)
 	// common function
-	ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) error
+	ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) (error, error)
 }
 
 type candidateRepoImpl struct {
@@ -163,14 +163,17 @@ func (rps candidateRepoImpl) GetCandidate(ctx context.Context, candidateId uuid.
 }
 
 // common function
-func (rps candidateRepoImpl) ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) error {
+func (rps candidateRepoImpl) ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) (error, error) {
 	query := rps.BuildQuery().Where(candidate.EmailEqualFold(strings.TrimSpace(strings.ToLower(email))))
 	if candidateId != uuid.Nil {
 		query = query.Where(candidate.IDNEQ(candidateId))
 	}
-	isExist, _ := rps.BuildExist(ctx, query)
-	if isExist {
-		return fmt.Errorf("model.candidates.validation.email_exist")
+	isExist, err := rps.BuildExist(ctx, query)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	if isExist {
+		return fmt.Errorf("model.candidates.validation.email_exist"), nil
+	}
+	return nil, nil
 }

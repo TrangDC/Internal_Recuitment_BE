@@ -5,12 +5,14 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/models"
 
 	"github.com/google/uuid"
 )
 
 type AuditTrailRepository interface {
 	AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error
+	CreateBulkCandidateInterviewAt(ctx context.Context, records []models.CandidateInterviewAuditTrail, note string) error
 	//query
 	GetAuditTrail(ctx context.Context, auditTrailId uuid.UUID) (*ent.AuditTrail, error)
 	BuildQuery() *ent.AuditTrailQuery
@@ -83,5 +85,21 @@ func (rps *auditTrailRepoImpl) AuditTrailMutation(ctx context.Context, recordId 
 		SetRecordChanges(recordChange).
 		SetCreatedBy(createdById).
 		SetNote(note).Save(ctx)
+	return err
+}
+
+func (rps *auditTrailRepoImpl) CreateBulkCandidateInterviewAt(ctx context.Context, records []models.CandidateInterviewAuditTrail, note string) error {
+	var createBulk []*ent.AuditTrailCreate
+	createdById := ctx.Value("user_id").(uuid.UUID)
+	for _, record := range records {
+		createBulk = append(createBulk, rps.BuildCreate().SetRecordId(record.RecordId).
+			SetModule(audittrail.ModuleCandidates).
+			SetActionType(audittrail.ActionTypeCreate).
+			SetRecordChanges(record.JsonString).
+			SetCreatedBy(createdById).
+			SetNote(note),
+		)
+	}
+	_, err := rps.client.AuditTrail.CreateBulk(createBulk...).Save(ctx)
 	return err
 }

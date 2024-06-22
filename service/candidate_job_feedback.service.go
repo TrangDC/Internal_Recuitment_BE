@@ -46,15 +46,21 @@ func NewCandidateJobFeedbackService(repoRegistry repository.Repository, dtoRegis
 
 func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
 	var candidateJobFeedback *ent.CandidateJobFeedback
-	status, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, uuid.MustParse(input.CandidateJobID))
+	status, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, uuid.MustParse(input.CandidateJobID))
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		var err error
@@ -68,17 +74,13 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	result, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, candidateJobFeedback.ID)
-	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, candidateJobFeedback.ID)
 	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailCreate(result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
@@ -99,15 +101,21 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	if record.CreatedBy != userId {
 		return nil, util.WrapGQLError(ctx, "model.candidate_job_feedbacks.validation.editor_not_is_owner", http.StatusBadGateway, util.ErrorFlagValidateFail)
 	}
-	_, err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
+	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, record.CandidateJobID)
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		var err error
@@ -124,11 +132,7 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	result, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
+	result, _ := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -148,15 +152,21 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	_, err = svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, candidateJobFeedback.CandidateJobID)
+	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, candidateJobFeedback.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, candidateJobFeedback.CandidateJobID)
+	if errString != nil {
+		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, candidateJobFeedback.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, candidateJobFeedback)
@@ -168,7 +178,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 	})
 	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailDelete(candidateJobFeedback)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJobFeedback.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)

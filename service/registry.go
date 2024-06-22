@@ -57,9 +57,9 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 	return &serviceImpl{
 		authService:                 NewAuthService(azureADOAuthClient, logger),
 		storageService:              NewStorageService(azureStorage, logger),
-		userService:                 NewUserService(repoRegistry, logger),
-		teamService:                 NewTeamService(repoRegistry, logger),
-		hiringJobService:            NewHiringJobService(repoRegistry, logger),
+		userService:                 NewUserService(repoRegistry, dtoRegistry, logger),
+		teamService:                 NewTeamService(repoRegistry, dtoRegistry, logger),
+		hiringJobService:            NewHiringJobService(repoRegistry, dtoRegistry, logger),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
 		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
 		candidateJobService:         NewCandidateJobService(repoRegistry, dtoRegistry, logger),
@@ -69,7 +69,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		exportDataService:           NewExportDataService(repoRegistry, i18n, logger),
 		importDataService:           NewImportDataService(repoRegistry, logger),
 		candidateJobStepService:     NewCandidateJobStepService(repoRegistry, logger),
-		skillService:                NewSkillService(repoRegistry, logger),
+		skillService:                NewSkillService(repoRegistry, dtoRegistry, logger),
 	}
 }
 

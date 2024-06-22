@@ -48,8 +48,12 @@ func NewCandidateService(repoRegistry repository.Repository, dtoRegistry dto.Dto
 
 func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.NewCandidateInput, note string) (*ent.CandidateResponse, error) {
 	var record *ent.Candidate
-	err := svc.repoRegistry.Candidate().ValidEmail(ctx, uuid.Nil, input.Email)
+	errString, err := svc.repoRegistry.Candidate().ValidEmail(ctx, uuid.Nil, input.Email)
 	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
@@ -61,19 +65,16 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 			return err
 		}
 		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, record.ID, attachment.RelationTypeCandidates, repoRegistry)
-		if err != nil {
-			return err
-		}
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.Candidate().GetCandidate(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailCreate(result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
@@ -114,7 +115,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 	})
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
@@ -131,8 +132,12 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	err = svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
+	errTring, err := svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
 	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errTring != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
@@ -169,20 +174,20 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 }
 
 func (svc *candidateSvcImpl) SetBlackListCandidate(ctx context.Context, id uuid.UUID, isBlackList bool, note string) error {
-	var result *ent.Candidate
 	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.Candidate().SetBlackListCandidate(ctx, record, isBlackList)
+		_, err = repoRegistry.Candidate().SetBlackListCandidate(ctx, record, isBlackList)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.Candidate().GetCandidate(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

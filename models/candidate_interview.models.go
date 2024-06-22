@@ -26,3 +26,8 @@ type CandidateInterviewInputValidate struct {
 	EndAt          *time.Time `json:"end_at"`
 	InterviewDate  *time.Time `json:"interview_date"`
 }
+
+type CandidateInterviewAuditTrail struct {
+	RecordId   uuid.UUID
+	JsonString string
+}

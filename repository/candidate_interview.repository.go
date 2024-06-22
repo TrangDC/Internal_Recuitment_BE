@@ -315,7 +315,7 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	return nil, nil
 }
 
-func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) error {
+func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) (error) {
 	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(record.Status)) {
 		return fmt.Errorf("model.candidate_interviews.validation.invalid_editable")
 	}
