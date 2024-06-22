@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
-	"reflect"
 	"strings"
 	"trec/dto"
 	"trec/ent"
@@ -12,7 +10,6 @@ import (
 	"trec/ent/predicate"
 	"trec/ent/skill"
 	"trec/internal/util"
-	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -32,12 +29,14 @@ type SkillService interface {
 
 type skillSvcImpl struct {
 	repoRegistry repository.Repository
+	dtoRegistry  dto.Dto
 	logger       *zap.Logger
 }
 
-func NewSkillService(repoRegistry repository.Repository, logger *zap.Logger) SkillService {
+func NewSkillService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) SkillService {
 	return &skillSvcImpl{
 		repoRegistry: repoRegistry,
+		dtoRegistry:  dtoRegistry,
 		logger:       logger,
 	}
 }
@@ -59,14 +58,16 @@ func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInpu
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeCreate)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	jsonString, err := svc.dtoRegistry.Skill().AuditTrailCreate(record)
 	if err != nil {
-		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.SkillResponse{
 		Data: record,
@@ -87,17 +88,18 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note str
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeDelete, note)
+	jsonString, err := svc.dtoRegistry.Skill().AuditTrailDelete(record)
 	if err != nil {
-		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }
 
 func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error) {
-	var result *ent.Skill
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -113,18 +115,21 @@ func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input en
 		return nil, util.WrapGQLError(ctx, stringError.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.Skill().UpdateSkill(ctx, record, input)
+		_, err = repoRegistry.Skill().UpdateSkill(ctx, record, input)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordUpdate(record, result)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleSkills, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	result, _ := svc.repoRegistry.Skill().GetSkill(ctx, id)
+	jsonString, err := svc.dtoRegistry.Skill().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error("[AuditTrail][skills]: " + err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.SkillResponse{
 		Data: result,
@@ -212,80 +217,4 @@ func (svc *skillSvcImpl) filter(skillQuery *ent.SkillQuery, input *ent.SkillFilt
 			skillQuery.Where(skill.NameEqualFold(strings.TrimSpace(*input.Name)))
 		}
 	}
-}
-
-func (svc *skillSvcImpl) recordCreateDelete(record *ent.Skill, auditTrailType audittrail.ActionType) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.skills.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	value := reflect.ValueOf(interface{}(record)).Elem()
-	recordType := reflect.TypeOf(record).Elem()
-	for i := 1; i < value.NumField(); i++ {
-		field := recordType.Field(i)
-		valueField := value.Field(i).Interface()
-		fieldName := dto.FormatSkillField(field.Name)
-		switch fieldName {
-		case "":
-			continue
-		case "model.skills.name":
-			valueField = record.Name
-		case "model.skills.description":
-			valueField = record.Description
-		}
-		result = append(result, models.AuditTrailCreateDelete{
-			Field: fieldName,
-			Value: valueField,
-		})
-	}
-	if auditTrailType == audittrail.ActionTypeCreate {
-		auditTrail.Create = append(auditTrail.Create, result...)
-	}
-	if auditTrailType == audittrail.ActionTypeDelete {
-		auditTrail.Delete = append(auditTrail.Delete, result...)
-	}
-	return auditTrail
-}
-
-func (svc *skillSvcImpl) recordUpdate(oldRecord *ent.Skill, newRecord *ent.Skill) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.skills.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
-	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
-	recordType := reflect.TypeOf(oldRecord).Elem()
-	for i := 1; i < oldValue.NumField(); i++ {
-		field := recordType.Field(i)
-		oldValueField := oldValue.Field(i).Interface()
-		newValueField := newValue.Field(i).Interface()
-		fieldName := dto.FormatSkillField(field.Name)
-		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
-			switch fieldName {
-			case "":
-				continue
-			case "model.skills.name":
-				oldValueField = oldRecord.Name
-				newValueField = newRecord.Name
-			case "model.skills.description":
-				oldValueField = oldRecord.Description
-				newValueField = newRecord.Description
-			}
-			result = append(result, models.AuditTrailUpdate{
-				Field: fieldName,
-				Value: models.ValueChange{
-					OldValue: oldValueField,
-					NewValue: newValueField,
-				},
-			})
-		}
-	}
-	auditTrail.Update = append(auditTrail.Update, result...)
-	return auditTrail
 }

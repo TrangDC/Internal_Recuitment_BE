@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
-	"reflect"
 	"sort"
 	"strings"
 	"trec/dto"
@@ -12,7 +10,6 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/hiringjob"
 	"trec/internal/util"
-	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -32,27 +29,35 @@ type HiringJobService interface {
 }
 type hiringJobSvcImpl struct {
 	repoRegistry repository.Repository
+	dtoRegistry  dto.Dto
 	logger       *zap.Logger
 }
 
-func NewHiringJobService(repoRegistry repository.Repository, logger *zap.Logger) HiringJobService {
+func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) HiringJobService {
 	return &hiringJobSvcImpl{
 		repoRegistry: repoRegistry,
+		dtoRegistry:  dtoRegistry,
 		logger:       logger,
 	}
 }
 
 func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
 	var record *ent.HiringJob
-	err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name)
+	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.HiringJob().ValidPriority(ctx, uuid.Nil, uuid.MustParse(input.TeamID), input.Priority)
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, uuid.Nil, uuid.MustParse(input.TeamID), input.Priority)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.Amount == 0 && input.Status == ent.HiringJobStatusOpened {
 		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -62,16 +67,17 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
-	recordChanges := svc.recordCreateDelete(result, audittrail.ActionTypeCreate)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeCreate, note)
+	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -91,14 +97,15 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 		err = repoRegistry.HiringJob().DeleteHiringJob(ctx, record)
 		return err
 	})
-	recordChanges := svc.recordCreateDelete(record, audittrail.ActionTypeDelete)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeDelete, note)
+	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailDelete(record)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	return nil
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	return err
 }
 
 func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.UpdateHiringJobInput, id uuid.UUID, note string) (*ent.HiringJobResponse, error) {
@@ -111,15 +118,21 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if input.Amount == 0 && record.Status == hiringjob.StatusOpened {
 		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name)
+	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	err = svc.repoRegistry.HiringJob().ValidPriority(ctx, id, uuid.MustParse(input.TeamID), input.Priority)
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, id, uuid.MustParse(input.TeamID), input.Priority)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJob(ctx, record, input)
@@ -130,12 +143,13 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
-	recordChanges := svc.recordUpdate(record, result)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -163,12 +177,14 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	recordChanges := svc.recordUpdate(record, result)
-	recordChangesJson, _ := json.Marshal([]interface{}{recordChanges})
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringJobs, string(recordChangesJson), audittrail.ActionTypeUpdate, note)
+	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
+	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -315,106 +331,4 @@ func (svc *hiringJobSvcImpl) filter(hiringJobQuery *ent.HiringJobQuery, input *e
 			hiringJobQuery.Where(hiringjob.PriorityEQ(*input.Priority))
 		}
 	}
-}
-
-func (svc *hiringJobSvcImpl) recordCreateDelete(record *ent.HiringJob, auditTrailType audittrail.ActionType) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.hiring_jobs.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	value := reflect.ValueOf(interface{}(record)).Elem()
-	recordType := reflect.TypeOf(record).Elem()
-	for i := 1; i < value.NumField(); i++ {
-		field := recordType.Field(i)
-		valueField := value.Field(i).Interface()
-		fieldName := dto.FormatHiringJobField(field.Name)
-		switch fieldName {
-		case "":
-			continue
-		case "model.hiring_jobs.location":
-			valueField = dto.LocationI18n(record.Location)
-		case "model.hiring_jobs.status":
-			valueField = dto.StatusI18n(record.Status)
-		case "model.hiring_jobs.salary_type":
-			valueField = dto.SalaryTypeI18n(record.SalaryType)
-		case "model.hiring_jobs.currency":
-			valueField = dto.CurrencyI18n(record.Currency)
-		case "model.hiring_jobs.team":
-			valueField = record.Edges.TeamEdge.Name
-		case "model.hiring_jobs.created_by":
-			valueField = record.Edges.OwnerEdge.Name
-		}
-		result = append(result, models.AuditTrailCreateDelete{
-			Field: fieldName,
-			Value: valueField,
-		})
-	}
-	if auditTrailType == audittrail.ActionTypeCreate {
-		auditTrail.Create = append(auditTrail.Create, result...)
-	} else {
-		auditTrail.Delete = append(auditTrail.Delete, result...)
-	}
-	return auditTrail
-}
-
-func (svc *hiringJobSvcImpl) recordUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) models.AuditTrailData {
-	auditTrail := models.AuditTrailData{
-		Module: "model.hiring_jobs.model_name",
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
-	}
-	result := []interface{}{}
-	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
-	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
-	recordType := reflect.TypeOf(oldRecord).Elem()
-	for i := 1; i < oldValue.NumField(); i++ {
-		field := recordType.Field(i)
-		oldValueField := oldValue.Field(i).Interface()
-		newValueField := newValue.Field(i).Interface()
-		fieldName := dto.FormatHiringJobField(field.Name)
-		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
-			switch fieldName {
-			case "":
-				continue
-			case "model.hiring_jobs.location":
-				oldValueField = dto.LocationI18n(oldRecord.Location)
-				newValueField = dto.LocationI18n(newRecord.Location)
-			case "model.hiring_jobs.status":
-				oldValueField = dto.StatusI18n(oldRecord.Status)
-				newValueField = dto.StatusI18n(newRecord.Status)
-			case "model.hiring_jobs.salary_type":
-				oldValueField = dto.SalaryTypeI18n(oldRecord.SalaryType)
-				newValueField = dto.SalaryTypeI18n(newRecord.SalaryType)
-			case "model.hiring_jobs.currency":
-				oldValueField = dto.CurrencyI18n(oldRecord.Currency)
-				newValueField = dto.CurrencyI18n(newRecord.Currency)
-			case "model.hiring_jobs.team":
-				oldValueField = oldRecord.Edges.TeamEdge.Name
-				newValueField = newRecord.Edges.TeamEdge.Name
-			case "model.hiring_jobs.created_by":
-				oldValueField = oldRecord.Edges.OwnerEdge.Name
-				newValueField = newRecord.Edges.OwnerEdge.Name
-			}
-			result = append(result, models.AuditTrailUpdate{
-				Field: fieldName,
-				Value: models.ValueChange{
-					OldValue: oldValueField,
-					NewValue: newValueField,
-				},
-			})
-		}
-	}
-	auditTrail.Update = append(auditTrail.Update, result...)
-	return auditTrail
-}
-
-func (svc *hiringJobSvcImpl) getAdditionalInfo(ctx context.Context, record *ent.HiringJob) {
-	teamRecord, _ := svc.repoRegistry.Team().GetTeam(ctx, record.TeamID)
-	userRecord, _ := svc.repoRegistry.User().GetUser(ctx, record.CreatedBy)
-	record.Edges.TeamEdge = teamRecord
-	record.Edges.OwnerEdge = userRecord
 }

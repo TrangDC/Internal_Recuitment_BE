@@ -24,7 +24,7 @@ type UserRepository interface {
 	BuildCount(ctx context.Context, query *ent.UserQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.UserQuery) ([]*ent.User, error)
 	// common function
-	ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) error
+	ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) (error, error)
 }
 
 type userRepoImpl struct {
@@ -118,17 +118,17 @@ func (rps *userRepoImpl) GetUser(ctx context.Context, userId uuid.UUID) (*ent.Us
 }
 
 // common function
-func (rps *userRepoImpl) ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) error {
+func (rps *userRepoImpl) ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) (error, error) {
 	query := rps.BuildParanoidQuery().Where(user.WorkEmailEqualFold(strings.TrimSpace(strings.ToLower(workEmail))))
 	if userId != uuid.Nil {
 		query = query.Where(user.IDNEQ(userId))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-		return err
+		return err, nil
 	}
 	if isExist {
-		return fmt.Errorf("model.users.validation.work_email_exist")
+		return nil, fmt.Errorf("model.users.validation.work_email_exist")
 	}
-	return nil
+	return nil, nil
 }

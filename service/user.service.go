@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -29,12 +31,14 @@ type UserService interface {
 
 type userSvcImpl struct {
 	repoRegistry repository.Repository
+	dtoRegistry  dto.Dto
 	logger       *zap.Logger
 }
 
-func NewUserService(repoRegistry repository.Repository, logger *zap.Logger) UserService {
+func NewUserService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) UserService {
 	return &userSvcImpl{
 		repoRegistry: repoRegistry,
+		dtoRegistry:  dto.NewDto(),
 		logger:       logger,
 	}
 }
@@ -42,18 +46,29 @@ func NewUserService(repoRegistry repository.Repository, logger *zap.Logger) User
 // mutation
 func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput, note string) (*ent.UserResponse, error) {
 	var record *ent.User
-	err := svc.repoRegistry.User().ValidWorkEmail(ctx, uuid.Nil, input.WorkEmail)
+	errString, err := svc.repoRegistry.User().ValidWorkEmail(ctx, uuid.Nil, input.WorkEmail)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.User().CreateUser(ctx, input)
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.User().AuditTrailCreate(record)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.UserResponse{
 		Data: record,
@@ -64,7 +79,7 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 	record, err := svc.repoRegistry.User().GetUser(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.User().DeleteUser(ctx, record)
@@ -73,6 +88,14 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.User().AuditTrailDelete(record)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }
@@ -84,10 +107,13 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	err = svc.repoRegistry.User().ValidWorkEmail(ctx, id, input.WorkEmail)
+	errString, err := svc.repoRegistry.User().ValidWorkEmail(ctx, id, input.WorkEmail)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.User().UpdateUser(ctx, record, input)
@@ -96,6 +122,14 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.User().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.UserResponse{
 		Data: result,
@@ -116,6 +150,14 @@ func (svc *userSvcImpl) UpdateUserStatus(ctx context.Context, input ent.UpdateUs
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.User().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.UserResponse{
 		Data: result,

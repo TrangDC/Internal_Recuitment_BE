@@ -15,7 +15,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
-	user "trec/ent/user"
+	"trec/ent/user"
 	"trec/internal/util"
 	"trec/models"
 	"trec/repository"
@@ -82,17 +82,13 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
-	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
@@ -104,6 +100,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 }
 
 func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note string) error {
+	var results []*ent.CandidateInterview
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -117,12 +114,32 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 		return uuid.MustParse(member)
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err = repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input)
+		results, err = repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input)
 		return err
 	})
+	candidateInterviewIds := lo.Map(results, func(candidateInterview *ent.CandidateInterview, index int) uuid.UUID {
+		return candidateInterview.ID
+	})
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx,
+		svc.repoRegistry.CandidateInterview().BuildQuery().Where(candidateinterview.IDIn(candidateInterviewIds...)))
+	var createBulkAuditTrail []models.CandidateInterviewAuditTrail
+	for _, candidateInterview := range candidateInterviews {
+		atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(candidateInterview)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+		}
+		createBulkAuditTrail = append(createBulkAuditTrail, models.CandidateInterviewAuditTrail{
+			RecordId:   candidateInterview.ID,
+			JsonString: atJsonString,
+		})
+	}
+	err = svc.repoRegistry.AuditTrail().CreateBulkCandidateInterviewAt(ctx, createBulkAuditTrail, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }
@@ -158,23 +175,16 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterview(ctx, record, input, newMemberIds, removeMemberIds)
-		if err != nil {
-			return err
-		}
 		return err
 	})
-	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
@@ -205,17 +215,13 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
-		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
-	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
@@ -260,23 +266,16 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		candidateInterview, err = repoRegistry.CandidateInterview().UpdateCandidateInterviewSchedule(ctx, record, input, newMemberIds, removeMemberIds)
-		if err != nil {
-			return err
-		}
 		return err
 	})
-	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
 	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
@@ -321,7 +320,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 	}
 	jsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailDelete(record)
 	if err != nil {
-		svc.logger.Error(err.Error())
+		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)

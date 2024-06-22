@@ -27,8 +27,8 @@ type TeamRepository interface {
 	BuildList(ctx context.Context, query *ent.TeamQuery) ([]*ent.Team, error)
 
 	// common function
-	ValidName(ctx context.Context, teamId uuid.UUID, name string) error
-	ValidUserInAnotherTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) error
+	ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error)
+	ValidUserInAnotherTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) (error, error)
 }
 
 type teamRepoImpl struct {
@@ -114,32 +114,32 @@ func (rps *teamRepoImpl) GetTeam(ctx context.Context, id uuid.UUID) (*ent.Team, 
 }
 
 // common function
-func (rps *teamRepoImpl) ValidName(ctx context.Context, teamId uuid.UUID, name string) error {
+func (rps *teamRepoImpl) ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error) {
 	query := rps.BuildQuery().Where(team.NameEqualFold(strings.TrimSpace(name)))
 	if teamId != uuid.Nil {
 		query = query.Where(team.IDNEQ(teamId))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if isExist {
-		return fmt.Errorf("model.teams.validation.name_exist")
+		return fmt.Errorf("model.teams.validation.name_exist"), nil
 	}
-	return nil
+	return nil, nil
 }
 
-func (rps *teamRepoImpl) ValidUserInAnotherTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) error {
+func (rps *teamRepoImpl) ValidUserInAnotherTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) (error, error) {
 	query := rps.BuildQuery().Where(team.HasUserEdgesWith(user.IDIn(memberIds...)), team.HasUserTeamsWith(teammanager.DeletedAtIsNil()))
 	if id != uuid.Nil {
 		query = query.Where(team.IDNEQ(id))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if isExist {
-		return fmt.Errorf("model.teams.validation.user_in_another_team")
+		return fmt.Errorf("model.teams.validation.user_in_another_team"), nil
 	}
-	return nil
+	return nil, nil
 }

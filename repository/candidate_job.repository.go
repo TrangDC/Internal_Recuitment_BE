@@ -29,8 +29,8 @@ type CandidateJobRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
-	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) error
-	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) error
+	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) (error, error)
+	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
 }
 
 type candidateJobRepoImpl struct {
@@ -160,13 +160,13 @@ func (rps candidateJobRepoImpl) GetCandidateJob(ctx context.Context, candidateId
 }
 
 // common function
-func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) error {
+func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) (error, error) {
 	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
 		return candidatejob.Status(s)
 	})
 	openStatus = append(openStatus, candidatejob.StatusHired)
 	if !lo.Contains(openStatus, candidatejob.Status(*status)) {
-		return nil
+		return nil, nil
 	}
 	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
 	if candidateJobId != uuid.Nil {
@@ -175,18 +175,18 @@ func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uui
 	query = query.Where(candidatejob.StatusIn(openStatus...))
 	isExist, _ := rps.BuildExist(ctx, query)
 	if isExist {
-		return fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist")
+		return fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist"), nil
 	}
-	return nil
+	return nil, nil
 }
 
-func (rps candidateJobRepoImpl) ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) error {
+func (rps candidateJobRepoImpl) ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error) {
 	candidateRecord, err := rps.client.Candidate.Query().Where(candidate.IDEQ(candidateId)).First(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if candidateRecord.IsBlacklist {
-		return fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist")
+		return fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist"), nil
 	}
-	return nil
+	return nil, nil
 }

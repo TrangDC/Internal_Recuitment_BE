@@ -26,8 +26,8 @@ type CandidateJobFeedbackRepository interface {
 	BuildCount(ctx context.Context, query *ent.CandidateJobFeedbackQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobFeedbackQuery) ([]*ent.CandidateJobFeedback, error)
 
-	ValidJob(ctx context.Context, candidateJobId uuid.UUID) error
-	ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error)
+	ValidJob(ctx context.Context, candidateJobId uuid.UUID) (error, error)
+	ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error, error)
 }
 
 type CandidateJobFeedbackRepoImpl struct {
@@ -128,23 +128,29 @@ func (rps CandidateJobFeedbackRepoImpl) GetCandidateJobFeedback(ctx context.Cont
 }
 
 // common
-func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJobId uuid.UUID) error {
-	_, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.HasHiringJobEdgeWith(
+func (rps CandidateJobFeedbackRepoImpl) ValidJob(ctx context.Context, candidateJobId uuid.UUID) (error, error) {
+	exits, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.HasHiringJobEdgeWith(
 		hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
-	)).First(ctx)
+	)).Exist(ctx)
 	if err != nil {
-		return fmt.Errorf("model.candidate_job_feedbacks.validation.job_close")
+		return err, nil
 	}
-	return err
+	if !exits {
+		return fmt.Errorf("model.candidate_job_feedbacks.validation.job_close"), nil
+	}
+	return nil, nil
 }
 
-func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error) {
-	candidateJob, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil(),
+func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, candidateJobId uuid.UUID) (string, error, error) {
+	results, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(candidateJobId), candidatejob.DeletedAtIsNil(),
 		candidatejob.HasCandidateEdgeWith(
 			candidate.IsBlacklistEQ(false),
-		)).First(ctx)
+		)).All(ctx)
 	if err != nil {
-		return "", fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist")
+		return "", err, nil
 	}
-	return candidateJob.Status.String(), err
+	if len(results) == 0{
+		return "", fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist"), nil
+	}
+	return results[0].Status.String(), nil, err
 }

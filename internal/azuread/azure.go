@@ -49,10 +49,12 @@ type azureADOAuthImpl struct {
 	oauthConfig   *oauth2.Config
 	oidcConfig    *oidc.Config
 	sessionsStore *sessions.CookieStore
+	dtoRegistry   dto.Dto
 }
 
 func NewAzureADOAuth(config config.AzureADOAuthConfig, sessionsStore *sessions.CookieStore) (AzureADOAuth, error) {
 	//discovery the oidc endpoint
+	dtoRegistry := dto.NewDto()
 	if config.TenantID == "" {
 		return nil, errors.WithStack(errors.New("tenantID is required"))
 	}
@@ -81,6 +83,7 @@ func NewAzureADOAuth(config config.AzureADOAuthConfig, sessionsStore *sessions.C
 			Scopes: scopes,
 		},
 		sessionsStore: sessionsStore,
+		dtoRegistry:   dtoRegistry,
 	}, nil
 
 }
@@ -206,6 +209,6 @@ func (i azureADOAuthImpl) DecodeToken(ctx context.Context, tokenString string) (
 	if !ok {
 		return nil, err
 	}
-	tokenData := dto.ConvertTokenClam(claims)
+	tokenData := i.dtoRegistry.Azure().ConvertTokenClam(claims)
 	return tokenData, err
 }

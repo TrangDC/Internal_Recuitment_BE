@@ -6,7 +6,18 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func ConvertTokenClam(claims jwt.MapClaims) *models.Token {
+type AzureDto interface {
+	ConvertTokenClam(claims jwt.MapClaims) *models.Token
+}
+
+type azureDtoImpl struct {
+}
+
+func NewAzureDto() AzureDto {
+	return &azureDtoImpl{}
+}
+
+func (d azureDtoImpl) ConvertTokenClam(claims jwt.MapClaims) *models.Token {
 	return &models.Token{
 		Audience:           claims["aud"].(string),
 		Issuer:             claims["iss"].(string),

@@ -46,7 +46,7 @@ func (d *candidateDtoImpl) AuditTrailDelete(record *ent.Candidate) (string, erro
 }
 
 func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) (string, error) {
-	auditTrail := models.AuditTrailData{
+	result := models.AuditTrailData{
 		Module: CandidateI18n,
 		Create: []interface{}{},
 		Update: []interface{}{},
@@ -97,8 +97,8 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 		}
 	}
 	entity = d.attachmentAuditTrailUpdate(oldRecord, newRecord, entity)
-	auditTrail.Update = append(auditTrail.Update, entity...)
-	jsonObj, err := json.Marshal(entity)
+	result.Update = append(result.Update, entity...)
+	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
 
