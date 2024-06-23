@@ -31,6 +31,18 @@ enum CandidateJobStatus {
   new
 }
 
+enum CandidateJobOrderField {
+  created_at
+  updated_at
+}
+
+enum CandidateJobOrderByField {
+  created_at
+  updated_at
+  priority
+  hiring_job_created_at
+}
+
 enum CandidateJobFailedReason {
   poor_professionalism
   poor_fit_and_engagement
@@ -45,9 +57,22 @@ enum CandidateJobFailedReason {
   others
 }
 
+enum CandidateJobOrderByAdditionalField {
+  priority
+  hiring_job_created_at
+}
+
 input CandidateJobGroupByStatusFilter{
-  hiring_job_id: ID!
-  created_by: ID
+  hiring_job_id: [ID!]
+  team_id: [ID!]
+  priority: [Int!]
+  skill_id: [ID!]
+  from_date: Time
+  to_date: Time
+}
+
+input CandidateJobGroupByStatusFreeWord{
+  job_title: String
 }
 
 type CandidateJob {
@@ -144,9 +169,9 @@ input CandidateJobOrder {
   field: CandidateJobOrderField!
 }
 
-enum CandidateJobOrderField {
-  created_at
-  updated_at
+input CandidateJobByOrder {
+  direction: OrderDirection!
+  field: CandidateJobOrderByField!
 }
 
 input CandidateJobFreeWord {

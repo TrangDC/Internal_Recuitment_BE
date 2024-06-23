@@ -77,8 +77,8 @@ func (r *queryResolver) GetAllCandidateJobs(ctx context.Context, pagination *ent
 }
 
 // GetCandidateJobGroupByStatus is the resolver for the GetCandidateJobGroupByStatus field.
-func (r *queryResolver) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
-	return r.serviceRegistry.CandidateJob().GetCandidateJobGroupByStatus(ctx, filter, orderBy)
+func (r *queryResolver) GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
+	return r.serviceRegistry.CandidateJob().GetCandidateJobGroupByStatus(ctx, pagination, filter, freeWord, orderBy)
 }
 
 // GetCandidateJobGroupByInterview is the resolver for the GetCandidateJobGroupByInterview field.

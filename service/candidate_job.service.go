@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net/http"
+	"sort"
 	"strings"
 	"trec/dto"
 	"trec/ent"
@@ -34,7 +35,9 @@ type CandidateJobService interface {
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
 	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateStatus(ctx context.Context, id uuid.UUID) ent.CandidateStatusEnum
-	GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error)
+	GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput,
+		filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (
+		*ent.CandidateJobGroupByStatusResponse, error)
 	GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error)
 }
 
@@ -306,26 +309,61 @@ func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination
 	return result, nil
 }
 
-func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context, filter ent.CandidateJobGroupByStatusFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobGroupByStatusResponse, error) {
+func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput,
+	filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (
+	*ent.CandidateJobGroupByStatusResponse, error) {
 	var result *ent.CandidateJobGroupByStatusResponse
 	var edges *ent.CandidateJobGroupByStatus
+	var page int
+	var perPage int
+	var err error
+	var candidateJobs []*ent.CandidateJob
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(
-		candidatejob.HiringJobID(uuid.MustParse(filter.HiringJobID)),
 		candidatejob.HasCandidateEdgeWith(
-			candidate.DeletedAtIsNil(),
-		)).
-		Order(ent.Desc(candidatejob.FieldCreatedAt))
-	if orderBy != nil {
-		order := ent.Desc(orderBy.Field.String())
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			order = ent.Asc(orderBy.Field.String())
-		}
-		query = query.Order(order)
+			candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
+		), candidatejob.HasHiringJobEdgeWith(
+			hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
+		))
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
 	}
-	candidateJobs, err := svc.repoRegistry.CandidateJob().BuildList(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	svc.customFilter(query, filter)
+	svc.customFreeWord(query, freeWord)
+	if orderBy != nil {
+		if ent.CandidateJobOrderByAdditionalField.IsValid(ent.CandidateJobOrderByAdditionalField(orderBy.Field.String())) {
+			candidateJobs, err = svc.getListByAdditionalOrder(ctx, query, page, perPage, orderBy)
+			if err != nil {
+				return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			}
+		} else {
+			candidateJobs, err = svc.getListByNormalOrder(ctx, query, page, perPage, orderBy)
+			if err != nil {
+				return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			}
+		}
+	} else {
+		candidateJobs, err = svc.repoRegistry.CandidateJob().BuildList(ctx, query)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+		// Split slice by page and perPage
+		if page != 0 && perPage != 0 {
+			if len(candidateJobs) == 0 {
+				candidateJobs = nil
+			} else {
+				start := (page - 1) * perPage
+				end := start + perPage
+				if start > len(candidateJobs) {
+					candidateJobs = nil
+				}
+				if start <= len(candidateJobs) && end > len(candidateJobs) {
+					candidateJobs = candidateJobs[start:]
+				}
+				candidateJobs = candidateJobs[start:end]
+			}
+		}
 	}
 	edges = &ent.CandidateJobGroupByStatus{
 		Hired: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
@@ -472,6 +510,63 @@ func (svc *candidateJobSvcImpl) GetCandidateStatus(ctx context.Context, id uuid.
 }
 
 // common function
+
+func (svc candidateJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent.CandidateJobQuery, page int, perPage int, orderBy *ent.CandidateJobByOrder) ([]*ent.CandidateJob, error) {
+	order := ent.Desc(strings.ToLower(orderBy.Field.String()))
+	if orderBy.Direction == ent.OrderDirectionAsc {
+		order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+	}
+	query = query.Order(order)
+	if page != 0 && perPage != 0 {
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	candidateJobs, err := svc.repoRegistry.CandidateJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, err
+	}
+	return candidateJobs, nil
+}
+
+func (svc candidateJobSvcImpl) getListByAdditionalOrder(ctx context.Context, query *ent.CandidateJobQuery, page int, perPage int, orderBy *ent.CandidateJobByOrder) ([]*ent.CandidateJob, error) {
+	candidateJobs, err := svc.repoRegistry.CandidateJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, err
+	}
+	switch orderBy.Field {
+	case ent.CandidateJobOrderByFieldPriority:
+		sort.Slice(candidateJobs, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return candidateJobs[i].Edges.HiringJobEdge.Priority < candidateJobs[j].Edges.HiringJobEdge.Priority
+			} else {
+				return candidateJobs[i].Edges.HiringJobEdge.Priority > candidateJobs[j].Edges.HiringJobEdge.Priority
+			}
+		})
+	case ent.CandidateJobOrderByFieldCreatedAt:
+		sort.Slice(candidateJobs, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return candidateJobs[i].CreatedAt.Before(candidateJobs[j].CreatedAt)
+			} else {
+				return candidateJobs[i].CreatedAt.After(candidateJobs[j].CreatedAt)
+			}
+		})
+	}
+	// Split slice by page and perPage
+	if page != 0 && perPage != 0 {
+		start := (page - 1) * perPage
+		end := start + perPage
+		if start > len(candidateJobs) {
+			return nil, nil
+		}
+		if start <= len(candidateJobs) && end > len(candidateJobs) {
+			return candidateJobs[start:], nil
+		}
+		candidateJobs = candidateJobs[start:end]
+	}
+	return candidateJobs, nil
+}
+
 func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuery, input *ent.CandidateJobFreeWord) {
 	var predicate []predicate.CandidateJob
 	if input != nil {
@@ -531,5 +626,46 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 		} else {
 			candidateJobQuery.Where(candidatejob.IDEQ(uuid.Nil))
 		}
+	}
+}
+
+func (svc *candidateJobSvcImpl) customFreeWord(candidateJobQuery *ent.CandidateJobQuery, input *ent.CandidateJobGroupByStatusFreeWord) {
+	var predicate []predicate.CandidateJob
+	if input != nil {
+		if input.JobTitle != nil {
+			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
+				hiringjob.NameContainsFold(strings.TrimSpace(*input.JobTitle)),
+			))
+		}
+	}
+	if len(predicate) > 0 {
+		candidateJobQuery.Where(candidatejob.Or(predicate...))
+	}
+}
+
+func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJobQuery, input *ent.CandidateJobGroupByStatusFilter) {
+	if input == nil {
+		return
+	}
+	if input.HiringJobID != nil {
+		hiringJobIds := lo.Map(input.HiringJobID, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
+	}
+	if input.TeamID != nil {
+		teamIds := lo.Map(input.HiringJobID, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDIn(teamIds...)))
+	}
+	if input.Priority != nil {
+		priority := lo.Map(input.Priority, func(id int, index int) int {
+			return id
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.PriorityIn(priority...)))
+	}
+	if input.FromDate != nil && input.ToDate != nil {
+		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
 	}
 }
