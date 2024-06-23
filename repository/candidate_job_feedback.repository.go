@@ -149,7 +149,7 @@ func (rps CandidateJobFeedbackRepoImpl) ValidCandidate(ctx context.Context, cand
 	if err != nil {
 		return "", err, nil
 	}
-	if len(results) == 0{
+	if len(results) == 0 {
 		return "", fmt.Errorf("model.candidate_job_feedbacks.validation.candidate_is_blacklist"), nil
 	}
 	return results[0].Status.String(), nil, err

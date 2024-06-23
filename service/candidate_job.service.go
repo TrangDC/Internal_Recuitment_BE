@@ -99,7 +99,7 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -154,7 +154,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -197,7 +197,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -249,7 +249,7 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJob.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJob.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}

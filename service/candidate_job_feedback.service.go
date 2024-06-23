@@ -82,7 +82,7 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -137,7 +137,7 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -147,12 +147,12 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 }
 
 func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID, note string) error {
-	candidateJobFeedback, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
+	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, candidateJobFeedback.CandidateJobID)
+	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -160,7 +160,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 	if errString != nil {
 		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, candidateJobFeedback.CandidateJobID)
+	errString, err = svc.repoRegistry.CandidateJobFeedback().ValidJob(ctx, record.CandidateJobID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -169,19 +169,19 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateJobFeedback, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, candidateJobFeedback)
+		record, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, record)
 		if err != nil {
 			return err
 		}
-		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateJobFeedback.ID, repoRegistry)
+		err = svc.attachmentSvc.RemoveAttachment(ctx, record.ID, repoRegistry)
 		return err
 	})
-	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailDelete(candidateJobFeedback)
+	jsonString, err := svc.dtoRegistry.CandidateJobFeedback().AuditTrailDelete(record)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateJobFeedback.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
