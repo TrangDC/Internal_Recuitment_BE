@@ -259,6 +259,11 @@ func (r *mutationResolver) DeleteSkill(ctx context.Context, id string, note stri
 	return true, nil
 }
 
+// ValidateCandidateInterview is the resolver for the ValidateCandidateInterview field.
+func (r *mutationResolver) ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error) {
+	return r.serviceRegistry.CandidateInterview().ValidateCandidateInterview(ctx, input)
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

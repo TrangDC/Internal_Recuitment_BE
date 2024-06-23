@@ -38,6 +38,9 @@ type CandidateInterviewService interface {
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error)
 	GetCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
 	GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter *ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error)
+
+	// validate
+	ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error)
 }
 
 type candidateInterviewSvcImpl struct {
@@ -452,6 +455,16 @@ func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx cont
 		},
 	}
 	return result, nil
+}
+
+// validate
+func (svc *candidateInterviewSvcImpl) ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error) {
+	// if  candidate_id is not nil => hiring_job_id
+	// validate status
+	// validate title
+	// validate schedule
+	// validate interviewer
+	return nil, nil
 }
 
 // common function

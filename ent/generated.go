@@ -117,6 +117,34 @@ type CandidateInterviewResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type CandidateInterviewResponseValidate struct {
+	Data *CandidateInterviewValidate `json:"data"`
+}
+
+type CandidateInterviewValidate struct {
+	InterviewerInvalid        []string `json:"interviewer_invalid"`
+	InvalidSchedule           bool     `json:"invalid_schedule"`
+	CandidateName             string   `json:"candidate_name"`
+	CandidateJobInvalidStatus bool     `json:"candidate_job_invalid_status"`
+}
+
+type CandidateInterviewValidateInput struct {
+	ID             *string   `json:"id"`
+	Title          string    `json:"title"`
+	CandidateJobID *string   `json:"candidate_job_id"`
+	CandidateID    *string   `json:"candidate_id"`
+	JobID          *string   `json:"job_id"`
+	InterviewDate  time.Time `json:"interview_date"`
+	StartFrom      time.Time `json:"start_from"`
+	EndAt          time.Time `json:"end_at"`
+	Interviewer    []string  `json:"interviewer"`
+}
+
+type CandidateJobByOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     CandidateJobOrderByField `json:"field"`
+}
+
 type CandidateJobFeedbackFilter struct {
 	CandidateJobID string  `json:"candidate_job_id"`
 	CreatedBy      *string `json:"created_by"`
@@ -176,8 +204,16 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
-	HiringJobID string  `json:"hiring_job_id"`
-	CreatedBy   *string `json:"created_by"`
+	HiringJobID []string   `json:"hiring_job_id"`
+	TeamID      []string   `json:"team_id"`
+	Priority    []int      `json:"priority"`
+	SkillID     []string   `json:"skill_id"`
+	FromDate    *time.Time `json:"from_date"`
+	ToDate      *time.Time `json:"to_date"`
+}
+
+type CandidateJobGroupByStatusFreeWord struct {
+	JobTitle *string `json:"job_title"`
 }
 
 type CandidateJobGroupByStatusResponse struct {
@@ -778,6 +814,92 @@ func (e *CandidateJobFailedReason) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CandidateJobFailedReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobOrderByAdditionalField string
+
+const (
+	CandidateJobOrderByAdditionalFieldPriority           CandidateJobOrderByAdditionalField = "priority"
+	CandidateJobOrderByAdditionalFieldHiringJobCreatedAt CandidateJobOrderByAdditionalField = "hiring_job_created_at"
+)
+
+var AllCandidateJobOrderByAdditionalField = []CandidateJobOrderByAdditionalField{
+	CandidateJobOrderByAdditionalFieldPriority,
+	CandidateJobOrderByAdditionalFieldHiringJobCreatedAt,
+}
+
+func (e CandidateJobOrderByAdditionalField) IsValid() bool {
+	switch e {
+	case CandidateJobOrderByAdditionalFieldPriority, CandidateJobOrderByAdditionalFieldHiringJobCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobOrderByAdditionalField) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobOrderByAdditionalField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobOrderByAdditionalField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobOrderByAdditionalField", str)
+	}
+	return nil
+}
+
+func (e CandidateJobOrderByAdditionalField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobOrderByField string
+
+const (
+	CandidateJobOrderByFieldCreatedAt          CandidateJobOrderByField = "created_at"
+	CandidateJobOrderByFieldUpdatedAt          CandidateJobOrderByField = "updated_at"
+	CandidateJobOrderByFieldPriority           CandidateJobOrderByField = "priority"
+	CandidateJobOrderByFieldHiringJobCreatedAt CandidateJobOrderByField = "hiring_job_created_at"
+)
+
+var AllCandidateJobOrderByField = []CandidateJobOrderByField{
+	CandidateJobOrderByFieldCreatedAt,
+	CandidateJobOrderByFieldUpdatedAt,
+	CandidateJobOrderByFieldPriority,
+	CandidateJobOrderByFieldHiringJobCreatedAt,
+}
+
+func (e CandidateJobOrderByField) IsValid() bool {
+	switch e {
+	case CandidateJobOrderByFieldCreatedAt, CandidateJobOrderByFieldUpdatedAt, CandidateJobOrderByFieldPriority, CandidateJobOrderByFieldHiringJobCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobOrderByField) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobOrderByField", str)
+	}
+	return nil
+}
+
+func (e CandidateJobOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

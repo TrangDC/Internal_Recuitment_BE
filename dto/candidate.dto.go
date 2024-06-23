@@ -78,14 +78,23 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 				oldValueField = oldRecord.Edges.ReferenceUserEdge.Name
 				newValueField = newRecord.Edges.ReferenceUserEdge.Name
 			case "model.candidates.recruit_time":
-				oldValueField = oldRecord.RecruitTime
-				newValueField = newRecord.RecruitTime
-			case "model.candidates.country":
-				oldValueField = oldRecord.Country
-				newValueField = newRecord.Country
-			case "model.candidates.description":
-				oldValueField = oldRecord.Description
-				newValueField = newRecord.Description
+				oldValueField = ""
+				newValueField = ""
+				if !oldRecord.RecruitTime.IsZero() {
+					oldValueField = oldRecord.RecruitTime
+				}
+				if !newRecord.RecruitTime.IsZero() {
+					newValueField = newRecord.RecruitTime
+				}
+			case "model.candidates.dob":
+				oldValueField = ""
+				newValueField = ""
+				if !oldRecord.Dob.IsZero() {
+					oldValueField = oldRecord.Dob
+				}
+				if !newRecord.Dob.IsZero() {
+					newValueField = newRecord.Dob
+				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -122,11 +131,13 @@ func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {
 		case "model.candidates.reference_user":
 			valueField = record.Edges.ReferenceUserEdge.Name
 		case "model.candidates.recruit_time":
-			valueField = record.RecruitTime
-		case "model.candidates.country":
-			valueField = record.Country
-		case "model.candidates.description":
-			valueField = record.Description
+			if !record.RecruitTime.IsZero() {
+				valueField = record.RecruitTime
+			}
+		case "model.candidates.dob":
+			if !record.Dob.IsZero() {
+				valueField = record.Dob
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,

@@ -100,6 +100,29 @@ input CandidateInterviewCalendarFilter {
   interview_date_to: Time
 }
 
+input CandidateInterviewValidateInput {
+  id: ID
+  title: String!
+  candidate_job_id: ID
+  candidate_id: ID
+  job_id: ID
+  interview_date: Time!
+  start_from: Time!
+  end_at: Time!
+  interviewer: [ID!]!
+}
+
+type CandidateInterviewValidate {
+  interviewer_invalid: [ID!]
+  invalid_schedule: Boolean!
+  candidate_name: String!
+  candidate_job_invalid_status: Boolean!
+}
+
+type CandidateInterviewResponseValidate {
+  data: CandidateInterviewValidate
+}
+
 input CandidateInterviewFreeWord {
   title: String
   description: String
