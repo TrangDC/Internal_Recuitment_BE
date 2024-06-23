@@ -138,12 +138,18 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		SetDescription(strings.TrimSpace(input.Description))
 	if input.Dob != nil && !input.Dob.IsZero() {
 		update.SetDob(*input.Dob)
+	} else {
+		update.ClearDob()
 	}
 	if input.ReferenceUID != "" {
 		update.SetReferenceUID(uuid.MustParse(input.ReferenceUID))
+	} else {
+		update.ClearReferenceUID()
 	}
 	if input.RecruitTime != nil && !input.RecruitTime.IsZero() {
 		update.SetRecruitTime(*input.RecruitTime)
+	} else {
+		update.ClearRecruitTime()
 	}
 	return update.Save(ctx)
 }
