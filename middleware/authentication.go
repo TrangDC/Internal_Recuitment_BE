@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 	"trec/internal/azuread"
 	"trec/internal/util"
 
@@ -35,14 +34,14 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger
 			return
 		}
 		var id uuid.UUID
-		var deleted_at time.Time
+		var deleted_at any
 		err = db.QueryRow("SELECT id, deleted_at FROM users WHERE oid = $1", tokenData.ObjectID).Scan(&id, &deleted_at)
 		if err != nil && err != sql.ErrNoRows {
 			logger.Error("", zap.Error(err))
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
 		}
-		if !deleted_at.IsZero() {
+		if deleted_at != nil {
 			logger.Error(fmt.Sprintf("User %s is deleted", tokenData.ObjectID))
 			c.AbortWithStatusJSON(http.StatusUnauthorized, util.WrapGQLUnauthorizedError(ctx))
 			return
