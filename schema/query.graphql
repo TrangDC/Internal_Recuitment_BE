@@ -25,6 +25,7 @@ type Query {
 	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
 	GetCandidateJobGroupByStatus(filter: CandidateJobGroupByStatusFilter!, orderBy: CandidateJobOrder): CandidateJobGroupByStatusResponse!
 	GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
+
 	#CandidateJobFeedback
 	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
 	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
@@ -33,10 +34,13 @@ type Query {
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
+
 	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 
 	#Skill
   GetSkill(id: ID!): SkillResponse!
   GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
-	}
+}
+
+# Path: schema/query.graphql

@@ -90,7 +90,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -127,13 +127,13 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx,
 		svc.repoRegistry.CandidateInterview().BuildQuery().Where(candidateinterview.IDIn(candidateInterviewIds...)))
 	var createBulkAuditTrail []models.CandidateInterviewAuditTrail
-	for _, candidateInterview := range candidateInterviews {
-		atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(candidateInterview)
+	for _, entity := range candidateInterviews {
+		atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(entity)
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}
 		createBulkAuditTrail = append(createBulkAuditTrail, models.CandidateInterviewAuditTrail{
-			RecordId:   candidateInterview.ID,
+			RecordId:   entity.Edges.CandidateJobEdge.CandidateID,
 			JsonString: atJsonString,
 		})
 	}
@@ -187,7 +187,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -223,7 +223,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -278,7 +278,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -323,7 +323,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}

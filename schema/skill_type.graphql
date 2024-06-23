@@ -49,3 +49,5 @@ type SkillTypeResponseGetAll {
   edges: [SkillTypeEdge!]!
   pagination: Pagination!
 }
+
+# Path: schema/skill_type.graphql

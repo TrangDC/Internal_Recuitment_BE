@@ -3806,6 +3806,7 @@ type HiringJobResponseGetAll {
 	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
 	GetCandidateJobGroupByStatus(filter: CandidateJobGroupByStatusFilter!, orderBy: CandidateJobOrder): CandidateJobGroupByStatusResponse!
 	GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
+
 	#CandidateJobFeedback
 	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
 	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
@@ -3814,14 +3815,16 @@ type HiringJobResponseGetAll {
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
+
 	#Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 
 	#Skill
   GetSkill(id: ID!): SkillResponse!
   GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
-	}
-`, BuiltIn: false},
+}
+
+# Path: schema/query.graphql`, BuiltIn: false},
 	{Name: "../schema/skill_type.graphql", Input: `enum SkillTypeOrderField {
   name
   description
@@ -3873,7 +3876,8 @@ type SkillTypeResponseGetAll {
   edges: [SkillTypeEdge!]!
   pagination: Pagination!
 }
-`, BuiltIn: false},
+
+# Path: schema/skill_type.graphql`, BuiltIn: false},
 	{Name: "../schema/skills.graphql", Input: `enum SkillOrderField {
   name
   description
@@ -3925,7 +3929,8 @@ type SkillResponseGetAll {
   edges: [SkillEdge!]!
   pagination: Pagination!
 }
-`, BuiltIn: false},
+
+# Path: schema/skill.graphql`, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderByField {
   name
   created_at
