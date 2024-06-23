@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"trec/dto"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -32,6 +33,11 @@ func (r *candidateJobFeedbackResolver) CandidateJob(ctx context.Context, obj *en
 // Owner is the resolver for the owner field.
 func (r *candidateJobFeedbackResolver) Owner(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.User, error) {
 	return obj.Edges.CreatedByEdge, nil
+}
+
+// Edited is the resolver for the edited field.
+func (r *candidateJobFeedbackResolver) Edited(ctx context.Context, obj *ent.CandidateJobFeedback) (bool, error) {
+	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil
 }
 
 // Attachments is the resolver for the attachments field.
