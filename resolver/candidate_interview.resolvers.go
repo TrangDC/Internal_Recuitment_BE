@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"trec/dto"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -45,6 +46,11 @@ func (r *candidateInterviewResolver) Owner(ctx context.Context, obj *ent.Candida
 // Status is the resolver for the status field.
 func (r *candidateInterviewResolver) Status(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error) {
 	return ent.CandidateInterviewStatus(obj.Status), nil
+}
+
+// Edited is the resolver for the edited field.
+func (r *candidateInterviewResolver) Edited(ctx context.Context, obj *ent.CandidateInterview) (bool, error) {
+	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil
 }
 
 // CandidateInterview returns graphql1.CandidateInterviewResolver implementation.

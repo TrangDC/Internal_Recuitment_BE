@@ -1,8 +1,10 @@
 package dto
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
+	"time"
 )
 
 // Dto is the interface for all dto.
@@ -104,4 +106,13 @@ func CompareArray(arr1, arr2 []string) bool {
 	sort.Strings(sortedArr1)
 	sort.Strings(sortedArr2)
 	return reflect.DeepEqual(sortedArr1, sortedArr2)
+}
+
+func IsRecordEdited(createdAt, updatedAt time.Time) bool {
+	createdAtStart := createdAt.Add(-1 * time.Second)
+	createdAtEnd := createdAt.Add(1 * time.Second)
+	if createdAtStart.Before(updatedAt) && createdAtEnd.After(updatedAt) {
+		return false
+	}
+	return true
 }

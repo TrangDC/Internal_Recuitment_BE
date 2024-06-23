@@ -146,6 +146,7 @@ type ComplexityRoot struct {
 		CreatedAt      func(childComplexity int) int
 		Description    func(childComplexity int) int
 		EditAble       func(childComplexity int) int
+		Edited         func(childComplexity int) int
 		EndAt          func(childComplexity int) int
 		ID             func(childComplexity int) int
 		InterviewDate  func(childComplexity int) int
@@ -199,6 +200,7 @@ type ComplexityRoot struct {
 		CandidateJobID func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		CreatedBy      func(childComplexity int) int
+		Edited         func(childComplexity int) int
 		Feedback       func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Owner          func(childComplexity int) int
@@ -536,6 +538,7 @@ type CandidateInterviewResolver interface {
 	EditAble(ctx context.Context, obj *ent.CandidateInterview) (bool, error)
 	Owner(ctx context.Context, obj *ent.CandidateInterview) (*ent.User, error)
 	Status(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateInterviewStatus, error)
+	Edited(ctx context.Context, obj *ent.CandidateInterview) (bool, error)
 }
 type CandidateJobResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJob) (string, error)
@@ -558,6 +561,7 @@ type CandidateJobFeedbackResolver interface {
 	CandidateJob(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.CandidateJob, error)
 	Owner(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.User, error)
 
+	Edited(ctx context.Context, obj *ent.CandidateJobFeedback) (bool, error)
 	Attachments(ctx context.Context, obj *ent.CandidateJobFeedback) ([]*ent.Attachment, error)
 }
 type CandidateJobStepResolver interface {
@@ -1064,6 +1068,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateInterview.EditAble(childComplexity), true
 
+	case "CandidateInterview.edited":
+		if e.complexity.CandidateInterview.Edited == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.Edited(childComplexity), true
+
 	case "CandidateInterview.end_at":
 		if e.complexity.CandidateInterview.EndAt == nil {
 			break
@@ -1308,6 +1319,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJobFeedback.CreatedBy(childComplexity), true
+
+	case "CandidateJobFeedback.edited":
+		if e.complexity.CandidateJobFeedback.Edited == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobFeedback.Edited(childComplexity), true
 
 	case "CandidateJobFeedback.feedback":
 		if e.complexity.CandidateJobFeedback.Feedback == nil {
@@ -3051,6 +3069,7 @@ type CandidateInterview {
   edit_able: Boolean!
   owner: User
   status: CandidateInterviewStatus!
+  edited: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -3312,6 +3331,7 @@ input CandidateJobFreeWord {
   candidate_job: CandidateJob!
   owner: User!
   feedback: String!
+  edited: Boolean!
   attachments: [Attachment!]
   created_at: Time!
   updated_at: Time!
@@ -3824,7 +3844,8 @@ type HiringJobResponseGetAll {
   GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
 }
 
-# Path: schema/query.graphql`, BuiltIn: false},
+# Path: schema/query.graphql
+`, BuiltIn: false},
 	{Name: "../schema/skill_type.graphql", Input: `enum SkillTypeOrderField {
   name
   description
@@ -3877,7 +3898,8 @@ type SkillTypeResponseGetAll {
   pagination: Pagination!
 }
 
-# Path: schema/skill_type.graphql`, BuiltIn: false},
+# Path: schema/skill_type.graphql
+`, BuiltIn: false},
 	{Name: "../schema/skills.graphql", Input: `enum SkillOrderField {
   name
   description
@@ -3930,7 +3952,8 @@ type SkillResponseGetAll {
   pagination: Pagination!
 }
 
-# Path: schema/skill.graphql`, BuiltIn: false},
+# Path: schema/skill.graphql
+`, BuiltIn: false},
 	{Name: "../schema/team.graphql", Input: `enum TeamOrderByField {
   name
   created_at
@@ -8634,6 +8657,50 @@ func (ec *executionContext) fieldContext_CandidateInterview_status(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateInterview_edited(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_edited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateInterview().Edited(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateInterview_edited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateInterview",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateInterview_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateInterview_created_at(ctx, field)
 	if err != nil {
@@ -8785,6 +8852,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewEdge_node(ctx context
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
 			case "status":
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateInterview_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -8900,6 +8969,8 @@ func (ec *executionContext) fieldContext_CandidateInterviewResponse_data(ctx con
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
 			case "status":
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateInterview_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -10159,6 +10230,50 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_feedback(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJobFeedback_edited(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobFeedback_edited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJobFeedback().Edited(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobFeedback_edited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobFeedback",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJobFeedback_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobFeedback) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
 	if err != nil {
@@ -10347,6 +10462,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedbackEdge_node(ctx conte
 				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
 			case "feedback":
 				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateJobFeedback_edited(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
 			case "created_at":
@@ -10452,6 +10569,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedbackResponse_data(ctx c
 				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
 			case "feedback":
 				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateJobFeedback_edited(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
 			case "created_at":
@@ -11567,6 +11686,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_inte
 				return ec.fieldContext_CandidateInterview_owner(ctx, field)
 			case "status":
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateInterview_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -11626,6 +11747,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_feed
 				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
 			case "feedback":
 				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateJobFeedback_edited(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
 			case "created_at":
@@ -25110,6 +25233,26 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 				return innerFunc(ctx)
 
 			})
+		case "edited":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateInterview_edited(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._CandidateInterview_created_at(ctx, field, obj)
@@ -25645,6 +25788,26 @@ func (ec *executionContext) _CandidateJobFeedback(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "edited":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJobFeedback_edited(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "attachments":
 			field := field
 

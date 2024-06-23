@@ -5,6 +5,7 @@ type CandidateJobFeedback {
   candidate_job: CandidateJob!
   owner: User!
   feedback: String!
+  edited: Boolean!
   attachments: [Attachment!]
   created_at: Time!
   updated_at: Time!
