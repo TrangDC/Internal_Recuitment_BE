@@ -7,6 +7,7 @@ import (
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -283,13 +284,17 @@ func (svc *userSvcImpl) GetUsers(ctx context.Context, pagination *ent.Pagination
 
 // common function
 func (svc *userSvcImpl) freeWord(userQuery *ent.UserQuery, input *ent.UserFreeWord) {
+	predicate := []predicate.User{}
 	if input != nil {
 		if input.Name != nil {
-			userQuery.Where(user.NameContainsFold(strings.TrimSpace(*input.Name)))
+			predicate = append(predicate, user.NameContainsFold(strings.TrimSpace(*input.Name)))
 		}
 		if input.WorkEmail != nil {
-			userQuery.Where(user.WorkEmailContainsFold(strings.TrimSpace(*input.WorkEmail)))
+			predicate = append(predicate, user.WorkEmailContainsFold(strings.TrimSpace(*input.WorkEmail)))
 		}
+	}
+	if len(predicate) > 0 {
+		userQuery.Where(user.Or(predicate...))
 	}
 }
 
