@@ -26,6 +26,8 @@ type TeamService interface {
 	GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error)
 	GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
 		filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
+		filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamSelectionResponseGetAll, error)
 }
 
 type teamSvcImpl struct {
@@ -190,28 +192,15 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 	var count int
 	var err error
 	query := svc.repoRegistry.Team().BuildQuery()
-	svc.filter(query, filter)
-	svc.freeWord(query, freeWord)
-	if pagination != nil {
-		page = *pagination.Page
-		perPage = *pagination.PerPage
+	teams, count, err = svc.getAllTeams(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
 	}
-	if ent.TeamOrderByAdditionalField.IsValid(ent.TeamOrderByAdditionalField(orderBy.Field.String())) {
-		count, teams, err = svc.getTeamListByAdditionOrder(ctx, query, page, perPage, orderBy)
-		if err != nil {
-			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	} else {
-		count, teams, err = svc.getTeamsListByNormalOrder(ctx, query, page, perPage, orderBy)
-		if err != nil {
-			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	}
-	edges = lo.Map(teams, func(team *ent.Team, index int) *ent.TeamEdge {
+	edges = lo.Map(teams, func(entity *ent.Team, index int) *ent.TeamEdge {
 		return &ent.TeamEdge{
-			Node: team,
+			Node: entity,
 			Cursor: ent.Cursor{
-				Value: team.ID.String(),
+				Value: entity.ID.String(),
 			},
 		}
 	})
@@ -224,6 +213,68 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 		},
 	}
 	return result, nil
+}
+
+func (svc *teamSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord,
+	filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamSelectionResponseGetAll, error) {
+	var result *ent.TeamSelectionResponseGetAll
+	var edges []*ent.TeamSelectionEdge
+	var page int
+	var perPage int
+	var teams []*ent.Team
+	var count int
+	query := svc.repoRegistry.Team().BuildBaseQuery()
+	teams, count, err := svc.getAllTeams(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+
+	edges = lo.Map(teams, func(entity *ent.Team, index int) *ent.TeamSelectionEdge {
+		return &ent.TeamSelectionEdge{
+			Node: &ent.TeamSelection{
+				ID:   entity.ID.String(),
+				Name: entity.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: entity.ID.String(),
+			},
+		}
+	})
+	result = &ent.TeamSelectionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc *teamSvcImpl) getAllTeams(ctx context.Context, query *ent.TeamQuery, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy ent.TeamOrderBy) ([]*ent.Team, int, error) {
+	var page int
+	var perPage int
+	var teams []*ent.Team
+	var count int
+	var err error
+	svc.filter(query, filter)
+	svc.freeWord(query, freeWord)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+	}
+	if ent.TeamOrderByAdditionalField.IsValid(ent.TeamOrderByAdditionalField(orderBy.Field.String())) {
+		count, teams, err = svc.getTeamListByAdditionOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	} else {
+		count, teams, err = svc.getTeamsListByNormalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	}
+	return teams, count, nil
 }
 
 // common function

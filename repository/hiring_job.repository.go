@@ -23,6 +23,7 @@ type HiringJobRepository interface {
 	// query
 	GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error)
 	BuildQuery() *ent.HiringJobQuery
+	BuildBaseQuery() *ent.HiringJobQuery
 	BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
 	// common function
@@ -71,6 +72,10 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 			)
 		},
 	)
+}
+
+func (rps hiringJobRepoImpl) BuildBaseQuery() *ent.HiringJobQuery {
+	return rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil())
 }
 
 func (rps *hiringJobRepoImpl) BuildGet(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error) {

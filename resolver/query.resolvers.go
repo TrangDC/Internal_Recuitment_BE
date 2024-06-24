@@ -31,11 +31,6 @@ func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.Paginat
 	return r.serviceRegistry.User().GetUsers(ctx, pagination, filter, freeWord, orderBy)
 }
 
-// SelectionUsers is the resolver for the SelectionUsers field.
-func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error) {
-	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
-}
-
 // GetHiringJob is the resolver for the GetHiringJob field.
 func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().GetHiringJob(ctx, uuid.MustParse(id))
@@ -124,6 +119,31 @@ func (r *queryResolver) GetSkill(ctx context.Context, id string) (*ent.SkillResp
 // GetAllSkills is the resolver for the GetAllSkills field.
 func (r *queryResolver) GetAllSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error) {
 	return r.serviceRegistry.Skill().GetSkills(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionUsers is the resolver for the SelectionUsers field.
+func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error) {
+	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
+}
+
+// SelectionTeams is the resolver for the SelectionTeams field.
+func (r *queryResolver) SelectionTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamSelectionResponseGetAll, error) {
+	return r.serviceRegistry.Team().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionHiringJobs is the resolver for the SelectionHiringJobs field.
+func (r *queryResolver) SelectionHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error) {
+	return r.serviceRegistry.HiringJob().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionCandidates is the resolver for the SelectionCandidates field.
+func (r *queryResolver) SelectionCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error) {
+	return r.serviceRegistry.Candidate().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionSkills is the resolver for the SelectionSkills field.
+func (r *queryResolver) SelectionSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error) {
+	return r.serviceRegistry.Skill().Selections(ctx, pagination, freeWord, filter, orderBy)
 }
 
 // Query returns graphql1.QueryResolver implementation.

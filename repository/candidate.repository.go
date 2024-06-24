@@ -8,9 +8,13 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatejobstep"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type CandidateRepository interface {
@@ -23,6 +27,7 @@ type CandidateRepository interface {
 	// query
 	GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error)
 	BuildQuery() *ent.CandidateQuery
+	BuildBaseQuery() *ent.CandidateQuery
 	BuildCount(ctx context.Context, query *ent.CandidateQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateQuery) ([]*ent.Candidate, error)
 	// common function
@@ -79,6 +84,10 @@ func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
 			query.Where(attachment.DeletedAtIsNil())
 		},
 	)
+}
+
+func (rps candidateRepoImpl) BuildBaseQuery() *ent.CandidateQuery {
+	return rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil())
 }
 
 func (rps candidateRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateQuery) (*ent.Candidate, error) {
@@ -155,8 +164,42 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 }
 
 func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Candidate) error {
-	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	return err
+	_, err := rps.BuildUpdateOne(ctx, record).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	candidateJobIds := lo.Map(record.Edges.CandidateJobEdges, func(v *ent.CandidateJob, index int) uuid.UUID {
+		return v.ID
+	})
+	_, err = rps.client.CandidateJob.Update().Where(candidatejob.CandidateID(record.ID)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.CandidateJobIDIn(candidateJobIds...)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobStep.Update().Where(candidatejobstep.CandidateJobID(record.ID)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	attachmentRelationIds := candidateJobIds
+	attachmentRelationIds = append(attachmentRelationIds, record.ID)
+	_, err = rps.client.Attachment.Update().Where(attachment.RelationIDIn(attachmentRelationIds...)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobIDIn(candidateJobIds...)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rps candidateRepoImpl) SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error) {

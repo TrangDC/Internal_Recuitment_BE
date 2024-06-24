@@ -121,4 +121,19 @@ type HiringJobResponseGetAll {
   pagination: Pagination!
 }
 
+type HiringJobSelection {
+  id: ID!
+  name: String!
+}
+
+type HiringJobSelectionEdge {
+  node: HiringJobSelection!
+  cursor: Cursor!
+}
+
+type HiringJobSelectionResponseGetAll {
+  edges: [HiringJobSelectionEdge!]!
+  pagination: Pagination!
+}
+
 # Path: schema/hiring_job.graphql
