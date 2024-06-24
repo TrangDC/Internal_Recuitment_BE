@@ -50,4 +50,19 @@ type SkillResponseGetAll {
   pagination: Pagination!
 }
 
+type SkillSelection {
+  id: ID!
+  name: String!
+}
+
+type SkillSelectionEdge {
+  node: SkillSelection!
+  cursor: Cursor!
+}
+
+type SkillSelectionResponseGetAll {
+  edges: [SkillSelectionEdge!]!
+  pagination: Pagination!
+}
+
 # Path: schema/skill.graphql

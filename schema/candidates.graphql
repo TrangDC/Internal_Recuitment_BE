@@ -149,3 +149,18 @@ type CandidateEdge {
   node: Candidate!
   cursor: Cursor!
 }
+
+type CandidateSelection {
+  id: ID!
+  name: String!
+}
+
+type CandidateSelectionEdge {
+  node: CandidateSelection!
+  cursor: Cursor!
+}
+
+type CandidateSelectionResponseGetAll {
+  edges: [CandidateSelectionEdge!]!
+  pagination: Pagination!
+}

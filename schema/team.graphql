@@ -59,4 +59,19 @@ type TeamResponseGetAll {
   pagination: Pagination!
 }
 
+type TeamSelection {
+  id: ID!
+  name: String!
+}
+
+type TeamSelectionEdge {
+  node: TeamSelection!
+  cursor: Cursor!
+}
+
+type TeamSelectionResponseGetAll {
+  edges: [TeamSelectionEdge!]!
+  pagination: Pagination!
+}
+
 # Path: schema/user.graphql

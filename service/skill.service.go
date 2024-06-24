@@ -24,7 +24,10 @@ type SkillService interface {
 	UpdateSkill(ctx context.Context, id uuid.UUID, input ent.UpdateSkillInput, note string) (*ent.SkillResponse, error)
 	// query
 	GetSkill(ctx context.Context, id uuid.UUID) (*ent.SkillResponse, error)
-	GetSkills(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord, filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error)
+	GetSkills(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord,
+		filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord,
+		filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error)
 }
 
 type skillSvcImpl struct {
@@ -148,36 +151,16 @@ func (svc *skillSvcImpl) GetSkill(ctx context.Context, id uuid.UUID) (*ent.Skill
 	}, nil
 }
 
-func (svc *skillSvcImpl) GetSkills(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord, filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error) {
+func (svc *skillSvcImpl) GetSkills(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord,
+	filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillResponseGetAll, error) {
 	var result *ent.SkillResponseGetAll
 	var edges []*ent.SkillEdge
 	var page int
 	var perPage int
 	query := svc.repoRegistry.Skill().BuildQuery()
-	svc.filter(query, filter)
-	svc.freeWord(query, freeWord)
-	count, err := svc.repoRegistry.Skill().BuildCount(ctx, query)
+	skills, count, page, perPage, err := svc.getSkills(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	order := ent.Desc(skill.FieldCreatedAt)
-	if orderBy != nil {
-		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
-		}
-	}
-	query = query.Order(order)
-	if pagination != nil {
-		page = *pagination.Page
-		perPage = *pagination.PerPage
-		query = query.Limit(perPage).Offset((page - 1) * perPage)
-	}
-	skills, err := svc.repoRegistry.Skill().BuildList(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, err
 	}
 	edges = lo.Map(skills, func(skill *ent.Skill, index int) *ent.SkillEdge {
 		return &ent.SkillEdge{
@@ -196,6 +179,71 @@ func (svc *skillSvcImpl) GetSkills(ctx context.Context, pagination *ent.Paginati
 		},
 	}
 	return result, nil
+}
+
+func (svc *skillSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord,
+	filter *ent.SkillFilter, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error) {
+	var result *ent.SkillSelectionResponseGetAll
+	var edges []*ent.SkillSelectionEdge
+	var page int
+	var perPage int
+	query := svc.repoRegistry.Skill().BuildBaseQuery()
+	skills, count, page, perPage, err := svc.getSkills(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	edges = lo.Map(skills, func(skill *ent.Skill, index int) *ent.SkillSelectionEdge {
+		return &ent.SkillSelectionEdge{
+			Node: &ent.SkillSelection{
+				ID:   skill.ID.String(),
+				Name: skill.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: skill.ID.String(),
+			},
+		}
+	})
+	result = &ent.SkillSelectionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc *skillSvcImpl) getSkills(ctx context.Context, query *ent.SkillQuery, pagination *ent.PaginationInput, freeWord *ent.SkillFreeWord,
+	filter *ent.SkillFilter, orderBy *ent.SkillOrder) ([]*ent.Skill, int, int, int, error) {
+	var page int
+	var perPage int
+	svc.filter(query, filter)
+	svc.freeWord(query, freeWord)
+	count, err := svc.repoRegistry.Skill().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	order := ent.Desc(skill.FieldCreatedAt)
+	if orderBy != nil {
+		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+		}
+	}
+	query = query.Order(order)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	skills, err := svc.repoRegistry.Skill().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return skills, count, page, perPage, nil
 }
 
 // common function

@@ -243,6 +243,21 @@ type CandidateResponseGetAll struct {
 	Pagination *Pagination      `json:"pagination"`
 }
 
+type CandidateSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type CandidateSelectionEdge struct {
+	Node   *CandidateSelection `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+type CandidateSelectionResponseGetAll struct {
+	Edges      []*CandidateSelectionEdge `json:"edges"`
+	Pagination *Pagination               `json:"pagination"`
+}
+
 type HiringJobFilter struct {
 	Name     *string          `json:"name"`
 	TeamIds  []string         `json:"team_ids"`
@@ -266,6 +281,21 @@ type HiringJobResponse struct {
 type HiringJobResponseGetAll struct {
 	Edges      []*HiringJobEdge `json:"edges"`
 	Pagination *Pagination      `json:"pagination"`
+}
+
+type HiringJobSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type HiringJobSelectionEdge struct {
+	Node   *HiringJobSelection `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+type HiringJobSelectionResponseGetAll struct {
+	Edges      []*HiringJobSelectionEdge `json:"edges"`
+	Pagination *Pagination               `json:"pagination"`
 }
 
 type NewAttachmentInput struct {
@@ -384,6 +414,21 @@ type SkillResponseGetAll struct {
 	Pagination *Pagination  `json:"pagination"`
 }
 
+type SkillSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type SkillSelectionEdge struct {
+	Node   *SkillSelection `json:"node"`
+	Cursor Cursor          `json:"cursor"`
+}
+
+type SkillSelectionResponseGetAll struct {
+	Edges      []*SkillSelectionEdge `json:"edges"`
+	Pagination *Pagination           `json:"pagination"`
+}
+
 type SkillTypeFilter struct {
 	Name *string `json:"name"`
 }
@@ -421,6 +466,21 @@ type TeamResponse struct {
 type TeamResponseGetAll struct {
 	Edges      []*TeamEdge `json:"edges"`
 	Pagination *Pagination `json:"pagination"`
+}
+
+type TeamSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type TeamSelectionEdge struct {
+	Node   *TeamSelection `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+type TeamSelectionResponseGetAll struct {
+	Edges      []*TeamSelectionEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
 type UpdateCandidateAttachment struct {

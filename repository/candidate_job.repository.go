@@ -9,6 +9,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 
@@ -152,6 +153,25 @@ func (rps candidateJobRepoImpl) UpsetCandidateAttachment(ctx context.Context, re
 
 func (rps candidateJobRepoImpl) DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error {
 	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobStep.Update().Where(candidatejobstep.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.Attachment.Update().Where(attachment.RelationID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
 	return err
 }
 

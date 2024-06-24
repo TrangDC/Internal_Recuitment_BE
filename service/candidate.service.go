@@ -28,6 +28,7 @@ type CandidateService interface {
 	// query
 	GetCandidate(ctx context.Context, id uuid.UUID) (*ent.CandidateResponse, error)
 	GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error)
 }
 
 type candidateSvcImpl struct {
@@ -210,46 +211,16 @@ func (svc *candidateSvcImpl) GetCandidate(ctx context.Context, id uuid.UUID) (*e
 	}, nil
 }
 
-func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error) {
+func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord,
+	filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error) {
 	var result *ent.CandidateResponseGetAll
 	var edges []*ent.CandidateEdge
 	var page int
 	var perPage int
 	query := svc.repoRegistry.Candidate().BuildQuery()
-	svc.filter(ctx, query, filter)
-	svc.freeWord(query, freeWord)
-	if filter != nil && filter.JobID != nil {
-		if filter.IsAbleToInterview != nil && *filter.IsAbleToInterview {
-			query = query.Where(candidate.HasCandidateJobEdgesWith(
-				candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID)),
-				candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
-			))
-		} else {
-			query = query.Where(candidate.HasCandidateJobEdgesWith(candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID))))
-		}
-	}
-	count, err := svc.repoRegistry.Candidate().BuildCount(ctx, query)
+	candidates, count, page, perPage, err := svc.getCandidates(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	order := ent.Desc(candidate.FieldCreatedAt)
-	if orderBy != nil {
-		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
-		}
-	}
-	query = query.Order(order)
-	if pagination != nil {
-		page = *pagination.Page
-		perPage = *pagination.PerPage
-		query = query.Limit(perPage).Offset((page - 1) * perPage)
-	}
-	candidates, err := svc.repoRegistry.Candidate().BuildList(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, err
 	}
 	edges = lo.Map(candidates, func(candidate *ent.Candidate, index int) *ent.CandidateEdge {
 		return &ent.CandidateEdge{
@@ -268,6 +239,81 @@ func (svc *candidateSvcImpl) GetCandidates(ctx context.Context, pagination *ent.
 		},
 	}
 	return result, nil
+}
+
+func (svc *candidateSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord,
+	filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error) {
+	var result *ent.CandidateSelectionResponseGetAll
+	var edges []*ent.CandidateSelectionEdge
+	var page int
+	var perPage int
+	query := svc.repoRegistry.Candidate().BuildBaseQuery()
+	candidates, count, page, perPage, err := svc.getCandidates(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	edges = lo.Map(candidates, func(candidate *ent.Candidate, index int) *ent.CandidateSelectionEdge {
+		return &ent.CandidateSelectionEdge{
+			Node: &ent.CandidateSelection{
+				ID:   candidate.ID.String(),
+				Name: candidate.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: candidate.ID.String(),
+			},
+		}
+	})
+	result = &ent.CandidateSelectionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc *candidateSvcImpl) getCandidates(ctx context.Context, query *ent.CandidateQuery, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord,
+	filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) ([]*ent.Candidate, int, int, int, error) {
+	var page int
+	var perPage int
+	svc.filter(ctx, query, filter)
+	svc.freeWord(query, freeWord)
+	if filter != nil && filter.JobID != nil {
+		if filter.IsAbleToInterview != nil && *filter.IsAbleToInterview {
+			query = query.Where(candidate.HasCandidateJobEdgesWith(
+				candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID)),
+				candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
+			))
+		} else {
+			query = query.Where(candidate.HasCandidateJobEdgesWith(candidatejob.HiringJobIDEQ(uuid.MustParse(*filter.JobID))))
+		}
+	}
+	count, err := svc.repoRegistry.Candidate().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	order := ent.Desc(candidate.FieldCreatedAt)
+	if orderBy != nil {
+		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+		}
+	}
+	query = query.Order(order)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	candidates, err := svc.repoRegistry.Candidate().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return candidates, count, page, perPage, nil
 }
 
 // common function

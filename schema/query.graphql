@@ -1,46 +1,52 @@
 type Query {
-	#Team
+	# Team
 	GetTeam(id: ID!): TeamResponse!
 	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
 
-	#User
+	# User
 	GetUser(id: ID!): UserResponse!
 	GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
-	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
 
-	#HiringJob
+	# HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
 	GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
 
-	#AuditTrail
+	# AuditTrail
 	GetAuditTrail(id: ID!): AuditTrailResponse!
 	GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
 
-	#Candidate
+	# Candidate
 	GetCandidate(id: ID!): CandidateResponse!
 	GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
 
-	#CandidateJob
+	# CandidateJob
 	GetCandidateJob(id: ID!): CandidateJobResponse!
 	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
 	GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
 	GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
 
-	#CandidateJobFeedback
+	# CandidateJobFeedback
 	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
 	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
 
-	#CandidateInterview
+	# CandidateInterview
 	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
 	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 
-	#Export
+	# Export
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 
-	#Skill
+	# Skill
   GetSkill(id: ID!): SkillResponse!
   GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
+
+	# Selection
+	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
+	SelectionTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamSelectionResponseGetAll!
+	SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
+	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
+	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
 }
 
 # Path: schema/query.graphql

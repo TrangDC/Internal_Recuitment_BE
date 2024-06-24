@@ -20,6 +20,7 @@ type SkillRepository interface {
 	// query
 	GetSkill(ctx context.Context, skillId uuid.UUID) (*ent.Skill, error)
 	BuildQuery() *ent.SkillQuery
+	BuildBaseQuery() *ent.SkillQuery
 	BuildCount(ctx context.Context, query *ent.SkillQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.SkillQuery) ([]*ent.Skill, error)
 
@@ -51,6 +52,10 @@ func (rps skillRepoImpl) BuildDelete() *ent.SkillUpdate {
 }
 
 func (rps skillRepoImpl) BuildQuery() *ent.SkillQuery {
+	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil())
+}
+
+func (rps skillRepoImpl) BuildBaseQuery() *ent.SkillQuery {
 	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil())
 }
 

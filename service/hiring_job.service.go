@@ -25,7 +25,10 @@ type HiringJobService interface {
 	DeleteHiringJob(ctx context.Context, id uuid.UUID, note string) error
 	// query
 	GetHiringJob(ctx context.Context, id uuid.UUID) (*ent.HiringJobResponse, error)
-	GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
+	GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error)
 }
 type hiringJobSvcImpl struct {
 	repoRegistry repository.Repository
@@ -202,7 +205,8 @@ func (svc *hiringJobSvcImpl) GetHiringJob(ctx context.Context, id uuid.UUID) (*e
 	}, nil
 }
 
-func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord, filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error) {
+func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error) {
 	var result *ent.HiringJobResponseGetAll
 	var edges []*ent.HiringJobEdge
 	var page int
@@ -211,25 +215,10 @@ func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.
 	var count int
 	var hiringJobs []*ent.HiringJob
 	query := svc.repoRegistry.HiringJob().BuildQuery()
-	svc.filter(query, filter)
-	svc.freeWord(query, freeWord)
-	if pagination != nil {
-		page = *pagination.Page
-		perPage = *pagination.PerPage
-	}
-	if ent.HiringJobOrderByAdditionalField.IsValid(ent.HiringJobOrderByAdditionalField(orderBy.Field.String())) {
-		count, hiringJobs, err = svc.getListByAdditionalOrder(ctx, query, page, perPage, orderBy)
-		if err != nil {
-			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	} else {
-		count, hiringJobs, err = svc.getListByNormalOrder(ctx, query, page, perPage, orderBy)
-		if err != nil {
-			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	}
+	hiringJobs, count, page, perPage, err = svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, err
 	}
 	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) *ent.HiringJobEdge {
 		return &ent.HiringJobEdge{
@@ -248,6 +237,73 @@ func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.
 		},
 	}
 	return result, nil
+}
+
+func (svc *hiringJobSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error) {
+	var result *ent.HiringJobSelectionResponseGetAll
+	var edges []*ent.HiringJobSelectionEdge
+	var page int
+	var perPage int
+	var err error
+	var count int
+	var hiringJobs []*ent.HiringJob
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery()
+	hiringJobs, count, page, perPage, err = svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, err
+	}
+	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) *ent.HiringJobSelectionEdge {
+		return &ent.HiringJobSelectionEdge{
+			Node: &ent.HiringJobSelection{
+				ID:   hiringJob.ID.String(),
+				Name: hiringJob.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: hiringJob.ID.String(),
+			},
+		}
+	})
+	result = &ent.HiringJobSelectionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc *hiringJobSvcImpl) getHiringJobs(ctx context.Context, query *ent.HiringJobQuery, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) ([]*ent.HiringJob, int, int, int, error) {
+	var page int
+	var perPage int
+	var err error
+	var count int
+	var hiringJobs []*ent.HiringJob
+	svc.filter(query, filter)
+	svc.freeWord(query, freeWord)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+	}
+	if ent.HiringJobOrderByAdditionalField.IsValid(ent.HiringJobOrderByAdditionalField(orderBy.Field.String())) {
+		count, hiringJobs, err = svc.getListByAdditionalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	} else {
+		count, hiringJobs, err = svc.getListByNormalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	}
+	if err != nil {
+		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return hiringJobs, count, page, perPage, nil
 }
 
 func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
