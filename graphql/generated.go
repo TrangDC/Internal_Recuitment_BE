@@ -442,6 +442,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+		SkillType   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 	}
 
@@ -724,6 +725,8 @@ type QueryResolver interface {
 }
 type SkillResolver interface {
 	ID(ctx context.Context, obj *ent.Skill) (string, error)
+
+	SkillType(ctx context.Context, obj *ent.Skill) (*ent.SkillType, error)
 }
 type SkillTypeResolver interface {
 	ID(ctx context.Context, obj *ent.SkillType) (string, error)
@@ -2725,14 +2728,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SelectionUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.UserFilter), args["freeWord"].(*ent.UserFreeWord), args["orderBy"].(*ent.UserOrder)), true
 
-	case "Skill.createdAt":
+	case "Skill.created_at":
 		if e.complexity.Skill.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.Skill.CreatedAt(childComplexity), true
 
-	case "Skill.deletedAt":
+	case "Skill.deleted_at":
 		if e.complexity.Skill.DeletedAt == nil {
 			break
 		}
@@ -2760,7 +2763,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Skill.Name(childComplexity), true
 
-	case "Skill.updatedAt":
+	case "Skill.skill_type":
+		if e.complexity.Skill.SkillType == nil {
+			break
+		}
+
+		return e.complexity.Skill.SkillType(childComplexity), true
+
+	case "Skill.updated_at":
 		if e.complexity.Skill.UpdatedAt == nil {
 			break
 		}
@@ -4356,20 +4366,23 @@ input SkillFreeWord {
 input NewSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 input UpdateSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 type Skill {
   id: ID!
   name: String!
   description: String
-  createdAt: Time!
-  updatedAt: Time!
-  deletedAt: Time
+  skill_type: SkillType
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
 }
 
 type SkillResponse {
@@ -19059,8 +19072,63 @@ func (ec *executionContext) fieldContext_Skill_description(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Skill_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Skill_createdAt(ctx, field)
+func (ec *executionContext) _Skill_skill_type(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Skill_skill_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Skill().SkillType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.SkillType)
+	fc.Result = res
+	return ec.marshalOSkillType2ᚖtrecᚋentᚐSkillType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Skill_skill_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Skill",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SkillType_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SkillType_name(ctx, field)
+			case "description":
+				return ec.fieldContext_SkillType_description(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SkillType_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SkillType_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_SkillType_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SkillType", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Skill_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Skill_created_at(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -19090,7 +19158,7 @@ func (ec *executionContext) _Skill_createdAt(ctx context.Context, field graphql.
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Skill_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Skill_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Skill",
 		Field:      field,
@@ -19103,8 +19171,8 @@ func (ec *executionContext) fieldContext_Skill_createdAt(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Skill_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Skill_updatedAt(ctx, field)
+func (ec *executionContext) _Skill_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Skill_updated_at(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -19134,7 +19202,7 @@ func (ec *executionContext) _Skill_updatedAt(ctx context.Context, field graphql.
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Skill_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Skill_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Skill",
 		Field:      field,
@@ -19147,8 +19215,8 @@ func (ec *executionContext) fieldContext_Skill_updatedAt(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Skill_deletedAt(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Skill_deletedAt(ctx, field)
+func (ec *executionContext) _Skill_deleted_at(ctx context.Context, field graphql.CollectedField, obj *ent.Skill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Skill_deleted_at(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -19175,7 +19243,7 @@ func (ec *executionContext) _Skill_deletedAt(ctx context.Context, field graphql.
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Skill_deletedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Skill_deleted_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Skill",
 		Field:      field,
@@ -19233,12 +19301,14 @@ func (ec *executionContext) fieldContext_SkillEdge_node(ctx context.Context, fie
 				return ec.fieldContext_Skill_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Skill_description(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Skill_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Skill_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Skill_deletedAt(ctx, field)
+			case "skill_type":
+				return ec.fieldContext_Skill_skill_type(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Skill_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Skill_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Skill_deleted_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Skill", field.Name)
 		},
@@ -19335,12 +19405,14 @@ func (ec *executionContext) fieldContext_SkillResponse_data(ctx context.Context,
 				return ec.fieldContext_Skill_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Skill_description(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Skill_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Skill_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Skill_deletedAt(ctx, field)
+			case "skill_type":
+				return ec.fieldContext_Skill_skill_type(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Skill_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Skill_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Skill_deleted_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Skill", field.Name)
 		},
@@ -25572,7 +25644,7 @@ func (ec *executionContext) unmarshalInputNewSkillInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description"}
+	fieldsInOrder := [...]string{"name", "description", "skill_type_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25592,6 +25664,14 @@ func (ec *executionContext) unmarshalInputNewSkillInput(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_type_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_type_id"))
+			it.SkillTypeID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -26500,7 +26580,7 @@ func (ec *executionContext) unmarshalInputUpdateSkillInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description"}
+	fieldsInOrder := [...]string{"name", "description", "skill_type_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26520,6 +26600,14 @@ func (ec *executionContext) unmarshalInputUpdateSkillInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_type_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_type_id"))
+			it.SkillTypeID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30627,23 +30715,40 @@ func (ec *executionContext) _Skill(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Skill_description(ctx, field, obj)
 
-		case "createdAt":
+		case "skill_type":
+			field := field
 
-			out.Values[i] = ec._Skill_createdAt(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Skill_skill_type(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_at":
+
+			out.Values[i] = ec._Skill_created_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "updatedAt":
+		case "updated_at":
 
-			out.Values[i] = ec._Skill_updatedAt(ctx, field, obj)
+			out.Values[i] = ec._Skill_updated_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "deletedAt":
+		case "deleted_at":
 
-			out.Values[i] = ec._Skill_deletedAt(ctx, field, obj)
+			out.Values[i] = ec._Skill_deleted_at(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -35056,6 +35161,13 @@ func (ec *executionContext) unmarshalOSkillOrder2ᚖtrecᚋentᚐSkillOrder(ctx 
 	}
 	res, err := ec.unmarshalInputSkillOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSkillType2ᚖtrecᚋentᚐSkillType(ctx context.Context, sel ast.SelectionSet, v *ent.SkillType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SkillType(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

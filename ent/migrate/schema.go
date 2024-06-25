@@ -324,12 +324,21 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "skill_type_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{
 		Name:       "skills",
 		Columns:    SkillsColumns,
 		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skills_skill_types_skill_edges",
+				Columns:    []*schema.Column{SkillsColumns[6]},
+				RefColumns: []*schema.Column{SkillTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// SkillTypesColumns holds the columns for the "skill_types" table.
 	SkillTypesColumns = []*schema.Column{
@@ -452,6 +461,7 @@ func init() {
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
 }

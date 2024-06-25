@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -113,6 +114,13 @@ func Name(v string) predicate.Skill {
 func Description(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldDescription), v))
+	})
+}
+
+// SkillTypeID applies equality check predicate on the "skill_type_id" field. It's identical to SkillTypeIDEQ.
+func SkillTypeID(v uuid.UUID) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSkillTypeID), v))
 	})
 }
 
@@ -545,6 +553,84 @@ func DescriptionEqualFold(v string) predicate.Skill {
 func DescriptionContainsFold(v string) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
+	})
+}
+
+// SkillTypeIDEQ applies the EQ predicate on the "skill_type_id" field.
+func SkillTypeIDEQ(v uuid.UUID) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSkillTypeID), v))
+	})
+}
+
+// SkillTypeIDNEQ applies the NEQ predicate on the "skill_type_id" field.
+func SkillTypeIDNEQ(v uuid.UUID) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSkillTypeID), v))
+	})
+}
+
+// SkillTypeIDIn applies the In predicate on the "skill_type_id" field.
+func SkillTypeIDIn(vs ...uuid.UUID) predicate.Skill {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldSkillTypeID), v...))
+	})
+}
+
+// SkillTypeIDNotIn applies the NotIn predicate on the "skill_type_id" field.
+func SkillTypeIDNotIn(vs ...uuid.UUID) predicate.Skill {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldSkillTypeID), v...))
+	})
+}
+
+// SkillTypeIDIsNil applies the IsNil predicate on the "skill_type_id" field.
+func SkillTypeIDIsNil() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldSkillTypeID)))
+	})
+}
+
+// SkillTypeIDNotNil applies the NotNil predicate on the "skill_type_id" field.
+func SkillTypeIDNotNil() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldSkillTypeID)))
+	})
+}
+
+// HasSkillTypeEdge applies the HasEdge predicate on the "skill_type_edge" edge.
+func HasSkillTypeEdge() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillTypeEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SkillTypeEdgeTable, SkillTypeEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSkillTypeEdgeWith applies the HasEdge predicate on the "skill_type_edge" edge with a given conditions (other predicates).
+func HasSkillTypeEdgeWith(preds ...predicate.SkillType) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SkillTypeEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SkillTypeEdgeTable, SkillTypeEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

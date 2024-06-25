@@ -14,6 +14,11 @@ func (r *skillResolver) ID(ctx context.Context, obj *ent.Skill) (string, error) 
 	return obj.ID.String(), nil
 }
 
+// SkillType is the resolver for the skill_type field.
+func (r *skillResolver) SkillType(ctx context.Context, obj *ent.Skill) (*ent.SkillType, error) {
+	return obj.Edges.SkillTypeEdge, nil
+}
+
 // Skill returns graphql1.SkillResolver implementation.
 func (r *Resolver) Skill() graphql1.SkillResolver { return &skillResolver{r} }
 

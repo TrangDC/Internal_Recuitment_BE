@@ -284,6 +284,26 @@ func (hj *HiringJob) CandidateJobEdges(ctx context.Context) (result []*Candidate
 	return result, err
 }
 
+func (s *Skill) SkillTypeEdge(ctx context.Context) (*SkillType, error) {
+	result, err := s.Edges.SkillTypeEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = s.QuerySkillTypeEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (st *SkillType) SkillEdges(ctx context.Context) (result []*Skill, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = st.NamedSkillEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = st.Edges.SkillEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = st.QuerySkillEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = t.NamedUserEdges(graphql.GetFieldContext(ctx).Field.Alias)

@@ -367,8 +367,9 @@ type NewHiringJobInput struct {
 }
 
 type NewSkillInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	SkillTypeID *string `json:"skill_type_id"`
 }
 
 type NewSkillTypeInput struct {
@@ -547,8 +548,9 @@ type UpdateHiringJobInput struct {
 }
 
 type UpdateSkillInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	SkillTypeID *string `json:"skill_type_id"`
 }
 
 type UpdateSkillTypeInput struct {

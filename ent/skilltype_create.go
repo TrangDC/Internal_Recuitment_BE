@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/skill"
 	"trec/ent/skilltype"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -87,6 +88,21 @@ func (stc *SkillTypeCreate) SetNillableDescription(s *string) *SkillTypeCreate {
 func (stc *SkillTypeCreate) SetID(u uuid.UUID) *SkillTypeCreate {
 	stc.mutation.SetID(u)
 	return stc
+}
+
+// AddSkillEdgeIDs adds the "skill_edges" edge to the Skill entity by IDs.
+func (stc *SkillTypeCreate) AddSkillEdgeIDs(ids ...uuid.UUID) *SkillTypeCreate {
+	stc.mutation.AddSkillEdgeIDs(ids...)
+	return stc
+}
+
+// AddSkillEdges adds the "skill_edges" edges to the Skill entity.
+func (stc *SkillTypeCreate) AddSkillEdges(s ...*Skill) *SkillTypeCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stc.AddSkillEdgeIDs(ids...)
 }
 
 // Mutation returns the SkillTypeMutation object of the builder.
@@ -245,6 +261,25 @@ func (stc *SkillTypeCreate) createSpec() (*SkillType, *sqlgraph.CreateSpec) {
 	if value, ok := stc.mutation.Description(); ok {
 		_spec.SetField(skilltype.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if nodes := stc.mutation.SkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skilltype.SkillEdgesTable,
+			Columns: []string{skilltype.SkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

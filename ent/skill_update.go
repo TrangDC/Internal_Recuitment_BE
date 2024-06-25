@@ -9,10 +9,12 @@ import (
 	"time"
 	"trec/ent/predicate"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // SkillUpdate is the builder for updating Skill entities.
@@ -94,9 +96,54 @@ func (su *SkillUpdate) ClearDescription() *SkillUpdate {
 	return su
 }
 
+// SetSkillTypeID sets the "skill_type_id" field.
+func (su *SkillUpdate) SetSkillTypeID(u uuid.UUID) *SkillUpdate {
+	su.mutation.SetSkillTypeID(u)
+	return su
+}
+
+// SetNillableSkillTypeID sets the "skill_type_id" field if the given value is not nil.
+func (su *SkillUpdate) SetNillableSkillTypeID(u *uuid.UUID) *SkillUpdate {
+	if u != nil {
+		su.SetSkillTypeID(*u)
+	}
+	return su
+}
+
+// ClearSkillTypeID clears the value of the "skill_type_id" field.
+func (su *SkillUpdate) ClearSkillTypeID() *SkillUpdate {
+	su.mutation.ClearSkillTypeID()
+	return su
+}
+
+// SetSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID.
+func (su *SkillUpdate) SetSkillTypeEdgeID(id uuid.UUID) *SkillUpdate {
+	su.mutation.SetSkillTypeEdgeID(id)
+	return su
+}
+
+// SetNillableSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID if the given value is not nil.
+func (su *SkillUpdate) SetNillableSkillTypeEdgeID(id *uuid.UUID) *SkillUpdate {
+	if id != nil {
+		su = su.SetSkillTypeEdgeID(*id)
+	}
+	return su
+}
+
+// SetSkillTypeEdge sets the "skill_type_edge" edge to the SkillType entity.
+func (su *SkillUpdate) SetSkillTypeEdge(s *SkillType) *SkillUpdate {
+	return su.SetSkillTypeEdgeID(s.ID)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (su *SkillUpdate) Mutation() *SkillMutation {
 	return su.mutation
+}
+
+// ClearSkillTypeEdge clears the "skill_type_edge" edge to the SkillType entity.
+func (su *SkillUpdate) ClearSkillTypeEdge() *SkillUpdate {
+	su.mutation.ClearSkillTypeEdge()
+	return su
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -213,6 +260,41 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.mutation.DescriptionCleared() {
 		_spec.ClearField(skill.FieldDescription, field.TypeString)
 	}
+	if su.mutation.SkillTypeEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.SkillTypeEdgeTable,
+			Columns: []string{skill.SkillTypeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skilltype.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.SkillTypeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.SkillTypeEdgeTable,
+			Columns: []string{skill.SkillTypeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skilltype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
@@ -298,9 +380,54 @@ func (suo *SkillUpdateOne) ClearDescription() *SkillUpdateOne {
 	return suo
 }
 
+// SetSkillTypeID sets the "skill_type_id" field.
+func (suo *SkillUpdateOne) SetSkillTypeID(u uuid.UUID) *SkillUpdateOne {
+	suo.mutation.SetSkillTypeID(u)
+	return suo
+}
+
+// SetNillableSkillTypeID sets the "skill_type_id" field if the given value is not nil.
+func (suo *SkillUpdateOne) SetNillableSkillTypeID(u *uuid.UUID) *SkillUpdateOne {
+	if u != nil {
+		suo.SetSkillTypeID(*u)
+	}
+	return suo
+}
+
+// ClearSkillTypeID clears the value of the "skill_type_id" field.
+func (suo *SkillUpdateOne) ClearSkillTypeID() *SkillUpdateOne {
+	suo.mutation.ClearSkillTypeID()
+	return suo
+}
+
+// SetSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID.
+func (suo *SkillUpdateOne) SetSkillTypeEdgeID(id uuid.UUID) *SkillUpdateOne {
+	suo.mutation.SetSkillTypeEdgeID(id)
+	return suo
+}
+
+// SetNillableSkillTypeEdgeID sets the "skill_type_edge" edge to the SkillType entity by ID if the given value is not nil.
+func (suo *SkillUpdateOne) SetNillableSkillTypeEdgeID(id *uuid.UUID) *SkillUpdateOne {
+	if id != nil {
+		suo = suo.SetSkillTypeEdgeID(*id)
+	}
+	return suo
+}
+
+// SetSkillTypeEdge sets the "skill_type_edge" edge to the SkillType entity.
+func (suo *SkillUpdateOne) SetSkillTypeEdge(s *SkillType) *SkillUpdateOne {
+	return suo.SetSkillTypeEdgeID(s.ID)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (suo *SkillUpdateOne) Mutation() *SkillMutation {
 	return suo.mutation
+}
+
+// ClearSkillTypeEdge clears the "skill_type_edge" edge to the SkillType entity.
+func (suo *SkillUpdateOne) ClearSkillTypeEdge() *SkillUpdateOne {
+	suo.mutation.ClearSkillTypeEdge()
+	return suo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -446,6 +573,41 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 	}
 	if suo.mutation.DescriptionCleared() {
 		_spec.ClearField(skill.FieldDescription, field.TypeString)
+	}
+	if suo.mutation.SkillTypeEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.SkillTypeEdgeTable,
+			Columns: []string{skill.SkillTypeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skilltype.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.SkillTypeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.SkillTypeEdgeTable,
+			Columns: []string{skill.SkillTypeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: skilltype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Skill{config: suo.config}
 	_spec.Assign = _node.assignValues
