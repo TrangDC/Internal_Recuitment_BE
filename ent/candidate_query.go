@@ -10,6 +10,7 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/ent/user"
 
@@ -22,19 +23,21 @@ import (
 // CandidateQuery is the builder for querying Candidate entities.
 type CandidateQuery struct {
 	config
-	limit                      *int
-	offset                     *int
-	unique                     *bool
-	order                      []OrderFunc
-	fields                     []string
-	predicates                 []predicate.Candidate
-	withCandidateJobEdges      *CandidateJobQuery
-	withReferenceUserEdge      *UserQuery
-	withAttachmentEdges        *AttachmentQuery
-	modifiers                  []func(*sql.Selector)
-	loadTotal                  []func(context.Context, []*Candidate) error
-	withNamedCandidateJobEdges map[string]*CandidateJobQuery
-	withNamedAttachmentEdges   map[string]*AttachmentQuery
+	limit                        *int
+	offset                       *int
+	unique                       *bool
+	order                        []OrderFunc
+	fields                       []string
+	predicates                   []predicate.Candidate
+	withCandidateJobEdges        *CandidateJobQuery
+	withReferenceUserEdge        *UserQuery
+	withAttachmentEdges          *AttachmentQuery
+	withCandidateSkillEdges      *EntitySkillQuery
+	modifiers                    []func(*sql.Selector)
+	loadTotal                    []func(context.Context, []*Candidate) error
+	withNamedCandidateJobEdges   map[string]*CandidateJobQuery
+	withNamedAttachmentEdges     map[string]*AttachmentQuery
+	withNamedCandidateSkillEdges map[string]*EntitySkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -130,6 +133,28 @@ func (cq *CandidateQuery) QueryAttachmentEdges() *AttachmentQuery {
 			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidate.AttachmentEdgesTable, candidate.AttachmentEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateSkillEdges chains the current query on the "candidate_skill_edges" edge.
+func (cq *CandidateQuery) QueryCandidateSkillEdges() *EntitySkillQuery {
+	query := &EntitySkillQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
+			sqlgraph.To(entityskill.Table, entityskill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateSkillEdgesTable, candidate.CandidateSkillEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -313,14 +338,15 @@ func (cq *CandidateQuery) Clone() *CandidateQuery {
 		return nil
 	}
 	return &CandidateQuery{
-		config:                cq.config,
-		limit:                 cq.limit,
-		offset:                cq.offset,
-		order:                 append([]OrderFunc{}, cq.order...),
-		predicates:            append([]predicate.Candidate{}, cq.predicates...),
-		withCandidateJobEdges: cq.withCandidateJobEdges.Clone(),
-		withReferenceUserEdge: cq.withReferenceUserEdge.Clone(),
-		withAttachmentEdges:   cq.withAttachmentEdges.Clone(),
+		config:                  cq.config,
+		limit:                   cq.limit,
+		offset:                  cq.offset,
+		order:                   append([]OrderFunc{}, cq.order...),
+		predicates:              append([]predicate.Candidate{}, cq.predicates...),
+		withCandidateJobEdges:   cq.withCandidateJobEdges.Clone(),
+		withReferenceUserEdge:   cq.withReferenceUserEdge.Clone(),
+		withAttachmentEdges:     cq.withAttachmentEdges.Clone(),
+		withCandidateSkillEdges: cq.withCandidateSkillEdges.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
@@ -358,6 +384,17 @@ func (cq *CandidateQuery) WithAttachmentEdges(opts ...func(*AttachmentQuery)) *C
 		opt(query)
 	}
 	cq.withAttachmentEdges = query
+	return cq
+}
+
+// WithCandidateSkillEdges tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_skill_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithCandidateSkillEdges(opts ...func(*EntitySkillQuery)) *CandidateQuery {
+	query := &EntitySkillQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCandidateSkillEdges = query
 	return cq
 }
 
@@ -434,10 +471,11 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	var (
 		nodes       = []*Candidate{}
 		_spec       = cq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			cq.withCandidateJobEdges != nil,
 			cq.withReferenceUserEdge != nil,
 			cq.withAttachmentEdges != nil,
+			cq.withCandidateSkillEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -481,6 +519,15 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 			return nil, err
 		}
 	}
+	if query := cq.withCandidateSkillEdges; query != nil {
+		if err := cq.loadCandidateSkillEdges(ctx, query, nodes,
+			func(n *Candidate) { n.Edges.CandidateSkillEdges = []*EntitySkill{} },
+			func(n *Candidate, e *EntitySkill) {
+				n.Edges.CandidateSkillEdges = append(n.Edges.CandidateSkillEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range cq.withNamedCandidateJobEdges {
 		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *Candidate) { n.appendNamedCandidateJobEdges(name) },
@@ -492,6 +539,13 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 		if err := cq.loadAttachmentEdges(ctx, query, nodes,
 			func(n *Candidate) { n.appendNamedAttachmentEdges(name) },
 			func(n *Candidate, e *Attachment) { n.appendNamedAttachmentEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedCandidateSkillEdges {
+		if err := cq.loadCandidateSkillEdges(ctx, query, nodes,
+			func(n *Candidate) { n.appendNamedCandidateSkillEdges(name) },
+			func(n *Candidate, e *EntitySkill) { n.appendNamedCandidateSkillEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -578,6 +632,33 @@ func (cq *CandidateQuery) loadAttachmentEdges(ctx context.Context, query *Attach
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *CandidateQuery) loadCandidateSkillEdges(ctx context.Context, query *EntitySkillQuery, nodes []*Candidate, init func(*Candidate), assign func(*Candidate, *EntitySkill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Candidate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.EntitySkill(func(s *sql.Selector) {
+		s.Where(sql.InValues(candidate.CandidateSkillEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EntityID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "entity_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -712,6 +793,20 @@ func (cq *CandidateQuery) WithNamedAttachmentEdges(name string, opts ...func(*At
 		cq.withNamedAttachmentEdges = make(map[string]*AttachmentQuery)
 	}
 	cq.withNamedAttachmentEdges[name] = query
+	return cq
+}
+
+// WithNamedCandidateSkillEdges tells the query-builder to eager-load the nodes that are connected to the "candidate_skill_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithNamedCandidateSkillEdges(name string, opts ...func(*EntitySkillQuery)) *CandidateQuery {
+	query := &EntitySkillQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedCandidateSkillEdges == nil {
+		cq.withNamedCandidateSkillEdges = make(map[string]*EntitySkillQuery)
+	}
+	cq.withNamedCandidateSkillEdges[name] = query
 	return cq
 }
 

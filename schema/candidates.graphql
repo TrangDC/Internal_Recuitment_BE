@@ -66,6 +66,7 @@ input NewCandidateInput{
   recruit_time: Time
   description: String!
   country: String!
+  entity_skill_records: [EntitySkillRecordInput!]
   attachments: [NewAttachmentInput!]
 }
 
@@ -80,6 +81,7 @@ input UpdateCandidateInput {
   recruit_time: Time
   description: String!
   country: String!
+  entity_skill_records: [EntitySkillRecordInput!]
   attachments: [NewAttachmentInput!]
 }
 
@@ -130,6 +132,7 @@ type Candidate {
   description: String!
   country: String!
   attachments: [Attachment!]
+  entity_skill_types: [EntitySkillType!]
   reference_user: User
   created_at: Time!
   updated_at: Time!
@@ -163,4 +166,25 @@ type CandidateSelectionEdge {
 type CandidateSelectionResponseGetAll {
   edges: [CandidateSelectionEdge!]!
   pagination: Pagination!
+}
+
+type EntitySkillType {
+  id: ID!
+  name: String!
+  description: String
+  skills: [EntitySkillRecord!]
+  orderId: Int!
+}
+
+type EntitySkillRecord {
+  id: ID!
+  name: String!
+  description: String
+  orderId: Int!
+}
+
+input EntitySkillRecordInput {
+  id: ID
+  skill_id: ID!
+  orderId: Int!
 }

@@ -10,6 +10,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/internal/util"
 	"trec/repository"
@@ -29,6 +30,9 @@ type CandidateService interface {
 	GetCandidate(ctx context.Context, id uuid.UUID) (*ent.CandidateResponse, error)
 	GetCandidates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
 	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord, filter *ent.CandidateFilter, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error)
+
+	//resolved
+	GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType
 }
 
 type candidateSvcImpl struct {
@@ -66,6 +70,10 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 			return err
 		}
 		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, record.ID, attachment.RelationTypeCandidates, repoRegistry)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeCandidate)
 		return err
 	})
 	if err != nil {
@@ -112,6 +120,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 		if err != nil {
 			return err
 		}
+		err = svc.repoRegistry.EntitySkill().DeleteAllEntitySkill(ctx, record.ID)
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
@@ -133,12 +142,12 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	errTring, err := svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
+	errString, err := svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
-	if errTring != nil {
+	if errString != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
@@ -154,6 +163,10 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 			return err
 		}
 		_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateResult.ID, attachment.RelationTypeCandidates, repoRegistry)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, record.Edges.CandidateSkillEdges, entityskill.EntityTypeCandidate)
 		return err
 	})
 	if err != nil {
@@ -272,6 +285,10 @@ func (svc *candidateSvcImpl) Selections(ctx context.Context, pagination *ent.Pag
 		},
 	}
 	return result, nil
+}
+
+func (svc candidateSvcImpl) GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType {
+	return svc.dtoRegistry.EntitySkill().GroupSkillType(input)
 }
 
 func (svc *candidateSvcImpl) getCandidates(ctx context.Context, query *ent.CandidateQuery, pagination *ent.PaginationInput, freeWord *ent.CandidateFreeWord,

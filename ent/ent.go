@@ -14,6 +14,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -52,6 +53,7 @@ func columnChecker(table string) func(string) error {
 		candidatejob.Table:         candidatejob.ValidColumn,
 		candidatejobfeedback.Table: candidatejobfeedback.ValidColumn,
 		candidatejobstep.Table:     candidatejobstep.ValidColumn,
+		entityskill.Table:          entityskill.ValidColumn,
 		hiringjob.Table:            hiringjob.ValidColumn,
 		skill.Table:                skill.ValidColumn,
 		skilltype.Table:            skilltype.ValidColumn,

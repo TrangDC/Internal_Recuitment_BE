@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -22,18 +23,20 @@ import (
 // HiringJobQuery is the builder for querying HiringJob entities.
 type HiringJobQuery struct {
 	config
-	limit                      *int
-	offset                     *int
-	unique                     *bool
-	order                      []OrderFunc
-	fields                     []string
-	predicates                 []predicate.HiringJob
-	withOwnerEdge              *UserQuery
-	withTeamEdge               *TeamQuery
-	withCandidateJobEdges      *CandidateJobQuery
-	modifiers                  []func(*sql.Selector)
-	loadTotal                  []func(context.Context, []*HiringJob) error
-	withNamedCandidateJobEdges map[string]*CandidateJobQuery
+	limit                        *int
+	offset                       *int
+	unique                       *bool
+	order                        []OrderFunc
+	fields                       []string
+	predicates                   []predicate.HiringJob
+	withOwnerEdge                *UserQuery
+	withTeamEdge                 *TeamQuery
+	withCandidateJobEdges        *CandidateJobQuery
+	withHiringJobSkillEdges      *EntitySkillQuery
+	modifiers                    []func(*sql.Selector)
+	loadTotal                    []func(context.Context, []*HiringJob) error
+	withNamedCandidateJobEdges   map[string]*CandidateJobQuery
+	withNamedHiringJobSkillEdges map[string]*EntitySkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -129,6 +132,28 @@ func (hjq *HiringJobQuery) QueryCandidateJobEdges() *CandidateJobQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.CandidateJobEdgesTable, hiringjob.CandidateJobEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringJobSkillEdges chains the current query on the "hiring_job_skill_edges" edge.
+func (hjq *HiringJobQuery) QueryHiringJobSkillEdges() *EntitySkillQuery {
+	query := &EntitySkillQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(entityskill.Table, entityskill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobSkillEdgesTable, hiringjob.HiringJobSkillEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -312,14 +337,15 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		return nil
 	}
 	return &HiringJobQuery{
-		config:                hjq.config,
-		limit:                 hjq.limit,
-		offset:                hjq.offset,
-		order:                 append([]OrderFunc{}, hjq.order...),
-		predicates:            append([]predicate.HiringJob{}, hjq.predicates...),
-		withOwnerEdge:         hjq.withOwnerEdge.Clone(),
-		withTeamEdge:          hjq.withTeamEdge.Clone(),
-		withCandidateJobEdges: hjq.withCandidateJobEdges.Clone(),
+		config:                  hjq.config,
+		limit:                   hjq.limit,
+		offset:                  hjq.offset,
+		order:                   append([]OrderFunc{}, hjq.order...),
+		predicates:              append([]predicate.HiringJob{}, hjq.predicates...),
+		withOwnerEdge:           hjq.withOwnerEdge.Clone(),
+		withTeamEdge:            hjq.withTeamEdge.Clone(),
+		withCandidateJobEdges:   hjq.withCandidateJobEdges.Clone(),
+		withHiringJobSkillEdges: hjq.withHiringJobSkillEdges.Clone(),
 		// clone intermediate query.
 		sql:    hjq.sql.Clone(),
 		path:   hjq.path,
@@ -357,6 +383,17 @@ func (hjq *HiringJobQuery) WithCandidateJobEdges(opts ...func(*CandidateJobQuery
 		opt(query)
 	}
 	hjq.withCandidateJobEdges = query
+	return hjq
+}
+
+// WithHiringJobSkillEdges tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_job_skill_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithHiringJobSkillEdges(opts ...func(*EntitySkillQuery)) *HiringJobQuery {
+	query := &EntitySkillQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withHiringJobSkillEdges = query
 	return hjq
 }
 
@@ -433,10 +470,11 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			hjq.withOwnerEdge != nil,
 			hjq.withTeamEdge != nil,
 			hjq.withCandidateJobEdges != nil,
+			hjq.withHiringJobSkillEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -479,10 +517,26 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 			return nil, err
 		}
 	}
+	if query := hjq.withHiringJobSkillEdges; query != nil {
+		if err := hjq.loadHiringJobSkillEdges(ctx, query, nodes,
+			func(n *HiringJob) { n.Edges.HiringJobSkillEdges = []*EntitySkill{} },
+			func(n *HiringJob, e *EntitySkill) {
+				n.Edges.HiringJobSkillEdges = append(n.Edges.HiringJobSkillEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range hjq.withNamedCandidateJobEdges {
 		if err := hjq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *HiringJob) { n.appendNamedCandidateJobEdges(name) },
 			func(n *HiringJob, e *CandidateJob) { n.appendNamedCandidateJobEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range hjq.withNamedHiringJobSkillEdges {
+		if err := hjq.loadHiringJobSkillEdges(ctx, query, nodes,
+			func(n *HiringJob) { n.appendNamedHiringJobSkillEdges(name) },
+			func(n *HiringJob, e *EntitySkill) { n.appendNamedHiringJobSkillEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -568,6 +622,33 @@ func (hjq *HiringJobQuery) loadCandidateJobEdges(ctx context.Context, query *Can
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "hiring_job_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (hjq *HiringJobQuery) loadHiringJobSkillEdges(ctx context.Context, query *EntitySkillQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *EntitySkill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HiringJob)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.EntitySkill(func(s *sql.Selector) {
+		s.Where(sql.InValues(hiringjob.HiringJobSkillEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EntityID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "entity_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -688,6 +769,20 @@ func (hjq *HiringJobQuery) WithNamedCandidateJobEdges(name string, opts ...func(
 		hjq.withNamedCandidateJobEdges = make(map[string]*CandidateJobQuery)
 	}
 	hjq.withNamedCandidateJobEdges[name] = query
+	return hjq
+}
+
+// WithNamedHiringJobSkillEdges tells the query-builder to eager-load the nodes that are connected to the "hiring_job_skill_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithNamedHiringJobSkillEdges(name string, opts ...func(*EntitySkillQuery)) *HiringJobQuery {
+	query := &EntitySkillQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if hjq.withNamedHiringJobSkillEdges == nil {
+		hjq.withNamedHiringJobSkillEdges = make(map[string]*EntitySkillQuery)
+	}
+	hjq.withNamedHiringJobSkillEdges[name] = query
 	return hjq
 }
 

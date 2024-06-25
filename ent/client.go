@@ -18,6 +18,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -52,6 +53,8 @@ type Client struct {
 	CandidateJobFeedback *CandidateJobFeedbackClient
 	// CandidateJobStep is the client for interacting with the CandidateJobStep builders.
 	CandidateJobStep *CandidateJobStepClient
+	// EntitySkill is the client for interacting with the EntitySkill builders.
+	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
 	// Skill is the client for interacting with the Skill builders.
@@ -85,6 +88,7 @@ func (c *Client) init() {
 	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
+	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.Skill = NewSkillClient(c.config)
 	c.SkillType = NewSkillTypeClient(c.config)
@@ -132,6 +136,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		Skill:                NewSkillClient(cfg),
 		SkillType:            NewSkillTypeClient(cfg),
@@ -165,6 +170,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		Skill:                NewSkillClient(cfg),
 		SkillType:            NewSkillTypeClient(cfg),
@@ -207,6 +213,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateJob.Use(hooks...)
 	c.CandidateJobFeedback.Use(hooks...)
 	c.CandidateJobStep.Use(hooks...)
+	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.Skill.Use(hooks...)
 	c.SkillType.Use(hooks...)
@@ -601,6 +608,22 @@ func (c *CandidateClient) QueryAttachmentEdges(ca *Candidate) *AttachmentQuery {
 			sqlgraph.From(candidate.Table, candidate.FieldID, id),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidate.AttachmentEdgesTable, candidate.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateSkillEdges queries the candidate_skill_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateSkillEdges(ca *Candidate) *EntitySkillQuery {
+	query := &EntitySkillQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(entityskill.Table, entityskill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateSkillEdgesTable, candidate.CandidateSkillEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
 		return fromV, nil
@@ -1351,6 +1374,144 @@ func (c *CandidateJobStepClient) Hooks() []Hook {
 	return c.hooks.CandidateJobStep
 }
 
+// EntitySkillClient is a client for the EntitySkill schema.
+type EntitySkillClient struct {
+	config
+}
+
+// NewEntitySkillClient returns a client for the EntitySkill from the given config.
+func NewEntitySkillClient(c config) *EntitySkillClient {
+	return &EntitySkillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `entityskill.Hooks(f(g(h())))`.
+func (c *EntitySkillClient) Use(hooks ...Hook) {
+	c.hooks.EntitySkill = append(c.hooks.EntitySkill, hooks...)
+}
+
+// Create returns a builder for creating a EntitySkill entity.
+func (c *EntitySkillClient) Create() *EntitySkillCreate {
+	mutation := newEntitySkillMutation(c.config, OpCreate)
+	return &EntitySkillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EntitySkill entities.
+func (c *EntitySkillClient) CreateBulk(builders ...*EntitySkillCreate) *EntitySkillCreateBulk {
+	return &EntitySkillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EntitySkill.
+func (c *EntitySkillClient) Update() *EntitySkillUpdate {
+	mutation := newEntitySkillMutation(c.config, OpUpdate)
+	return &EntitySkillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EntitySkillClient) UpdateOne(es *EntitySkill) *EntitySkillUpdateOne {
+	mutation := newEntitySkillMutation(c.config, OpUpdateOne, withEntitySkill(es))
+	return &EntitySkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EntitySkillClient) UpdateOneID(id uuid.UUID) *EntitySkillUpdateOne {
+	mutation := newEntitySkillMutation(c.config, OpUpdateOne, withEntitySkillID(id))
+	return &EntitySkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EntitySkill.
+func (c *EntitySkillClient) Delete() *EntitySkillDelete {
+	mutation := newEntitySkillMutation(c.config, OpDelete)
+	return &EntitySkillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EntitySkillClient) DeleteOne(es *EntitySkill) *EntitySkillDeleteOne {
+	return c.DeleteOneID(es.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EntitySkillClient) DeleteOneID(id uuid.UUID) *EntitySkillDeleteOne {
+	builder := c.Delete().Where(entityskill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EntitySkillDeleteOne{builder}
+}
+
+// Query returns a query builder for EntitySkill.
+func (c *EntitySkillClient) Query() *EntitySkillQuery {
+	return &EntitySkillQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a EntitySkill entity by its id.
+func (c *EntitySkillClient) Get(ctx context.Context, id uuid.UUID) (*EntitySkill, error) {
+	return c.Query().Where(entityskill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EntitySkillClient) GetX(ctx context.Context, id uuid.UUID) *EntitySkill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySkillEdge queries the skill_edge edge of a EntitySkill.
+func (c *EntitySkillClient) QuerySkillEdge(es *EntitySkill) *SkillQuery {
+	query := &SkillQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := es.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entityskill.Table, entityskill.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entityskill.SkillEdgeTable, entityskill.SkillEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(es.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringJobEdge queries the hiring_job_edge edge of a EntitySkill.
+func (c *EntitySkillClient) QueryHiringJobEdge(es *EntitySkill) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := es.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entityskill.Table, entityskill.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entityskill.HiringJobEdgeTable, entityskill.HiringJobEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(es.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a EntitySkill.
+func (c *EntitySkillClient) QueryCandidateEdge(es *EntitySkill) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := es.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entityskill.Table, entityskill.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entityskill.CandidateEdgeTable, entityskill.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(es.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EntitySkillClient) Hooks() []Hook {
+	return c.hooks.EntitySkill
+}
+
 // HiringJobClient is a client for the HiringJob schema.
 type HiringJobClient struct {
 	config
@@ -1484,6 +1645,22 @@ func (c *HiringJobClient) QueryCandidateJobEdges(hj *HiringJob) *CandidateJobQue
 	return query
 }
 
+// QueryHiringJobSkillEdges queries the hiring_job_skill_edges edge of a HiringJob.
+func (c *HiringJobClient) QueryHiringJobSkillEdges(hj *HiringJob) *EntitySkillQuery {
+	query := &EntitySkillQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(entityskill.Table, entityskill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobSkillEdgesTable, hiringjob.HiringJobSkillEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
@@ -1583,6 +1760,22 @@ func (c *SkillClient) QuerySkillTypeEdge(s *Skill) *SkillTypeQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, id),
 			sqlgraph.To(skilltype.Table, skilltype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, skill.SkillTypeEdgeTable, skill.SkillTypeEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEntitySkillEdges queries the entity_skill_edges edge of a Skill.
+func (c *SkillClient) QueryEntitySkillEdges(s *Skill) *EntitySkillQuery {
+	query := &EntitySkillQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(entityskill.Table, entityskill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, skill.EntitySkillEdgesTable, skill.EntitySkillEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil

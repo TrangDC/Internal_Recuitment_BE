@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/entityskill"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 
@@ -121,6 +122,21 @@ func (sc *SkillCreate) SetNillableSkillTypeEdgeID(id *uuid.UUID) *SkillCreate {
 // SetSkillTypeEdge sets the "skill_type_edge" edge to the SkillType entity.
 func (sc *SkillCreate) SetSkillTypeEdge(s *SkillType) *SkillCreate {
 	return sc.SetSkillTypeEdgeID(s.ID)
+}
+
+// AddEntitySkillEdgeIDs adds the "entity_skill_edges" edge to the EntitySkill entity by IDs.
+func (sc *SkillCreate) AddEntitySkillEdgeIDs(ids ...uuid.UUID) *SkillCreate {
+	sc.mutation.AddEntitySkillEdgeIDs(ids...)
+	return sc
+}
+
+// AddEntitySkillEdges adds the "entity_skill_edges" edges to the EntitySkill entity.
+func (sc *SkillCreate) AddEntitySkillEdges(e ...*EntitySkill) *SkillCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return sc.AddEntitySkillEdgeIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -298,6 +314,25 @@ func (sc *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.SkillTypeID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.EntitySkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

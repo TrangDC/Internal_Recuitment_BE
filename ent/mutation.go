@@ -16,6 +16,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/skill"
@@ -46,6 +47,7 @@ const (
 	TypeCandidateJob         = "CandidateJob"
 	TypeCandidateJobFeedback = "CandidateJobFeedback"
 	TypeCandidateJobStep     = "CandidateJobStep"
+	TypeEntitySkill          = "EntitySkill"
 	TypeHiringJob            = "HiringJob"
 	TypeSkill                = "Skill"
 	TypeSkillType            = "SkillType"
@@ -1933,35 +1935,38 @@ func (m *AuditTrailMutation) ResetEdge(name string) error {
 // CandidateMutation represents an operation that mutates the Candidate nodes in the graph.
 type CandidateMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	deleted_at                 *time.Time
-	name                       *string
-	email                      *string
-	phone                      *string
-	dob                        *time.Time
-	is_blacklist               *bool
-	last_apply_date            *time.Time
-	reference_type             *candidate.ReferenceType
-	reference_value            *string
-	recruit_time               *time.Time
-	description                *string
-	country                    *string
-	clearedFields              map[string]struct{}
-	candidate_job_edges        map[uuid.UUID]struct{}
-	removedcandidate_job_edges map[uuid.UUID]struct{}
-	clearedcandidate_job_edges bool
-	reference_user_edge        *uuid.UUID
-	clearedreference_user_edge bool
-	attachment_edges           map[uuid.UUID]struct{}
-	removedattachment_edges    map[uuid.UUID]struct{}
-	clearedattachment_edges    bool
-	done                       bool
-	oldValue                   func(context.Context) (*Candidate, error)
-	predicates                 []predicate.Candidate
+	op                           Op
+	typ                          string
+	id                           *uuid.UUID
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	deleted_at                   *time.Time
+	name                         *string
+	email                        *string
+	phone                        *string
+	dob                          *time.Time
+	is_blacklist                 *bool
+	last_apply_date              *time.Time
+	reference_type               *candidate.ReferenceType
+	reference_value              *string
+	recruit_time                 *time.Time
+	description                  *string
+	country                      *string
+	clearedFields                map[string]struct{}
+	candidate_job_edges          map[uuid.UUID]struct{}
+	removedcandidate_job_edges   map[uuid.UUID]struct{}
+	clearedcandidate_job_edges   bool
+	reference_user_edge          *uuid.UUID
+	clearedreference_user_edge   bool
+	attachment_edges             map[uuid.UUID]struct{}
+	removedattachment_edges      map[uuid.UUID]struct{}
+	clearedattachment_edges      bool
+	candidate_skill_edges        map[uuid.UUID]struct{}
+	removedcandidate_skill_edges map[uuid.UUID]struct{}
+	clearedcandidate_skill_edges bool
+	done                         bool
+	oldValue                     func(context.Context) (*Candidate, error)
+	predicates                   []predicate.Candidate
 }
 
 var _ ent.Mutation = (*CandidateMutation)(nil)
@@ -2872,6 +2877,60 @@ func (m *CandidateMutation) ResetAttachmentEdges() {
 	m.removedattachment_edges = nil
 }
 
+// AddCandidateSkillEdgeIDs adds the "candidate_skill_edges" edge to the EntitySkill entity by ids.
+func (m *CandidateMutation) AddCandidateSkillEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_skill_edges == nil {
+		m.candidate_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateSkillEdges clears the "candidate_skill_edges" edge to the EntitySkill entity.
+func (m *CandidateMutation) ClearCandidateSkillEdges() {
+	m.clearedcandidate_skill_edges = true
+}
+
+// CandidateSkillEdgesCleared reports if the "candidate_skill_edges" edge to the EntitySkill entity was cleared.
+func (m *CandidateMutation) CandidateSkillEdgesCleared() bool {
+	return m.clearedcandidate_skill_edges
+}
+
+// RemoveCandidateSkillEdgeIDs removes the "candidate_skill_edges" edge to the EntitySkill entity by IDs.
+func (m *CandidateMutation) RemoveCandidateSkillEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_skill_edges == nil {
+		m.removedcandidate_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_skill_edges, ids[i])
+		m.removedcandidate_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateSkillEdges returns the removed IDs of the "candidate_skill_edges" edge to the EntitySkill entity.
+func (m *CandidateMutation) RemovedCandidateSkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateSkillEdgesIDs returns the "candidate_skill_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateSkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateSkillEdges resets all changes to the "candidate_skill_edges" edge.
+func (m *CandidateMutation) ResetCandidateSkillEdges() {
+	m.candidate_skill_edges = nil
+	m.clearedcandidate_skill_edges = false
+	m.removedcandidate_skill_edges = nil
+}
+
 // Where appends a list predicates to the CandidateMutation builder.
 func (m *CandidateMutation) Where(ps ...predicate.Candidate) {
 	m.predicates = append(m.predicates, ps...)
@@ -3285,7 +3344,7 @@ func (m *CandidateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.candidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -3294,6 +3353,9 @@ func (m *CandidateMutation) AddedEdges() []string {
 	}
 	if m.attachment_edges != nil {
 		edges = append(edges, candidate.EdgeAttachmentEdges)
+	}
+	if m.candidate_skill_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateSkillEdges)
 	}
 	return edges
 }
@@ -3318,18 +3380,27 @@ func (m *CandidateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateSkillEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_skill_edges))
+		for id := range m.candidate_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
 	if m.removedattachment_edges != nil {
 		edges = append(edges, candidate.EdgeAttachmentEdges)
+	}
+	if m.removedcandidate_skill_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateSkillEdges)
 	}
 	return edges
 }
@@ -3350,13 +3421,19 @@ func (m *CandidateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateSkillEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_skill_edges))
+		for id := range m.removedcandidate_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedcandidate_job_edges {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -3365,6 +3442,9 @@ func (m *CandidateMutation) ClearedEdges() []string {
 	}
 	if m.clearedattachment_edges {
 		edges = append(edges, candidate.EdgeAttachmentEdges)
+	}
+	if m.clearedcandidate_skill_edges {
+		edges = append(edges, candidate.EdgeCandidateSkillEdges)
 	}
 	return edges
 }
@@ -3379,6 +3459,8 @@ func (m *CandidateMutation) EdgeCleared(name string) bool {
 		return m.clearedreference_user_edge
 	case candidate.EdgeAttachmentEdges:
 		return m.clearedattachment_edges
+	case candidate.EdgeCandidateSkillEdges:
+		return m.clearedcandidate_skill_edges
 	}
 	return false
 }
@@ -3406,6 +3488,9 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 		return nil
 	case candidate.EdgeAttachmentEdges:
 		m.ResetAttachmentEdges()
+		return nil
+	case candidate.EdgeCandidateSkillEdges:
+		m.ResetCandidateSkillEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate edge %s", name)
@@ -8464,42 +8549,1004 @@ func (m *CandidateJobStepMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CandidateJobStep edge %s", name)
 }
 
+// EntitySkillMutation represents an operation that mutates the EntitySkill nodes in the graph.
+type EntitySkillMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *uuid.UUID
+	created_at             *time.Time
+	updated_at             *time.Time
+	deleted_at             *time.Time
+	entity_type            *entityskill.EntityType
+	order_id               *int
+	addorder_id            *int
+	clearedFields          map[string]struct{}
+	skill_edge             *uuid.UUID
+	clearedskill_edge      bool
+	hiring_job_edge        *uuid.UUID
+	clearedhiring_job_edge bool
+	candidate_edge         *uuid.UUID
+	clearedcandidate_edge  bool
+	done                   bool
+	oldValue               func(context.Context) (*EntitySkill, error)
+	predicates             []predicate.EntitySkill
+}
+
+var _ ent.Mutation = (*EntitySkillMutation)(nil)
+
+// entityskillOption allows management of the mutation configuration using functional options.
+type entityskillOption func(*EntitySkillMutation)
+
+// newEntitySkillMutation creates new mutation for the EntitySkill entity.
+func newEntitySkillMutation(c config, op Op, opts ...entityskillOption) *EntitySkillMutation {
+	m := &EntitySkillMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEntitySkill,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEntitySkillID sets the ID field of the mutation.
+func withEntitySkillID(id uuid.UUID) entityskillOption {
+	return func(m *EntitySkillMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EntitySkill
+		)
+		m.oldValue = func(ctx context.Context) (*EntitySkill, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EntitySkill.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEntitySkill sets the old EntitySkill of the mutation.
+func withEntitySkill(node *EntitySkill) entityskillOption {
+	return func(m *EntitySkillMutation) {
+		m.oldValue = func(context.Context) (*EntitySkill, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EntitySkillMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EntitySkillMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EntitySkill entities.
+func (m *EntitySkillMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EntitySkillMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EntitySkillMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EntitySkill.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EntitySkillMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EntitySkillMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EntitySkillMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EntitySkillMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EntitySkillMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *EntitySkillMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[entityskill.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *EntitySkillMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[entityskill.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EntitySkillMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, entityskill.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *EntitySkillMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *EntitySkillMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *EntitySkillMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[entityskill.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *EntitySkillMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[entityskill.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *EntitySkillMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, entityskill.FieldDeletedAt)
+}
+
+// SetEntityType sets the "entity_type" field.
+func (m *EntitySkillMutation) SetEntityType(et entityskill.EntityType) {
+	m.entity_type = &et
+}
+
+// EntityType returns the value of the "entity_type" field in the mutation.
+func (m *EntitySkillMutation) EntityType() (r entityskill.EntityType, exists bool) {
+	v := m.entity_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntityType returns the old "entity_type" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldEntityType(ctx context.Context) (v entityskill.EntityType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntityType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntityType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntityType: %w", err)
+	}
+	return oldValue.EntityType, nil
+}
+
+// ResetEntityType resets all changes to the "entity_type" field.
+func (m *EntitySkillMutation) ResetEntityType() {
+	m.entity_type = nil
+}
+
+// SetEntityID sets the "entity_id" field.
+func (m *EntitySkillMutation) SetEntityID(u uuid.UUID) {
+	m.hiring_job_edge = &u
+}
+
+// EntityID returns the value of the "entity_id" field in the mutation.
+func (m *EntitySkillMutation) EntityID() (r uuid.UUID, exists bool) {
+	v := m.hiring_job_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntityID returns the old "entity_id" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldEntityID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntityID: %w", err)
+	}
+	return oldValue.EntityID, nil
+}
+
+// ClearEntityID clears the value of the "entity_id" field.
+func (m *EntitySkillMutation) ClearEntityID() {
+	m.hiring_job_edge = nil
+	m.clearedFields[entityskill.FieldEntityID] = struct{}{}
+}
+
+// EntityIDCleared returns if the "entity_id" field was cleared in this mutation.
+func (m *EntitySkillMutation) EntityIDCleared() bool {
+	_, ok := m.clearedFields[entityskill.FieldEntityID]
+	return ok
+}
+
+// ResetEntityID resets all changes to the "entity_id" field.
+func (m *EntitySkillMutation) ResetEntityID() {
+	m.hiring_job_edge = nil
+	delete(m.clearedFields, entityskill.FieldEntityID)
+}
+
+// SetSkillID sets the "skill_id" field.
+func (m *EntitySkillMutation) SetSkillID(u uuid.UUID) {
+	m.skill_edge = &u
+}
+
+// SkillID returns the value of the "skill_id" field in the mutation.
+func (m *EntitySkillMutation) SkillID() (r uuid.UUID, exists bool) {
+	v := m.skill_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkillID returns the old "skill_id" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldSkillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkillID: %w", err)
+	}
+	return oldValue.SkillID, nil
+}
+
+// ClearSkillID clears the value of the "skill_id" field.
+func (m *EntitySkillMutation) ClearSkillID() {
+	m.skill_edge = nil
+	m.clearedFields[entityskill.FieldSkillID] = struct{}{}
+}
+
+// SkillIDCleared returns if the "skill_id" field was cleared in this mutation.
+func (m *EntitySkillMutation) SkillIDCleared() bool {
+	_, ok := m.clearedFields[entityskill.FieldSkillID]
+	return ok
+}
+
+// ResetSkillID resets all changes to the "skill_id" field.
+func (m *EntitySkillMutation) ResetSkillID() {
+	m.skill_edge = nil
+	delete(m.clearedFields, entityskill.FieldSkillID)
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *EntitySkillMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *EntitySkillMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the EntitySkill entity.
+// If the EntitySkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntitySkillMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *EntitySkillMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *EntitySkillMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *EntitySkillMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[entityskill.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *EntitySkillMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[entityskill.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *EntitySkillMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, entityskill.FieldOrderID)
+}
+
+// SetSkillEdgeID sets the "skill_edge" edge to the Skill entity by id.
+func (m *EntitySkillMutation) SetSkillEdgeID(id uuid.UUID) {
+	m.skill_edge = &id
+}
+
+// ClearSkillEdge clears the "skill_edge" edge to the Skill entity.
+func (m *EntitySkillMutation) ClearSkillEdge() {
+	m.clearedskill_edge = true
+}
+
+// SkillEdgeCleared reports if the "skill_edge" edge to the Skill entity was cleared.
+func (m *EntitySkillMutation) SkillEdgeCleared() bool {
+	return m.SkillIDCleared() || m.clearedskill_edge
+}
+
+// SkillEdgeID returns the "skill_edge" edge ID in the mutation.
+func (m *EntitySkillMutation) SkillEdgeID() (id uuid.UUID, exists bool) {
+	if m.skill_edge != nil {
+		return *m.skill_edge, true
+	}
+	return
+}
+
+// SkillEdgeIDs returns the "skill_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SkillEdgeID instead. It exists only for internal usage by the builders.
+func (m *EntitySkillMutation) SkillEdgeIDs() (ids []uuid.UUID) {
+	if id := m.skill_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSkillEdge resets all changes to the "skill_edge" edge.
+func (m *EntitySkillMutation) ResetSkillEdge() {
+	m.skill_edge = nil
+	m.clearedskill_edge = false
+}
+
+// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by id.
+func (m *EntitySkillMutation) SetHiringJobEdgeID(id uuid.UUID) {
+	m.hiring_job_edge = &id
+}
+
+// ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
+func (m *EntitySkillMutation) ClearHiringJobEdge() {
+	m.clearedhiring_job_edge = true
+}
+
+// HiringJobEdgeCleared reports if the "hiring_job_edge" edge to the HiringJob entity was cleared.
+func (m *EntitySkillMutation) HiringJobEdgeCleared() bool {
+	return m.EntityIDCleared() || m.clearedhiring_job_edge
+}
+
+// HiringJobEdgeID returns the "hiring_job_edge" edge ID in the mutation.
+func (m *EntitySkillMutation) HiringJobEdgeID() (id uuid.UUID, exists bool) {
+	if m.hiring_job_edge != nil {
+		return *m.hiring_job_edge, true
+	}
+	return
+}
+
+// HiringJobEdgeIDs returns the "hiring_job_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// HiringJobEdgeID instead. It exists only for internal usage by the builders.
+func (m *EntitySkillMutation) HiringJobEdgeIDs() (ids []uuid.UUID) {
+	if id := m.hiring_job_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetHiringJobEdge resets all changes to the "hiring_job_edge" edge.
+func (m *EntitySkillMutation) ResetHiringJobEdge() {
+	m.hiring_job_edge = nil
+	m.clearedhiring_job_edge = false
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *EntitySkillMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *EntitySkillMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *EntitySkillMutation) CandidateEdgeCleared() bool {
+	return m.EntityIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *EntitySkillMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *EntitySkillMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *EntitySkillMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// Where appends a list predicates to the EntitySkillMutation builder.
+func (m *EntitySkillMutation) Where(ps ...predicate.EntitySkill) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *EntitySkillMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (EntitySkill).
+func (m *EntitySkillMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EntitySkillMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, entityskill.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, entityskill.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, entityskill.FieldDeletedAt)
+	}
+	if m.entity_type != nil {
+		fields = append(fields, entityskill.FieldEntityType)
+	}
+	if m.hiring_job_edge != nil {
+		fields = append(fields, entityskill.FieldEntityID)
+	}
+	if m.skill_edge != nil {
+		fields = append(fields, entityskill.FieldSkillID)
+	}
+	if m.order_id != nil {
+		fields = append(fields, entityskill.FieldOrderID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EntitySkillMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case entityskill.FieldCreatedAt:
+		return m.CreatedAt()
+	case entityskill.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case entityskill.FieldDeletedAt:
+		return m.DeletedAt()
+	case entityskill.FieldEntityType:
+		return m.EntityType()
+	case entityskill.FieldEntityID:
+		return m.EntityID()
+	case entityskill.FieldSkillID:
+		return m.SkillID()
+	case entityskill.FieldOrderID:
+		return m.OrderID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EntitySkillMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case entityskill.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case entityskill.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case entityskill.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case entityskill.FieldEntityType:
+		return m.OldEntityType(ctx)
+	case entityskill.FieldEntityID:
+		return m.OldEntityID(ctx)
+	case entityskill.FieldSkillID:
+		return m.OldSkillID(ctx)
+	case entityskill.FieldOrderID:
+		return m.OldOrderID(ctx)
+	}
+	return nil, fmt.Errorf("unknown EntitySkill field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntitySkillMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case entityskill.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case entityskill.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case entityskill.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case entityskill.FieldEntityType:
+		v, ok := value.(entityskill.EntityType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntityType(v)
+		return nil
+	case entityskill.FieldEntityID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntityID(v)
+		return nil
+	case entityskill.FieldSkillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkillID(v)
+		return nil
+	case entityskill.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EntitySkillMutation) AddedFields() []string {
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, entityskill.FieldOrderID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EntitySkillMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case entityskill.FieldOrderID:
+		return m.AddedOrderID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntitySkillMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case entityskill.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EntitySkillMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(entityskill.FieldUpdatedAt) {
+		fields = append(fields, entityskill.FieldUpdatedAt)
+	}
+	if m.FieldCleared(entityskill.FieldDeletedAt) {
+		fields = append(fields, entityskill.FieldDeletedAt)
+	}
+	if m.FieldCleared(entityskill.FieldEntityID) {
+		fields = append(fields, entityskill.FieldEntityID)
+	}
+	if m.FieldCleared(entityskill.FieldSkillID) {
+		fields = append(fields, entityskill.FieldSkillID)
+	}
+	if m.FieldCleared(entityskill.FieldOrderID) {
+		fields = append(fields, entityskill.FieldOrderID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EntitySkillMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EntitySkillMutation) ClearField(name string) error {
+	switch name {
+	case entityskill.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case entityskill.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case entityskill.FieldEntityID:
+		m.ClearEntityID()
+		return nil
+	case entityskill.FieldSkillID:
+		m.ClearSkillID()
+		return nil
+	case entityskill.FieldOrderID:
+		m.ClearOrderID()
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EntitySkillMutation) ResetField(name string) error {
+	switch name {
+	case entityskill.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case entityskill.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case entityskill.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case entityskill.FieldEntityType:
+		m.ResetEntityType()
+		return nil
+	case entityskill.FieldEntityID:
+		m.ResetEntityID()
+		return nil
+	case entityskill.FieldSkillID:
+		m.ResetSkillID()
+		return nil
+	case entityskill.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EntitySkillMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.skill_edge != nil {
+		edges = append(edges, entityskill.EdgeSkillEdge)
+	}
+	if m.hiring_job_edge != nil {
+		edges = append(edges, entityskill.EdgeHiringJobEdge)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, entityskill.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EntitySkillMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case entityskill.EdgeSkillEdge:
+		if id := m.skill_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case entityskill.EdgeHiringJobEdge:
+		if id := m.hiring_job_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case entityskill.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EntitySkillMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EntitySkillMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EntitySkillMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedskill_edge {
+		edges = append(edges, entityskill.EdgeSkillEdge)
+	}
+	if m.clearedhiring_job_edge {
+		edges = append(edges, entityskill.EdgeHiringJobEdge)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, entityskill.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EntitySkillMutation) EdgeCleared(name string) bool {
+	switch name {
+	case entityskill.EdgeSkillEdge:
+		return m.clearedskill_edge
+	case entityskill.EdgeHiringJobEdge:
+		return m.clearedhiring_job_edge
+	case entityskill.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EntitySkillMutation) ClearEdge(name string) error {
+	switch name {
+	case entityskill.EdgeSkillEdge:
+		m.ClearSkillEdge()
+		return nil
+	case entityskill.EdgeHiringJobEdge:
+		m.ClearHiringJobEdge()
+		return nil
+	case entityskill.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EntitySkillMutation) ResetEdge(name string) error {
+	switch name {
+	case entityskill.EdgeSkillEdge:
+		m.ResetSkillEdge()
+		return nil
+	case entityskill.EdgeHiringJobEdge:
+		m.ResetHiringJobEdge()
+		return nil
+	case entityskill.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown EntitySkill edge %s", name)
+}
+
 // HiringJobMutation represents an operation that mutates the HiringJob nodes in the graph.
 type HiringJobMutation struct {
 	config
-	op                         Op
-	typ                        string
-	id                         *uuid.UUID
-	created_at                 *time.Time
-	updated_at                 *time.Time
-	deleted_at                 *time.Time
-	slug                       *string
-	name                       *string
-	description                *string
-	amount                     *int
-	addamount                  *int
-	status                     *hiringjob.Status
-	location                   *hiringjob.Location
-	salary_type                *hiringjob.SalaryType
-	salary_from                *int
-	addsalary_from             *int
-	salary_to                  *int
-	addsalary_to               *int
-	currency                   *hiringjob.Currency
-	last_apply_date            *time.Time
-	priority                   *int
-	addpriority                *int
-	clearedFields              map[string]struct{}
-	owner_edge                 *uuid.UUID
-	clearedowner_edge          bool
-	team_edge                  *uuid.UUID
-	clearedteam_edge           bool
-	candidate_job_edges        map[uuid.UUID]struct{}
-	removedcandidate_job_edges map[uuid.UUID]struct{}
-	clearedcandidate_job_edges bool
-	done                       bool
-	oldValue                   func(context.Context) (*HiringJob, error)
-	predicates                 []predicate.HiringJob
+	op                            Op
+	typ                           string
+	id                            *uuid.UUID
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	deleted_at                    *time.Time
+	slug                          *string
+	name                          *string
+	description                   *string
+	amount                        *int
+	addamount                     *int
+	status                        *hiringjob.Status
+	location                      *hiringjob.Location
+	salary_type                   *hiringjob.SalaryType
+	salary_from                   *int
+	addsalary_from                *int
+	salary_to                     *int
+	addsalary_to                  *int
+	currency                      *hiringjob.Currency
+	last_apply_date               *time.Time
+	priority                      *int
+	addpriority                   *int
+	clearedFields                 map[string]struct{}
+	owner_edge                    *uuid.UUID
+	clearedowner_edge             bool
+	team_edge                     *uuid.UUID
+	clearedteam_edge              bool
+	candidate_job_edges           map[uuid.UUID]struct{}
+	removedcandidate_job_edges    map[uuid.UUID]struct{}
+	clearedcandidate_job_edges    bool
+	hiring_job_skill_edges        map[uuid.UUID]struct{}
+	removedhiring_job_skill_edges map[uuid.UUID]struct{}
+	clearedhiring_job_skill_edges bool
+	done                          bool
+	oldValue                      func(context.Context) (*HiringJob, error)
+	predicates                    []predicate.HiringJob
 }
 
 var _ ent.Mutation = (*HiringJobMutation)(nil)
@@ -9495,6 +10542,60 @@ func (m *HiringJobMutation) ResetCandidateJobEdges() {
 	m.removedcandidate_job_edges = nil
 }
 
+// AddHiringJobSkillEdgeIDs adds the "hiring_job_skill_edges" edge to the EntitySkill entity by ids.
+func (m *HiringJobMutation) AddHiringJobSkillEdgeIDs(ids ...uuid.UUID) {
+	if m.hiring_job_skill_edges == nil {
+		m.hiring_job_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.hiring_job_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHiringJobSkillEdges clears the "hiring_job_skill_edges" edge to the EntitySkill entity.
+func (m *HiringJobMutation) ClearHiringJobSkillEdges() {
+	m.clearedhiring_job_skill_edges = true
+}
+
+// HiringJobSkillEdgesCleared reports if the "hiring_job_skill_edges" edge to the EntitySkill entity was cleared.
+func (m *HiringJobMutation) HiringJobSkillEdgesCleared() bool {
+	return m.clearedhiring_job_skill_edges
+}
+
+// RemoveHiringJobSkillEdgeIDs removes the "hiring_job_skill_edges" edge to the EntitySkill entity by IDs.
+func (m *HiringJobMutation) RemoveHiringJobSkillEdgeIDs(ids ...uuid.UUID) {
+	if m.removedhiring_job_skill_edges == nil {
+		m.removedhiring_job_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.hiring_job_skill_edges, ids[i])
+		m.removedhiring_job_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHiringJobSkillEdges returns the removed IDs of the "hiring_job_skill_edges" edge to the EntitySkill entity.
+func (m *HiringJobMutation) RemovedHiringJobSkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedhiring_job_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HiringJobSkillEdgesIDs returns the "hiring_job_skill_edges" edge IDs in the mutation.
+func (m *HiringJobMutation) HiringJobSkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.hiring_job_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHiringJobSkillEdges resets all changes to the "hiring_job_skill_edges" edge.
+func (m *HiringJobMutation) ResetHiringJobSkillEdges() {
+	m.hiring_job_skill_edges = nil
+	m.clearedhiring_job_skill_edges = false
+	m.removedhiring_job_skill_edges = nil
+}
+
 // Where appends a list predicates to the HiringJobMutation builder.
 func (m *HiringJobMutation) Where(ps ...predicate.HiringJob) {
 	m.predicates = append(m.predicates, ps...)
@@ -9969,7 +11070,7 @@ func (m *HiringJobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HiringJobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.owner_edge != nil {
 		edges = append(edges, hiringjob.EdgeOwnerEdge)
 	}
@@ -9978,6 +11079,9 @@ func (m *HiringJobMutation) AddedEdges() []string {
 	}
 	if m.candidate_job_edges != nil {
 		edges = append(edges, hiringjob.EdgeCandidateJobEdges)
+	}
+	if m.hiring_job_skill_edges != nil {
+		edges = append(edges, hiringjob.EdgeHiringJobSkillEdges)
 	}
 	return edges
 }
@@ -10000,15 +11104,24 @@ func (m *HiringJobMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case hiringjob.EdgeHiringJobSkillEdges:
+		ids := make([]ent.Value, 0, len(m.hiring_job_skill_edges))
+		for id := range m.hiring_job_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *HiringJobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, hiringjob.EdgeCandidateJobEdges)
+	}
+	if m.removedhiring_job_skill_edges != nil {
+		edges = append(edges, hiringjob.EdgeHiringJobSkillEdges)
 	}
 	return edges
 }
@@ -10023,13 +11136,19 @@ func (m *HiringJobMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case hiringjob.EdgeHiringJobSkillEdges:
+		ids := make([]ent.Value, 0, len(m.removedhiring_job_skill_edges))
+		for id := range m.removedhiring_job_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HiringJobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedowner_edge {
 		edges = append(edges, hiringjob.EdgeOwnerEdge)
 	}
@@ -10038,6 +11157,9 @@ func (m *HiringJobMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_job_edges {
 		edges = append(edges, hiringjob.EdgeCandidateJobEdges)
+	}
+	if m.clearedhiring_job_skill_edges {
+		edges = append(edges, hiringjob.EdgeHiringJobSkillEdges)
 	}
 	return edges
 }
@@ -10052,6 +11174,8 @@ func (m *HiringJobMutation) EdgeCleared(name string) bool {
 		return m.clearedteam_edge
 	case hiringjob.EdgeCandidateJobEdges:
 		return m.clearedcandidate_job_edges
+	case hiringjob.EdgeHiringJobSkillEdges:
+		return m.clearedhiring_job_skill_edges
 	}
 	return false
 }
@@ -10083,6 +11207,9 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 	case hiringjob.EdgeCandidateJobEdges:
 		m.ResetCandidateJobEdges()
 		return nil
+	case hiringjob.EdgeHiringJobSkillEdges:
+		m.ResetHiringJobSkillEdges()
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJob edge %s", name)
 }
@@ -10090,20 +11217,23 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 // SkillMutation represents an operation that mutates the Skill nodes in the graph.
 type SkillMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	created_at             *time.Time
-	updated_at             *time.Time
-	deleted_at             *time.Time
-	name                   *string
-	description            *string
-	clearedFields          map[string]struct{}
-	skill_type_edge        *uuid.UUID
-	clearedskill_type_edge bool
-	done                   bool
-	oldValue               func(context.Context) (*Skill, error)
-	predicates             []predicate.Skill
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	name                      *string
+	description               *string
+	clearedFields             map[string]struct{}
+	skill_type_edge           *uuid.UUID
+	clearedskill_type_edge    bool
+	entity_skill_edges        map[uuid.UUID]struct{}
+	removedentity_skill_edges map[uuid.UUID]struct{}
+	clearedentity_skill_edges bool
+	done                      bool
+	oldValue                  func(context.Context) (*Skill, error)
+	predicates                []predicate.Skill
 }
 
 var _ ent.Mutation = (*SkillMutation)(nil)
@@ -10517,6 +11647,60 @@ func (m *SkillMutation) ResetSkillTypeEdge() {
 	m.clearedskill_type_edge = false
 }
 
+// AddEntitySkillEdgeIDs adds the "entity_skill_edges" edge to the EntitySkill entity by ids.
+func (m *SkillMutation) AddEntitySkillEdgeIDs(ids ...uuid.UUID) {
+	if m.entity_skill_edges == nil {
+		m.entity_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.entity_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEntitySkillEdges clears the "entity_skill_edges" edge to the EntitySkill entity.
+func (m *SkillMutation) ClearEntitySkillEdges() {
+	m.clearedentity_skill_edges = true
+}
+
+// EntitySkillEdgesCleared reports if the "entity_skill_edges" edge to the EntitySkill entity was cleared.
+func (m *SkillMutation) EntitySkillEdgesCleared() bool {
+	return m.clearedentity_skill_edges
+}
+
+// RemoveEntitySkillEdgeIDs removes the "entity_skill_edges" edge to the EntitySkill entity by IDs.
+func (m *SkillMutation) RemoveEntitySkillEdgeIDs(ids ...uuid.UUID) {
+	if m.removedentity_skill_edges == nil {
+		m.removedentity_skill_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.entity_skill_edges, ids[i])
+		m.removedentity_skill_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEntitySkillEdges returns the removed IDs of the "entity_skill_edges" edge to the EntitySkill entity.
+func (m *SkillMutation) RemovedEntitySkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedentity_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EntitySkillEdgesIDs returns the "entity_skill_edges" edge IDs in the mutation.
+func (m *SkillMutation) EntitySkillEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.entity_skill_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEntitySkillEdges resets all changes to the "entity_skill_edges" edge.
+func (m *SkillMutation) ResetEntitySkillEdges() {
+	m.entity_skill_edges = nil
+	m.clearedentity_skill_edges = false
+	m.removedentity_skill_edges = nil
+}
+
 // Where appends a list predicates to the SkillMutation builder.
 func (m *SkillMutation) Where(ps ...predicate.Skill) {
 	m.predicates = append(m.predicates, ps...)
@@ -10747,9 +11931,12 @@ func (m *SkillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SkillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.skill_type_edge != nil {
 		edges = append(edges, skill.EdgeSkillTypeEdge)
+	}
+	if m.entity_skill_edges != nil {
+		edges = append(edges, skill.EdgeEntitySkillEdges)
 	}
 	return edges
 }
@@ -10762,27 +11949,47 @@ func (m *SkillMutation) AddedIDs(name string) []ent.Value {
 		if id := m.skill_type_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case skill.EdgeEntitySkillEdges:
+		ids := make([]ent.Value, 0, len(m.entity_skill_edges))
+		for id := range m.entity_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SkillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedentity_skill_edges != nil {
+		edges = append(edges, skill.EdgeEntitySkillEdges)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SkillMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case skill.EdgeEntitySkillEdges:
+		ids := make([]ent.Value, 0, len(m.removedentity_skill_edges))
+		for id := range m.removedentity_skill_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SkillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedskill_type_edge {
 		edges = append(edges, skill.EdgeSkillTypeEdge)
+	}
+	if m.clearedentity_skill_edges {
+		edges = append(edges, skill.EdgeEntitySkillEdges)
 	}
 	return edges
 }
@@ -10793,6 +12000,8 @@ func (m *SkillMutation) EdgeCleared(name string) bool {
 	switch name {
 	case skill.EdgeSkillTypeEdge:
 		return m.clearedskill_type_edge
+	case skill.EdgeEntitySkillEdges:
+		return m.clearedentity_skill_edges
 	}
 	return false
 }
@@ -10814,6 +12023,9 @@ func (m *SkillMutation) ResetEdge(name string) error {
 	switch name {
 	case skill.EdgeSkillTypeEdge:
 		m.ResetSkillTypeEdge()
+		return nil
+	case skill.EdgeEntitySkillEdges:
+		m.ResetEntitySkillEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown Skill edge %s", name)

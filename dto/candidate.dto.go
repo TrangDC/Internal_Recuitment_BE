@@ -106,6 +106,7 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 		}
 	}
 	entity = d.attachmentAuditTrailUpdate(oldRecord, newRecord, entity)
+	entity = d.skillAuditTrailUpdate(oldRecord, newRecord, entity)
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
@@ -145,6 +146,7 @@ func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {
 		})
 	}
 	entity = d.attachmentAuditTrail(record, entity)
+	entity = d.skillAuditTrail(record, entity)
 	return entity
 }
 
@@ -178,6 +180,42 @@ func (d candidateDtoImpl) attachmentAuditTrailUpdate(oldRecord *ent.Candidate, n
 			Value: models.ValueChange{
 				OldValue: oldAttachmentNames,
 				NewValue: newAttachmentNames,
+			},
+		})
+	}
+	return atInterface
+}
+
+func (d candidateDtoImpl) skillAuditTrail(record *ent.Candidate, atInterface []interface{}) []interface{} {
+	if len(record.Edges.CandidateSkillEdges) == 0 {
+		return atInterface
+	}
+	attachmentNames := lo.Map(record.Edges.CandidateSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	atInterface = append(atInterface, models.AuditTrailCreateDelete{
+		Field: "model.candidates.skills",
+		Value: attachmentNames,
+	})
+	return atInterface
+}
+
+func (d candidateDtoImpl) skillAuditTrailUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate, atInterface []interface{}) []interface{} {
+	if len(oldRecord.Edges.CandidateSkillEdges) == 0 && len(newRecord.Edges.CandidateSkillEdges) == 0 {
+		return atInterface
+	}
+	oldUserNames := lo.Map(oldRecord.Edges.CandidateSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	newUserNames := lo.Map(newRecord.Edges.CandidateSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	if !CompareArray(oldUserNames, newUserNames) {
+		atInterface = append(atInterface, models.AuditTrailUpdate{
+			Field: "model.candidates.skills",
+			Value: models.ValueChange{
+				OldValue: oldUserNames,
+				NewValue: newUserNames,
 			},
 		})
 	}

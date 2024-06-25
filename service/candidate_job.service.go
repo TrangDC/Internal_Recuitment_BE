@@ -330,6 +330,11 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 	}
 	svc.customFilter(query, filter)
 	svc.customFreeWord(query, freeWord)
+	count, err := svc.repoRegistry.CandidateJob().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
 	if orderBy != nil {
 		if ent.CandidateJobOrderByAdditionalField.IsValid(ent.CandidateJobOrderByAdditionalField(orderBy.Field.String())) {
 			candidateJobs, err = svc.getListByAdditionalOrder(ctx, query, page, perPage, orderBy)
@@ -390,6 +395,11 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 	}
 	result = &ent.CandidateJobGroupByStatusResponse{
 		Data: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
 	}
 	return result, nil
 }

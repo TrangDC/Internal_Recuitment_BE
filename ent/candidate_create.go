@@ -10,6 +10,7 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -263,6 +264,21 @@ func (cc *CandidateCreate) AddAttachmentEdges(a ...*Attachment) *CandidateCreate
 		ids[i] = a[i].ID
 	}
 	return cc.AddAttachmentEdgeIDs(ids...)
+}
+
+// AddCandidateSkillEdgeIDs adds the "candidate_skill_edges" edge to the EntitySkill entity by IDs.
+func (cc *CandidateCreate) AddCandidateSkillEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateSkillEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateSkillEdges adds the "candidate_skill_edges" edges to the EntitySkill entity.
+func (cc *CandidateCreate) AddCandidateSkillEdges(e ...*EntitySkill) *CandidateCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cc.AddCandidateSkillEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -553,6 +569,25 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateSkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
 				},
 			},
 		}

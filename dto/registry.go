@@ -15,6 +15,7 @@ type Dto interface {
 	CandidateJobFeedback() CandidateJobFeedbackDto
 	HiringJob() HiringJobDto
 	Skill() SkillDto
+	EntitySkill() EntitySkillDto
 	SkillType() SkillTypeDto
 	Team() TeamDto
 	User() UserDto
@@ -29,6 +30,7 @@ type dtoImpl struct {
 	candidateJobFeedbackDto CandidateJobFeedbackDto
 	hiringJobDto            HiringJobDto
 	skillDto                SkillDto
+	entitySkillDto          EntitySkillDto
 	skillTypeDto            SkillTypeDto
 	teamDto                 TeamDto
 	userDto                 UserDto
@@ -44,6 +46,7 @@ func NewDto() Dto {
 		candidateJobFeedbackDto: NewCandidateJobFeedbackDto(),
 		hiringJobDto:            NewHiringJobDto(),
 		skillDto:                NewSkillDto(),
+		entitySkillDto:          NewEntitySkillDto(),
 		skillTypeDto:            NewSkillTypeDto(),
 		teamDto:                 NewTeamDto(),
 		userDto:                 NewUserDto(),
@@ -96,6 +99,10 @@ func (i dtoImpl) Team() TeamDto {
 
 func (i dtoImpl) User() UserDto {
 	return i.userDto
+}
+
+func (i dtoImpl) EntitySkill() EntitySkillDto {
+	return i.entitySkillDto
 }
 
 func (i dtoImpl) SkillType() SkillTypeDto {

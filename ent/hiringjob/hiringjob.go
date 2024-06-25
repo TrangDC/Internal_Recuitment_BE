@@ -54,6 +54,8 @@ const (
 	EdgeTeamEdge = "team_edge"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
+	// EdgeHiringJobSkillEdges holds the string denoting the hiring_job_skill_edges edge name in mutations.
+	EdgeHiringJobSkillEdges = "hiring_job_skill_edges"
 	// Table holds the table name of the hiringjob in the database.
 	Table = "hiring_jobs"
 	// OwnerEdgeTable is the table that holds the owner_edge relation/edge.
@@ -77,6 +79,13 @@ const (
 	CandidateJobEdgesInverseTable = "candidate_jobs"
 	// CandidateJobEdgesColumn is the table column denoting the candidate_job_edges relation/edge.
 	CandidateJobEdgesColumn = "hiring_job_id"
+	// HiringJobSkillEdgesTable is the table that holds the hiring_job_skill_edges relation/edge.
+	HiringJobSkillEdgesTable = "entity_skills"
+	// HiringJobSkillEdgesInverseTable is the table name for the EntitySkill entity.
+	// It exists in this package in order to avoid circular dependency with the "entityskill" package.
+	HiringJobSkillEdgesInverseTable = "entity_skills"
+	// HiringJobSkillEdgesColumn is the table column denoting the hiring_job_skill_edges relation/edge.
+	HiringJobSkillEdgesColumn = "entity_id"
 )
 
 // Columns holds all SQL columns for hiringjob fields.

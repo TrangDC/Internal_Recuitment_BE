@@ -67,6 +67,11 @@ func (r *candidateResolver) Attachments(ctx context.Context, obj *ent.Candidate)
 	return obj.Edges.AttachmentEdges, nil
 }
 
+// EntitySkillTypes is the resolver for the entity_skill_types field.
+func (r *candidateResolver) EntitySkillTypes(ctx context.Context, obj *ent.Candidate) ([]*ent.EntitySkillType, error) {
+	return r.serviceRegistry.Candidate().GroupSkillType(obj.Edges.CandidateSkillEdges), nil
+}
+
 // ReferenceUser is the resolver for the reference_user field.
 func (r *candidateResolver) ReferenceUser(ctx context.Context, obj *ent.Candidate) (*ent.User, error) {
 	return obj.Edges.ReferenceUserEdge, nil

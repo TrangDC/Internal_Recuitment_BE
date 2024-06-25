@@ -12,6 +12,9 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
+	"trec/ent/skill"
+	"trec/ent/skilltype"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -82,6 +85,18 @@ func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
 	).WithReferenceUserEdge().WithAttachmentEdges(
 		func(query *ent.AttachmentQuery) {
 			query.Where(attachment.DeletedAtIsNil())
+		},
+	).WithCandidateSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
 		},
 	)
 }
@@ -195,6 +210,11 @@ func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Ca
 		return err
 	}
 	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobIDIn(candidateJobIds...)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.EntitySkill.Update().Where(entityskill.EntityIDEQ(record.ID)).
 		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
 	if err != nil {
 		return err

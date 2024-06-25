@@ -8,6 +8,7 @@ import (
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/internal/util"
 	"trec/repository"
@@ -29,6 +30,9 @@ type HiringJobService interface {
 		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
 	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error)
+
+	// resolved
+	GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType
 }
 type hiringJobSvcImpl struct {
 	repoRegistry repository.Repository
@@ -67,6 +71,10 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.HiringJob().CreateHiringJob(ctx, input)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeHiringJob)
 		return err
 	})
 	if err != nil {
@@ -98,6 +106,10 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.HiringJob().DeleteHiringJob(ctx, record)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.EntitySkill().DeleteAllEntitySkill(ctx, record.ID)
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailDelete(record)
@@ -139,6 +151,10 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJob(ctx, record, input)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, record.Edges.HiringJobSkillEdges, entityskill.EntityTypeHiringJob)
 		return err
 	})
 	if err != nil {
@@ -274,6 +290,10 @@ func (svc *hiringJobSvcImpl) Selections(ctx context.Context, pagination *ent.Pag
 		},
 	}
 	return result, nil
+}
+
+func (svc hiringJobSvcImpl) GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType {
+	return svc.dtoRegistry.EntitySkill().GroupSkillType(input)
 }
 
 func (svc *hiringJobSvcImpl) getHiringJobs(ctx context.Context, query *ent.HiringJobQuery, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,

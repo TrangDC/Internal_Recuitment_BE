@@ -23,6 +23,7 @@ type Repository interface {
 	CandidateJobStep() CandidateJobStepRepository
 	CandidateInterviewer() CandidateInterviewerRepository
 	Skill() SkillRepository
+	EntitySkill() EntitySkillRepository
 	SkillType() SkillTypeRepository
 
 	// DoInTx executes the given function in a transaction.
@@ -46,6 +47,7 @@ type RepoImpl struct {
 	candidateJobStep     CandidateJobStepRepository
 	candidateInterviewer CandidateInterviewerRepository
 	skill                SkillRepository
+	entitySkill          EntitySkillRepository
 	skillType            SkillTypeRepository
 }
 
@@ -66,6 +68,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		candidateJobStep:     NewCandidateJobStepRepository(entClient),
 		candidateInterviewer: NewCandidateInterviewerRepository(entClient),
 		skill:                NewSkillRepository(entClient),
+		entitySkill:          NewEntitySkillRepository(entClient),
 		skillType:            NewSkillTypeRepository(entClient),
 	}
 }
@@ -122,6 +125,10 @@ func (r *RepoImpl) Skill() SkillRepository {
 	return r.skill
 }
 
+func (r *RepoImpl) EntitySkill() EntitySkillRepository {
+	return r.entitySkill
+}
+
 func (r *RepoImpl) SkillType() SkillTypeRepository {
 	return r.skillType
 }
@@ -161,6 +168,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		candidateJobStep:     NewCandidateJobStepRepository(tx.Client()),
 		candidateInterviewer: NewCandidateInterviewerRepository(tx.Client()),
 		skill:                NewSkillRepository(tx.Client()),
+		entitySkill:          NewEntitySkillRepository(tx.Client()),
 		skillType:            NewSkillTypeRepository(tx.Client()),
 	}
 

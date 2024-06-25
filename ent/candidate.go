@@ -61,14 +61,17 @@ type CandidateEdges struct {
 	ReferenceUserEdge *User `json:"reference_user_edge,omitempty"`
 	// AttachmentEdges holds the value of the attachment_edges edge.
 	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
+	// CandidateSkillEdges holds the value of the candidate_skill_edges edge.
+	CandidateSkillEdges []*EntitySkill `json:"candidate_skill_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 
-	namedCandidateJobEdges map[string][]*CandidateJob
-	namedAttachmentEdges   map[string][]*Attachment
+	namedCandidateJobEdges   map[string][]*CandidateJob
+	namedAttachmentEdges     map[string][]*Attachment
+	namedCandidateSkillEdges map[string][]*EntitySkill
 }
 
 // CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
@@ -100,6 +103,15 @@ func (e CandidateEdges) AttachmentEdgesOrErr() ([]*Attachment, error) {
 		return e.AttachmentEdges, nil
 	}
 	return nil, &NotLoadedError{edge: "attachment_edges"}
+}
+
+// CandidateSkillEdgesOrErr returns the CandidateSkillEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateSkillEdgesOrErr() ([]*EntitySkill, error) {
+	if e.loadedTypes[3] {
+		return e.CandidateSkillEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_skill_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -246,6 +258,11 @@ func (c *Candidate) QueryAttachmentEdges() *AttachmentQuery {
 	return (&CandidateClient{config: c.config}).QueryAttachmentEdges(c)
 }
 
+// QueryCandidateSkillEdges queries the "candidate_skill_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateSkillEdges() *EntitySkillQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateSkillEdges(c)
+}
+
 // Update returns a builder for updating this Candidate.
 // Note that you need to call Candidate.Unwrap() before calling this method if this Candidate
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -362,6 +379,30 @@ func (c *Candidate) appendNamedAttachmentEdges(name string, edges ...*Attachment
 		c.Edges.namedAttachmentEdges[name] = []*Attachment{}
 	} else {
 		c.Edges.namedAttachmentEdges[name] = append(c.Edges.namedAttachmentEdges[name], edges...)
+	}
+}
+
+// NamedCandidateSkillEdges returns the CandidateSkillEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateSkillEdges(name string) ([]*EntitySkill, error) {
+	if c.Edges.namedCandidateSkillEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateSkillEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateSkillEdges(name string, edges ...*EntitySkill) {
+	if c.Edges.namedCandidateSkillEdges == nil {
+		c.Edges.namedCandidateSkillEdges = make(map[string][]*EntitySkill)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateSkillEdges[name] = []*EntitySkill{}
+	} else {
+		c.Edges.namedCandidateSkillEdges[name] = append(c.Edges.namedCandidateSkillEdges[name], edges...)
 	}
 }
 

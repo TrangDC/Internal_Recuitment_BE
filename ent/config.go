@@ -36,6 +36,7 @@ type hooks struct {
 	CandidateJob         []ent.Hook
 	CandidateJobFeedback []ent.Hook
 	CandidateJobStep     []ent.Hook
+	EntitySkill          []ent.Hook
 	HiringJob            []ent.Hook
 	Skill                []ent.Hook
 	SkillType            []ent.Hook

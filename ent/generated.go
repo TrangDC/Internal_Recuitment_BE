@@ -217,7 +217,8 @@ type CandidateJobGroupByStatusFreeWord struct {
 }
 
 type CandidateJobGroupByStatusResponse struct {
-	Data *CandidateJobGroupByStatus `json:"data"`
+	Data       *CandidateJobGroupByStatus `json:"data"`
+	Pagination *Pagination                `json:"pagination"`
 }
 
 type CandidateJobGroupInterviewFeedback struct {
@@ -256,6 +257,27 @@ type CandidateSelectionEdge struct {
 type CandidateSelectionResponseGetAll struct {
 	Edges      []*CandidateSelectionEdge `json:"edges"`
 	Pagination *Pagination               `json:"pagination"`
+}
+
+type EntitySkillRecord struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	OrderID     int     `json:"orderId"`
+}
+
+type EntitySkillRecordInput struct {
+	ID      *string `json:"id"`
+	SkillID string  `json:"skill_id"`
+	OrderID int     `json:"orderId"`
+}
+
+type EntitySkillType struct {
+	ID          string               `json:"id"`
+	Name        string               `json:"name"`
+	Description *string              `json:"description"`
+	Skills      []*EntitySkillRecord `json:"skills"`
+	OrderID     int                  `json:"orderId"`
 }
 
 type HiringJobFilter struct {
@@ -304,17 +326,18 @@ type NewAttachmentInput struct {
 }
 
 type NewCandidateInput struct {
-	Name           string                 `json:"name"`
-	Email          string                 `json:"email"`
-	Phone          string                 `json:"phone"`
-	Dob            *time.Time             `json:"dob"`
-	ReferenceType  CandidateReferenceType `json:"reference_type"`
-	ReferenceValue string                 `json:"reference_value"`
-	ReferenceUID   string                 `json:"reference_uid"`
-	RecruitTime    *time.Time             `json:"recruit_time"`
-	Description    string                 `json:"description"`
-	Country        string                 `json:"country"`
-	Attachments    []*NewAttachmentInput  `json:"attachments"`
+	Name               string                    `json:"name"`
+	Email              string                    `json:"email"`
+	Phone              string                    `json:"phone"`
+	Dob                *time.Time                `json:"dob"`
+	ReferenceType      CandidateReferenceType    `json:"reference_type"`
+	ReferenceValue     string                    `json:"reference_value"`
+	ReferenceUID       string                    `json:"reference_uid"`
+	RecruitTime        *time.Time                `json:"recruit_time"`
+	Description        string                    `json:"description"`
+	Country            string                    `json:"country"`
+	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+	Attachments        []*NewAttachmentInput     `json:"attachments"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -352,18 +375,19 @@ type NewCandidateJobInput struct {
 }
 
 type NewHiringJobInput struct {
-	Status      HiringJobStatus `json:"status"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Amount      int             `json:"amount"`
-	Location    LocationEnum    `json:"location"`
-	SalaryType  SalaryTypeEnum  `json:"salary_type"`
-	SalaryFrom  int             `json:"salary_from"`
-	SalaryTo    int             `json:"salary_to"`
-	Currency    CurrencyEnum    `json:"currency"`
-	TeamID      string          `json:"team_id"`
-	CreatedBy   string          `json:"created_by"`
-	Priority    int             `json:"priority"`
+	Status             HiringJobStatus           `json:"status"`
+	Name               string                    `json:"name"`
+	Description        string                    `json:"description"`
+	Amount             int                       `json:"amount"`
+	Location           LocationEnum              `json:"location"`
+	SalaryType         SalaryTypeEnum            `json:"salary_type"`
+	SalaryFrom         int                       `json:"salary_from"`
+	SalaryTo           int                       `json:"salary_to"`
+	Currency           CurrencyEnum              `json:"currency"`
+	TeamID             string                    `json:"team_id"`
+	CreatedBy          string                    `json:"created_by"`
+	Priority           int                       `json:"priority"`
+	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 }
 
 type NewSkillInput struct {
@@ -505,17 +529,18 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateInput struct {
-	Name           string                 `json:"name"`
-	Email          string                 `json:"email"`
-	Phone          string                 `json:"phone"`
-	Dob            *time.Time             `json:"dob"`
-	ReferenceType  CandidateReferenceType `json:"reference_type"`
-	ReferenceValue string                 `json:"reference_value"`
-	ReferenceUID   string                 `json:"reference_uid"`
-	RecruitTime    *time.Time             `json:"recruit_time"`
-	Description    string                 `json:"description"`
-	Country        string                 `json:"country"`
-	Attachments    []*NewAttachmentInput  `json:"attachments"`
+	Name               string                    `json:"name"`
+	Email              string                    `json:"email"`
+	Phone              string                    `json:"phone"`
+	Dob                *time.Time                `json:"dob"`
+	ReferenceType      CandidateReferenceType    `json:"reference_type"`
+	ReferenceValue     string                    `json:"reference_value"`
+	ReferenceUID       string                    `json:"reference_uid"`
+	RecruitTime        *time.Time                `json:"recruit_time"`
+	Description        string                    `json:"description"`
+	Country            string                    `json:"country"`
+	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+	Attachments        []*NewAttachmentInput     `json:"attachments"`
 }
 
 type UpdateCandidateInterviewInput struct {
@@ -550,23 +575,23 @@ type UpdateCandidateJobStatus struct {
 }
 
 type UpdateHiringJobInput struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Amount      int            `json:"amount"`
-	Location    LocationEnum   `json:"location"`
-	SalaryType  SalaryTypeEnum `json:"salary_type"`
-	SalaryFrom  int            `json:"salary_from"`
-	SalaryTo    int            `json:"salary_to"`
-	Currency    CurrencyEnum   `json:"currency"`
-	TeamID      string         `json:"team_id"`
-	CreatedBy   string         `json:"created_by"`
-	Priority    int            `json:"priority"`
+	Name               string                    `json:"name"`
+	Description        string                    `json:"description"`
+	Amount             int                       `json:"amount"`
+	Location           LocationEnum              `json:"location"`
+	SalaryType         SalaryTypeEnum            `json:"salary_type"`
+	SalaryFrom         int                       `json:"salary_from"`
+	SalaryTo           int                       `json:"salary_to"`
+	Currency           CurrencyEnum              `json:"currency"`
+	TeamID             string                    `json:"team_id"`
+	CreatedBy          string                    `json:"created_by"`
+	Priority           int                       `json:"priority"`
+	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 }
 
 type UpdateSkillInput struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	SkillTypeID *string `json:"skill_type_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type UpdateSkillTypeInput struct {

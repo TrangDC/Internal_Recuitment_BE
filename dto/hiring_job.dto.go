@@ -6,6 +6,8 @@ import (
 	"trec/ent"
 	"trec/ent/hiringjob"
 	"trec/models"
+
+	"github.com/samber/lo"
 )
 
 type HiringJobDto interface {
@@ -94,6 +96,7 @@ func (d hiringJobDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *
 			})
 		}
 	}
+	entity = d.skillAuditTrailUpdate(oldRecord, newRecord, entity)
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
@@ -130,7 +133,44 @@ func (d hiringJobDtoImpl) recordAudit(record *ent.HiringJob) []interface{} {
 			Value: valueField,
 		})
 	}
+	entity = d.skillAuditTrail(record, entity)
 	return entity
+}
+
+func (d hiringJobDtoImpl) skillAuditTrail(record *ent.HiringJob, atInterface []interface{}) []interface{} {
+	if len(record.Edges.HiringJobSkillEdges) == 0 {
+		return atInterface
+	}
+	attachmentNames := lo.Map(record.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	atInterface = append(atInterface, models.AuditTrailCreateDelete{
+		Field: "model.hiring_jobs.skills",
+		Value: attachmentNames,
+	})
+	return atInterface
+}
+
+func (d hiringJobDtoImpl) skillAuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob, atInterface []interface{}) []interface{} {
+	if len(oldRecord.Edges.HiringJobSkillEdges) == 0 && len(newRecord.Edges.HiringJobSkillEdges) == 0 {
+		return atInterface
+	}
+	oldUserNames := lo.Map(oldRecord.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	newUserNames := lo.Map(newRecord.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
+		return entity.Edges.SkillEdge.Name
+	})
+	if !CompareArray(oldUserNames, newUserNames) {
+		atInterface = append(atInterface, models.AuditTrailUpdate{
+			Field: "model.hiring_jobs.skills",
+			Value: models.ValueChange{
+				OldValue: oldUserNames,
+				NewValue: newUserNames,
+			},
+		})
+	}
+	return atInterface
 }
 
 func (d hiringJobDtoImpl) formatFieldI18n(input string) string {
