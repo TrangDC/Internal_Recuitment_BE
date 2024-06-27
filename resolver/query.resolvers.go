@@ -121,6 +121,16 @@ func (r *queryResolver) GetAllSkills(ctx context.Context, pagination *ent.Pagina
 	return r.serviceRegistry.Skill().GetSkills(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// GetSkillType is the resolver for the GetSkillType field.
+func (r *queryResolver) GetSkillType(ctx context.Context, id string) (*ent.SkillTypeResponse, error) {
+	return r.serviceRegistry.SkillType().GetSkillType(ctx, uuid.MustParse(id))
+}
+
+// GetAllSkillTypes is the resolver for the GetAllSkillTypes field.
+func (r *queryResolver) GetAllSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeResponseGetAll, error) {
+	return r.serviceRegistry.SkillType().GetSkillTypes(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // SelectionUsers is the resolver for the SelectionUsers field.
 func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error) {
 	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
@@ -144,6 +154,11 @@ func (r *queryResolver) SelectionCandidates(ctx context.Context, pagination *ent
 // SelectionSkills is the resolver for the SelectionSkills field.
 func (r *queryResolver) SelectionSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error) {
 	return r.serviceRegistry.Skill().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionSkillTypes is the resolver for the SelectionSkillTypes field.
+func (r *queryResolver) SelectionSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeSelectionResponseGetAll, error) {
+	return r.serviceRegistry.SkillType().Selections(ctx, pagination, freeWord, filter, orderBy)
 }
 
 // Query returns graphql1.QueryResolver implementation.

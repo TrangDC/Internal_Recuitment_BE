@@ -447,6 +447,22 @@ type SkillTypeResponseGetAll struct {
 	Pagination *Pagination      `json:"pagination"`
 }
 
+type SkillTypeSelection struct {
+	ID     string            `json:"id"`
+	Name   string            `json:"name"`
+	Skills []*SkillSelection `json:"skills"`
+}
+
+type SkillTypeSelectionEdge struct {
+	Node   *SkillTypeSelection `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+type SkillTypeSelectionResponseGetAll struct {
+	Edges      []*SkillTypeSelectionEdge `json:"edges"`
+	Pagination *Pagination               `json:"pagination"`
+}
+
 type TeamFilter struct {
 	Name *string `json:"name"`
 }
