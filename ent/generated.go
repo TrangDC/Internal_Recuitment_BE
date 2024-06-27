@@ -321,8 +321,9 @@ type HiringJobSelectionResponseGetAll struct {
 }
 
 type NewAttachmentInput struct {
-	DocumentName string `json:"document_name"`
-	DocumentID   string `json:"document_id"`
+	ID           *string `json:"id"`
+	DocumentName string  `json:"document_name"`
+	DocumentID   string  `json:"document_id"`
 }
 
 type NewCandidateInput struct {
@@ -1749,6 +1750,7 @@ const (
 	LocationEnumHoChiMinh LocationEnum = "ho_chi_minh"
 	LocationEnumDaNang    LocationEnum = "da_nang"
 	LocationEnumJapan     LocationEnum = "japan"
+	LocationEnumSingapore LocationEnum = "singapore"
 )
 
 var AllLocationEnum = []LocationEnum{
@@ -1756,11 +1758,12 @@ var AllLocationEnum = []LocationEnum{
 	LocationEnumHoChiMinh,
 	LocationEnumDaNang,
 	LocationEnumJapan,
+	LocationEnumSingapore,
 }
 
 func (e LocationEnum) IsValid() bool {
 	switch e {
-	case LocationEnumHaNoi, LocationEnumHoChiMinh, LocationEnumDaNang, LocationEnumJapan:
+	case LocationEnumHaNoi, LocationEnumHoChiMinh, LocationEnumDaNang, LocationEnumJapan, LocationEnumSingapore:
 		return true
 	}
 	return false

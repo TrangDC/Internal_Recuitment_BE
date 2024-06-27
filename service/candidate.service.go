@@ -69,7 +69,7 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 		if err != nil {
 			return err
 		}
-		_, err := svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, record.ID, attachment.RelationTypeCandidates, repoRegistry)
+		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, nil, attachment.RelationTypeCandidates)
 		if err != nil {
 			return err
 		}
@@ -154,15 +154,11 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateResult, err := repoRegistry.Candidate().UpdateCandidate(ctx, record, input)
+		_, err := repoRegistry.Candidate().UpdateCandidate(ctx, record, input)
 		if err != nil {
 			return err
 		}
-		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateResult.ID, repoRegistry)
-		if err != nil {
-			return err
-		}
-		_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateResult.ID, attachment.RelationTypeCandidates, repoRegistry)
+		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, record.Edges.AttachmentEdges, attachment.RelationTypeCandidates)
 		if err != nil {
 			return err
 		}

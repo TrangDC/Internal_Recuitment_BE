@@ -184,11 +184,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		err = svc.attachmentSvc.RemoveAttachment(ctx, candidateJob.ID, repoRegistry)
-		if err != nil {
-			return err
-		}
-		_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, candidateJob.ID, attachment.RelationTypeCandidateJobs, repoRegistry)
+		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, candidateJob.ID, input.Attachments, candidateJob.Edges.AttachmentEdges, attachment.RelationTypeCandidateJobs)
 		return err
 	})
 	if err != nil {

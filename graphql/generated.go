@@ -3585,6 +3585,7 @@ var sources = []*ast.Source{
 }
 
 input NewAttachmentInput {
+  id: ID
   document_name: String!
   document_id: ID!
 }
@@ -4326,6 +4327,7 @@ enum I18nLanguage {
   ho_chi_minh
   da_nang
   japan
+  singapore
 }
 
 enum SalaryTypeEnum {
@@ -26917,13 +26919,21 @@ func (ec *executionContext) unmarshalInputNewAttachmentInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"document_name", "document_id"}
+	fieldsInOrder := [...]string{"id", "document_name", "document_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "document_name":
 			var err error
 

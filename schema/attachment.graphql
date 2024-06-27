@@ -5,6 +5,7 @@ type Attachment {
 }
 
 input NewAttachmentInput {
+  id: ID
   document_name: String!
   document_id: ID!
 }

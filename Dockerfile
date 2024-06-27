@@ -18,7 +18,7 @@ COPY . .
 
 RUN make build COMMIT=${COMMIT}
 
-FROM alpine:3.18
+FROM golang:1.20-alpine
 
 RUN apk update && \
     apk add --no-cache tzdata ca-certificates gettext openssl bash
@@ -31,6 +31,10 @@ COPY --from=build /app/config.yaml .
 COPY --from=build /app/server .
 COPY --from=build /app/i18n/en.json /app/i18n/
 COPY --from=build /app/i18n/vi.json /app/i18n/
+COPY --from=build /app/scripts/import_master_data.go .
+COPY --from=build /app/start.sh .
+
+RUN chmod +x ./start.sh
 
 RUN chmod +x /app/server
 
@@ -40,4 +44,4 @@ USER app
 
 EXPOSE 8000
 
-ENTRYPOINT [ "./server" ]
+ENTRYPOINT ["sh", "start.sh"]
