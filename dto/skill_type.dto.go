@@ -7,22 +7,22 @@ import (
 	"trec/models"
 )
 
-type SkillDto interface {
-	AuditTrailCreate(record *ent.Skill) (string, error)
-	AuditTrailDelete(record *ent.Skill) (string, error)
-	AuditTrailUpdate(oldRecord *ent.Skill, newRecord *ent.Skill) (string, error)
+type SkillTypeDto interface {
+	AuditTrailCreate(record *ent.SkillType) (string, error)
+	AuditTrailDelete(record *ent.SkillType) (string, error)
+	AuditTrailUpdate(oldRecord *ent.SkillType, newRecord *ent.SkillType) (string, error)
 }
 
-type skillDtoImpl struct {
+type skillTypeDtoImpl struct {
 }
 
-func NewSkillDto() SkillDto {
-	return &skillDtoImpl{}
+func NewSkillTypeDto() SkillTypeDto {
+	return &skillTypeDtoImpl{}
 }
 
-func (d skillDtoImpl) AuditTrailCreate(record *ent.Skill) (string, error) {
+func (d skillTypeDtoImpl) AuditTrailCreate(record *ent.SkillType) (string, error) {
 	result := models.AuditTrailData{
-		Module: SkillI18n,
+		Module: SkillTypeI18n,
 		Create: d.recordAudit(record),
 		Update: []interface{}{},
 		Delete: []interface{}{},
@@ -31,9 +31,9 @@ func (d skillDtoImpl) AuditTrailCreate(record *ent.Skill) (string, error) {
 	return string(jsonObj), err
 }
 
-func (d skillDtoImpl) AuditTrailDelete(record *ent.Skill) (string, error) {
+func (d skillTypeDtoImpl) AuditTrailDelete(record *ent.SkillType) (string, error) {
 	result := models.AuditTrailData{
-		Module: SkillI18n,
+		Module: SkillTypeI18n,
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: d.recordAudit(record),
@@ -42,9 +42,9 @@ func (d skillDtoImpl) AuditTrailDelete(record *ent.Skill) (string, error) {
 	return string(jsonObj), err
 }
 
-func (d skillDtoImpl) AuditTrailUpdate(oldRecord *ent.Skill, newRecord *ent.Skill) (string, error) {
+func (d skillTypeDtoImpl) AuditTrailUpdate(oldRecord *ent.SkillType, newRecord *ent.SkillType) (string, error) {
 	result := models.AuditTrailData{
-		Module: SkillI18n,
+		Module: SkillTypeI18n,
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: []interface{}{},
@@ -77,7 +77,7 @@ func (d skillDtoImpl) AuditTrailUpdate(oldRecord *ent.Skill, newRecord *ent.Skil
 	return string(jsonObj), err
 }
 
-func (d skillDtoImpl) recordAudit(record *ent.Skill) []interface{} {
+func (d skillTypeDtoImpl) recordAudit(record *ent.SkillType) []interface{} {
 	entity := []interface{}{}
 	value := reflect.ValueOf(interface{}(record)).Elem()
 	recordType := reflect.TypeOf(record).Elem()
@@ -97,12 +97,12 @@ func (d skillDtoImpl) recordAudit(record *ent.Skill) []interface{} {
 	return entity
 }
 
-func (d skillDtoImpl) formatFieldI18n(input string) string {
+func (d skillTypeDtoImpl) formatFieldI18n(input string) string {
 	switch input {
 	case "Name":
-		return "model.skills.name"
+		return "model.skill_types.name"
 	case "Description":
-		return "model.skills.description"
+		return "model.skill_types.description"
 	}
 	return ""
 }

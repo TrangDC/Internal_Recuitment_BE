@@ -15,6 +15,7 @@ type Dto interface {
 	CandidateJobFeedback() CandidateJobFeedbackDto
 	HiringJob() HiringJobDto
 	Skill() SkillDto
+	SkillType() SkillTypeDto
 	Team() TeamDto
 	User() UserDto
 }
@@ -28,6 +29,7 @@ type dtoImpl struct {
 	candidateJobFeedbackDto CandidateJobFeedbackDto
 	hiringJobDto            HiringJobDto
 	skillDto                SkillDto
+	skillTypeDto            SkillTypeDto
 	teamDto                 TeamDto
 	userDto                 UserDto
 }
@@ -42,6 +44,7 @@ func NewDto() Dto {
 		candidateJobFeedbackDto: NewCandidateJobFeedbackDto(),
 		hiringJobDto:            NewHiringJobDto(),
 		skillDto:                NewSkillDto(),
+		skillTypeDto:            NewSkillTypeDto(),
 		teamDto:                 NewTeamDto(),
 		userDto:                 NewUserDto(),
 	}
@@ -54,6 +57,7 @@ var (
 	CandidateJobFeedbackI18n = "model.candidate_job_feedbacks.model_name"
 	HiringJobI18n            = "model.hiring_jobs.model_name"
 	SkillI18n                = "model.skills.model_name"
+	SkillTypeI18n            = "model.skill_types.model_name"
 	TeamI18n                 = "model.teams.model_name"
 	UserI18n                 = "model.users.model_name"
 )
@@ -92,6 +96,10 @@ func (i dtoImpl) Team() TeamDto {
 
 func (i dtoImpl) User() UserDto {
 	return i.userDto
+}
+
+func (i dtoImpl) SkillType() SkillTypeDto {
+	return i.skillTypeDto
 }
 
 func CompareArray(arr1, arr2 []string) bool {

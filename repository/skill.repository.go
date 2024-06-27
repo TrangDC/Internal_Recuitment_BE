@@ -16,6 +16,7 @@ type SkillRepository interface {
 	CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.Skill, error)
 	UpdateSkill(ctx context.Context, record *ent.Skill, input ent.UpdateSkillInput) (*ent.Skill, error)
 	DeleteSkill(ctx context.Context, record *ent.Skill) error
+	DeleteBulkSkill(ctx context.Context, skillTypeId uuid.UUID) error
 
 	// query
 	GetSkill(ctx context.Context, skillId uuid.UUID) (*ent.Skill, error)
@@ -104,6 +105,11 @@ func (rps *skillRepoImpl) UpdateSkill(ctx context.Context, record *ent.Skill, in
 
 func (rps *skillRepoImpl) DeleteSkill(ctx context.Context, record *ent.Skill) error {
 	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	return err
+}
+
+func (rps skillRepoImpl) DeleteBulkSkill(ctx context.Context, skillTypeId uuid.UUID) error {
+	_, err := rps.BuildDelete().Where(skill.SkillTypeIDEQ(skillTypeId)).Save(ctx)
 	return err
 }
 
