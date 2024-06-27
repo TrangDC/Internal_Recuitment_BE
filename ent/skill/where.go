@@ -634,6 +634,34 @@ func HasSkillTypeEdgeWith(preds ...predicate.SkillType) predicate.Skill {
 	})
 }
 
+// HasEntitySkillEdges applies the HasEdge predicate on the "entity_skill_edges" edge.
+func HasEntitySkillEdges() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EntitySkillEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EntitySkillEdgesTable, EntitySkillEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEntitySkillEdgesWith applies the HasEdge predicate on the "entity_skill_edges" edge with a given conditions (other predicates).
+func HasEntitySkillEdgesWith(preds ...predicate.EntitySkill) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EntitySkillEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EntitySkillEdgesTable, EntitySkillEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Skill) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {

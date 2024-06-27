@@ -80,6 +80,18 @@ func (c *Candidate) AttachmentEdges(ctx context.Context) (result []*Attachment, 
 	return result, err
 }
 
+func (c *Candidate) CandidateSkillEdges(ctx context.Context) (result []*EntitySkill, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateSkillEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateSkillEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateSkillEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (ci *CandidateInterview) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {
 	result, err := ci.Edges.CandidateJobEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -256,6 +268,30 @@ func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJo
 	return result, MaskNotFound(err)
 }
 
+func (es *EntitySkill) SkillEdge(ctx context.Context) (*Skill, error) {
+	result, err := es.Edges.SkillEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = es.QuerySkillEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (es *EntitySkill) HiringJobEdge(ctx context.Context) (*HiringJob, error) {
+	result, err := es.Edges.HiringJobEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = es.QueryHiringJobEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (es *EntitySkill) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := es.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = es.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (hj *HiringJob) OwnerEdge(ctx context.Context) (*User, error) {
 	result, err := hj.Edges.OwnerEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -284,12 +320,36 @@ func (hj *HiringJob) CandidateJobEdges(ctx context.Context) (result []*Candidate
 	return result, err
 }
 
+func (hj *HiringJob) HiringJobSkillEdges(ctx context.Context) (result []*EntitySkill, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = hj.NamedHiringJobSkillEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = hj.Edges.HiringJobSkillEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = hj.QueryHiringJobSkillEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (s *Skill) SkillTypeEdge(ctx context.Context) (*SkillType, error) {
 	result, err := s.Edges.SkillTypeEdgeOrErr()
 	if IsNotLoaded(err) {
 		result, err = s.QuerySkillTypeEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (s *Skill) EntitySkillEdges(ctx context.Context) (result []*EntitySkill, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = s.NamedEntitySkillEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = s.Edges.EntitySkillEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = s.QueryEntitySkillEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (st *SkillType) SkillEdges(ctx context.Context) (result []*Skill, err error) {

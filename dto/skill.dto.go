@@ -88,6 +88,8 @@ func (d skillDtoImpl) recordAudit(record *ent.Skill) []interface{} {
 		switch fieldName {
 		case "":
 			continue
+		case "model.skills.skill_type":
+			valueField = record.Edges.SkillTypeEdge.Name
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -103,6 +105,8 @@ func (d skillDtoImpl) formatFieldI18n(input string) string {
 		return "model.skills.name"
 	case "Description":
 		return "model.skills.description"
+	case "SkillTypeID":
+		return "model.skills.skill_type"
 	}
 	return ""
 }

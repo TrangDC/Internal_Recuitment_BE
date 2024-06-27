@@ -25,6 +25,8 @@ const (
 	FieldSkillTypeID = "skill_type_id"
 	// EdgeSkillTypeEdge holds the string denoting the skill_type_edge edge name in mutations.
 	EdgeSkillTypeEdge = "skill_type_edge"
+	// EdgeEntitySkillEdges holds the string denoting the entity_skill_edges edge name in mutations.
+	EdgeEntitySkillEdges = "entity_skill_edges"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// SkillTypeEdgeTable is the table that holds the skill_type_edge relation/edge.
@@ -34,6 +36,13 @@ const (
 	SkillTypeEdgeInverseTable = "skill_types"
 	// SkillTypeEdgeColumn is the table column denoting the skill_type_edge relation/edge.
 	SkillTypeEdgeColumn = "skill_type_id"
+	// EntitySkillEdgesTable is the table that holds the entity_skill_edges relation/edge.
+	EntitySkillEdgesTable = "entity_skills"
+	// EntitySkillEdgesInverseTable is the table name for the EntitySkill entity.
+	// It exists in this package in order to avoid circular dependency with the "entityskill" package.
+	EntitySkillEdgesInverseTable = "entity_skills"
+	// EntitySkillEdgesColumn is the table column denoting the entity_skill_edges relation/edge.
+	EntitySkillEdgesColumn = "skill_id"
 )
 
 // Columns holds all SQL columns for skill fields.

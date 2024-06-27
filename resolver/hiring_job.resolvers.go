@@ -73,6 +73,11 @@ func (r *hiringJobResolver) IsAbleToClose(ctx context.Context, obj *ent.HiringJo
 	return true, nil
 }
 
+// EntitySkillTypes is the resolver for the entity_skill_types field.
+func (r *hiringJobResolver) EntitySkillTypes(ctx context.Context, obj *ent.HiringJob) ([]*ent.EntitySkillType, error) {
+	return r.serviceRegistry.HiringJob().GroupSkillType(obj.Edges.HiringJobSkillEdges), nil
+}
+
 // HiringJob returns graphql1.HiringJobResolver implementation.
 func (r *Resolver) HiringJob() graphql1.HiringJobResolver { return &hiringJobResolver{r} }
 

@@ -37,6 +37,7 @@ func (Candidate) Edges() []ent.Edge {
 		edge.To("candidate_job_edges", CandidateJob.Type),
 		edge.From("reference_user_edge", User.Type).Ref("candidate_reference_edges").Unique().Field("reference_uid"),
 		edge.To("attachment_edges", Attachment.Type),
+		edge.To("candidate_skill_edges", EntitySkill.Type),
 	}
 }
 

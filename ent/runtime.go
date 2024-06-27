@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/schema"
 	"trec/ent/skill"
@@ -179,6 +180,15 @@ func init() {
 	candidatejobstepDescCreatedAt := candidatejobstepMixinFields0[1].Descriptor()
 	// candidatejobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobstep.DefaultCreatedAt = candidatejobstepDescCreatedAt.Default.(func() time.Time)
+	entityskillMixin := schema.EntitySkill{}.Mixin()
+	entityskillMixinFields0 := entityskillMixin[0].Fields()
+	_ = entityskillMixinFields0
+	entityskillFields := schema.EntitySkill{}.Fields()
+	_ = entityskillFields
+	// entityskillDescCreatedAt is the schema descriptor for created_at field.
+	entityskillDescCreatedAt := entityskillMixinFields0[1].Descriptor()
+	// entityskill.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entityskill.DefaultCreatedAt = entityskillDescCreatedAt.Default.(func() time.Time)
 	hiringjobMixin := schema.HiringJob{}.Mixin()
 	hiringjobMixinFields0 := hiringjobMixin[0].Fields()
 	_ = hiringjobMixinFields0

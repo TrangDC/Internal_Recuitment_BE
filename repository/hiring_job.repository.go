@@ -7,7 +7,10 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/skill"
+	"trec/ent/skilltype"
 	"trec/ent/user"
 	"trec/internal/util"
 
@@ -68,6 +71,18 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	).WithHiringJobSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
 				},
 			)
 		},
@@ -144,6 +159,14 @@ func (rps *hiringJobRepoImpl) UpdateHiringJobStatus(ctx context.Context, record 
 
 func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error {
 	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.EntitySkill.Update().Where(entityskill.EntityIDEQ(record.ID)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
 	return err
 }
 

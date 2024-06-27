@@ -68,6 +68,7 @@ input NewHiringJobInput {
   team_id: ID!
   created_by: ID!
   priority: Int!
+  entity_skill_records: [EntitySkillRecordInput!]
 }
 
 input UpdateHiringJobInput {
@@ -82,6 +83,7 @@ input UpdateHiringJobInput {
   team_id: ID!
   created_by: ID!
   priority: Int!
+  entity_skill_records: [EntitySkillRecordInput!]
 }
 
 type HiringJob {
@@ -102,6 +104,7 @@ type HiringJob {
   is_able_to_delete: Boolean!
   is_able_to_close: Boolean!
   priority: Int!
+  entity_skill_types: [EntitySkillType!]
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

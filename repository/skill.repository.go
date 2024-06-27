@@ -7,6 +7,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/skill"
+	"trec/ent/skilltype"
 
 	"github.com/google/uuid"
 )
@@ -53,7 +54,9 @@ func (rps skillRepoImpl) BuildDelete() *ent.SkillUpdate {
 }
 
 func (rps skillRepoImpl) BuildQuery() *ent.SkillQuery {
-	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil())
+	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil(), skill.HasSkillTypeEdgeWith(
+		skilltype.DeletedAtIsNil(),
+	)).WithSkillTypeEdge()
 }
 
 func (rps skillRepoImpl) BuildBaseQuery() *ent.SkillQuery {
@@ -92,7 +95,8 @@ func (rps *skillRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.Sk
 func (rps *skillRepoImpl) CreateSkill(ctx context.Context, input ent.NewSkillInput) (*ent.Skill, error) {
 	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).
-		SetDescription(strings.TrimSpace(input.Description))
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetSkillTypeID(uuid.MustParse(*input.SkillTypeID))
 	return create.Save(ctx)
 }
 

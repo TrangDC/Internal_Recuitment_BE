@@ -275,6 +275,43 @@ var (
 			},
 		},
 	}
+	// EntitySkillsColumns holds the columns for the "entity_skills" table.
+	EntitySkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "entity_type", Type: field.TypeEnum, Enums: []string{"candidate", "hiring_job"}},
+		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "entity_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "skill_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// EntitySkillsTable holds the schema information for the "entity_skills" table.
+	EntitySkillsTable = &schema.Table{
+		Name:       "entity_skills",
+		Columns:    EntitySkillsColumns,
+		PrimaryKey: []*schema.Column{EntitySkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_skills_candidates_candidate_skill_edges",
+				Columns:    []*schema.Column{EntitySkillsColumns[6]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entity_skills_hiring_jobs_hiring_job_skill_edges",
+				Columns:    []*schema.Column{EntitySkillsColumns[6]},
+				RefColumns: []*schema.Column{HiringJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entity_skills_skills_entity_skill_edges",
+				Columns:    []*schema.Column{EntitySkillsColumns[7]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// HiringJobsColumns holds the columns for the "hiring_jobs" table.
 	HiringJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -433,6 +470,7 @@ var (
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
+		EntitySkillsTable,
 		HiringJobsTable,
 		SkillsTable,
 		SkillTypesTable,
@@ -459,6 +497,9 @@ func init() {
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	EntitySkillsTable.ForeignKeys[0].RefTable = CandidatesTable
+	EntitySkillsTable.ForeignKeys[1].RefTable = HiringJobsTable
+	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable

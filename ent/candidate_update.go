@@ -10,6 +10,7 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/ent/user"
 
@@ -307,6 +308,21 @@ func (cu *CandidateUpdate) AddAttachmentEdges(a ...*Attachment) *CandidateUpdate
 	return cu.AddAttachmentEdgeIDs(ids...)
 }
 
+// AddCandidateSkillEdgeIDs adds the "candidate_skill_edges" edge to the EntitySkill entity by IDs.
+func (cu *CandidateUpdate) AddCandidateSkillEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateSkillEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateSkillEdges adds the "candidate_skill_edges" edges to the EntitySkill entity.
+func (cu *CandidateUpdate) AddCandidateSkillEdges(e ...*EntitySkill) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cu.AddCandidateSkillEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
@@ -358,6 +374,27 @@ func (cu *CandidateUpdate) RemoveAttachmentEdges(a ...*Attachment) *CandidateUpd
 		ids[i] = a[i].ID
 	}
 	return cu.RemoveAttachmentEdgeIDs(ids...)
+}
+
+// ClearCandidateSkillEdges clears all "candidate_skill_edges" edges to the EntitySkill entity.
+func (cu *CandidateUpdate) ClearCandidateSkillEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateSkillEdges()
+	return cu
+}
+
+// RemoveCandidateSkillEdgeIDs removes the "candidate_skill_edges" edge to EntitySkill entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateSkillEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateSkillEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateSkillEdges removes "candidate_skill_edges" edges to EntitySkill entities.
+func (cu *CandidateUpdate) RemoveCandidateSkillEdges(e ...*EntitySkill) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cu.RemoveCandidateSkillEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -684,6 +721,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.CandidateSkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateSkillEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateSkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateSkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidate.Label}
@@ -978,6 +1069,21 @@ func (cuo *CandidateUpdateOne) AddAttachmentEdges(a ...*Attachment) *CandidateUp
 	return cuo.AddAttachmentEdgeIDs(ids...)
 }
 
+// AddCandidateSkillEdgeIDs adds the "candidate_skill_edges" edge to the EntitySkill entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateSkillEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateSkillEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateSkillEdges adds the "candidate_skill_edges" edges to the EntitySkill entity.
+func (cuo *CandidateUpdateOne) AddCandidateSkillEdges(e ...*EntitySkill) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cuo.AddCandidateSkillEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
@@ -1029,6 +1135,27 @@ func (cuo *CandidateUpdateOne) RemoveAttachmentEdges(a ...*Attachment) *Candidat
 		ids[i] = a[i].ID
 	}
 	return cuo.RemoveAttachmentEdgeIDs(ids...)
+}
+
+// ClearCandidateSkillEdges clears all "candidate_skill_edges" edges to the EntitySkill entity.
+func (cuo *CandidateUpdateOne) ClearCandidateSkillEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateSkillEdges()
+	return cuo
+}
+
+// RemoveCandidateSkillEdgeIDs removes the "candidate_skill_edges" edge to EntitySkill entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateSkillEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateSkillEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateSkillEdges removes "candidate_skill_edges" edges to EntitySkill entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateSkillEdges(e ...*EntitySkill) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return cuo.RemoveCandidateSkillEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1377,6 +1504,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateSkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateSkillEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateSkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateSkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateSkillEdgesTable,
+			Columns: []string{candidate.CandidateSkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
 				},
 			},
 		}

@@ -39,11 +39,15 @@ type Skill struct {
 type SkillEdges struct {
 	// SkillTypeEdge holds the value of the skill_type_edge edge.
 	SkillTypeEdge *SkillType `json:"skill_type_edge,omitempty"`
+	// EntitySkillEdges holds the value of the entity_skill_edges edge.
+	EntitySkillEdges []*EntitySkill `json:"entity_skill_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
+
+	namedEntitySkillEdges map[string][]*EntitySkill
 }
 
 // SkillTypeEdgeOrErr returns the SkillTypeEdge value or an error if the edge
@@ -57,6 +61,15 @@ func (e SkillEdges) SkillTypeEdgeOrErr() (*SkillType, error) {
 		return e.SkillTypeEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "skill_type_edge"}
+}
+
+// EntitySkillEdgesOrErr returns the EntitySkillEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillEdges) EntitySkillEdgesOrErr() ([]*EntitySkill, error) {
+	if e.loadedTypes[1] {
+		return e.EntitySkillEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "entity_skill_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -137,6 +150,11 @@ func (s *Skill) QuerySkillTypeEdge() *SkillTypeQuery {
 	return (&SkillClient{config: s.config}).QuerySkillTypeEdge(s)
 }
 
+// QueryEntitySkillEdges queries the "entity_skill_edges" edge of the Skill entity.
+func (s *Skill) QueryEntitySkillEdges() *EntitySkillQuery {
+	return (&SkillClient{config: s.config}).QueryEntitySkillEdges(s)
+}
+
 // Update returns a builder for updating this Skill.
 // Note that you need to call Skill.Unwrap() before calling this method if this Skill
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -179,6 +197,30 @@ func (s *Skill) String() string {
 	builder.WriteString(fmt.Sprintf("%v", s.SkillTypeID))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedEntitySkillEdges returns the EntitySkillEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (s *Skill) NamedEntitySkillEdges(name string) ([]*EntitySkill, error) {
+	if s.Edges.namedEntitySkillEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := s.Edges.namedEntitySkillEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (s *Skill) appendNamedEntitySkillEdges(name string, edges ...*EntitySkill) {
+	if s.Edges.namedEntitySkillEdges == nil {
+		s.Edges.namedEntitySkillEdges = make(map[string][]*EntitySkill)
+	}
+	if len(edges) == 0 {
+		s.Edges.namedEntitySkillEdges[name] = []*EntitySkill{}
+	} else {
+		s.Edges.namedEntitySkillEdges[name] = append(s.Edges.namedEntitySkillEdges[name], edges...)
+	}
 }
 
 // Skills is a parsable slice of Skill.

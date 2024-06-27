@@ -136,8 +136,10 @@ input UpdateCandidateJobStatus {
 type CandidateJobResponse {
   data: CandidateJob
 }
+
 type CandidateJobGroupByStatusResponse {
   data: CandidateJobGroupByStatus
+  pagination: Pagination!
 }
 
 type CandidateJobGroupByInterviewResponse {

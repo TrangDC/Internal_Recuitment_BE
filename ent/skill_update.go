@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -135,6 +136,21 @@ func (su *SkillUpdate) SetSkillTypeEdge(s *SkillType) *SkillUpdate {
 	return su.SetSkillTypeEdgeID(s.ID)
 }
 
+// AddEntitySkillEdgeIDs adds the "entity_skill_edges" edge to the EntitySkill entity by IDs.
+func (su *SkillUpdate) AddEntitySkillEdgeIDs(ids ...uuid.UUID) *SkillUpdate {
+	su.mutation.AddEntitySkillEdgeIDs(ids...)
+	return su
+}
+
+// AddEntitySkillEdges adds the "entity_skill_edges" edges to the EntitySkill entity.
+func (su *SkillUpdate) AddEntitySkillEdges(e ...*EntitySkill) *SkillUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return su.AddEntitySkillEdgeIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (su *SkillUpdate) Mutation() *SkillMutation {
 	return su.mutation
@@ -144,6 +160,27 @@ func (su *SkillUpdate) Mutation() *SkillMutation {
 func (su *SkillUpdate) ClearSkillTypeEdge() *SkillUpdate {
 	su.mutation.ClearSkillTypeEdge()
 	return su
+}
+
+// ClearEntitySkillEdges clears all "entity_skill_edges" edges to the EntitySkill entity.
+func (su *SkillUpdate) ClearEntitySkillEdges() *SkillUpdate {
+	su.mutation.ClearEntitySkillEdges()
+	return su
+}
+
+// RemoveEntitySkillEdgeIDs removes the "entity_skill_edges" edge to EntitySkill entities by IDs.
+func (su *SkillUpdate) RemoveEntitySkillEdgeIDs(ids ...uuid.UUID) *SkillUpdate {
+	su.mutation.RemoveEntitySkillEdgeIDs(ids...)
+	return su
+}
+
+// RemoveEntitySkillEdges removes "entity_skill_edges" edges to EntitySkill entities.
+func (su *SkillUpdate) RemoveEntitySkillEdges(e ...*EntitySkill) *SkillUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return su.RemoveEntitySkillEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -295,6 +332,60 @@ func (su *SkillUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if su.mutation.EntitySkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedEntitySkillEdgesIDs(); len(nodes) > 0 && !su.mutation.EntitySkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.EntitySkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
@@ -419,6 +510,21 @@ func (suo *SkillUpdateOne) SetSkillTypeEdge(s *SkillType) *SkillUpdateOne {
 	return suo.SetSkillTypeEdgeID(s.ID)
 }
 
+// AddEntitySkillEdgeIDs adds the "entity_skill_edges" edge to the EntitySkill entity by IDs.
+func (suo *SkillUpdateOne) AddEntitySkillEdgeIDs(ids ...uuid.UUID) *SkillUpdateOne {
+	suo.mutation.AddEntitySkillEdgeIDs(ids...)
+	return suo
+}
+
+// AddEntitySkillEdges adds the "entity_skill_edges" edges to the EntitySkill entity.
+func (suo *SkillUpdateOne) AddEntitySkillEdges(e ...*EntitySkill) *SkillUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return suo.AddEntitySkillEdgeIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (suo *SkillUpdateOne) Mutation() *SkillMutation {
 	return suo.mutation
@@ -428,6 +534,27 @@ func (suo *SkillUpdateOne) Mutation() *SkillMutation {
 func (suo *SkillUpdateOne) ClearSkillTypeEdge() *SkillUpdateOne {
 	suo.mutation.ClearSkillTypeEdge()
 	return suo
+}
+
+// ClearEntitySkillEdges clears all "entity_skill_edges" edges to the EntitySkill entity.
+func (suo *SkillUpdateOne) ClearEntitySkillEdges() *SkillUpdateOne {
+	suo.mutation.ClearEntitySkillEdges()
+	return suo
+}
+
+// RemoveEntitySkillEdgeIDs removes the "entity_skill_edges" edge to EntitySkill entities by IDs.
+func (suo *SkillUpdateOne) RemoveEntitySkillEdgeIDs(ids ...uuid.UUID) *SkillUpdateOne {
+	suo.mutation.RemoveEntitySkillEdgeIDs(ids...)
+	return suo
+}
+
+// RemoveEntitySkillEdges removes "entity_skill_edges" edges to EntitySkill entities.
+func (suo *SkillUpdateOne) RemoveEntitySkillEdges(e ...*EntitySkill) *SkillUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return suo.RemoveEntitySkillEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -601,6 +728,60 @@ func (suo *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: skilltype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.EntitySkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedEntitySkillEdgesIDs(); len(nodes) > 0 && !suo.mutation.EntitySkillEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.EntitySkillEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.EntitySkillEdgesTable,
+			Columns: []string{skill.EntitySkillEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entityskill.FieldID,
 				},
 			},
 		}

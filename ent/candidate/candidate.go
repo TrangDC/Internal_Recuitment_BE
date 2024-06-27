@@ -50,6 +50,8 @@ const (
 	EdgeReferenceUserEdge = "reference_user_edge"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
+	// EdgeCandidateSkillEdges holds the string denoting the candidate_skill_edges edge name in mutations.
+	EdgeCandidateSkillEdges = "candidate_skill_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -73,6 +75,13 @@ const (
 	AttachmentEdgesInverseTable = "attachments"
 	// AttachmentEdgesColumn is the table column denoting the attachment_edges relation/edge.
 	AttachmentEdgesColumn = "relation_id"
+	// CandidateSkillEdgesTable is the table that holds the candidate_skill_edges relation/edge.
+	CandidateSkillEdgesTable = "entity_skills"
+	// CandidateSkillEdgesInverseTable is the table name for the EntitySkill entity.
+	// It exists in this package in order to avoid circular dependency with the "entityskill" package.
+	CandidateSkillEdgesInverseTable = "entity_skills"
+	// CandidateSkillEdgesColumn is the table column denoting the candidate_skill_edges relation/edge.
+	CandidateSkillEdgesColumn = "entity_id"
 )
 
 // Columns holds all SQL columns for candidate fields.

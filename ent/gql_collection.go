@@ -247,6 +247,18 @@ func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.Operation
 			c.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
 				*wq = *query
 			})
+		case "candidateSkillEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntitySkillQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedCandidateSkillEdges(alias, func(wq *EntitySkillQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -842,6 +854,105 @@ func newCandidateJobStepPaginateArgs(rv map[string]interface{}) *candidatejobste
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (es *EntitySkillQuery) CollectFields(ctx context.Context, satisfies ...string) (*EntitySkillQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return es, nil
+	}
+	if err := es.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return es, nil
+}
+
+func (es *EntitySkillQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "skillEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &SkillQuery{config: es.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			es.withSkillEdge = query
+		case "hiringJobEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: es.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			es.withHiringJobEdge = query
+		case "candidateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: es.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			es.withCandidateEdge = query
+		}
+	}
+	return nil
+}
+
+type entityskillPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EntitySkillPaginateOption
+}
+
+func newEntitySkillPaginateArgs(rv map[string]interface{}) *entityskillPaginateArgs {
+	args := &entityskillPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &EntitySkillOrder{Field: &EntitySkillOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithEntitySkillOrder(order))
+			}
+		case *EntitySkillOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithEntitySkillOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (hj *HiringJobQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringJobQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -887,6 +998,18 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.WithNamedCandidateJobEdges(alias, func(wq *CandidateJobQuery) {
+				*wq = *query
+			})
+		case "hiringJobSkillEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntitySkillQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.WithNamedHiringJobSkillEdges(alias, func(wq *EntitySkillQuery) {
 				*wq = *query
 			})
 		}
@@ -968,6 +1091,18 @@ func (s *SkillQuery) collectField(ctx context.Context, op *graphql.OperationCont
 				return err
 			}
 			s.withSkillTypeEdge = query
+		case "entitySkillEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntitySkillQuery{config: s.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			s.WithNamedEntitySkillEdges(alias, func(wq *EntitySkillQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil

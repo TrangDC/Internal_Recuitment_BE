@@ -38,6 +38,7 @@ func (HiringJob) Edges() []ent.Edge {
 		edge.From("owner_edge", User.Type).Ref("hiring_owner").Unique().Field("created_by"),
 		edge.From("team_edge", Team.Type).Ref("team_job_edges").Unique().Field("team_id"),
 		edge.To("candidate_job_edges", CandidateJob.Type),
+		edge.To("hiring_job_skill_edges", EntitySkill.Type),
 	}
 }
 

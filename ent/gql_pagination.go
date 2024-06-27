@@ -18,6 +18,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -2738,6 +2739,308 @@ func (cjs *CandidateJobStep) ToEdge(order *CandidateJobStepOrder) *CandidateJobS
 	return &CandidateJobStepEdge{
 		Node:   cjs,
 		Cursor: order.Field.toCursor(cjs),
+	}
+}
+
+// EntitySkillEdge is the edge representation of EntitySkill.
+type EntitySkillEdge struct {
+	Node   *EntitySkill `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// EntitySkillConnection is the connection containing edges to EntitySkill.
+type EntitySkillConnection struct {
+	Edges      []*EntitySkillEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *EntitySkillConnection) build(nodes []*EntitySkill, pager *entityskillPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *EntitySkill
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *EntitySkill {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *EntitySkill {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*EntitySkillEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &EntitySkillEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// EntitySkillPaginateOption enables pagination customization.
+type EntitySkillPaginateOption func(*entityskillPager) error
+
+// WithEntitySkillOrder configures pagination ordering.
+func WithEntitySkillOrder(order *EntitySkillOrder) EntitySkillPaginateOption {
+	if order == nil {
+		order = DefaultEntitySkillOrder
+	}
+	o := *order
+	return func(pager *entityskillPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultEntitySkillOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithEntitySkillFilter configures pagination filter.
+func WithEntitySkillFilter(filter func(*EntitySkillQuery) (*EntitySkillQuery, error)) EntitySkillPaginateOption {
+	return func(pager *entityskillPager) error {
+		if filter == nil {
+			return errors.New("EntitySkillQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type entityskillPager struct {
+	order  *EntitySkillOrder
+	filter func(*EntitySkillQuery) (*EntitySkillQuery, error)
+}
+
+func newEntitySkillPager(opts []EntitySkillPaginateOption) (*entityskillPager, error) {
+	pager := &entityskillPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultEntitySkillOrder
+	}
+	return pager, nil
+}
+
+func (p *entityskillPager) applyFilter(query *EntitySkillQuery) (*EntitySkillQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *entityskillPager) toCursor(es *EntitySkill) Cursor {
+	return p.order.Field.toCursor(es)
+}
+
+func (p *entityskillPager) applyCursors(query *EntitySkillQuery, after, before *Cursor) *EntitySkillQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultEntitySkillOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *entityskillPager) applyOrder(query *EntitySkillQuery, reverse bool) *EntitySkillQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultEntitySkillOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultEntitySkillOrder.Field.field))
+	}
+	return query
+}
+
+func (p *entityskillPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultEntitySkillOrder.Field {
+			b.Comma().Ident(DefaultEntitySkillOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to EntitySkill.
+func (es *EntitySkillQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...EntitySkillPaginateOption,
+) (*EntitySkillConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newEntitySkillPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if es, err = pager.applyFilter(es); err != nil {
+		return nil, err
+	}
+	conn := &EntitySkillConnection{Edges: []*EntitySkillEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = es.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	es = pager.applyCursors(es, after, before)
+	es = pager.applyOrder(es, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		es.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := es.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := es.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// EntitySkillOrderFieldCreatedAt orders EntitySkill by created_at.
+	EntitySkillOrderFieldCreatedAt = &EntitySkillOrderField{
+		field: entityskill.FieldCreatedAt,
+		toCursor: func(es *EntitySkill) Cursor {
+			return Cursor{
+				ID:    es.ID,
+				Value: es.CreatedAt,
+			}
+		},
+	}
+	// EntitySkillOrderFieldUpdatedAt orders EntitySkill by updated_at.
+	EntitySkillOrderFieldUpdatedAt = &EntitySkillOrderField{
+		field: entityskill.FieldUpdatedAt,
+		toCursor: func(es *EntitySkill) Cursor {
+			return Cursor{
+				ID:    es.ID,
+				Value: es.UpdatedAt,
+			}
+		},
+	}
+	// EntitySkillOrderFieldDeletedAt orders EntitySkill by deleted_at.
+	EntitySkillOrderFieldDeletedAt = &EntitySkillOrderField{
+		field: entityskill.FieldDeletedAt,
+		toCursor: func(es *EntitySkill) Cursor {
+			return Cursor{
+				ID:    es.ID,
+				Value: es.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f EntitySkillOrderField) String() string {
+	var str string
+	switch f.field {
+	case entityskill.FieldCreatedAt:
+		str = "created_at"
+	case entityskill.FieldUpdatedAt:
+		str = "updated_at"
+	case entityskill.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f EntitySkillOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *EntitySkillOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("EntitySkillOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *EntitySkillOrderFieldCreatedAt
+	case "updated_at":
+		*f = *EntitySkillOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *EntitySkillOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid EntitySkillOrderField", str)
+	}
+	return nil
+}
+
+// EntitySkillOrderField defines the ordering field of EntitySkill.
+type EntitySkillOrderField struct {
+	field    string
+	toCursor func(*EntitySkill) Cursor
+}
+
+// EntitySkillOrder defines the ordering of EntitySkill.
+type EntitySkillOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *EntitySkillOrderField `json:"field"`
+}
+
+// DefaultEntitySkillOrder is the default ordering of EntitySkill.
+var DefaultEntitySkillOrder = &EntitySkillOrder{
+	Direction: OrderDirectionAsc,
+	Field: &EntitySkillOrderField{
+		field: entityskill.FieldID,
+		toCursor: func(es *EntitySkill) Cursor {
+			return Cursor{ID: es.ID}
+		},
+	},
+}
+
+// ToEdge converts EntitySkill into EntitySkillEdge.
+func (es *EntitySkill) ToEdge(order *EntitySkillOrder) *EntitySkillEdge {
+	if order == nil {
+		order = DefaultEntitySkillOrder
+	}
+	return &EntitySkillEdge{
+		Node:   es,
+		Cursor: order.Field.toCursor(es),
 	}
 }
 

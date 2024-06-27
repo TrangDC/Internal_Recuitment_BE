@@ -64,16 +64,17 @@ func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInpu
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	jsonString, err := svc.dtoRegistry.Skill().AuditTrailCreate(record)
+	result, _ := svc.repoRegistry.Skill().GetSkill(ctx, record.ID)
+	jsonString, err := svc.dtoRegistry.Skill().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.SkillResponse{
-		Data: record,
+		Data: result,
 	}, nil
 }
 

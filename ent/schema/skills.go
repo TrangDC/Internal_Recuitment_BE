@@ -23,6 +23,7 @@ func (Skill) Fields() []ent.Field {
 func (Skill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("skill_type_edge", SkillType.Type).Ref("skill_edges").Unique().Field("skill_type_id"),
+		edge.To("entity_skill_edges", EntitySkill.Type),
 	}
 }
 
