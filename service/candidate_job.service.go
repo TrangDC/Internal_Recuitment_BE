@@ -318,7 +318,7 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		candidatejob.HasCandidateEdgeWith(
 			candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
 		), candidatejob.HasHiringJobEdgeWith(
-			hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened),
+			hiringjob.DeletedAtIsNil(),
 		))
 	if pagination != nil {
 		page = *pagination.Page

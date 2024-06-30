@@ -172,7 +172,7 @@ type EntitySkillType {
   id: ID!
   name: String!
   description: String
-  skills: [EntitySkillRecord!]
+  entity_skills: [EntitySkillRecord!]
   orderId: Int!
 }
 
@@ -180,6 +180,7 @@ type EntitySkillRecord {
   id: ID!
   name: String!
   description: String
+  skill_id: ID!
   orderId: Int!
 }
 

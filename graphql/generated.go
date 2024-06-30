@@ -313,14 +313,15 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
 		OrderID     func(childComplexity int) int
+		SkillID     func(childComplexity int) int
 	}
 
 	EntitySkillType struct {
-		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		OrderID     func(childComplexity int) int
-		Skills      func(childComplexity int) int
+		Description  func(childComplexity int) int
+		EntitySkills func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		OrderID      func(childComplexity int) int
 	}
 
 	HiringJob struct {
@@ -1845,12 +1846,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EntitySkillRecord.OrderID(childComplexity), true
 
+	case "EntitySkillRecord.skill_id":
+		if e.complexity.EntitySkillRecord.SkillID == nil {
+			break
+		}
+
+		return e.complexity.EntitySkillRecord.SkillID(childComplexity), true
+
 	case "EntitySkillType.description":
 		if e.complexity.EntitySkillType.Description == nil {
 			break
 		}
 
 		return e.complexity.EntitySkillType.Description(childComplexity), true
+
+	case "EntitySkillType.entity_skills":
+		if e.complexity.EntitySkillType.EntitySkills == nil {
+			break
+		}
+
+		return e.complexity.EntitySkillType.EntitySkills(childComplexity), true
 
 	case "EntitySkillType.id":
 		if e.complexity.EntitySkillType.ID == nil {
@@ -1872,13 +1887,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EntitySkillType.OrderID(childComplexity), true
-
-	case "EntitySkillType.skills":
-		if e.complexity.EntitySkillType.Skills == nil {
-			break
-		}
-
-		return e.complexity.EntitySkillType.Skills(childComplexity), true
 
 	case "HiringJob.amount":
 		if e.complexity.HiringJob.Amount == nil {
@@ -4226,7 +4234,7 @@ type EntitySkillType {
   id: ID!
   name: String!
   description: String
-  skills: [EntitySkillRecord!]
+  entity_skills: [EntitySkillRecord!]
   orderId: Int!
 }
 
@@ -4234,6 +4242,7 @@ type EntitySkillRecord {
   id: ID!
   name: String!
   description: String
+  skill_id: ID!
   orderId: Int!
 }
 
@@ -4684,6 +4693,7 @@ input NewSkillInput {
 input UpdateSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 type Skill {
@@ -8978,8 +8988,8 @@ func (ec *executionContext) fieldContext_Candidate_entity_skill_types(ctx contex
 				return ec.fieldContext_EntitySkillType_name(ctx, field)
 			case "description":
 				return ec.fieldContext_EntitySkillType_description(ctx, field)
-			case "skills":
-				return ec.fieldContext_EntitySkillType_skills(ctx, field)
+			case "entity_skills":
+				return ec.fieldContext_EntitySkillType_entity_skills(ctx, field)
 			case "orderId":
 				return ec.fieldContext_EntitySkillType_orderId(ctx, field)
 			}
@@ -14264,6 +14274,50 @@ func (ec *executionContext) fieldContext_EntitySkillRecord_description(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _EntitySkillRecord_skill_id(ctx context.Context, field graphql.CollectedField, obj *ent.EntitySkillRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EntitySkillRecord_skill_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SkillID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EntitySkillRecord_skill_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EntitySkillRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EntitySkillRecord_orderId(ctx context.Context, field graphql.CollectedField, obj *ent.EntitySkillRecord) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EntitySkillRecord_orderId(ctx, field)
 	if err != nil {
@@ -14437,8 +14491,8 @@ func (ec *executionContext) fieldContext_EntitySkillType_description(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _EntitySkillType_skills(ctx context.Context, field graphql.CollectedField, obj *ent.EntitySkillType) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_EntitySkillType_skills(ctx, field)
+func (ec *executionContext) _EntitySkillType_entity_skills(ctx context.Context, field graphql.CollectedField, obj *ent.EntitySkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EntitySkillType_entity_skills(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -14451,7 +14505,7 @@ func (ec *executionContext) _EntitySkillType_skills(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Skills, nil
+		return obj.EntitySkills, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14465,7 +14519,7 @@ func (ec *executionContext) _EntitySkillType_skills(ctx context.Context, field g
 	return ec.marshalOEntitySkillRecord2ᚕᚖtrecᚋentᚐEntitySkillRecordᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_EntitySkillType_skills(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_EntitySkillType_entity_skills(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "EntitySkillType",
 		Field:      field,
@@ -14479,6 +14533,8 @@ func (ec *executionContext) fieldContext_EntitySkillType_skills(ctx context.Cont
 				return ec.fieldContext_EntitySkillRecord_name(ctx, field)
 			case "description":
 				return ec.fieldContext_EntitySkillRecord_description(ctx, field)
+			case "skill_id":
+				return ec.fieldContext_EntitySkillRecord_skill_id(ctx, field)
 			case "orderId":
 				return ec.fieldContext_EntitySkillRecord_orderId(ctx, field)
 			}
@@ -15354,8 +15410,8 @@ func (ec *executionContext) fieldContext_HiringJob_entity_skill_types(ctx contex
 				return ec.fieldContext_EntitySkillType_name(ctx, field)
 			case "description":
 				return ec.fieldContext_EntitySkillType_description(ctx, field)
-			case "skills":
-				return ec.fieldContext_EntitySkillType_skills(ctx, field)
+			case "entity_skills":
+				return ec.fieldContext_EntitySkillType_entity_skills(ctx, field)
 			case "orderId":
 				return ec.fieldContext_EntitySkillType_orderId(ctx, field)
 			}
@@ -28411,7 +28467,7 @@ func (ec *executionContext) unmarshalInputUpdateSkillInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description"}
+	fieldsInOrder := [...]string{"name", "description", "skill_type_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28431,6 +28487,14 @@ func (ec *executionContext) unmarshalInputUpdateSkillInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_type_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_type_id"))
+			it.SkillTypeID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30995,6 +31059,13 @@ func (ec *executionContext) _EntitySkillRecord(ctx context.Context, sel ast.Sele
 
 			out.Values[i] = ec._EntitySkillRecord_description(ctx, field, obj)
 
+		case "skill_id":
+
+			out.Values[i] = ec._EntitySkillRecord_skill_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "orderId":
 
 			out.Values[i] = ec._EntitySkillRecord_orderId(ctx, field, obj)
@@ -31041,9 +31112,9 @@ func (ec *executionContext) _EntitySkillType(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._EntitySkillType_description(ctx, field, obj)
 
-		case "skills":
+		case "entity_skills":
 
-			out.Values[i] = ec._EntitySkillType_skills(ctx, field, obj)
+			out.Values[i] = ec._EntitySkillType_entity_skills(ctx, field, obj)
 
 		case "orderId":
 

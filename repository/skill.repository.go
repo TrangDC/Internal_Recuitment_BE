@@ -103,7 +103,8 @@ func (rps *skillRepoImpl) CreateSkill(ctx context.Context, input ent.NewSkillInp
 func (rps *skillRepoImpl) UpdateSkill(ctx context.Context, record *ent.Skill, input ent.UpdateSkillInput) (*ent.Skill, error) {
 	update := rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
-		SetDescription(strings.TrimSpace(input.Description))
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetSkillTypeID(uuid.MustParse(*input.SkillTypeID))
 	return update.Save(ctx)
 }
 
