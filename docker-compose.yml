@@ -56,12 +56,13 @@ services:
 
   backend-api:
 
-    # build:
+    build:
 
-    #   context: .
+      context: .
 
-    #   dockerfile: Dockerfile
-    image: trec
+      dockerfile: Dockerfile
+
+    command: ["api"]
 
     depends_on:
 
