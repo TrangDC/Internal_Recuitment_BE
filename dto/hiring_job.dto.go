@@ -213,6 +213,8 @@ func (d hiringJobDtoImpl) locationI18n(input hiringjob.Location) string {
 		return "model.hiring_jobs.location_enum.da_nang"
 	case hiringjob.LocationJapan:
 		return "model.hiring_jobs.location_enum.japan"
+	case hiringjob.LocationSingapore:
+		return "model.hiring_jobs.location_enum.singapore"
 	}
 	return ""
 }

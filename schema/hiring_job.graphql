@@ -3,6 +3,7 @@ enum LocationEnum {
   ho_chi_minh
   da_nang
   japan
+  singapore
 }
 
 enum SalaryTypeEnum {

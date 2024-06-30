@@ -119,13 +119,11 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		var err error
-		result, err := repoRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, record, input)
+		_, err = repoRegistry.CandidateJobFeedback().UpdateCandidateJobFeedback(ctx, record, input)
 		if err != nil {
 			return err
 		}
-		if input.Attachments != nil {
-			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, result.ID, attachment.RelationTypeCandidateJobFeedbacks, repoRegistry)
-		}
+		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, record.Edges.AttachmentEdges, attachment.RelationTypeCandidateJobFeedbacks)
 		return err
 	})
 	if err != nil {

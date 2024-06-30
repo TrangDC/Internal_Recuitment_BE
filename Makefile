@@ -57,6 +57,9 @@ migratedbdryrun: hashdb
 migratedb: hashdb migratedbdryrun
 	atlas migrate apply --url $(POSTGRES_URL) --dir file://migrations
 
+migratemaster: 
+	@go run scripts/import_master_data.go
+
 api: build
 	./server api
 

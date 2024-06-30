@@ -7,6 +7,7 @@ import (
 	"trec/ent/attachment"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type AttachmentRepository interface {
@@ -22,6 +23,10 @@ type AttachmentRepository interface {
 	BuildCount(ctx context.Context, query *ent.AttachmentQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.AttachmentQuery) ([]*ent.Attachment, error)
 	BuildGet(ctx context.Context, query *ent.AttachmentQuery) (*ent.Attachment, error)
+
+	CreateAndUpdateAttachment(ctx context.Context, relationId uuid.UUID, input []*ent.NewAttachmentInput,
+		attachmentRecords []*ent.Attachment, relationType attachment.RelationType) error
+	DeleteAllAttachment(ctx context.Context, relationId uuid.UUID) error
 }
 
 type attachmentRepoImpl struct {
@@ -105,4 +110,72 @@ func (rps *attachmentRepoImpl) GetAttachment(ctx context.Context, attachmentId u
 
 func (rps *attachmentRepoImpl) GetAttachments(ctx context.Context, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error) {
 	return rps.BuildQuery().Where(attachment.RelationIDEQ(relationId), attachment.RelationTypeEQ(relationType)).All(ctx)
+}
+
+func (rps attachmentRepoImpl) CreateBulkAttachment(ctx context.Context, input []*ent.NewAttachmentInput,
+	relationId uuid.UUID, relationType attachment.RelationType) error {
+	var recordCreate []*ent.AttachmentCreate
+	for _, entity := range input {
+		recordCreate = append(recordCreate,
+			rps.client.Attachment.Create().
+				SetRelationID(relationId).
+				SetRelationType(relationType).
+				SetDocumentID(uuid.MustParse(entity.DocumentID)).
+				SetDocumentName(entity.DocumentName).
+				SetCreatedAt(time.Now().UTC()).
+				SetUpdatedAt(time.Now().UTC()),
+		)
+	}
+	_, err := rps.client.Attachment.CreateBulk(recordCreate...).Save(ctx)
+	return err
+}
+
+func (rps attachmentRepoImpl) DeleteAttachment(ctx context.Context, attachmentIds []uuid.UUID) error {
+	_, err := rps.client.Attachment.Update().Where(attachment.IDIn(attachmentIds...)).
+		SetDeletedAt(time.Now().UTC()).
+		SetUpdatedAt(time.Now().UTC()).
+		Save(ctx)
+	return err
+}
+
+func (rps attachmentRepoImpl) DeleteAllAttachment(ctx context.Context, relationId uuid.UUID) error {
+	_, err := rps.client.Attachment.Update().Where(attachment.RelationIDEQ(relationId)).
+		SetDeletedAt(time.Now().UTC()).
+		SetUpdatedAt(time.Now().UTC()).
+		Save(ctx)
+	return err
+}
+
+func (rps attachmentRepoImpl) CreateAndUpdateAttachment(ctx context.Context, relationId uuid.UUID, input []*ent.NewAttachmentInput,
+	attachmentRecords []*ent.Attachment, relationType attachment.RelationType) error {
+	var newInput []*ent.NewAttachmentInput
+	var deletedIds []uuid.UUID
+	for _, entity := range input {
+		if entity.ID == nil || *entity.ID == "" {
+			newInput = append(newInput, entity)
+		}
+	}
+	if len(attachmentRecords) > 0 {
+		for _, entity := range attachmentRecords {
+			_, exist := lo.Find(input, func(record *ent.NewAttachmentInput) bool {
+				return record.ID != nil && *record.ID != "" && *record.ID == entity.ID.String()
+			})
+			if !exist {
+				deletedIds = append(deletedIds, entity.ID)
+			}
+		}
+	}
+	if len(newInput) > 0 {
+		err := rps.CreateBulkAttachment(ctx, newInput, relationId, relationType)
+		if err != nil {
+			return err
+		}
+	}
+	if len(deletedIds) > 0 {
+		err := rps.DeleteAttachment(ctx, deletedIds)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

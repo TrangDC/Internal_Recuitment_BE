@@ -175,6 +175,7 @@ const (
 	LocationHoChiMinh Location = "ho_chi_minh"
 	LocationDaNang    Location = "da_nang"
 	LocationJapan     Location = "japan"
+	LocationSingapore Location = "singapore"
 )
 
 func (l Location) String() string {
@@ -184,7 +185,7 @@ func (l Location) String() string {
 // LocationValidator is a validator for the "location" field enum values. It is called by the builders before save.
 func LocationValidator(l Location) error {
 	switch l {
-	case LocationHaNoi, LocationHoChiMinh, LocationDaNang, LocationJapan:
+	case LocationHaNoi, LocationHoChiMinh, LocationDaNang, LocationJapan, LocationSingapore:
 		return nil
 	default:
 		return fmt.Errorf("hiringjob: invalid enum value for location field: %q", l)

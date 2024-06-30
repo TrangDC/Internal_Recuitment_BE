@@ -22,7 +22,7 @@ func (HiringJob) Fields() []ent.Field {
 		field.Enum("status").Values("draft", "opened", "closed").Default("opened"),
 		field.UUID("created_by", uuid.UUID{}).Optional().Annotations(),
 		field.UUID("team_id", uuid.UUID{}).Optional().Annotations(),
-		field.Enum("location").Values("ha_noi", "ho_chi_minh", "da_nang", "japan"),
+		field.Enum("location").Values("ha_noi", "ho_chi_minh", "da_nang", "japan", "singapore"),
 		field.Enum("salary_type").Values("range", "up_to", "negotiate", "minimum"),
 		field.Int("salary_from").Default(0).Annotations(entgql.OrderField("salary_from")),
 		field.Int("salary_to").Default(0).Annotations(entgql.OrderField("salary_to")),
