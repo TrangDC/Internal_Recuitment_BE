@@ -1,0 +1,5 @@
+id,title,group_id
+675c373e-537d-42c6-a323-2a3101eb720b,model.permisson_groups.teams.create,5aca9e88-1fb8-4e27-a59d-ed1318380ee9
+203937da-f438-4936-90ff-de2cff379fc3,model.permisson_groups.teams.update,5aca9e88-1fb8-4e27-a59d-ed1318380ee9
+7d42a893-fdc7-493f-b72b-5b87eee56d48,model.permisson_groups.teams.view,5aca9e88-1fb8-4e27-a59d-ed1318380ee9
+baba66e7-1dba-434e-a951-28cfdc671f91,model.permisson_groups.teams.delete,5aca9e88-1fb8-4e27-a59d-ed1318380ee9
