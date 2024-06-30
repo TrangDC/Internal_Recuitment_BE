@@ -26,6 +26,7 @@ input NewSkillInput {
 input UpdateSkillInput {
   name: String!
   description: String!
+  skill_type_id: ID
 }
 
 type Skill {

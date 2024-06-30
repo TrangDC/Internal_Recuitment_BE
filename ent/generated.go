@@ -263,6 +263,7 @@ type EntitySkillRecord struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
+	SkillID     string  `json:"skill_id"`
 	OrderID     int     `json:"orderId"`
 }
 
@@ -273,11 +274,11 @@ type EntitySkillRecordInput struct {
 }
 
 type EntitySkillType struct {
-	ID          string               `json:"id"`
-	Name        string               `json:"name"`
-	Description *string              `json:"description"`
-	Skills      []*EntitySkillRecord `json:"skills"`
-	OrderID     int                  `json:"orderId"`
+	ID           string               `json:"id"`
+	Name         string               `json:"name"`
+	Description  *string              `json:"description"`
+	EntitySkills []*EntitySkillRecord `json:"entity_skills"`
+	OrderID      int                  `json:"orderId"`
 }
 
 type HiringJobFilter struct {
@@ -591,8 +592,9 @@ type UpdateHiringJobInput struct {
 }
 
 type UpdateSkillInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	SkillTypeID *string `json:"skill_type_id"`
 }
 
 type UpdateSkillTypeInput struct {

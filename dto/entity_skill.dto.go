@@ -46,10 +46,11 @@ func (dto *entitySkillDtoImpl) GroupSkillType(input []*ent.EntitySkill) []*ent.E
 			return &ent.EntitySkillRecord{
 				ID:      entity2.ID.String(),
 				Name:    entity2.Edges.SkillEdge.Name,
+				SkillID: entity2.Edges.SkillEdge.ID.String(),
 				OrderID: entity2.OrderID,
 			}
 		})
-		entity.Skills = newSkills
+		entity.EntitySkills = newSkills
 	}
 	return result
 }
