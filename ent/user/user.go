@@ -28,6 +28,8 @@ const (
 	FieldStatus = "status"
 	// FieldOid holds the string denoting the oid field in the database.
 	FieldOid = "oid"
+	// FieldTeamID holds the string denoting the team_id field in the database.
+	FieldTeamID = "team_id"
 	// EdgeAuditEdge holds the string denoting the audit_edge edge name in mutations.
 	EdgeAuditEdge = "audit_edge"
 	// EdgeHiringOwner holds the string denoting the hiring_owner edge name in mutations.
@@ -44,10 +46,18 @@ const (
 	EdgeCandidateInterviewEdges = "candidate_interview_edges"
 	// EdgeCandidateReferenceEdges holds the string denoting the candidate_reference_edges edge name in mutations.
 	EdgeCandidateReferenceEdges = "candidate_reference_edges"
+	// EdgeUserPermissionEdges holds the string denoting the user_permission_edges edge name in mutations.
+	EdgeUserPermissionEdges = "user_permission_edges"
+	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
+	EdgeTeamEdge = "team_edge"
+	// EdgeRoleEdges holds the string denoting the role_edges edge name in mutations.
+	EdgeRoleEdges = "role_edges"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
+	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
+	EdgeRoleUsers = "role_users"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// AuditEdgeTable is the table that holds the audit_edge relation/edge.
@@ -102,6 +112,25 @@ const (
 	CandidateReferenceEdgesInverseTable = "candidates"
 	// CandidateReferenceEdgesColumn is the table column denoting the candidate_reference_edges relation/edge.
 	CandidateReferenceEdgesColumn = "reference_uid"
+	// UserPermissionEdgesTable is the table that holds the user_permission_edges relation/edge.
+	UserPermissionEdgesTable = "entity_permissions"
+	// UserPermissionEdgesInverseTable is the table name for the EntityPermission entity.
+	// It exists in this package in order to avoid circular dependency with the "entitypermission" package.
+	UserPermissionEdgesInverseTable = "entity_permissions"
+	// UserPermissionEdgesColumn is the table column denoting the user_permission_edges relation/edge.
+	UserPermissionEdgesColumn = "entity_id"
+	// TeamEdgeTable is the table that holds the team_edge relation/edge.
+	TeamEdgeTable = "users"
+	// TeamEdgeInverseTable is the table name for the Team entity.
+	// It exists in this package in order to avoid circular dependency with the "team" package.
+	TeamEdgeInverseTable = "teams"
+	// TeamEdgeColumn is the table column denoting the team_edge relation/edge.
+	TeamEdgeColumn = "team_id"
+	// RoleEdgesTable is the table that holds the role_edges relation/edge. The primary key declared below.
+	RoleEdgesTable = "user_roles"
+	// RoleEdgesInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RoleEdgesInverseTable = "roles"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.
@@ -116,6 +145,13 @@ const (
 	InterviewUsersInverseTable = "candidate_interviewers"
 	// InterviewUsersColumn is the table column denoting the interview_users relation/edge.
 	InterviewUsersColumn = "user_id"
+	// RoleUsersTable is the table that holds the role_users relation/edge.
+	RoleUsersTable = "user_roles"
+	// RoleUsersInverseTable is the table name for the UserRole entity.
+	// It exists in this package in order to avoid circular dependency with the "userrole" package.
+	RoleUsersInverseTable = "user_roles"
+	// RoleUsersColumn is the table column denoting the role_users relation/edge.
+	RoleUsersColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -128,6 +164,7 @@ var Columns = []string{
 	FieldWorkEmail,
 	FieldStatus,
 	FieldOid,
+	FieldTeamID,
 }
 
 var (
@@ -137,6 +174,9 @@ var (
 	// InterviewEdgesPrimaryKey and InterviewEdgesColumn2 are the table columns denoting the
 	// primary key for the interview_edges relation (M2M).
 	InterviewEdgesPrimaryKey = []string{"user_id", "candidate_interview_id"}
+	// RoleEdgesPrimaryKey and RoleEdgesColumn2 are the table columns denoting the
+	// primary key for the role_edges relation (M2M).
+	RoleEdgesPrimaryKey = []string{"user_id", "role_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

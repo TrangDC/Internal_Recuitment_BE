@@ -124,6 +124,13 @@ func Oid(v string) predicate.User {
 	})
 }
 
+// TeamID applies equality check predicate on the "team_id" field. It's identical to TeamIDEQ.
+func TeamID(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTeamID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -677,6 +684,56 @@ func OidContainsFold(v string) predicate.User {
 	})
 }
 
+// TeamIDEQ applies the EQ predicate on the "team_id" field.
+func TeamIDEQ(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTeamID), v))
+	})
+}
+
+// TeamIDNEQ applies the NEQ predicate on the "team_id" field.
+func TeamIDNEQ(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTeamID), v))
+	})
+}
+
+// TeamIDIn applies the In predicate on the "team_id" field.
+func TeamIDIn(vs ...uuid.UUID) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldTeamID), v...))
+	})
+}
+
+// TeamIDNotIn applies the NotIn predicate on the "team_id" field.
+func TeamIDNotIn(vs ...uuid.UUID) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldTeamID), v...))
+	})
+}
+
+// TeamIDIsNil applies the IsNil predicate on the "team_id" field.
+func TeamIDIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldTeamID)))
+	})
+}
+
+// TeamIDNotNil applies the NotNil predicate on the "team_id" field.
+func TeamIDNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldTeamID)))
+	})
+}
+
 // HasAuditEdge applies the HasEdge predicate on the "audit_edge" edge.
 func HasAuditEdge() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -901,6 +958,90 @@ func HasCandidateReferenceEdgesWith(preds ...predicate.Candidate) predicate.User
 	})
 }
 
+// HasUserPermissionEdges applies the HasEdge predicate on the "user_permission_edges" edge.
+func HasUserPermissionEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserPermissionEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserPermissionEdgesTable, UserPermissionEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserPermissionEdgesWith applies the HasEdge predicate on the "user_permission_edges" edge with a given conditions (other predicates).
+func HasUserPermissionEdgesWith(preds ...predicate.EntityPermission) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserPermissionEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserPermissionEdgesTable, UserPermissionEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTeamEdge applies the HasEdge predicate on the "team_edge" edge.
+func HasTeamEdge() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TeamEdgeTable, TeamEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamEdgeWith applies the HasEdge predicate on the "team_edge" edge with a given conditions (other predicates).
+func HasTeamEdgeWith(preds ...predicate.Team) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TeamEdgeTable, TeamEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoleEdges applies the HasEdge predicate on the "role_edges" edge.
+func HasRoleEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoleEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RoleEdgesTable, RoleEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoleEdgesWith applies the HasEdge predicate on the "role_edges" edge with a given conditions (other predicates).
+func HasRoleEdgesWith(preds ...predicate.Role) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoleEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RoleEdgesTable, RoleEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasTeamUsers applies the HasEdge predicate on the "team_users" edge.
 func HasTeamUsers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -948,6 +1089,34 @@ func HasInterviewUsersWith(preds ...predicate.CandidateInterviewer) predicate.Us
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(InterviewUsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, InterviewUsersTable, InterviewUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoleUsers applies the HasEdge predicate on the "role_users" edge.
+func HasRoleUsers() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoleUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, RoleUsersTable, RoleUsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoleUsersWith applies the HasEdge predicate on the "role_users" edge with a given conditions (other predicates).
+func HasRoleUsersWith(preds ...predicate.UserRole) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoleUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, RoleUsersTable, RoleUsersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

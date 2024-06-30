@@ -16,7 +16,7 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 ifeq ($(POSTGRES_URL),"")
-	POSTGRES_URL="postgres://postgres:Hoa**3264@localhost:5432/trec?sslmode=disable"
+	POSTGRES_URL="postgres://backend_user:backend_password@localhost:5432/backend_db?sslmode=disable"
 endif
 
 os:
@@ -56,9 +56,6 @@ migratedbdryrun: hashdb
 
 migratedb: hashdb migratedbdryrun
 	atlas migrate apply --url $(POSTGRES_URL) --dir file://migrations
-
-migratemaster: 
-	cd scripts && go run import_master_data.go
 
 api: build
 	./server api

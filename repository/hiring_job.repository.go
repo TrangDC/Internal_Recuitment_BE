@@ -29,6 +29,7 @@ type HiringJobRepository interface {
 	BuildBaseQuery() *ent.HiringJobQuery
 	BuildCount(ctx context.Context, query *ent.HiringJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
+	BuildGetOne(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error)
 	// common function
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error)
 	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) (error, error)
@@ -87,6 +88,10 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 			)
 		},
 	)
+}
+
+func (rps *hiringJobRepoImpl) BuildGetOne(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error) {
+	return query.First(ctx)
 }
 
 func (rps hiringJobRepoImpl) BuildBaseQuery() *ent.HiringJobQuery {
@@ -210,3 +215,5 @@ func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uui
 	}
 	return nil, nil
 }
+
+// Path: repository/hiring_job.repository.go

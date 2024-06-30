@@ -9,8 +9,11 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/entitypermission"
 	"trec/ent/hiringjob"
+	"trec/ent/permission"
 	"trec/ent/user"
+	"trec/middleware"
 	"trec/models"
 
 	"github.com/google/uuid"
@@ -30,6 +33,7 @@ type CandidateInterviewRepository interface {
 	BuildBaseQuery() *ent.CandidateInterviewQuery
 	BuildCount(ctx context.Context, query *ent.CandidateInterviewQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateInterviewQuery) ([]*ent.CandidateInterview, error)
+	BuildGetOne(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error)
 
 	// common function
 	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error)
@@ -76,6 +80,7 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 		},
 	).WithCreatedByEdge()
 }
+
 func (rps *candidateInterviewRepoImpl) BuildBaseQuery() *ent.CandidateInterviewQuery {
 	return rps.client.CandidateInterview.Query().Where(candidateinterview.DeletedAtIsNil())
 }
@@ -86,6 +91,10 @@ func (rps *candidateInterviewRepoImpl) BuildGet(ctx context.Context, query *ent.
 
 func (rps *candidateInterviewRepoImpl) BuildList(ctx context.Context, query *ent.CandidateInterviewQuery) ([]*ent.CandidateInterview, error) {
 	return query.All(ctx)
+}
+
+func (rps *candidateInterviewRepoImpl) BuildGetOne(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error) {
+	return query.First(ctx)
 }
 
 func (rps *candidateInterviewRepoImpl) BuildCount(ctx context.Context, query *ent.CandidateInterviewQuery) (int, error) {
@@ -106,7 +115,8 @@ func (rps *candidateInterviewRepoImpl) BuildSaveUpdateOne(ctx context.Context, u
 
 // mutation
 func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, memberIds []uuid.UUID, status string) (*ent.CandidateInterview, error) {
-	createdById := ctx.Value("user_id").(uuid.UUID)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	createdById := payload.UserID
 	create := rps.BuildCreate().SetTitle(strings.TrimSpace(input.Title)).
 		AddInterviewerEdgeIDs(memberIds...).
 		SetDescription(input.Description).
@@ -148,7 +158,8 @@ func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Cont
 func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error) {
 	var createBulk []*ent.CandidateInterviewCreate
 	var createInterviewers []*ent.CandidateInterviewerCreate
-	createdBy := ctx.Value("user_id").(uuid.UUID)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	createdById := payload.UserID
 	for _, record := range candidateJobs {
 		createBulk = append(createBulk, rps.BuildCreate().SetTitle(input.Title).
 			SetInterviewDate(input.InterviewDate).
@@ -156,7 +167,7 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 			SetDescription(input.Description).
 			SetEndAt(input.EndAt).
 			SetCandidateJobID(record.ID).
-			SetCreatedBy(createdBy).
+			SetCreatedBy(createdById).
 			SetID(uuid.New()).
 			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())))
 	}
@@ -208,6 +219,10 @@ func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candid
 		return "", stringError, err
 	}
 	stringError, err = rps.ValidateSchedule(ctx, candidateInterviewId, input.CandidateJobId, input.InterviewDate, input.StartFrom, input.EndAt)
+	if err != nil || stringError != nil {
+		return "", stringError, err
+	}
+	stringError, err = rps.validInterviewer(ctx, input.Interviewer)
 	if err != nil || stringError != nil {
 		return "", stringError, err
 	}
@@ -319,6 +334,24 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	return nil, nil
 }
 
+func (rps *candidateInterviewRepoImpl) validInterviewer(ctx context.Context, interviewers []string) (error, error) {
+	query := rps.client.User.Query().Where(user.IDIn(lo.Map(interviewers, func(item string, index int) uuid.UUID {
+		return uuid.MustParse(item)
+	})...), user.HasUserPermissionEdgesWith(
+		entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+			permission.OperationNameEQ(models.BeInterviewer),
+		),
+	))
+	users, err := query.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(users) != len(interviewers) {
+		return fmt.Errorf("model.candidate_interviews.validation.interviewer_not_have_permission"), nil
+	}
+	return nil, nil
+}
+
 func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) error {
 	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(record.Status)) {
 		return fmt.Errorf("model.candidate_interviews.validation.invalid_editable")
@@ -328,3 +361,5 @@ func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent
 	}
 	return nil
 }
+
+// Path: repository/candidate_interviewer.repository.go

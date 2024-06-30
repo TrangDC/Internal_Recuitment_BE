@@ -14,13 +14,18 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/permission"
+	"trec/ent/permissiongroup"
+	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/ent/userrole"
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
@@ -957,6 +962,119 @@ func (cjs *CandidateJobStep) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ep.ID,
+		Type:   "EntityPermission",
+		Fields: make([]*Field, 9),
+		Edges:  make([]*Edge, 3),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ep.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.EntityID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "entity_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.PermissionID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "permission_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.ForOwner); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "bool",
+		Name:  "for_owner",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.ForTeam); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "bool",
+		Name:  "for_team",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.ForAll); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "for_all",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.EntityType); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "entitypermission.EntityType",
+		Name:  "entity_type",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Permission",
+		Name: "permission_edges",
+	}
+	err = ep.QueryPermissionEdges().
+		Select(permission.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "User",
+		Name: "user_edge",
+	}
+	err = ep.QueryUserEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Role",
+		Name: "role_edge",
+	}
+	err = ep.QueryRoleEdge().
+		Select(role.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (es *EntitySkill) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     es.ID,
@@ -1241,6 +1359,303 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (pe *Permission) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pe.ID,
+		Type:   "Permission",
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pe.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.Title); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "title",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.GroupID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "group_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.ForOwner); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "bool",
+		Name:  "for_owner",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.ForTeam); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "bool",
+		Name:  "for_team",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.ForAll); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "for_all",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.OperationName); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "string",
+		Name:  "operation_name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.ParentID); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "parent_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pe.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "PermissionGroup",
+		Name: "group_permission_edge",
+	}
+	err = pe.QueryGroupPermissionEdge().
+		Select(permissiongroup.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "EntityPermission",
+		Name: "user_permission_edge",
+	}
+	err = pe.QueryUserPermissionEdge().
+		Select(entitypermission.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (pg *PermissionGroup) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pg.ID,
+		Type:   "PermissionGroup",
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 3),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pg.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.Title); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "title",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.ParentID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "parent_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.GroupType); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "permissiongroup.GroupType",
+		Name:  "group_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pg.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "PermissionGroup",
+		Name: "group_permission_parent",
+	}
+	err = pg.QueryGroupPermissionParent().
+		Select(permissiongroup.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "PermissionGroup",
+		Name: "group_permission_children",
+	}
+	err = pg.QueryGroupPermissionChildren().
+		Select(permissiongroup.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Permission",
+		Name: "permission_edges",
+	}
+	err = pg.QueryPermissionEdges().
+		Select(permission.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (r *Role) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     r.ID,
+		Type:   "Role",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 3),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(r.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "EntityPermission",
+		Name: "role_permission_edges",
+	}
+	err = r.QueryRolePermissionEdges().
+		Select(entitypermission.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "User",
+		Name: "user_edges",
+	}
+	err = r.QueryUserEdges().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "UserRole",
+		Name: "user_roles",
+	}
+	err = r.QueryUserRoles().
+		Select(userrole.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (s *Skill) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
@@ -1386,7 +1801,7 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 		ID:     t.ID,
 		Type:   "Team",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.CreatedAt); err != nil {
@@ -1450,12 +1865,22 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[2] = &Edge{
+		Type: "User",
+		Name: "member_edges",
+	}
+	err = t.QueryMemberEdges().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
 		Type: "TeamManager",
 		Name: "user_teams",
 	}
 	err = t.QueryUserTeams().
 		Select(teammanager.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
+		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -1537,8 +1962,8 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
-		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 10),
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 14),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
@@ -1595,6 +2020,14 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[6] = &Field{
 		Type:  "string",
 		Name:  "oid",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.TeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "team_id",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -1678,22 +2111,133 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[8] = &Edge{
-		Type: "TeamManager",
-		Name: "team_users",
+		Type: "EntityPermission",
+		Name: "user_permission_edges",
 	}
-	err = u.QueryTeamUsers().
-		Select(teammanager.FieldID).
+	err = u.QueryUserPermissionEdges().
+		Select(entitypermission.FieldID).
 		Scan(ctx, &node.Edges[8].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[9] = &Edge{
+		Type: "Team",
+		Name: "team_edge",
+	}
+	err = u.QueryTeamEdge().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[9].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[10] = &Edge{
+		Type: "Role",
+		Name: "role_edges",
+	}
+	err = u.QueryRoleEdges().
+		Select(role.FieldID).
+		Scan(ctx, &node.Edges[10].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[11] = &Edge{
+		Type: "TeamManager",
+		Name: "team_users",
+	}
+	err = u.QueryTeamUsers().
+		Select(teammanager.FieldID).
+		Scan(ctx, &node.Edges[11].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[12] = &Edge{
 		Type: "CandidateInterviewer",
 		Name: "interview_users",
 	}
 	err = u.QueryInterviewUsers().
 		Select(candidateinterviewer.FieldID).
-		Scan(ctx, &node.Edges[9].IDs)
+		Scan(ctx, &node.Edges[12].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[13] = &Edge{
+		Type: "UserRole",
+		Name: "role_users",
+	}
+	err = u.QueryRoleUsers().
+		Select(userrole.FieldID).
+		Scan(ctx, &node.Edges[13].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (ur *UserRole) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ur.ID,
+		Type:   "UserRole",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ur.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ur.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ur.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ur.RoleID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "role_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ur.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user_edge",
+	}
+	err = ur.QueryUserEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Role",
+		Name: "role_edge",
+	}
+	err = ur.QueryRoleEdge().
+		Select(role.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -1862,6 +2406,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case entitypermission.Table:
+		query := c.EntityPermission.Query().
+			Where(entitypermission.ID(id))
+		query, err := query.CollectFields(ctx, "EntityPermission")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case entityskill.Table:
 		query := c.EntitySkill.Query().
 			Where(entityskill.ID(id))
@@ -1878,6 +2434,42 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.HiringJob.Query().
 			Where(hiringjob.ID(id))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case permission.Table:
+		query := c.Permission.Query().
+			Where(permission.ID(id))
+		query, err := query.CollectFields(ctx, "Permission")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case permissiongroup.Table:
+		query := c.PermissionGroup.Query().
+			Where(permissiongroup.ID(id))
+		query, err := query.CollectFields(ctx, "PermissionGroup")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case role.Table:
+		query := c.Role.Query().
+			Where(role.ID(id))
+		query, err := query.CollectFields(ctx, "Role")
 		if err != nil {
 			return nil, err
 		}
@@ -1938,6 +2530,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.User.Query().
 			Where(user.ID(id))
 		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case userrole.Table:
+		query := c.UserRole.Query().
+			Where(userrole.ID(id))
+		query, err := query.CollectFields(ctx, "UserRole")
 		if err != nil {
 			return nil, err
 		}
@@ -2147,6 +2751,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 				*noder = node
 			}
 		}
+	case entitypermission.Table:
+		query := c.EntityPermission.Query().
+			Where(entitypermission.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "EntityPermission")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case entityskill.Table:
 		query := c.EntitySkill.Query().
 			Where(entityskill.IDIn(ids...))
@@ -2167,6 +2787,54 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringJob.Query().
 			Where(hiringjob.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case permission.Table:
+		query := c.Permission.Query().
+			Where(permission.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Permission")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case permissiongroup.Table:
+		query := c.PermissionGroup.Query().
+			Where(permissiongroup.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "PermissionGroup")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case role.Table:
+		query := c.Role.Query().
+			Where(role.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Role")
 		if err != nil {
 			return nil, err
 		}
@@ -2247,6 +2915,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case userrole.Table:
+		query := c.UserRole.Query().
+			Where(userrole.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "UserRole")
 		if err != nil {
 			return nil, err
 		}

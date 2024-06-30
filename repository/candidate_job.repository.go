@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
+	"trec/middleware"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -125,7 +126,8 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 	if err != nil {
 		return nil, err
 	}
-	createdById := ctx.Value("user_id").(uuid.UUID)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	createdById := payload.UserID
 	return rps.BuildCreate().
 		SetHiringJobID(uuid.MustParse(input.HiringJobID)).
 		SetUpdatedAt(time.Now().UTC()).

@@ -30,11 +30,23 @@ type CandidateJobFeedback func(*sql.Selector)
 // CandidateJobStep is the predicate function for candidatejobstep builders.
 type CandidateJobStep func(*sql.Selector)
 
+// EntityPermission is the predicate function for entitypermission builders.
+type EntityPermission func(*sql.Selector)
+
 // EntitySkill is the predicate function for entityskill builders.
 type EntitySkill func(*sql.Selector)
 
 // HiringJob is the predicate function for hiringjob builders.
 type HiringJob func(*sql.Selector)
+
+// Permission is the predicate function for permission builders.
+type Permission func(*sql.Selector)
+
+// PermissionGroup is the predicate function for permissiongroup builders.
+type PermissionGroup func(*sql.Selector)
+
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
 
 // Skill is the predicate function for skill builders.
 type Skill func(*sql.Selector)
@@ -50,3 +62,6 @@ type TeamManager func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserRole is the predicate function for userrole builders.
+type UserRole func(*sql.Selector)

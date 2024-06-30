@@ -18,13 +18,18 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/permission"
+	"trec/ent/permissiongroup"
+	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/ent/userrole"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
@@ -2742,6 +2747,308 @@ func (cjs *CandidateJobStep) ToEdge(order *CandidateJobStepOrder) *CandidateJobS
 	}
 }
 
+// EntityPermissionEdge is the edge representation of EntityPermission.
+type EntityPermissionEdge struct {
+	Node   *EntityPermission `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// EntityPermissionConnection is the connection containing edges to EntityPermission.
+type EntityPermissionConnection struct {
+	Edges      []*EntityPermissionEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *EntityPermissionConnection) build(nodes []*EntityPermission, pager *entitypermissionPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *EntityPermission
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *EntityPermission {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *EntityPermission {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*EntityPermissionEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &EntityPermissionEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// EntityPermissionPaginateOption enables pagination customization.
+type EntityPermissionPaginateOption func(*entitypermissionPager) error
+
+// WithEntityPermissionOrder configures pagination ordering.
+func WithEntityPermissionOrder(order *EntityPermissionOrder) EntityPermissionPaginateOption {
+	if order == nil {
+		order = DefaultEntityPermissionOrder
+	}
+	o := *order
+	return func(pager *entitypermissionPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultEntityPermissionOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithEntityPermissionFilter configures pagination filter.
+func WithEntityPermissionFilter(filter func(*EntityPermissionQuery) (*EntityPermissionQuery, error)) EntityPermissionPaginateOption {
+	return func(pager *entitypermissionPager) error {
+		if filter == nil {
+			return errors.New("EntityPermissionQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type entitypermissionPager struct {
+	order  *EntityPermissionOrder
+	filter func(*EntityPermissionQuery) (*EntityPermissionQuery, error)
+}
+
+func newEntityPermissionPager(opts []EntityPermissionPaginateOption) (*entitypermissionPager, error) {
+	pager := &entitypermissionPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultEntityPermissionOrder
+	}
+	return pager, nil
+}
+
+func (p *entitypermissionPager) applyFilter(query *EntityPermissionQuery) (*EntityPermissionQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *entitypermissionPager) toCursor(ep *EntityPermission) Cursor {
+	return p.order.Field.toCursor(ep)
+}
+
+func (p *entitypermissionPager) applyCursors(query *EntityPermissionQuery, after, before *Cursor) *EntityPermissionQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultEntityPermissionOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *entitypermissionPager) applyOrder(query *EntityPermissionQuery, reverse bool) *EntityPermissionQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultEntityPermissionOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultEntityPermissionOrder.Field.field))
+	}
+	return query
+}
+
+func (p *entitypermissionPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultEntityPermissionOrder.Field {
+			b.Comma().Ident(DefaultEntityPermissionOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to EntityPermission.
+func (ep *EntityPermissionQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...EntityPermissionPaginateOption,
+) (*EntityPermissionConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newEntityPermissionPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ep, err = pager.applyFilter(ep); err != nil {
+		return nil, err
+	}
+	conn := &EntityPermissionConnection{Edges: []*EntityPermissionEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ep.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ep = pager.applyCursors(ep, after, before)
+	ep = pager.applyOrder(ep, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ep.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ep.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ep.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// EntityPermissionOrderFieldCreatedAt orders EntityPermission by created_at.
+	EntityPermissionOrderFieldCreatedAt = &EntityPermissionOrderField{
+		field: entitypermission.FieldCreatedAt,
+		toCursor: func(ep *EntityPermission) Cursor {
+			return Cursor{
+				ID:    ep.ID,
+				Value: ep.CreatedAt,
+			}
+		},
+	}
+	// EntityPermissionOrderFieldUpdatedAt orders EntityPermission by updated_at.
+	EntityPermissionOrderFieldUpdatedAt = &EntityPermissionOrderField{
+		field: entitypermission.FieldUpdatedAt,
+		toCursor: func(ep *EntityPermission) Cursor {
+			return Cursor{
+				ID:    ep.ID,
+				Value: ep.UpdatedAt,
+			}
+		},
+	}
+	// EntityPermissionOrderFieldDeletedAt orders EntityPermission by deleted_at.
+	EntityPermissionOrderFieldDeletedAt = &EntityPermissionOrderField{
+		field: entitypermission.FieldDeletedAt,
+		toCursor: func(ep *EntityPermission) Cursor {
+			return Cursor{
+				ID:    ep.ID,
+				Value: ep.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f EntityPermissionOrderField) String() string {
+	var str string
+	switch f.field {
+	case entitypermission.FieldCreatedAt:
+		str = "created_at"
+	case entitypermission.FieldUpdatedAt:
+		str = "updated_at"
+	case entitypermission.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f EntityPermissionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *EntityPermissionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("EntityPermissionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *EntityPermissionOrderFieldCreatedAt
+	case "updated_at":
+		*f = *EntityPermissionOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *EntityPermissionOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid EntityPermissionOrderField", str)
+	}
+	return nil
+}
+
+// EntityPermissionOrderField defines the ordering field of EntityPermission.
+type EntityPermissionOrderField struct {
+	field    string
+	toCursor func(*EntityPermission) Cursor
+}
+
+// EntityPermissionOrder defines the ordering of EntityPermission.
+type EntityPermissionOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *EntityPermissionOrderField `json:"field"`
+}
+
+// DefaultEntityPermissionOrder is the default ordering of EntityPermission.
+var DefaultEntityPermissionOrder = &EntityPermissionOrder{
+	Direction: OrderDirectionAsc,
+	Field: &EntityPermissionOrderField{
+		field: entitypermission.FieldID,
+		toCursor: func(ep *EntityPermission) Cursor {
+			return Cursor{ID: ep.ID}
+		},
+	},
+}
+
+// ToEdge converts EntityPermission into EntityPermissionEdge.
+func (ep *EntityPermission) ToEdge(order *EntityPermissionOrder) *EntityPermissionEdge {
+	if order == nil {
+		order = DefaultEntityPermissionOrder
+	}
+	return &EntityPermissionEdge{
+		Node:   ep,
+		Cursor: order.Field.toCursor(ep),
+	}
+}
+
 // EntitySkillEdge is the edge representation of EntitySkill.
 type EntitySkillEdge struct {
 	Node   *EntitySkill `json:"node"`
@@ -3441,6 +3748,968 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// PermissionEdge is the edge representation of Permission.
+type PermissionEdge struct {
+	Node   *Permission `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// PermissionConnection is the connection containing edges to Permission.
+type PermissionConnection struct {
+	Edges      []*PermissionEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *PermissionConnection) build(nodes []*Permission, pager *permissionPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Permission
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Permission {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Permission {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*PermissionEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &PermissionEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// PermissionPaginateOption enables pagination customization.
+type PermissionPaginateOption func(*permissionPager) error
+
+// WithPermissionOrder configures pagination ordering.
+func WithPermissionOrder(order *PermissionOrder) PermissionPaginateOption {
+	if order == nil {
+		order = DefaultPermissionOrder
+	}
+	o := *order
+	return func(pager *permissionPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultPermissionOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithPermissionFilter configures pagination filter.
+func WithPermissionFilter(filter func(*PermissionQuery) (*PermissionQuery, error)) PermissionPaginateOption {
+	return func(pager *permissionPager) error {
+		if filter == nil {
+			return errors.New("PermissionQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type permissionPager struct {
+	order  *PermissionOrder
+	filter func(*PermissionQuery) (*PermissionQuery, error)
+}
+
+func newPermissionPager(opts []PermissionPaginateOption) (*permissionPager, error) {
+	pager := &permissionPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultPermissionOrder
+	}
+	return pager, nil
+}
+
+func (p *permissionPager) applyFilter(query *PermissionQuery) (*PermissionQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *permissionPager) toCursor(pe *Permission) Cursor {
+	return p.order.Field.toCursor(pe)
+}
+
+func (p *permissionPager) applyCursors(query *PermissionQuery, after, before *Cursor) *PermissionQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultPermissionOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *permissionPager) applyOrder(query *PermissionQuery, reverse bool) *PermissionQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultPermissionOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultPermissionOrder.Field.field))
+	}
+	return query
+}
+
+func (p *permissionPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultPermissionOrder.Field {
+			b.Comma().Ident(DefaultPermissionOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Permission.
+func (pe *PermissionQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...PermissionPaginateOption,
+) (*PermissionConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newPermissionPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if pe, err = pager.applyFilter(pe); err != nil {
+		return nil, err
+	}
+	conn := &PermissionConnection{Edges: []*PermissionEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = pe.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	pe = pager.applyCursors(pe, after, before)
+	pe = pager.applyOrder(pe, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		pe.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := pe.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// PermissionOrderFieldCreatedAt orders Permission by created_at.
+	PermissionOrderFieldCreatedAt = &PermissionOrderField{
+		field: permission.FieldCreatedAt,
+		toCursor: func(pe *Permission) Cursor {
+			return Cursor{
+				ID:    pe.ID,
+				Value: pe.CreatedAt,
+			}
+		},
+	}
+	// PermissionOrderFieldUpdatedAt orders Permission by updated_at.
+	PermissionOrderFieldUpdatedAt = &PermissionOrderField{
+		field: permission.FieldUpdatedAt,
+		toCursor: func(pe *Permission) Cursor {
+			return Cursor{
+				ID:    pe.ID,
+				Value: pe.UpdatedAt,
+			}
+		},
+	}
+	// PermissionOrderFieldDeletedAt orders Permission by deleted_at.
+	PermissionOrderFieldDeletedAt = &PermissionOrderField{
+		field: permission.FieldDeletedAt,
+		toCursor: func(pe *Permission) Cursor {
+			return Cursor{
+				ID:    pe.ID,
+				Value: pe.DeletedAt,
+			}
+		},
+	}
+	// PermissionOrderFieldTitle orders Permission by title.
+	PermissionOrderFieldTitle = &PermissionOrderField{
+		field: permission.FieldTitle,
+		toCursor: func(pe *Permission) Cursor {
+			return Cursor{
+				ID:    pe.ID,
+				Value: pe.Title,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f PermissionOrderField) String() string {
+	var str string
+	switch f.field {
+	case permission.FieldCreatedAt:
+		str = "created_at"
+	case permission.FieldUpdatedAt:
+		str = "updated_at"
+	case permission.FieldDeletedAt:
+		str = "deleted_at"
+	case permission.FieldTitle:
+		str = "title"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f PermissionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *PermissionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("PermissionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *PermissionOrderFieldCreatedAt
+	case "updated_at":
+		*f = *PermissionOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *PermissionOrderFieldDeletedAt
+	case "title":
+		*f = *PermissionOrderFieldTitle
+	default:
+		return fmt.Errorf("%s is not a valid PermissionOrderField", str)
+	}
+	return nil
+}
+
+// PermissionOrderField defines the ordering field of Permission.
+type PermissionOrderField struct {
+	field    string
+	toCursor func(*Permission) Cursor
+}
+
+// PermissionOrder defines the ordering of Permission.
+type PermissionOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *PermissionOrderField `json:"field"`
+}
+
+// DefaultPermissionOrder is the default ordering of Permission.
+var DefaultPermissionOrder = &PermissionOrder{
+	Direction: OrderDirectionAsc,
+	Field: &PermissionOrderField{
+		field: permission.FieldID,
+		toCursor: func(pe *Permission) Cursor {
+			return Cursor{ID: pe.ID}
+		},
+	},
+}
+
+// ToEdge converts Permission into PermissionEdge.
+func (pe *Permission) ToEdge(order *PermissionOrder) *PermissionEdge {
+	if order == nil {
+		order = DefaultPermissionOrder
+	}
+	return &PermissionEdge{
+		Node:   pe,
+		Cursor: order.Field.toCursor(pe),
+	}
+}
+
+// PermissionGroupEdge is the edge representation of PermissionGroup.
+type PermissionGroupEdge struct {
+	Node   *PermissionGroup `json:"node"`
+	Cursor Cursor           `json:"cursor"`
+}
+
+// PermissionGroupConnection is the connection containing edges to PermissionGroup.
+type PermissionGroupConnection struct {
+	Edges      []*PermissionGroupEdge `json:"edges"`
+	PageInfo   PageInfo               `json:"pageInfo"`
+	TotalCount int                    `json:"totalCount"`
+}
+
+func (c *PermissionGroupConnection) build(nodes []*PermissionGroup, pager *permissiongroupPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *PermissionGroup
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *PermissionGroup {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *PermissionGroup {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*PermissionGroupEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &PermissionGroupEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// PermissionGroupPaginateOption enables pagination customization.
+type PermissionGroupPaginateOption func(*permissiongroupPager) error
+
+// WithPermissionGroupOrder configures pagination ordering.
+func WithPermissionGroupOrder(order *PermissionGroupOrder) PermissionGroupPaginateOption {
+	if order == nil {
+		order = DefaultPermissionGroupOrder
+	}
+	o := *order
+	return func(pager *permissiongroupPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultPermissionGroupOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithPermissionGroupFilter configures pagination filter.
+func WithPermissionGroupFilter(filter func(*PermissionGroupQuery) (*PermissionGroupQuery, error)) PermissionGroupPaginateOption {
+	return func(pager *permissiongroupPager) error {
+		if filter == nil {
+			return errors.New("PermissionGroupQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type permissiongroupPager struct {
+	order  *PermissionGroupOrder
+	filter func(*PermissionGroupQuery) (*PermissionGroupQuery, error)
+}
+
+func newPermissionGroupPager(opts []PermissionGroupPaginateOption) (*permissiongroupPager, error) {
+	pager := &permissiongroupPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultPermissionGroupOrder
+	}
+	return pager, nil
+}
+
+func (p *permissiongroupPager) applyFilter(query *PermissionGroupQuery) (*PermissionGroupQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *permissiongroupPager) toCursor(pg *PermissionGroup) Cursor {
+	return p.order.Field.toCursor(pg)
+}
+
+func (p *permissiongroupPager) applyCursors(query *PermissionGroupQuery, after, before *Cursor) *PermissionGroupQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultPermissionGroupOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *permissiongroupPager) applyOrder(query *PermissionGroupQuery, reverse bool) *PermissionGroupQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultPermissionGroupOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultPermissionGroupOrder.Field.field))
+	}
+	return query
+}
+
+func (p *permissiongroupPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultPermissionGroupOrder.Field {
+			b.Comma().Ident(DefaultPermissionGroupOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to PermissionGroup.
+func (pg *PermissionGroupQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...PermissionGroupPaginateOption,
+) (*PermissionGroupConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newPermissionGroupPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if pg, err = pager.applyFilter(pg); err != nil {
+		return nil, err
+	}
+	conn := &PermissionGroupConnection{Edges: []*PermissionGroupEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = pg.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	pg = pager.applyCursors(pg, after, before)
+	pg = pager.applyOrder(pg, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		pg.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := pg.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := pg.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// PermissionGroupOrderFieldCreatedAt orders PermissionGroup by created_at.
+	PermissionGroupOrderFieldCreatedAt = &PermissionGroupOrderField{
+		field: permissiongroup.FieldCreatedAt,
+		toCursor: func(pg *PermissionGroup) Cursor {
+			return Cursor{
+				ID:    pg.ID,
+				Value: pg.CreatedAt,
+			}
+		},
+	}
+	// PermissionGroupOrderFieldUpdatedAt orders PermissionGroup by updated_at.
+	PermissionGroupOrderFieldUpdatedAt = &PermissionGroupOrderField{
+		field: permissiongroup.FieldUpdatedAt,
+		toCursor: func(pg *PermissionGroup) Cursor {
+			return Cursor{
+				ID:    pg.ID,
+				Value: pg.UpdatedAt,
+			}
+		},
+	}
+	// PermissionGroupOrderFieldDeletedAt orders PermissionGroup by deleted_at.
+	PermissionGroupOrderFieldDeletedAt = &PermissionGroupOrderField{
+		field: permissiongroup.FieldDeletedAt,
+		toCursor: func(pg *PermissionGroup) Cursor {
+			return Cursor{
+				ID:    pg.ID,
+				Value: pg.DeletedAt,
+			}
+		},
+	}
+	// PermissionGroupOrderFieldTitle orders PermissionGroup by title.
+	PermissionGroupOrderFieldTitle = &PermissionGroupOrderField{
+		field: permissiongroup.FieldTitle,
+		toCursor: func(pg *PermissionGroup) Cursor {
+			return Cursor{
+				ID:    pg.ID,
+				Value: pg.Title,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f PermissionGroupOrderField) String() string {
+	var str string
+	switch f.field {
+	case permissiongroup.FieldCreatedAt:
+		str = "created_at"
+	case permissiongroup.FieldUpdatedAt:
+		str = "updated_at"
+	case permissiongroup.FieldDeletedAt:
+		str = "deleted_at"
+	case permissiongroup.FieldTitle:
+		str = "title"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f PermissionGroupOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *PermissionGroupOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("PermissionGroupOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *PermissionGroupOrderFieldCreatedAt
+	case "updated_at":
+		*f = *PermissionGroupOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *PermissionGroupOrderFieldDeletedAt
+	case "title":
+		*f = *PermissionGroupOrderFieldTitle
+	default:
+		return fmt.Errorf("%s is not a valid PermissionGroupOrderField", str)
+	}
+	return nil
+}
+
+// PermissionGroupOrderField defines the ordering field of PermissionGroup.
+type PermissionGroupOrderField struct {
+	field    string
+	toCursor func(*PermissionGroup) Cursor
+}
+
+// PermissionGroupOrder defines the ordering of PermissionGroup.
+type PermissionGroupOrder struct {
+	Direction OrderDirection             `json:"direction"`
+	Field     *PermissionGroupOrderField `json:"field"`
+}
+
+// DefaultPermissionGroupOrder is the default ordering of PermissionGroup.
+var DefaultPermissionGroupOrder = &PermissionGroupOrder{
+	Direction: OrderDirectionAsc,
+	Field: &PermissionGroupOrderField{
+		field: permissiongroup.FieldID,
+		toCursor: func(pg *PermissionGroup) Cursor {
+			return Cursor{ID: pg.ID}
+		},
+	},
+}
+
+// ToEdge converts PermissionGroup into PermissionGroupEdge.
+func (pg *PermissionGroup) ToEdge(order *PermissionGroupOrder) *PermissionGroupEdge {
+	if order == nil {
+		order = DefaultPermissionGroupOrder
+	}
+	return &PermissionGroupEdge{
+		Node:   pg,
+		Cursor: order.Field.toCursor(pg),
+	}
+}
+
+// RoleEdge is the edge representation of Role.
+type RoleEdge struct {
+	Node   *Role  `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// RoleConnection is the connection containing edges to Role.
+type RoleConnection struct {
+	Edges      []*RoleEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
+}
+
+func (c *RoleConnection) build(nodes []*Role, pager *rolePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Role
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Role {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Role {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*RoleEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &RoleEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// RolePaginateOption enables pagination customization.
+type RolePaginateOption func(*rolePager) error
+
+// WithRoleOrder configures pagination ordering.
+func WithRoleOrder(order *RoleOrder) RolePaginateOption {
+	if order == nil {
+		order = DefaultRoleOrder
+	}
+	o := *order
+	return func(pager *rolePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultRoleOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithRoleFilter configures pagination filter.
+func WithRoleFilter(filter func(*RoleQuery) (*RoleQuery, error)) RolePaginateOption {
+	return func(pager *rolePager) error {
+		if filter == nil {
+			return errors.New("RoleQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type rolePager struct {
+	order  *RoleOrder
+	filter func(*RoleQuery) (*RoleQuery, error)
+}
+
+func newRolePager(opts []RolePaginateOption) (*rolePager, error) {
+	pager := &rolePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultRoleOrder
+	}
+	return pager, nil
+}
+
+func (p *rolePager) applyFilter(query *RoleQuery) (*RoleQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *rolePager) toCursor(r *Role) Cursor {
+	return p.order.Field.toCursor(r)
+}
+
+func (p *rolePager) applyCursors(query *RoleQuery, after, before *Cursor) *RoleQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultRoleOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *rolePager) applyOrder(query *RoleQuery, reverse bool) *RoleQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultRoleOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultRoleOrder.Field.field))
+	}
+	return query
+}
+
+func (p *rolePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultRoleOrder.Field {
+			b.Comma().Ident(DefaultRoleOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Role.
+func (r *RoleQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...RolePaginateOption,
+) (*RoleConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newRolePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if r, err = pager.applyFilter(r); err != nil {
+		return nil, err
+	}
+	conn := &RoleConnection{Edges: []*RoleEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = r.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	r = pager.applyCursors(r, after, before)
+	r = pager.applyOrder(r, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		r.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := r.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := r.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// RoleOrderFieldCreatedAt orders Role by created_at.
+	RoleOrderFieldCreatedAt = &RoleOrderField{
+		field: role.FieldCreatedAt,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.CreatedAt,
+			}
+		},
+	}
+	// RoleOrderFieldUpdatedAt orders Role by updated_at.
+	RoleOrderFieldUpdatedAt = &RoleOrderField{
+		field: role.FieldUpdatedAt,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.UpdatedAt,
+			}
+		},
+	}
+	// RoleOrderFieldDeletedAt orders Role by deleted_at.
+	RoleOrderFieldDeletedAt = &RoleOrderField{
+		field: role.FieldDeletedAt,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.DeletedAt,
+			}
+		},
+	}
+	// RoleOrderFieldName orders Role by name.
+	RoleOrderFieldName = &RoleOrderField{
+		field: role.FieldName,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.Name,
+			}
+		},
+	}
+	// RoleOrderFieldDescription orders Role by description.
+	RoleOrderFieldDescription = &RoleOrderField{
+		field: role.FieldDescription,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.Description,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RoleOrderField) String() string {
+	var str string
+	switch f.field {
+	case role.FieldCreatedAt:
+		str = "created_at"
+	case role.FieldUpdatedAt:
+		str = "updated_at"
+	case role.FieldDeletedAt:
+		str = "deleted_at"
+	case role.FieldName:
+		str = "name"
+	case role.FieldDescription:
+		str = "DESCRIPTION"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RoleOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RoleOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RoleOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *RoleOrderFieldCreatedAt
+	case "updated_at":
+		*f = *RoleOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *RoleOrderFieldDeletedAt
+	case "name":
+		*f = *RoleOrderFieldName
+	case "DESCRIPTION":
+		*f = *RoleOrderFieldDescription
+	default:
+		return fmt.Errorf("%s is not a valid RoleOrderField", str)
+	}
+	return nil
+}
+
+// RoleOrderField defines the ordering field of Role.
+type RoleOrderField struct {
+	field    string
+	toCursor func(*Role) Cursor
+}
+
+// RoleOrder defines the ordering of Role.
+type RoleOrder struct {
+	Direction OrderDirection  `json:"direction"`
+	Field     *RoleOrderField `json:"field"`
+}
+
+// DefaultRoleOrder is the default ordering of Role.
+var DefaultRoleOrder = &RoleOrder{
+	Direction: OrderDirectionAsc,
+	Field: &RoleOrderField{
+		field: role.FieldID,
+		toCursor: func(r *Role) Cursor {
+			return Cursor{ID: r.ID}
+		},
+	},
+}
+
+// ToEdge converts Role into RoleEdge.
+func (r *Role) ToEdge(order *RoleOrder) *RoleEdge {
+	if order == nil {
+		order = DefaultRoleOrder
+	}
+	return &RoleEdge{
+		Node:   r,
+		Cursor: order.Field.toCursor(r),
 	}
 }
 
@@ -5063,5 +6332,307 @@ func (u *User) ToEdge(order *UserOrder) *UserEdge {
 	return &UserEdge{
 		Node:   u,
 		Cursor: order.Field.toCursor(u),
+	}
+}
+
+// UserRoleEdge is the edge representation of UserRole.
+type UserRoleEdge struct {
+	Node   *UserRole `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// UserRoleConnection is the connection containing edges to UserRole.
+type UserRoleConnection struct {
+	Edges      []*UserRoleEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+func (c *UserRoleConnection) build(nodes []*UserRole, pager *userrolePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *UserRole
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *UserRole {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *UserRole {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*UserRoleEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &UserRoleEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// UserRolePaginateOption enables pagination customization.
+type UserRolePaginateOption func(*userrolePager) error
+
+// WithUserRoleOrder configures pagination ordering.
+func WithUserRoleOrder(order *UserRoleOrder) UserRolePaginateOption {
+	if order == nil {
+		order = DefaultUserRoleOrder
+	}
+	o := *order
+	return func(pager *userrolePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultUserRoleOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithUserRoleFilter configures pagination filter.
+func WithUserRoleFilter(filter func(*UserRoleQuery) (*UserRoleQuery, error)) UserRolePaginateOption {
+	return func(pager *userrolePager) error {
+		if filter == nil {
+			return errors.New("UserRoleQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type userrolePager struct {
+	order  *UserRoleOrder
+	filter func(*UserRoleQuery) (*UserRoleQuery, error)
+}
+
+func newUserRolePager(opts []UserRolePaginateOption) (*userrolePager, error) {
+	pager := &userrolePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultUserRoleOrder
+	}
+	return pager, nil
+}
+
+func (p *userrolePager) applyFilter(query *UserRoleQuery) (*UserRoleQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *userrolePager) toCursor(ur *UserRole) Cursor {
+	return p.order.Field.toCursor(ur)
+}
+
+func (p *userrolePager) applyCursors(query *UserRoleQuery, after, before *Cursor) *UserRoleQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultUserRoleOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *userrolePager) applyOrder(query *UserRoleQuery, reverse bool) *UserRoleQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultUserRoleOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultUserRoleOrder.Field.field))
+	}
+	return query
+}
+
+func (p *userrolePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultUserRoleOrder.Field {
+			b.Comma().Ident(DefaultUserRoleOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to UserRole.
+func (ur *UserRoleQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...UserRolePaginateOption,
+) (*UserRoleConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newUserRolePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ur, err = pager.applyFilter(ur); err != nil {
+		return nil, err
+	}
+	conn := &UserRoleConnection{Edges: []*UserRoleEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ur.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ur = pager.applyCursors(ur, after, before)
+	ur = pager.applyOrder(ur, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ur.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ur.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ur.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// UserRoleOrderFieldCreatedAt orders UserRole by created_at.
+	UserRoleOrderFieldCreatedAt = &UserRoleOrderField{
+		field: userrole.FieldCreatedAt,
+		toCursor: func(ur *UserRole) Cursor {
+			return Cursor{
+				ID:    ur.ID,
+				Value: ur.CreatedAt,
+			}
+		},
+	}
+	// UserRoleOrderFieldUpdatedAt orders UserRole by updated_at.
+	UserRoleOrderFieldUpdatedAt = &UserRoleOrderField{
+		field: userrole.FieldUpdatedAt,
+		toCursor: func(ur *UserRole) Cursor {
+			return Cursor{
+				ID:    ur.ID,
+				Value: ur.UpdatedAt,
+			}
+		},
+	}
+	// UserRoleOrderFieldDeletedAt orders UserRole by deleted_at.
+	UserRoleOrderFieldDeletedAt = &UserRoleOrderField{
+		field: userrole.FieldDeletedAt,
+		toCursor: func(ur *UserRole) Cursor {
+			return Cursor{
+				ID:    ur.ID,
+				Value: ur.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f UserRoleOrderField) String() string {
+	var str string
+	switch f.field {
+	case userrole.FieldCreatedAt:
+		str = "created_at"
+	case userrole.FieldUpdatedAt:
+		str = "updated_at"
+	case userrole.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f UserRoleOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *UserRoleOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("UserRoleOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *UserRoleOrderFieldCreatedAt
+	case "updated_at":
+		*f = *UserRoleOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *UserRoleOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid UserRoleOrderField", str)
+	}
+	return nil
+}
+
+// UserRoleOrderField defines the ordering field of UserRole.
+type UserRoleOrderField struct {
+	field    string
+	toCursor func(*UserRole) Cursor
+}
+
+// UserRoleOrder defines the ordering of UserRole.
+type UserRoleOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *UserRoleOrderField `json:"field"`
+}
+
+// DefaultUserRoleOrder is the default ordering of UserRole.
+var DefaultUserRoleOrder = &UserRoleOrder{
+	Direction: OrderDirectionAsc,
+	Field: &UserRoleOrderField{
+		field: userrole.FieldID,
+		toCursor: func(ur *UserRole) Cursor {
+			return Cursor{ID: ur.ID}
+		},
+	},
+}
+
+// ToEdge converts UserRole into UserRoleEdge.
+func (ur *UserRole) ToEdge(order *UserRoleOrder) *UserRoleEdge {
+	if order == nil {
+		order = DefaultUserRoleOrder
+	}
+	return &UserRoleEdge{
+		Node:   ur,
+		Cursor: order.Field.toCursor(ur),
 	}
 }

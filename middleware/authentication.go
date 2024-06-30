@@ -1,9 +1,13 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 	"trec/internal/azuread"
@@ -13,6 +17,17 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+type BodyQuery struct {
+	OperationName string `json:"operationName"`
+}
+
+type Payload struct {
+	UserID   uuid.UUID
+	ForOwner bool
+	ForTeam  bool
+	ForAll   bool
+}
 
 // AuthenticateMiddleware is a middleware to authenticate user
 func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger *zap.Logger) func(c *gin.Context) {
@@ -58,7 +73,64 @@ func AuthenticateMiddleware(oauthClient azuread.AzureADOAuth, db *sql.DB, logger
 			}
 			_ = db.QueryRow("SELECT id FROM users WHERE oid = $1 AND deleted_at IS NULL", tokenData.ObjectID).Scan(&id)
 		}
-		ctx = context.WithValue(ctx, "user_id", id)
+		ctx = context.WithValue(ctx, Payload{}, &Payload{
+			UserID: id,
+		})
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
+}
+
+func ValidPermission(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+		var operationName string
+		var userId uuid.UUID
+		var forOwner, forTeam, forAll bool
+		payload := c.Request.Context().Value(Payload{}).(*Payload)
+		userId = payload.UserID
+		if c.Request.Method == http.MethodPost && c.Request.URL.Path == "/graphql" {
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				log.Printf("Error reading request body: %v", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+			var bodyQuery BodyQuery
+			_ = json.Unmarshal(bodyBytes, &bodyQuery)
+			operationName = bodyQuery.OperationName
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		}
+		id := uuid.UUID{}
+		err := db.QueryRow("SELECT id FROM permissions WHERE operation_name LIKE '%' || $1 || '%'", operationName).Scan(&id)
+		if err != nil && err != sql.ErrNoRows {
+			log.Printf("Error reading user permissions: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error reading user permissions"})
+			return
+		}
+		if id != uuid.Nil {
+			err = db.QueryRow("SELECT for_owner, for_team, for_all FROM entity_permissions WHERE entity_id = $1 AND permission_id = $2 AND entity_type = 'user'", userId, id).Scan(&forOwner, &forTeam, &forAll)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					c.AbortWithStatusJSON(http.StatusForbidden, util.WrapGQLPermissionError(ctx))
+					return
+				} else {
+					log.Printf("Error reading user permissions: %v", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"message": "Error reading user permissions"})
+					return
+				}
+			}
+		}
+		ctx = context.WithValue(ctx, Payload{}, &Payload{
+			UserID:   userId,
+			ForOwner: forOwner,
+			ForTeam:  forTeam,
+			ForAll:   forAll,
+		})
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

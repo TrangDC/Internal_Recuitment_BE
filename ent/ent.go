@@ -14,13 +14,18 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/permission"
+	"trec/ent/permissiongroup"
+	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/ent/userrole"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -53,13 +58,18 @@ func columnChecker(table string) func(string) error {
 		candidatejob.Table:         candidatejob.ValidColumn,
 		candidatejobfeedback.Table: candidatejobfeedback.ValidColumn,
 		candidatejobstep.Table:     candidatejobstep.ValidColumn,
+		entitypermission.Table:     entitypermission.ValidColumn,
 		entityskill.Table:          entityskill.ValidColumn,
 		hiringjob.Table:            hiringjob.ValidColumn,
+		permission.Table:           permission.ValidColumn,
+		permissiongroup.Table:      permissiongroup.ValidColumn,
+		role.Table:                 role.ValidColumn,
 		skill.Table:                skill.ValidColumn,
 		skilltype.Table:            skilltype.ValidColumn,
 		team.Table:                 team.ValidColumn,
 		teammanager.Table:          teammanager.ValidColumn,
 		user.Table:                 user.ValidColumn,
+		userrole.Table:             userrole.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

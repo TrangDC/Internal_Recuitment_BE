@@ -1,0 +1,8 @@
+type Permission {
+  id: ID!
+  title: String!
+  for_owner: Boolean!
+  for_team: Boolean!
+  for_all: Boolean!
+  operation_name: String!
+}

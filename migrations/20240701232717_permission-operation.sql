@@ -1,0 +1,1 @@
+ALTER table public.permissions add column operation_name VARCHAR(255);

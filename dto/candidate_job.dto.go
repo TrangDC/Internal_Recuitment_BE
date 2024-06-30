@@ -93,6 +93,17 @@ func (d *candidateJobDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateJob, newR
 			case "model.candidate_job.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
+			case "model.candidate_job.hiring_job":
+				if oldRecord.Edges.HiringJobEdge != nil {
+					oldValueField = oldRecord.Edges.HiringJobEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.HiringJobEdge != nil {
+					newValueField = newRecord.Edges.HiringJobEdge.Name
+				} else {
+					newValueField = ""
+				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -125,7 +136,11 @@ func (d *candidateJobDtoImpl) recordAudit(record *ent.CandidateJob) []interface{
 		case "model.candidate_jobs.status":
 			valueField = d.statusI18n(record.Status)
 		case "model.candidate_jobs.hiring_job":
-			valueField = record.Edges.HiringJobEdge.Name
+			if record.Edges.HiringJobEdge != nil {
+				valueField = record.Edges.HiringJobEdge.Name
+			} else {
+				valueField = ""
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,

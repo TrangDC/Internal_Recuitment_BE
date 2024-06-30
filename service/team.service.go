@@ -9,7 +9,9 @@ import (
 	"trec/ent"
 	"trec/ent/audittrail"
 	"trec/ent/team"
+	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -31,6 +33,7 @@ type TeamService interface {
 }
 
 type teamSvcImpl struct {
+	userSvcImpl  UserService
 	repoRegistry repository.Repository
 	dtoRegistry  dto.Dto
 	logger       *zap.Logger
@@ -38,6 +41,7 @@ type teamSvcImpl struct {
 
 func NewTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) TeamService {
 	return &teamSvcImpl{
+		userSvcImpl:  NewUserService(repoRegistry, dtoRegistry, logger),
 		repoRegistry: repoRegistry,
 		dtoRegistry:  dtoRegistry,
 		logger:       logger,
@@ -47,15 +51,11 @@ func NewTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, log
 func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
 	var result *ent.Team
 	var memberIds []uuid.UUID
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	if !payload.ForAll {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
 	errString, err := svc.repoRegistry.Team().ValidName(ctx, uuid.Nil, input.Name)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	errString, err = svc.repoRegistry.Team().ValidUserInAnotherTeam(ctx, uuid.Nil, memberIds)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -66,8 +66,20 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, 
 	memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
 	})
+	errString, err = svc.repoRegistry.Team().ValidUserInAnotherTeam(ctx, uuid.Nil, memberIds)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.Team().CreateTeam(ctx, input, memberIds)
+		if err != nil {
+			return err
+		}
+		err := svc.userSvcImpl.UpdateTeam(ctx, result.Name, result.ID, memberIds, note)
 		return err
 	})
 	if err != nil {
@@ -91,10 +103,14 @@ func (svc *teamSvcImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput, 
 func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error) {
 	var memberIds []uuid.UUID
 	var result *ent.Team
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, record) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	errString, err := svc.repoRegistry.Team().ValidName(ctx, teamId, input.Name)
 	if err != nil {
@@ -119,7 +135,15 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 	}
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err = repoRegistry.Team().UpdateTeam(ctx, record, input, newMemberIds, removeMemberIds)
+		result, err = repoRegistry.Team().UpdateTeam(ctx, record, input, newMemberIds, removeMemberIds)
+		if err != nil {
+			return err
+		}
+		err = svc.userSvcImpl.UpdateTeam(ctx, result.Name, result.ID, newMemberIds, note)
+		if err != nil {
+			return err
+		}
+		err = svc.userSvcImpl.RemoveTeam(ctx, result.ID, removeMemberIds, note)
 		return err
 	})
 	if err != nil {
@@ -141,6 +165,10 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 }
 
 func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	if !payload.ForAll {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
 	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -155,6 +183,10 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.Team().DeleteTeam(ctx, team, memberIds)
+		if err != nil {
+			return err
+		}
+		err = svc.userSvcImpl.RemoveTeam(ctx, team.ID, memberIds, note)
 		return err
 	})
 	if err != nil {
@@ -173,7 +205,10 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 }
 
 func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.TeamResponse, error) {
-	team, err := svc.repoRegistry.Team().GetTeam(ctx, teamId)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	query := svc.repoRegistry.Team().BuildQuery()
+	svc.validPermissionGet(payload, query)
+	team, err := svc.repoRegistry.Team().BuildGetOne(ctx, query.Where(team.IDEQ(teamId)))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
@@ -184,6 +219,7 @@ func (svc *teamSvcImpl) GetTeam(ctx context.Context, teamId uuid.UUID) (*ent.Tea
 }
 
 func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.TeamFreeWord, filter *ent.TeamFilter, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.TeamResponseGetAll
 	var edges []*ent.TeamEdge
 	var page int
@@ -192,6 +228,7 @@ func (svc *teamSvcImpl) GetTeams(ctx context.Context, pagination *ent.Pagination
 	var count int
 	var err error
 	query := svc.repoRegistry.Team().BuildQuery()
+	svc.validPermissionGet(payload, query)
 	teams, count, err = svc.getAllTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
 		return nil, err
@@ -257,7 +294,7 @@ func (svc *teamSvcImpl) getAllTeams(ctx context.Context, query *ent.TeamQuery, p
 	var teams []*ent.Team
 	var count int
 	var err error
-	svc.filter(query, filter)
+	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
 	if pagination != nil {
 		page = *pagination.Page
@@ -286,10 +323,25 @@ func (svc *teamSvcImpl) freeWord(teamQuery *ent.TeamQuery, input *ent.TeamFreeWo
 	}
 }
 
-func (svc *teamSvcImpl) filter(teamQuery *ent.TeamQuery, input *ent.TeamFilter) {
+func (svc *teamSvcImpl) filter(ctx context.Context, teamQuery *ent.TeamQuery, input *ent.TeamFilter) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	if input != nil {
 		if input.Name != nil {
 			teamQuery.Where(team.NameEqualFold(*input.Name))
+		}
+		if input.ForOwner != nil {
+			if *input.ForOwner {
+				teamQuery.Where(team.HasUserEdgesWith(user.IDEQ(payload.UserID)))
+			} else {
+				teamQuery.Where(team.IDEQ(uuid.Nil))
+			}
+		}
+		if input.ForTeam != nil {
+			if *input.ForTeam {
+				teamQuery.Where(team.Or(team.HasMemberEdgesWith(user.IDEQ(payload.UserID)), team.HasUserEdgesWith(user.IDEQ(payload.UserID))))
+			} else {
+				teamQuery.Where(team.IDEQ(uuid.Nil))
+			}
 		}
 	}
 }
@@ -376,6 +428,45 @@ func (svc teamSvcImpl) getTeamListByAdditionOrder(ctx context.Context, query *en
 		teams = teams[start:end]
 	}
 	return count, teams, nil
+}
+
+// permission
+
+func (svc *teamSvcImpl) validPermissionUpdate(payload *middleware.Payload, record *ent.Team) bool {
+	if payload.ForAll {
+		return true
+	}
+	currentManagerIds := lo.Map(record.Edges.UserEdges, func(user *ent.User, index int) uuid.UUID {
+		return user.ID
+	})
+	currentMemberIds := lo.Map(record.Edges.MemberEdges, func(user *ent.User, index int) uuid.UUID {
+		return user.ID
+	})
+	if payload.ForOwner && payload.ForTeam && (lo.Contains(currentManagerIds, payload.UserID) || lo.Contains(currentMemberIds, payload.UserID)) {
+		return true
+	}
+	if payload.ForOwner && lo.Contains(currentManagerIds, payload.UserID) {
+		return true
+	}
+	if payload.ForTeam && lo.Contains(currentMemberIds, payload.UserID) {
+		return true
+	}
+	return false
+}
+
+func (svc *teamSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.TeamQuery) {
+	if payload.ForAll {
+		return
+	}
+	if payload.ForOwner && payload.ForTeam {
+		query.Where(team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))))
+	}
+	if payload.ForOwner {
+		query.Where(team.HasUserEdgesWith(user.IDEQ(payload.UserID)))
+	}
+	if payload.ForTeam {
+		query.Where(team.HasMemberEdgesWith(user.IDEQ(payload.UserID)))
+	}
 }
 
 // Path: service/team.service.go

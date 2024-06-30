@@ -25,6 +25,8 @@ type User {
   work_email: String!
   status: UserStatus!
   team: Team
+  entity_permissions: [EntityPermission!]!
+  roles: [Role!]!
 }
 
 type UserSelectionEdge {
@@ -43,6 +45,9 @@ input UserFilter {
   ignore_ids: [ID!]
   not_in_team: Boolean
   status: UserStatus
+  is_able_to_interviewer: Boolean
+  team_id: [ID!]
+  role_id: [ID!]
 }
 
 input UserFreeWord {
@@ -53,12 +58,19 @@ input UserFreeWord {
 input NewUserInput {
   name: String!
   work_email: String!
+  status: UserStatus!
+  entity_permissions: [NewEntityPermissionInput!]!
+  team_id: ID
+  role_id: [ID!]
 }
 
 input UpdateUserInput {
   name: String!
   work_email: String!
   status: UserStatus!
+  entity_permissions: [NewEntityPermissionInput!]!
+  team_id: ID
+  role_id: [ID!]
 }
 
 type UserResponse {

@@ -19,3 +19,7 @@ type Token struct {
 	UniqueTokenID      string `json:"uti"`
 	Version            string `json:"ver"`
 }
+
+var (
+	BeInterviewer = "BeInterviewer"
+)

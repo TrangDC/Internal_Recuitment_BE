@@ -75,8 +75,16 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 				oldValueField = d.referenceTypeValueI18n(oldRecord.ReferenceType, oldRecord.ReferenceValue)
 				newValueField = d.referenceTypeValueI18n(newRecord.ReferenceType, newRecord.ReferenceValue)
 			case "model.candidates.reference_user":
-				oldValueField = oldRecord.Edges.ReferenceUserEdge.Name
-				newValueField = newRecord.Edges.ReferenceUserEdge.Name
+				if oldRecord.Edges.ReferenceUserEdge != nil {
+					oldValueField = oldRecord.Edges.ReferenceUserEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.ReferenceUserEdge != nil {
+					newValueField = newRecord.Edges.ReferenceUserEdge.Name
+				} else {
+					newValueField = ""
+				}
 			case "model.candidates.recruit_time":
 				oldValueField = ""
 				newValueField = ""
@@ -130,7 +138,11 @@ func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {
 		case "model.candidates.reference_value":
 			valueField = d.referenceTypeValueI18n(record.ReferenceType, record.ReferenceValue)
 		case "model.candidates.reference_user":
-			valueField = record.Edges.ReferenceUserEdge.Name
+			if record.Edges.ReferenceUserEdge != nil {
+				valueField = record.Edges.ReferenceUserEdge.Name
+			} else {
+				valueField = ""
+			}
 		case "model.candidates.recruit_time":
 			if !record.RecruitTime.IsZero() {
 				valueField = record.RecruitTime

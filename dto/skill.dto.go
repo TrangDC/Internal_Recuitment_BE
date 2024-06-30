@@ -61,6 +61,17 @@ func (d skillDtoImpl) AuditTrailUpdate(oldRecord *ent.Skill, newRecord *ent.Skil
 		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
 			switch fieldName {
 			case "":
+			case "model.skills.skill_type":
+				if oldRecord.Edges.SkillTypeEdge != nil {
+					oldValueField = oldRecord.Edges.SkillTypeEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.SkillTypeEdge != nil {
+					newValueField = newRecord.Edges.SkillTypeEdge.Name
+				} else {
+					newValueField = ""
+				}
 				continue
 			}
 			entity = append(entity, models.AuditTrailUpdate{
@@ -89,7 +100,11 @@ func (d skillDtoImpl) recordAudit(record *ent.Skill) []interface{} {
 		case "":
 			continue
 		case "model.skills.skill_type":
-			valueField = record.Edges.SkillTypeEdge.Name
+			if record.Edges.SkillTypeEdge != nil {
+				valueField = record.Edges.SkillTypeEdge.Name
+			} else {
+				valueField = ""
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,

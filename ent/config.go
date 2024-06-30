@@ -36,13 +36,18 @@ type hooks struct {
 	CandidateJob         []ent.Hook
 	CandidateJobFeedback []ent.Hook
 	CandidateJobStep     []ent.Hook
+	EntityPermission     []ent.Hook
 	EntitySkill          []ent.Hook
 	HiringJob            []ent.Hook
+	Permission           []ent.Hook
+	PermissionGroup      []ent.Hook
+	Role                 []ent.Hook
 	Skill                []ent.Hook
 	SkillType            []ent.Hook
 	Team                 []ent.Hook
 	TeamManager          []ent.Hook
 	User                 []ent.Hook
+	UserRole             []ent.Hook
 }
 
 // Options applies the options on the config object.

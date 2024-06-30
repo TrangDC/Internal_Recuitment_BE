@@ -29,6 +29,8 @@ type Service interface {
 	CandidateJobStep() CandidateJobStepService
 	Skill() SkillService
 	SkillType() SkillTypeService
+	Role() RoleService
+	PermissionGroup() PermissionGroupService
 }
 
 // serviceImpl is the implementation of Service.
@@ -49,6 +51,8 @@ type serviceImpl struct {
 	candidateJobStepService     CandidateJobStepService
 	skillService                SkillService
 	skillTypeService            SkillTypeService
+	roleService                 RoleService
+	permissionGroup             PermissionGroupService
 }
 
 // NewService creates a new Service.
@@ -73,6 +77,8 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		candidateJobStepService:     NewCandidateJobStepService(repoRegistry, logger),
 		skillService:                NewSkillService(repoRegistry, dtoRegistry, logger),
 		skillTypeService:            NewSkillTypeService(repoRegistry, dtoRegistry, logger),
+		roleService:                 NewRoleService(repoRegistry, dtoRegistry, logger),
+		permissionGroup:             NewPermissionGroupService(repoRegistry, logger),
 	}
 }
 
@@ -152,4 +158,12 @@ func (i serviceImpl) Skill() SkillService {
 
 func (i serviceImpl) SkillType() SkillTypeService {
 	return i.skillTypeService
+}
+
+func (i serviceImpl) Role() RoleService {
+	return i.roleService
+}
+
+func (i serviceImpl) PermissionGroup() PermissionGroupService {
+	return i.permissionGroup
 }

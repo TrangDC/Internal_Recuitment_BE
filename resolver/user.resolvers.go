@@ -27,6 +27,16 @@ func (r *userResolver) Team(ctx context.Context, obj *ent.User) (*ent.Team, erro
 	return nil, nil
 }
 
+// EntityPermissions is the resolver for the entity_permissions field.
+func (r *userResolver) EntityPermissions(ctx context.Context, obj *ent.User) ([]*ent.EntityPermission, error) {
+	return obj.Edges.UserPermissionEdges, nil
+}
+
+// Roles is the resolver for the roles field.
+func (r *userResolver) Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, error) {
+	return obj.Edges.RoleEdges, nil
+}
+
 // User returns graphql1.UserResolver implementation.
 func (r *Resolver) User() graphql1.UserResolver { return &userResolver{r} }
 

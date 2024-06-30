@@ -55,6 +55,11 @@ type Mutation {
   UpdateSkillType(id: ID!, input: UpdateSkillTypeInput!, note: String!): SkillTypeResponse!
   DeleteSkillType(id: ID!, note: String!): Boolean!
 
+  #Role
+  CreateRole(input: NewRoleInput!, note: String!): RoleResponse!
+  UpdateRole(id: ID!, input: UpdateRoleInput!, note: String!): RoleResponse!
+  DeleteRole(id: ID!, note: String!): Boolean!
+
   #Validate
   ValidateCandidateInterview(input: CandidateInterviewValidateInput!): CandidateInterviewResponseValidate!
 }

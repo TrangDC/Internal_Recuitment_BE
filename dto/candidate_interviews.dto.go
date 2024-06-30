@@ -154,7 +154,11 @@ func (d *candidateInterviewDtoImpl) recordAudit(record *ent.CandidateInterview) 
 		case "model.candidate_interviews.end_at":
 			valueField = record.EndAt
 		case "model.candidate_interviews.created_by":
-			valueField = record.Edges.CreatedByEdge.Name
+			if record.Edges.CreatedByEdge != nil {
+				valueField = record.Edges.CreatedByEdge.Name
+			} else {
+				valueField = ""
+			}
 		case "model.candidate_interviews.status":
 			valueField = d.statusI18n(record.Status)
 		}

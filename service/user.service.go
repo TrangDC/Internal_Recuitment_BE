@@ -7,10 +7,14 @@ import (
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/entitypermission"
+	"trec/ent/permission"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -28,6 +32,9 @@ type UserService interface {
 	Selections(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error)
 	GetUser(ctx context.Context, id uuid.UUID) (*ent.UserResponse, error)
 	GetUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
+	GetMe(ctx context.Context) (*ent.UserResponse, error)
+	UpdateTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error
+	RemoveTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error
 }
 
 type userSvcImpl struct {
@@ -55,24 +62,44 @@ func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput,
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	errString, err = svc.repoRegistry.EntityPermission().ValidActionPermission(ctx, input.EntityPermissions)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	roleIds := lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
+		return uuid.MustParse(member)
+	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		record, err = repoRegistry.User().CreateUser(ctx, input)
+		record, err = repoRegistry.User().CreateUser(ctx, input, roleIds)
+		if err != nil {
+			return err
+		}
+		err := repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, input.EntityPermissions, nil, entitypermission.EntityTypeUser)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	jsonString, err := svc.dtoRegistry.User().AuditTrailCreate(record)
+	result, err := svc.repoRegistry.User().GetUser(ctx, record.ID)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagNotFound)
+	}
+	jsonString, err := svc.dtoRegistry.User().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.UserResponse{
-		Data: record,
+		Data: result,
 	}, nil
 }
 
@@ -82,8 +109,15 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagNotFound)
 	}
+	roleIds := lo.Map(record.Edges.RoleEdges, func(member *ent.Role, index int) uuid.UUID {
+		return member.ID
+	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		err = repoRegistry.User().DeleteUser(ctx, record)
+		err = repoRegistry.User().DeleteUser(ctx, record, roleIds)
+		if err != nil {
+			return err
+		}
+		err = repoRegistry.EntityPermission().DeleteAllEntityPermission(ctx, record.ID)
 		return err
 	})
 	if err != nil {
@@ -103,6 +137,7 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 
 func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInput, id uuid.UUID, note string) (*ent.UserResponse, error) {
 	var result *ent.User
+	var roleIds []uuid.UUID
 	record, err := svc.repoRegistry.User().GetUser(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -116,14 +151,33 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	errString, err = svc.repoRegistry.EntityPermission().ValidActionPermission(ctx, input.EntityPermissions)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	if len(input.RoleID) != 0 {
+		roleIds = lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
+			return uuid.MustParse(member)
+		})
+	}
+	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.User().UpdateUser(ctx, record, input)
+		_, err = repoRegistry.User().UpdateUser(ctx, record, input, newRoleIds, removeRoleIds)
+		if err != nil {
+			return err
+		}
+		err = repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, input.EntityPermissions, record.Edges.UserPermissionEdges, entitypermission.EntityTypeUser)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ = svc.repoRegistry.User().GetUser(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.User().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -145,13 +199,14 @@ func (svc *userSvcImpl) UpdateUserStatus(ctx context.Context, input ent.UpdateUs
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.User().UpdateUserStatus(ctx, record, user.Status(input.Status))
+		_, err = repoRegistry.User().UpdateUserStatus(ctx, record, user.Status(input.Status))
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ = svc.repoRegistry.User().GetUser(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.User().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -231,6 +286,17 @@ func (svc *userSvcImpl) GetUser(ctx context.Context, id uuid.UUID) (*ent.UserRes
 		Data: result,
 	}, nil
 }
+func (svc *userSvcImpl) GetMe(ctx context.Context) (*ent.UserResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	result, err := svc.repoRegistry.User().GetUser(ctx, payload.UserID)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	return &ent.UserResponse{
+		Data: result,
+	}, nil
+}
 
 func (svc *userSvcImpl) GetUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error) {
 	var result *ent.UserResponseGetAll
@@ -282,6 +348,44 @@ func (svc *userSvcImpl) GetUsers(ctx context.Context, pagination *ent.Pagination
 	return result, nil
 }
 
+func (svc *userSvcImpl) UpdateTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error {
+	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildQuery().Where(user.IDIn(userId...)))
+	if err != nil {
+		return err
+	}
+	err = svc.repoRegistry.User().UpdateUserTeam(ctx, userId, teamId)
+	if err != nil {
+		return err
+	}
+	recordAuditTrails := lo.Map(users, func(user *ent.User, index int) models.UserTeamAuditTrail {
+		return models.UserTeamAuditTrail{
+			RecordId:   user.ID,
+			JsonString: svc.dtoRegistry.User().AuditTrailUpdateTeam(user, teamName),
+		}
+	})
+	err = svc.repoRegistry.AuditTrail().CreateBulkUserTeamAt(ctx, recordAuditTrails, note)
+	return err
+}
+
+func (svc *userSvcImpl) RemoveTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error {
+	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildQuery().Where(user.IDIn(userId...)))
+	if err != nil {
+		return err
+	}
+	err = svc.repoRegistry.User().DeleteUserTeam(ctx, userId, teamId)
+	if err != nil {
+		return err
+	}
+	recordAuditTrails := lo.Map(users, func(user *ent.User, index int) models.UserTeamAuditTrail {
+		return models.UserTeamAuditTrail{
+			RecordId:   user.ID,
+			JsonString: svc.dtoRegistry.User().AuditTrailUpdateTeam(user, ""),
+		}
+	})
+	err = svc.repoRegistry.AuditTrail().CreateBulkUserTeamAt(ctx, recordAuditTrails, note)
+	return err
+}
+
 // common function
 func (svc *userSvcImpl) freeWord(userQuery *ent.UserQuery, input *ent.UserFreeWord) {
 	predicate := []predicate.User{}
@@ -322,5 +426,37 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			}
 			userQuery.Where(predicate)
 		}
+		if input.IsAbleToInterviewer != nil {
+			if *input.IsAbleToInterviewer {
+				userQuery.Where(user.HasUserPermissionEdgesWith(
+					entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+						permission.OperationNameEQ(models.BeInterviewer),
+					),
+				))
+			} else {
+				userQuery.Where(user.Not(user.HasUserPermissionEdgesWith(
+					entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+						permission.OperationNameEQ(models.BeInterviewer),
+					),
+				)))
+			}
+		}
 	}
 }
+
+func (svc *userSvcImpl) updateRoles(record *ent.User, roleIds []uuid.UUID) ([]uuid.UUID, []uuid.UUID) {
+	var newMemberIds []uuid.UUID
+	var removeMemberIds []uuid.UUID
+	currentMemberIds := lo.Map(record.Edges.RoleEdges, func(user *ent.Role, index int) uuid.UUID {
+		return user.ID
+	})
+	newMemberIds = lo.Filter(roleIds, func(roleId uuid.UUID, index int) bool {
+		return !lo.Contains(currentMemberIds, roleId)
+	})
+	removeMemberIds = lo.Filter(currentMemberIds, func(roleId uuid.UUID, index int) bool {
+		return !lo.Contains(roleIds, roleId)
+	})
+	return newMemberIds, removeMemberIds
+}
+
+// Path: service/user.service.go

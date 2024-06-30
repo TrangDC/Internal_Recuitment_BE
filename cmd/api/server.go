@@ -16,6 +16,7 @@ import (
 	"trec/models"
 	"trec/resolver"
 	"trec/rest"
+	"trec/scripts"
 	"trec/service"
 
 	"entgo.io/contrib/entgql"
@@ -154,6 +155,8 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 					graphqlRouter.Use(middleware.AuthenticateMiddleware(azureADOAuthClient, db, logger))
 				}
 
+				graphqlRouter.Use(middleware.ValidPermission(db))
+
 				graphqlRouter.POST("", func(c *gin.Context) {
 					resolverHandler.ServeHTTP(c.Writer, c.Request)
 				})
@@ -169,6 +172,8 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 					playgroundHandler.ServeHTTP(c.Writer, c.Request)
 				})
 			}
+
+			scripts.ImportMasterDB(db, logger, configs)
 
 			server := &http.Server{
 				ReadTimeout:  15 * time.Second,

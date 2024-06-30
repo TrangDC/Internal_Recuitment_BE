@@ -13,18 +13,19 @@ type ErrorFlag string
 type ErrorMSg string
 
 const (
-	ErrorFlagUncategorized ErrorFlag = "UNCATEGORIZED"
-	ErrorFlagCanNotDelete  ErrorFlag = "CAN_NOT_DELETE"
-	ErrorFlagCanNotUpdate  ErrorFlag = "CAN_NOT_UPDATE"
-	ErrorFlagCanNotDisable ErrorFlag = "CAN_NOT_DISABLE"
-	ErrorFlagCanNotEnable  ErrorFlag = "CAN_NOT_ENABLE"
-	ErrorFlagCanNotCreate  ErrorFlag = "CAN_NOT_CREATE"
-	ErrorFlagUpdateFail    ErrorFlag = "UPDATE_FAIL"
-	ErrorFlagCreateFail    ErrorFlag = "CREATE_FAIL"
-	ErrorFlagDeleteFail    ErrorFlag = "DELETE_FAIL"
-	ErrorFlagNotFound      ErrorFlag = "NOT_FOUND"
-	ErrorFlagValidateFail  ErrorFlag = "VALIDATE_FAIL"
-	ErrorFlagInternalError ErrorFlag = "INTERNAL_ERROR"
+	ErrorFlagUncategorized    ErrorFlag = "UNCATEGORIZED"
+	ErrorFlagCanNotDelete     ErrorFlag = "CAN_NOT_DELETE"
+	ErrorFlagCanNotUpdate     ErrorFlag = "CAN_NOT_UPDATE"
+	ErrorFlagCanNotDisable    ErrorFlag = "CAN_NOT_DISABLE"
+	ErrorFlagCanNotEnable     ErrorFlag = "CAN_NOT_ENABLE"
+	ErrorFlagCanNotCreate     ErrorFlag = "CAN_NOT_CREATE"
+	ErrorFlagUpdateFail       ErrorFlag = "UPDATE_FAIL"
+	ErrorFlagCreateFail       ErrorFlag = "CREATE_FAIL"
+	ErrorFlagDeleteFail       ErrorFlag = "DELETE_FAIL"
+	ErrorFlagNotFound         ErrorFlag = "NOT_FOUND"
+	ErrorFlagValidateFail     ErrorFlag = "VALIDATE_FAIL"
+	ErrorFlagInternalError    ErrorFlag = "INTERNAL_ERROR"
+	ErrorFlagPermissionDenied ErrorFlag = "PERMISSION_DENIED"
 )
 
 func WrapGQLError(ctx context.Context, message string, code int, errorFlag ErrorFlag) *gqlerror.Error {
@@ -52,6 +53,10 @@ func WrapGQLBadRequestError(ctx context.Context, format string, args ...interfac
 
 func WrapGQLUnauthorizedError(ctx context.Context) *gqlerror.Error {
 	return WrapGQLError(ctx, "Unauthorized Request", http.StatusUnauthorized, ErrorFlagUncategorized)
+}
+
+func WrapGQLPermissionError(ctx context.Context) *gqlerror.Error {
+	return WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, ErrorFlagPermissionDenied)
 }
 
 func WrapGQLNotFoundError(ctx context.Context) *gqlerror.Error {

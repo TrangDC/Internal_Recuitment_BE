@@ -268,6 +268,30 @@ func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJo
 	return result, MaskNotFound(err)
 }
 
+func (ep *EntityPermission) PermissionEdges(ctx context.Context) (*Permission, error) {
+	result, err := ep.Edges.PermissionEdgesOrErr()
+	if IsNotLoaded(err) {
+		result, err = ep.QueryPermissionEdges().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (ep *EntityPermission) UserEdge(ctx context.Context) (*User, error) {
+	result, err := ep.Edges.UserEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ep.QueryUserEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (ep *EntityPermission) RoleEdge(ctx context.Context) (*Role, error) {
+	result, err := ep.Edges.RoleEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ep.QueryRoleEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (es *EntitySkill) SkillEdge(ctx context.Context) (*Skill, error) {
 	result, err := es.Edges.SkillEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -332,6 +356,94 @@ func (hj *HiringJob) HiringJobSkillEdges(ctx context.Context) (result []*EntityS
 	return result, err
 }
 
+func (pe *Permission) GroupPermissionEdge(ctx context.Context) (*PermissionGroup, error) {
+	result, err := pe.Edges.GroupPermissionEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = pe.QueryGroupPermissionEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (pe *Permission) UserPermissionEdge(ctx context.Context) (result []*EntityPermission, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pe.NamedUserPermissionEdge(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pe.Edges.UserPermissionEdgeOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pe.QueryUserPermissionEdge().All(ctx)
+	}
+	return result, err
+}
+
+func (pg *PermissionGroup) GroupPermissionParent(ctx context.Context) (*PermissionGroup, error) {
+	result, err := pg.Edges.GroupPermissionParentOrErr()
+	if IsNotLoaded(err) {
+		result, err = pg.QueryGroupPermissionParent().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (pg *PermissionGroup) GroupPermissionChildren(ctx context.Context) (result []*PermissionGroup, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pg.NamedGroupPermissionChildren(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pg.Edges.GroupPermissionChildrenOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pg.QueryGroupPermissionChildren().All(ctx)
+	}
+	return result, err
+}
+
+func (pg *PermissionGroup) PermissionEdges(ctx context.Context) (result []*Permission, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pg.NamedPermissionEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pg.Edges.PermissionEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pg.QueryPermissionEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (r *Role) RolePermissionEdges(ctx context.Context) (result []*EntityPermission, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedRolePermissionEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.RolePermissionEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryRolePermissionEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (r *Role) UserEdges(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedUserEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.UserEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryUserEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (r *Role) UserRoles(ctx context.Context) (result []*UserRole, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedUserRoles(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.UserRolesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryUserRoles().All(ctx)
+	}
+	return result, err
+}
+
 func (s *Skill) SkillTypeEdge(ctx context.Context) (*SkillType, error) {
 	result, err := s.Edges.SkillTypeEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -384,6 +496,18 @@ func (t *Team) TeamJobEdges(ctx context.Context) (result []*HiringJob, err error
 	}
 	if IsNotLoaded(err) {
 		result, err = t.QueryTeamJobEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (t *Team) MemberEdges(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = t.NamedMemberEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = t.Edges.MemberEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = t.QueryMemberEdges().All(ctx)
 	}
 	return result, err
 }
@@ -512,6 +636,38 @@ func (u *User) CandidateReferenceEdges(ctx context.Context) (result []*Candidate
 	return result, err
 }
 
+func (u *User) UserPermissionEdges(ctx context.Context) (result []*EntityPermission, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedUserPermissionEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.UserPermissionEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryUserPermissionEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) TeamEdge(ctx context.Context) (*Team, error) {
+	result, err := u.Edges.TeamEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryTeamEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (u *User) RoleEdges(ctx context.Context) (result []*Role, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedRoleEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.RoleEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryRoleEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (u *User) TeamUsers(ctx context.Context) (result []*TeamManager, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedTeamUsers(graphql.GetFieldContext(ctx).Field.Alias)
@@ -532,6 +688,34 @@ func (u *User) InterviewUsers(ctx context.Context) (result []*CandidateInterview
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryInterviewUsers().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) RoleUsers(ctx context.Context) (result []*UserRole, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedRoleUsers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.RoleUsersOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryRoleUsers().All(ctx)
+	}
+	return result, err
+}
+
+func (ur *UserRole) UserEdge(ctx context.Context) (*User, error) {
+	result, err := ur.Edges.UserEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ur.QueryUserEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (ur *UserRole) RoleEdge(ctx context.Context) (*Role, error) {
+	result, err := ur.Edges.RoleEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ur.QueryRoleEdge().Only(ctx)
 	}
 	return result, err
 }

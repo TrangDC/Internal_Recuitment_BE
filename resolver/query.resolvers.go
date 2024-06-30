@@ -31,6 +31,11 @@ func (r *queryResolver) GetAllUsers(ctx context.Context, pagination *ent.Paginat
 	return r.serviceRegistry.User().GetUsers(ctx, pagination, filter, freeWord, orderBy)
 }
 
+// GetMe is the resolver for the GetMe field.
+func (r *queryResolver) GetMe(ctx context.Context) (*ent.UserResponse, error) {
+	return r.serviceRegistry.User().GetMe(ctx)
+}
+
 // GetHiringJob is the resolver for the GetHiringJob field.
 func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().GetHiringJob(ctx, uuid.MustParse(id))
@@ -159,6 +164,26 @@ func (r *queryResolver) SelectionSkills(ctx context.Context, pagination *ent.Pag
 // SelectionSkillTypes is the resolver for the SelectionSkillTypes field.
 func (r *queryResolver) SelectionSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeSelectionResponseGetAll, error) {
 	return r.serviceRegistry.SkillType().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// SelectionRole is the resolver for the SelectionRole field.
+func (r *queryResolver) SelectionRole(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleSelectionResponseGetAll, error) {
+	return r.serviceRegistry.Role().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// GetRole is the resolver for the GetRole field.
+func (r *queryResolver) GetRole(ctx context.Context, id string) (*ent.RoleResponse, error) {
+	return r.serviceRegistry.Role().GetRole(ctx, uuid.MustParse(id))
+}
+
+// GetAllRoles is the resolver for the GetAllRoles field.
+func (r *queryResolver) GetAllRoles(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleResponseGetAll, error) {
+	return r.serviceRegistry.Role().GetRoles(ctx, pagination, freeWord, filter, orderBy)
+}
+
+// GetAllPermissionGroups is the resolver for the GetAllPermissionGroups field.
+func (r *queryResolver) GetAllPermissionGroups(ctx context.Context) (*ent.PermissionGroupResponseGetAll, error) {
+	return r.serviceRegistry.PermissionGroup().GetAllPermissionGroups(ctx)
 }
 
 // Query returns graphql1.QueryResolver implementation.

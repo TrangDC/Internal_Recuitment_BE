@@ -12,6 +12,7 @@ type UserDto interface {
 	AuditTrailCreate(record *ent.User) (string, error)
 	AuditTrailDelete(record *ent.User) (string, error)
 	AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) (string, error)
+	AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) string
 }
 
 type userDtoImpl struct {
@@ -66,6 +67,17 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 			case "model.users.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
+			case "model.users.team":
+				if oldRecord.Edges.TeamEdge != nil {
+					oldValueField = oldRecord.Edges.TeamEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.TeamEdge != nil {
+					newValueField = newRecord.Edges.TeamEdge.Name
+				} else {
+					newValueField = ""
+				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -81,6 +93,30 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 	return string(jsonObj), err
 }
 
+func (d userDtoImpl) AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) string {
+	result := models.AuditTrailData{
+		Module: UserI18n,
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	entity := []interface{}{}
+	oldTeamName := ""
+	if oldRecord.Edges.TeamEdge != nil {
+		oldTeamName = oldRecord.Edges.TeamEdge.Name
+	}
+	entity = append(entity, models.AuditTrailUpdate{
+		Field: "model.users.team",
+		Value: models.ValueChange{
+			OldValue: oldTeamName,
+			NewValue: teamName,
+		},
+	})
+	result.Update = append(result.Update, entity...)
+	jsonObj, _ := json.Marshal(result)
+	return string(jsonObj)
+}
+
 func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 	entity := []interface{}{}
 	value := reflect.ValueOf(interface{}(record)).Elem()
@@ -94,6 +130,8 @@ func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 			continue
 		case "model.users.status":
 			valueField = d.statusI18n(record.Status)
+		case "model.users.team":
+			valueField = record.Edges.TeamEdge.Name
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -120,6 +158,8 @@ func (d userDtoImpl) formatFieldI18n(input string) string {
 		return "model.users.work_email"
 	case "Status":
 		return "model.users.status"
+	case "TeamID":
+		return "model.users.team"
 	}
 	return ""
 }

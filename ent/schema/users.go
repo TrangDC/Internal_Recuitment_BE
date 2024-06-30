@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -19,6 +20,7 @@ func (User) Fields() []ent.Field {
 		field.String("work_email").MaxLen(255).Annotations(entgql.OrderField("work_email")),
 		field.Enum("status").Values("active", "inactive").Default("active"),
 		field.String("oid").Unique().MaxLen(255),
+		field.UUID("team_id", uuid.UUID{}).Unique().Optional(),
 	}
 }
 
@@ -33,6 +35,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("candidate_job_edges", CandidateJob.Type),
 		edge.To("candidate_interview_edges", CandidateInterview.Type),
 		edge.To("candidate_reference_edges", Candidate.Type),
+		edge.To("user_permission_edges", EntityPermission.Type),
+		edge.From("team_edge", Team.Type).Ref("member_edges").Unique().Field("team_id"),
+		edge.To("role_edges", Role.Type).Through("role_users", UserRole.Type),
 	}
 }
 

@@ -25,6 +25,9 @@ type Repository interface {
 	Skill() SkillRepository
 	EntitySkill() EntitySkillRepository
 	SkillType() SkillTypeRepository
+	Role() RoleRepository
+	EntityPermission() EntityPermissionRepository
+	PermissionGroup() PermissionGroupRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -49,6 +52,9 @@ type RepoImpl struct {
 	skill                SkillRepository
 	entitySkill          EntitySkillRepository
 	skillType            SkillTypeRepository
+	role                 RoleRepository
+	entityPermission     EntityPermissionRepository
+	permissionGroup      PermissionGroupRepository
 }
 
 // NewRepository creates new repository registry
@@ -70,6 +76,9 @@ func NewRepository(entClient *ent.Client) Repository {
 		skill:                NewSkillRepository(entClient),
 		entitySkill:          NewEntitySkillRepository(entClient),
 		skillType:            NewSkillTypeRepository(entClient),
+		role:                 NewRoleRepository(entClient),
+		entityPermission:     NewEntityPermissionRepository(entClient),
+		permissionGroup:      NewPermissionGroupRepository(entClient),
 	}
 }
 
@@ -133,6 +142,18 @@ func (r *RepoImpl) SkillType() SkillTypeRepository {
 	return r.skillType
 }
 
+func (r *RepoImpl) Role() RoleRepository {
+	return r.role
+}
+
+func (r *RepoImpl) EntityPermission() EntityPermissionRepository {
+	return r.entityPermission
+}
+
+func (r *RepoImpl) PermissionGroup() PermissionGroupRepository {
+	return r.permissionGroup
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -170,6 +191,8 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		skill:                NewSkillRepository(tx.Client()),
 		entitySkill:          NewEntitySkillRepository(tx.Client()),
 		skillType:            NewSkillTypeRepository(tx.Client()),
+		role:                 NewRoleRepository(tx.Client()),
+		entityPermission:     NewEntityPermissionRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {
