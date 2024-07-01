@@ -72,6 +72,9 @@ type CandidateFilter struct {
 	ReferenceUID        []string                   `json:"reference_uid"`
 	RecruitTimeFromDate *time.Time                 `json:"recruit_time_from_date"`
 	RecruitTimeToDate   *time.Time                 `json:"recruit_time_to_date"`
+	SkillTypeIds        []string                   `json:"skill_type_ids"`
+	SkillIds            []string                   `json:"skill_ids"`
+	ReferenceType       []CandidateReferenceType   `json:"reference_type"`
 }
 
 type CandidateFreeWord struct {
@@ -282,10 +285,13 @@ type EntitySkillType struct {
 }
 
 type HiringJobFilter struct {
-	Name     *string          `json:"name"`
-	TeamIds  []string         `json:"team_ids"`
-	Status   *HiringJobStatus `json:"status"`
-	Priority *int             `json:"priority"`
+	Name         *string          `json:"name"`
+	TeamIds      []string         `json:"team_ids"`
+	Status       *HiringJobStatus `json:"status"`
+	Priority     *int             `json:"priority"`
+	Location     []*LocationEnum  `json:"location"`
+	SkillIds     []string         `json:"skill_ids"`
+	CreatedByIds []string         `json:"created_by_ids"`
 }
 
 type HiringJobFreeWord struct {

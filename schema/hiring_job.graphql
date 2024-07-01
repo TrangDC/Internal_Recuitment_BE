@@ -50,6 +50,9 @@ input HiringJobFilter {
   team_ids: [ID!]
   status: HiringJobStatus
   priority: Int
+  location: [LocationEnum]
+  skill_ids: [ID!]
+  created_by_ids: [ID!]
 }
 
 input HiringJobFreeWord {

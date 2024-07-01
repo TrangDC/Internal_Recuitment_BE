@@ -101,6 +101,9 @@ input CandidateFilter {
   reference_uid: [ID!]
   recruit_time_from_date: Time
   recruit_time_to_date: Time
+  skill_type_ids: [ID!]
+  skill_ids: [ID!]
+  reference_type: [CandidateReferenceType!]
 }
 
 input CandidateFreeWord {

@@ -406,5 +406,25 @@ func (svc *hiringJobSvcImpl) filter(hiringJobQuery *ent.HiringJobQuery, input *e
 		if input.Priority != nil {
 			hiringJobQuery.Where(hiringjob.PriorityEQ(*input.Priority))
 		}
+		if input.Location != nil {
+			locations := lo.Map(input.Location, func(item *ent.LocationEnum, index int) hiringjob.Location {
+				return hiringjob.Location(*item)
+			})
+			hiringJobQuery.Where(hiringjob.LocationIn(locations...))
+		}
+		if input.SkillIds != nil {
+			ids := lo.Map(input.SkillIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			hiringJobQuery.Where(hiringjob.HasHiringJobSkillEdgesWith(
+				entityskill.SkillIDIn(ids...),
+			))
+		}
+		if input.CreatedByIds != nil {
+			ids := lo.Map(input.CreatedByIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			hiringJobQuery.Where(hiringjob.CreatedByIn(ids...))
+		}
 	}
 }

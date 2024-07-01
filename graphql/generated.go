@@ -4163,6 +4163,9 @@ input CandidateFilter {
   reference_uid: [ID!]
   recruit_time_from_date: Time
   recruit_time_to_date: Time
+  skill_type_ids: [ID!]
+  skill_ids: [ID!]
+  reference_type: [CandidateReferenceType!]
 }
 
 input CandidateFreeWord {
@@ -4383,6 +4386,9 @@ input HiringJobFilter {
   team_ids: [ID!]
   status: HiringJobStatus
   priority: Int
+  location: [LocationEnum]
+  skill_ids: [ID!]
+  created_by_ids: [ID!]
 }
 
 input HiringJobFreeWord {
@@ -25867,7 +25873,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date", "skill_type_ids", "skill_ids", "reference_type"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25991,6 +25997,30 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recruit_time_to_date"))
 			it.RecruitTimeToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_type_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_type_ids"))
+			it.SkillTypeIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_ids"))
+			it.SkillIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reference_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_type"))
+			it.ReferenceType, err = ec.unmarshalOCandidateReferenceType2ᚕtrecᚋentᚐCandidateReferenceTypeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -26859,7 +26889,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "team_ids", "status", "priority"}
+	fieldsInOrder := [...]string{"name", "team_ids", "status", "priority", "location", "skill_ids", "created_by_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26895,6 +26925,30 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
 			it.Priority, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			it.Location, err = ec.unmarshalOLocationEnum2ᚕᚖtrecᚋentᚐLocationEnum(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "skill_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_ids"))
+			it.SkillIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "created_by_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by_ids"))
+			it.CreatedByIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37309,6 +37363,73 @@ func (ec *executionContext) unmarshalOCandidateOrder2ᚖtrecᚋentᚐCandidateOr
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOCandidateReferenceType2ᚕtrecᚋentᚐCandidateReferenceTypeᚄ(ctx context.Context, v interface{}) ([]ent.CandidateReferenceType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ent.CandidateReferenceType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCandidateReferenceType2ᚕtrecᚋentᚐCandidateReferenceTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.CandidateReferenceType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOCandidateStatusEnum2ᚖtrecᚋentᚐCandidateStatusEnum(ctx context.Context, v interface{}) (*ent.CandidateStatusEnum, error) {
 	if v == nil {
 		return nil, nil
@@ -37600,6 +37721,83 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOLocationEnum2ᚕᚖtrecᚋentᚐLocationEnum(ctx context.Context, v interface{}) ([]*ent.LocationEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*ent.LocationEnum, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOLocationEnum2ᚖtrecᚋentᚐLocationEnum(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOLocationEnum2ᚕᚖtrecᚋentᚐLocationEnum(ctx context.Context, sel ast.SelectionSet, v []*ent.LocationEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOLocationEnum2ᚖtrecᚋentᚐLocationEnum(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOLocationEnum2ᚖtrecᚋentᚐLocationEnum(ctx context.Context, v interface{}) (*ent.LocationEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.LocationEnum)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLocationEnum2ᚖtrecᚋentᚐLocationEnum(ctx context.Context, sel ast.SelectionSet, v *ent.LocationEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx context.Context, v interface{}) ([]*ent.NewAttachmentInput, error) {
