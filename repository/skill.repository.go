@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/entityskill"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 
@@ -56,7 +57,11 @@ func (rps skillRepoImpl) BuildDelete() *ent.SkillUpdate {
 func (rps skillRepoImpl) BuildQuery() *ent.SkillQuery {
 	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil(), skill.HasSkillTypeEdgeWith(
 		skilltype.DeletedAtIsNil(),
-	)).WithSkillTypeEdge()
+	)).WithSkillTypeEdge().WithEntitySkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil())
+		},
+	)
 }
 
 func (rps skillRepoImpl) BuildBaseQuery() *ent.SkillQuery {

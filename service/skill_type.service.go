@@ -120,7 +120,6 @@ func (svc *skillTypeSvcImpl) DeleteSkillType(ctx context.Context, skillTypeId uu
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if len(skillTypeRecord.Edges.SkillEdges) != 0 {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, "model.skill_types.validation.cannot_delete", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {

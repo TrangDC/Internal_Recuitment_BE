@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/predicate"
+	"trec/ent/skill"
 	"trec/internal/util"
 	"trec/repository"
 
@@ -442,6 +443,28 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			} else {
 				candidateQuery.Where(candidate.IDIn(uuid.Nil))
 			}
+		}
+		if input.SkillTypeIds != nil {
+			ids := lo.Map(input.SkillTypeIds, func(skillType string, index int) uuid.UUID {
+				return uuid.MustParse(skillType)
+			})
+			candidateQuery.Where(candidate.HasCandidateSkillEdgesWith(
+				entityskill.HasSkillEdgeWith(skill.SkillTypeIDIn(ids...)),
+			))
+		}
+		if input.SkillIds != nil {
+			ids := lo.Map(input.SkillIds, func(skillType string, index int) uuid.UUID {
+				return uuid.MustParse(skillType)
+			})
+			candidateQuery.Where(candidate.HasCandidateSkillEdgesWith(
+				entityskill.HasSkillEdgeWith(skill.IDIn(ids...)),
+			))
+		}
+		if input.ReferenceType != nil {
+			referenceTypes := lo.Map(input.ReferenceType, func(referenceType ent.CandidateReferenceType, index int) candidate.ReferenceType {
+				return candidate.ReferenceType(referenceType)
+			})
+			candidateQuery.Where(candidate.ReferenceTypeIn(referenceTypes...))
 		}
 	}
 }

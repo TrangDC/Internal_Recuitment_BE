@@ -88,6 +88,9 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note str
 		err = repoRegistry.Skill().DeleteSkill(ctx, record)
 		return err
 	})
+	if len(record.Edges.EntitySkillEdges) > 0 {
+		return util.WrapGQLError(ctx, "model.skills.validation.entity_skill_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
