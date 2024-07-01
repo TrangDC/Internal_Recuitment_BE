@@ -69,6 +69,8 @@ input CandidateJobGroupByStatusFilter{
   skill_id: [ID!]
   from_date: Time
   to_date: Time
+  location: [LocationEnum!]
+  created_by_ids: [ID!]
 }
 
 input CandidateJobGroupByStatusFreeWord{

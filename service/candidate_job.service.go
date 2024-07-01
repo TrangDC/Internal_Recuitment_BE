@@ -660,7 +660,7 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
 	}
 	if input.TeamID != nil {
-		teamIds := lo.Map(input.HiringJobID, func(id string, index int) uuid.UUID {
+		teamIds := lo.Map(input.TeamID, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDIn(teamIds...)))
@@ -673,5 +673,17 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 	}
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
+	}
+	if input.Location != nil {
+		locations := lo.Map(input.Location, func(location ent.LocationEnum, index int) hiringjob.Location {
+			return hiringjob.Location(location.String())
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.LocationIn(locations...)))
+	}
+	if input.CreatedByIds != nil {
+		createdByIds := lo.Map(input.CreatedByIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.CreatedByIn(createdByIds...)))
 	}
 }
