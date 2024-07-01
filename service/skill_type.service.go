@@ -119,15 +119,11 @@ func (svc *skillTypeSvcImpl) DeleteSkillType(ctx context.Context, skillTypeId uu
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if len(skillTypeRecord.Edges.SkillEdges) != 0 {
+	if len(skillTypeRecord.Edges.SkillEdges) > 0 {
 		return util.WrapGQLError(ctx, "model.skill_types.validation.cannot_delete", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.SkillType().DeleteSkillType(ctx, skillTypeRecord)
-		if err != nil {
-			return err
-		}
-		err = repoRegistry.Skill().DeleteBulkSkill(ctx, skillTypeId)
 		return err
 	})
 	if err != nil {
