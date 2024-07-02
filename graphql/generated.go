@@ -294,8 +294,10 @@ type ComplexityRoot struct {
 	}
 
 	CandidateSelection struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		Email func(childComplexity int) int
+		ID    func(childComplexity int) int
+		Name  func(childComplexity int) int
+		Phone func(childComplexity int) int
 	}
 
 	CandidateSelectionEdge struct {
@@ -1776,6 +1778,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateResponseGetAll.Pagination(childComplexity), true
 
+	case "CandidateSelection.email":
+		if e.complexity.CandidateSelection.Email == nil {
+			break
+		}
+
+		return e.complexity.CandidateSelection.Email(childComplexity), true
+
 	case "CandidateSelection.id":
 		if e.complexity.CandidateSelection.ID == nil {
 			break
@@ -1789,6 +1798,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateSelection.Name(childComplexity), true
+
+	case "CandidateSelection.phone":
+		if e.complexity.CandidateSelection.Phone == nil {
+			break
+		}
+
+		return e.complexity.CandidateSelection.Phone(childComplexity), true
 
 	case "CandidateSelectionEdge.cursor":
 		if e.complexity.CandidateSelectionEdge.Cursor == nil {
@@ -4223,6 +4239,8 @@ type CandidateEdge {
 type CandidateSelection {
   id: ID!
   name: String!
+  phone: String!
+  email: String!
 }
 
 type CandidateSelectionEdge {
@@ -13952,6 +13970,94 @@ func (ec *executionContext) fieldContext_CandidateSelection_name(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateSelection_phone(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateSelection_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateSelection_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateSelection_email(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateSelection_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateSelection_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateSelectionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateSelectionEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateSelectionEdge_node(ctx, field)
 	if err != nil {
@@ -13995,6 +14101,10 @@ func (ec *executionContext) fieldContext_CandidateSelectionEdge_node(ctx context
 				return ec.fieldContext_CandidateSelection_id(ctx, field)
 			case "name":
 				return ec.fieldContext_CandidateSelection_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_CandidateSelection_phone(ctx, field)
+			case "email":
+				return ec.fieldContext_CandidateSelection_email(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CandidateSelection", field.Name)
 		},
@@ -31007,6 +31117,20 @@ func (ec *executionContext) _CandidateSelection(ctx context.Context, sel ast.Sel
 		case "name":
 
 			out.Values[i] = ec._CandidateSelection_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phone":
+
+			out.Values[i] = ec._CandidateSelection_phone(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+
+			out.Values[i] = ec._CandidateSelection_email(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

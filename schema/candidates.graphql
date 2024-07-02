@@ -159,6 +159,8 @@ type CandidateEdge {
 type CandidateSelection {
   id: ID!
   name: String!
+  phone: String!
+  email: String!
 }
 
 type CandidateSelectionEdge {
