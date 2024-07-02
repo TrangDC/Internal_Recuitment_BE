@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"sort"
 	"trec/ent"
 	"trec/ent/candidatejob"
 	graphql1 "trec/graphql"
@@ -19,7 +20,20 @@ func (r *candidateResolver) ID(ctx context.Context, obj *ent.Candidate) (string,
 
 // Status is the resolver for the status field.
 func (r *candidateResolver) Status(ctx context.Context, obj *ent.Candidate) (ent.CandidateStatusEnum, error) {
-	return r.serviceRegistry.CandidateJob().GetCandidateStatus(ctx, obj.ID), nil
+	if obj.Edges.CandidateJobEdges == nil || len(obj.Edges.CandidateJobEdges) == 0 {
+		return ent.CandidateStatusEnumNew, nil
+	}
+	candidateJobs := lo.Filter(obj.Edges.CandidateJobEdges, func(entity *ent.CandidateJob, index int) bool {
+		return ent.CandidateJobStatusOpen.IsValid(ent.CandidateJobStatusOpen(entity.Status))
+	})
+	if len(candidateJobs) == 0 {
+		return ent.CandidateStatusEnum(obj.Edges.CandidateJobEdges[0].Status), nil
+	} else {
+		sort.Slice(candidateJobs, func(i, j int) bool {
+			return candidateJobs[i].UpdatedAt.Before(candidateJobs[j].UpdatedAt)
+		})
+		return ent.CandidateStatusEnum(candidateJobs[0].Status), nil
+	}
 }
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.

@@ -27,6 +27,7 @@ type CandidateInterviewRepository interface {
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error)
 	BuildQuery() *ent.CandidateInterviewQuery
+	BuildBaseQuery() *ent.CandidateInterviewQuery
 	BuildCount(ctx context.Context, query *ent.CandidateInterviewQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateInterviewQuery) ([]*ent.CandidateInterview, error)
 
@@ -74,6 +75,9 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 			)
 		},
 	).WithCreatedByEdge()
+}
+func (rps *candidateInterviewRepoImpl) BuildBaseQuery() *ent.CandidateInterviewQuery {
+	return rps.client.CandidateInterview.Query().Where(candidateinterview.DeletedAtIsNil())
 }
 
 func (rps *candidateInterviewRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error) {
@@ -315,7 +319,7 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	return nil, nil
 }
 
-func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) (error) {
+func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent.CandidateInterview, status ent.CandidateInterviewStatusEditable) error {
 	if ent.CandidateInterviewStatusEditable.IsValid(ent.CandidateInterviewStatusEditable(record.Status)) {
 		return fmt.Errorf("model.candidate_interviews.validation.invalid_editable")
 	}

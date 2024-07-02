@@ -14,6 +14,7 @@ type HiringJobDto interface {
 	AuditTrailCreate(record *ent.HiringJob) (string, error)
 	AuditTrailDelete(record *ent.HiringJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) (string, error)
+	MappingEdge(records []*ent.HiringJob, teams []*ent.Team)
 }
 
 type hiringJobDtoImpl struct {
@@ -269,4 +270,13 @@ func (d hiringJobDtoImpl) priorityI18n(input int) string {
 		return "model.hiring_jobs.priority_enum.urgent"
 	}
 	return ""
+}
+
+func (d hiringJobDtoImpl) MappingEdge(records []*ent.HiringJob, teams []*ent.Team) {
+	for _, record := range records {
+		teamEdge, _ := lo.Find(teams, func(team *ent.Team) bool {
+			return team.ID == record.TeamID
+		})
+		record.Edges.TeamEdge = teamEdge
+	}
 }

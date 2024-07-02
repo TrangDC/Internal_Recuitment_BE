@@ -83,8 +83,8 @@ type CandidateJob {
   hiring_job_id: ID!
   status: CandidateJobStatus!
   attachments: [Attachment!]
-  candidate: Candidate!
-  hiring_job: HiringJob!
+  candidate: Candidate
+  hiring_job: HiringJob
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!

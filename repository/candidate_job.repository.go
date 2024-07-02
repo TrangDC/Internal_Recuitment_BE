@@ -32,6 +32,7 @@ type CandidateJobRepository interface {
 	// common function
 	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) (error, error)
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
+	BuildBaseQuery() *ent.CandidateJobQuery
 }
 
 type candidateJobRepoImpl struct {
@@ -80,6 +81,10 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 			query.Where(candidateinterview.DeletedAtIsNil())
 		},
 	)
+}
+
+func (rps candidateJobRepoImpl) BuildBaseQuery() *ent.CandidateJobQuery {
+	return rps.client.CandidateJob.Query().Where(candidatejob.DeletedAtIsNil())
 }
 
 func (rps candidateJobRepoImpl) GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {

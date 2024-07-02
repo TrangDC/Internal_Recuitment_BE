@@ -14,6 +14,8 @@ type CandidateJobDto interface {
 	AuditTrailCreate(record *ent.CandidateJob) (string, error)
 	AuditTrailDelete(record *ent.CandidateJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.CandidateJob, newRecord *ent.CandidateJob) (string, error)
+
+	MappingEdge(records []*ent.CandidateJob, candidates []*ent.Candidate, interviews []*ent.CandidateInterview, hiringJobs []*ent.HiringJob)
 }
 
 type candidateJobDtoImpl struct {
@@ -235,4 +237,21 @@ func (d candidateJobDtoImpl) statusI18n(input candidatejob.Status) string {
 		return "model.candidate_jobs.status_enum.offering"
 	}
 	return ""
+}
+
+func (d candidateJobDtoImpl) MappingEdge(records []*ent.CandidateJob, candidates []*ent.Candidate, interviews []*ent.CandidateInterview, hiringJobs []*ent.HiringJob) {
+	for _, record := range records {
+		candidateEdge, _ := lo.Find(candidates, func(candidate *ent.Candidate) bool {
+			return candidate.ID == record.CandidateID
+		})
+		interviewEdges := lo.Filter(interviews, func(interview *ent.CandidateInterview, index int) bool {
+			return interview.CandidateJobID == record.ID
+		})
+		hiringJobEdge, _ := lo.Find(hiringJobs, func(hiringJob *ent.HiringJob) bool {
+			return hiringJob.ID == record.HiringJobID
+		})
+		record.Edges.CandidateEdge = candidateEdge
+		record.Edges.CandidateJobInterview = interviewEdges
+		record.Edges.HiringJobEdge = hiringJobEdge
+	}
 }

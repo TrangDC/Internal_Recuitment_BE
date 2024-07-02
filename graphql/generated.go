@@ -3897,8 +3897,8 @@ type CandidateJob {
   hiring_job_id: ID!
   status: CandidateJobStatus!
   attachments: [Attachment!]
-  candidate: Candidate!
-  hiring_job: HiringJob!
+  candidate: Candidate
+  hiring_job: HiringJob
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
@@ -10797,14 +10797,11 @@ func (ec *executionContext) _CandidateJob_candidate(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Candidate)
 	fc.Result = res
-	return ec.marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx, field.Selections, res)
+	return ec.marshalOCandidate2ᚖtrecᚋentᚐCandidate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CandidateJob_candidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10887,14 +10884,11 @@ func (ec *executionContext) _CandidateJob_hiring_job(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.HiringJob)
 	fc.Result = res
-	return ec.marshalNHiringJob2ᚖtrecᚋentᚐHiringJob(ctx, field.Selections, res)
+	return ec.marshalOHiringJob2ᚖtrecᚋentᚐHiringJob(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30142,9 +30136,6 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._CandidateJob_candidate(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -30162,9 +30153,6 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._CandidateJob_hiring_job(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -34592,10 +34580,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCandidate2trecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v ent.Candidate) graphql.Marshaler {
-	return ec._Candidate(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v *ent.Candidate) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -35295,10 +35279,6 @@ func (ec *executionContext) marshalNEntitySkillType2ᚖtrecᚋentᚐEntitySkillT
 		return graphql.Null
 	}
 	return ec._EntitySkillType(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNHiringJob2trecᚋentᚐHiringJob(ctx context.Context, sel ast.SelectionSet, v ent.HiringJob) graphql.Marshaler {
-	return ec._HiringJob(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNHiringJob2ᚖtrecᚋentᚐHiringJob(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJob) graphql.Marshaler {
@@ -36956,6 +36936,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOCandidate2ᚖtrecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v *ent.Candidate) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Candidate(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCandidateFilter2ᚖtrecᚋentᚐCandidateFilter(ctx context.Context, v interface{}) (*ent.CandidateFilter, error) {
