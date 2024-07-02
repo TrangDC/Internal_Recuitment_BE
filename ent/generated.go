@@ -250,8 +250,10 @@ type CandidateResponseGetAll struct {
 }
 
 type CandidateSelection struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
+	Email string `json:"email"`
 }
 
 type CandidateSelectionEdge struct {

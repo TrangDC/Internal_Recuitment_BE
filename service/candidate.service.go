@@ -267,6 +267,8 @@ func (svc *candidateSvcImpl) Selections(ctx context.Context, pagination *ent.Pag
 			Node: &ent.CandidateSelection{
 				ID:   candidate.ID.String(),
 				Name: candidate.Name,
+				Phone: candidate.Phone,
+				Email: candidate.Email,
 			},
 			Cursor: ent.Cursor{
 				Value: candidate.ID.String(),
