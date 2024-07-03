@@ -60,7 +60,7 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
 		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -149,7 +149,7 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if input.ReferenceType == ent.CandidateReferenceTypeRec && input.ReferenceUID == "" {
 		return nil, util.WrapGQLError(ctx, "model.candidates.validation.reference_uid_required", http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -265,8 +265,8 @@ func (svc *candidateSvcImpl) Selections(ctx context.Context, pagination *ent.Pag
 	edges = lo.Map(candidates, func(candidate *ent.Candidate, index int) *ent.CandidateSelectionEdge {
 		return &ent.CandidateSelectionEdge{
 			Node: &ent.CandidateSelection{
-				ID:   candidate.ID.String(),
-				Name: candidate.Name,
+				ID:    candidate.ID.String(),
+				Name:  candidate.Name,
 				Phone: candidate.Phone,
 				Email: candidate.Email,
 			},
