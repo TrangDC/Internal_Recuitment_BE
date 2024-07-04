@@ -19,6 +19,7 @@ type Dto interface {
 	SkillType() SkillTypeDto
 	Team() TeamDto
 	User() UserDto
+	Role() RoleDto
 }
 
 // dtoImpl is the implementation of Dto.
@@ -34,6 +35,7 @@ type dtoImpl struct {
 	skillTypeDto            SkillTypeDto
 	teamDto                 TeamDto
 	userDto                 UserDto
+	roleDto                 RoleDto
 }
 
 // NewDto creates a new Dto.
@@ -50,6 +52,7 @@ func NewDto() Dto {
 		skillTypeDto:            NewSkillTypeDto(),
 		teamDto:                 NewTeamDto(),
 		userDto:                 NewUserDto(),
+		roleDto:                 NewRoleDto(),
 	}
 }
 
@@ -63,6 +66,7 @@ var (
 	SkillTypeI18n            = "model.skill_types.model_name"
 	TeamI18n                 = "model.teams.model_name"
 	UserI18n                 = "model.users.model_name"
+	RoleI18n                 = "model.roles.model_name"
 )
 
 func (i dtoImpl) Azure() AzureDto {
@@ -107,6 +111,10 @@ func (i dtoImpl) EntitySkill() EntitySkillDto {
 
 func (i dtoImpl) SkillType() SkillTypeDto {
 	return i.skillTypeDto
+}
+
+func (i dtoImpl) Role() RoleDto {
+	return i.roleDto
 }
 
 func CompareArray(arr1, arr2 []string) bool {

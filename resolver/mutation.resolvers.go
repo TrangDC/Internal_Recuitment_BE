@@ -278,6 +278,25 @@ func (r *mutationResolver) DeleteSkillType(ctx context.Context, id string, note 
 	return true, nil
 }
 
+// CreateRole is the resolver for the CreateRole field.
+func (r *mutationResolver) CreateRole(ctx context.Context, input ent.NewRoleInput, note string) (*ent.RoleResponse, error) {
+	return r.serviceRegistry.Role().CreateRole(ctx, input, note)
+}
+
+// UpdateRole is the resolver for the UpdateRole field.
+func (r *mutationResolver) UpdateRole(ctx context.Context, id string, input ent.UpdateRoleInput, note string) (*ent.RoleResponse, error) {
+	return r.serviceRegistry.Role().UpdateRole(ctx, uuid.MustParse(id), input, note)
+}
+
+// DeleteRole is the resolver for the DeleteRole field.
+func (r *mutationResolver) DeleteRole(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.Role().DeleteRole(ctx, uuid.MustParse(id), note)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // ValidateCandidateInterview is the resolver for the ValidateCandidateInterview field.
 func (r *mutationResolver) ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error) {
 	return r.serviceRegistry.CandidateInterview().ValidateCandidateInterview(ctx, input)

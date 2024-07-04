@@ -17,6 +17,7 @@ import (
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/models"
 	"trec/repository"
 
@@ -60,9 +61,33 @@ func NewCandidateInterviewService(repoRegistry repository.Repository, dtoRegistr
 }
 
 func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Context, input ent.NewCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateInterview *ent.CandidateInterview
 	var memberIds []uuid.UUID
 	var inputValidate models.CandidateInterviewInputValidate
+	query := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.IDEQ(uuid.MustParse(input.CandidateJobID)))
+	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionCreate(payload, hiringJob.Edges.TeamEdge) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
 	jsonString, _ := json.Marshal(input)
 	json.Unmarshal(jsonString, &inputValidate)
 	candidateJobStatus, stringError, err := svc.repoRegistry.CandidateInterview().ValidateInput(ctx, uuid.Nil, inputValidate)
@@ -103,7 +128,25 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 }
 
 func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx context.Context, input ent.NewCandidateInterview4CalendarInput, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var results []*ent.CandidateInterview
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(uuid.MustParse(input.JobID))).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionCreate(payload, hiringJob.Edges.TeamEdge) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -148,6 +191,7 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 }
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewInput, note string) (*ent.CandidateInterviewResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
 	jsonString, _ := json.Marshal(input)
@@ -156,6 +200,23 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if time.Now().UTC().After(record.EndAt) {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_interview_ended", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
@@ -200,11 +261,29 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 }
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewStatusInput, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateInterview *ent.CandidateInterview
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if candidatejob.Status(record.CandidateJobStatus) != record.Edges.CandidateJobEdge.Status {
 		return util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
@@ -234,6 +313,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 }
 
 func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateInterviewScheduleInput) (*ent.CandidateInterviewResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateInterview *ent.CandidateInterview
 	var inputValidate models.CandidateInterviewInputValidate
 	var newMemberIds, removeMemberIds []uuid.UUID
@@ -243,6 +323,23 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if time.Now().UTC().After(record.EndAt) {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_interview_ended", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
@@ -291,7 +388,10 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 }
 
 func (svc *candidateInterviewSvcImpl) GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterviewResponse, error) {
-	result, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(candidateinterview.IDEQ(id))
+	svc.validPermissionGet(payload, query)
+	result, err := svc.repoRegistry.CandidateInterview().BuildGetOne(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
@@ -302,10 +402,28 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterview(ctx context.Context,
 }
 
 func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Context, id uuid.UUID, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
 		return util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotDelete)
@@ -334,6 +452,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 }
 
 func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter ent.CandidateInterviewFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.CandidateInterviewResponseGetAll
 	var edges []*ent.CandidateInterviewEdge
 	var page int
@@ -347,6 +466,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 		candidateinterview.CandidateJobIDEQ(uuid.MustParse(filter.CandidateJobID)),
 		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(candidateJob.Status.String())),
 	)
+	svc.validPermissionGet(payload, query)
 	var newFilter models.CandidateInterviewFilter
 	jsonString, _ := json.Marshal(filter)
 	json.Unmarshal(jsonString, &newFilter)
@@ -395,6 +515,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 }
 
 func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateInterviewFreeWord, filter *ent.CandidateInterviewCalendarFilter, orderBy *ent.CandidateInterviewOrder) (*ent.CandidateInterviewResponseGetAll, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.CandidateInterviewResponseGetAll
 	var edges []*ent.CandidateInterviewEdge
 	var page int
@@ -410,6 +531,7 @@ func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx cont
 			),
 		),
 	)
+	svc.validPermissionGet(payload, query)
 	var newFilter models.CandidateInterviewFilter
 	jsonString, _ := json.Marshal(filter)
 	json.Unmarshal(jsonString, &newFilter)
@@ -531,3 +653,50 @@ func (svc *candidateInterviewSvcImpl) updateMembers(record *ent.CandidateIntervi
 	})
 	return newMemberIds, removeMemberIds
 }
+
+// permission
+func (svc candidateInterviewSvcImpl) validPermissionCreate(payload *middleware.Payload, teamRecord *ent.Team) bool {
+	if payload.ForAll {
+		return true
+	}
+	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	if payload.ForTeam {
+		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (svc candidateInterviewSvcImpl) validPermissionUpdate(payload *middleware.Payload, teamRecord *ent.Team, record *ent.CandidateInterview) bool {
+	interviewerIds := lo.Map(record.Edges.InterviewerEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	if payload.ForOwner {
+		return lo.Contains(interviewerIds, payload.UserID)
+	}
+	return svc.validPermissionCreate(payload, teamRecord)
+}
+
+func (svc candidateInterviewSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.CandidateInterviewQuery) {
+	if !payload.ForAll {
+		return
+	}
+	if payload.ForTeam {
+		query.Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasTeamEdgeWith(
+			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		))))
+	}
+	if payload.ForOwner {
+		query.Where(candidateinterview.HasInterviewerEdgesWith(
+			user.IDEQ(payload.UserID), user.DeletedAtIsNil(),
+		))
+	}
+}
+
+// Path: service/candidate_interview.service.go

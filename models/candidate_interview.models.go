@@ -25,9 +25,15 @@ type CandidateInterviewInputValidate struct {
 	StartFrom      *time.Time `json:"start_from"`
 	EndAt          *time.Time `json:"end_at"`
 	InterviewDate  *time.Time `json:"interview_date"`
+	Interviewer    []string   `json:"interviewer"`
 }
 
 type CandidateInterviewAuditTrail struct {
+	RecordId   uuid.UUID
+	JsonString string
+}
+
+type UserTeamAuditTrail struct {
 	RecordId   uuid.UUID
 	JsonString string
 }

@@ -30,11 +30,13 @@ type TeamQuery struct {
 	predicates            []predicate.Team
 	withUserEdges         *UserQuery
 	withTeamJobEdges      *HiringJobQuery
+	withMemberEdges       *UserQuery
 	withUserTeams         *TeamManagerQuery
 	modifiers             []func(*sql.Selector)
 	loadTotal             []func(context.Context, []*Team) error
 	withNamedUserEdges    map[string]*UserQuery
 	withNamedTeamJobEdges map[string]*HiringJobQuery
+	withNamedMemberEdges  map[string]*UserQuery
 	withNamedUserTeams    map[string]*TeamManagerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -109,6 +111,28 @@ func (tq *TeamQuery) QueryTeamJobEdges() *HiringJobQuery {
 			sqlgraph.From(team.Table, team.FieldID, selector),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, team.TeamJobEdgesTable, team.TeamJobEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMemberEdges chains the current query on the "member_edges" edge.
+func (tq *TeamQuery) QueryMemberEdges() *UserQuery {
+	query := &UserQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.MemberEdgesTable, team.MemberEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -321,6 +345,7 @@ func (tq *TeamQuery) Clone() *TeamQuery {
 		predicates:       append([]predicate.Team{}, tq.predicates...),
 		withUserEdges:    tq.withUserEdges.Clone(),
 		withTeamJobEdges: tq.withTeamJobEdges.Clone(),
+		withMemberEdges:  tq.withMemberEdges.Clone(),
 		withUserTeams:    tq.withUserTeams.Clone(),
 		// clone intermediate query.
 		sql:    tq.sql.Clone(),
@@ -348,6 +373,17 @@ func (tq *TeamQuery) WithTeamJobEdges(opts ...func(*HiringJobQuery)) *TeamQuery 
 		opt(query)
 	}
 	tq.withTeamJobEdges = query
+	return tq
+}
+
+// WithMemberEdges tells the query-builder to eager-load the nodes that are connected to
+// the "member_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TeamQuery) WithMemberEdges(opts ...func(*UserQuery)) *TeamQuery {
+	query := &UserQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withMemberEdges = query
 	return tq
 }
 
@@ -435,9 +471,10 @@ func (tq *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 	var (
 		nodes       = []*Team{}
 		_spec       = tq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tq.withUserEdges != nil,
 			tq.withTeamJobEdges != nil,
+			tq.withMemberEdges != nil,
 			tq.withUserTeams != nil,
 		}
 	)
@@ -476,6 +513,13 @@ func (tq *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 			return nil, err
 		}
 	}
+	if query := tq.withMemberEdges; query != nil {
+		if err := tq.loadMemberEdges(ctx, query, nodes,
+			func(n *Team) { n.Edges.MemberEdges = []*User{} },
+			func(n *Team, e *User) { n.Edges.MemberEdges = append(n.Edges.MemberEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := tq.withUserTeams; query != nil {
 		if err := tq.loadUserTeams(ctx, query, nodes,
 			func(n *Team) { n.Edges.UserTeams = []*TeamManager{} },
@@ -494,6 +538,13 @@ func (tq *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 		if err := tq.loadTeamJobEdges(ctx, query, nodes,
 			func(n *Team) { n.appendNamedTeamJobEdges(name) },
 			func(n *Team, e *HiringJob) { n.appendNamedTeamJobEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range tq.withNamedMemberEdges {
+		if err := tq.loadMemberEdges(ctx, query, nodes,
+			func(n *Team) { n.appendNamedMemberEdges(name) },
+			func(n *Team, e *User) { n.appendNamedMemberEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -582,6 +633,33 @@ func (tq *TeamQuery) loadTeamJobEdges(ctx context.Context, query *HiringJobQuery
 	}
 	query.Where(predicate.HiringJob(func(s *sql.Selector) {
 		s.Where(sql.InValues(team.TeamJobEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TeamID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "team_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TeamQuery) loadMemberEdges(ctx context.Context, query *UserQuery, nodes []*Team, init func(*Team), assign func(*Team, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Team)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(team.MemberEdgesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -753,6 +831,20 @@ func (tq *TeamQuery) WithNamedTeamJobEdges(name string, opts ...func(*HiringJobQ
 		tq.withNamedTeamJobEdges = make(map[string]*HiringJobQuery)
 	}
 	tq.withNamedTeamJobEdges[name] = query
+	return tq
+}
+
+// WithNamedMemberEdges tells the query-builder to eager-load the nodes that are connected to the "member_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (tq *TeamQuery) WithNamedMemberEdges(name string, opts ...func(*UserQuery)) *TeamQuery {
+	query := &UserQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if tq.withNamedMemberEdges == nil {
+		tq.withNamedMemberEdges = make(map[string]*UserQuery)
+	}
+	tq.withNamedMemberEdges[name] = query
 	return tq
 }
 

@@ -12,14 +12,19 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/permission"
+	"trec/ent/permissiongroup"
+	"trec/ent/role"
 	"trec/ent/schema"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/ent/userrole"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -180,6 +185,27 @@ func init() {
 	candidatejobstepDescCreatedAt := candidatejobstepMixinFields0[1].Descriptor()
 	// candidatejobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobstep.DefaultCreatedAt = candidatejobstepDescCreatedAt.Default.(func() time.Time)
+	entitypermissionMixin := schema.EntityPermission{}.Mixin()
+	entitypermissionMixinFields0 := entitypermissionMixin[0].Fields()
+	_ = entitypermissionMixinFields0
+	entitypermissionFields := schema.EntityPermission{}.Fields()
+	_ = entitypermissionFields
+	// entitypermissionDescCreatedAt is the schema descriptor for created_at field.
+	entitypermissionDescCreatedAt := entitypermissionMixinFields0[1].Descriptor()
+	// entitypermission.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entitypermission.DefaultCreatedAt = entitypermissionDescCreatedAt.Default.(func() time.Time)
+	// entitypermissionDescForOwner is the schema descriptor for for_owner field.
+	entitypermissionDescForOwner := entitypermissionFields[2].Descriptor()
+	// entitypermission.DefaultForOwner holds the default value on creation for the for_owner field.
+	entitypermission.DefaultForOwner = entitypermissionDescForOwner.Default.(bool)
+	// entitypermissionDescForTeam is the schema descriptor for for_team field.
+	entitypermissionDescForTeam := entitypermissionFields[3].Descriptor()
+	// entitypermission.DefaultForTeam holds the default value on creation for the for_team field.
+	entitypermission.DefaultForTeam = entitypermissionDescForTeam.Default.(bool)
+	// entitypermissionDescForAll is the schema descriptor for for_all field.
+	entitypermissionDescForAll := entitypermissionFields[4].Descriptor()
+	// entitypermission.DefaultForAll holds the default value on creation for the for_all field.
+	entitypermission.DefaultForAll = entitypermissionDescForAll.Default.(bool)
 	entityskillMixin := schema.EntitySkill{}.Mixin()
 	entityskillMixinFields0 := entityskillMixin[0].Fields()
 	_ = entityskillMixinFields0
@@ -242,6 +268,45 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[12].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	permissionMixin := schema.Permission{}.Mixin()
+	permissionMixinFields0 := permissionMixin[0].Fields()
+	_ = permissionMixinFields0
+	permissionFields := schema.Permission{}.Fields()
+	_ = permissionFields
+	// permissionDescCreatedAt is the schema descriptor for created_at field.
+	permissionDescCreatedAt := permissionMixinFields0[1].Descriptor()
+	// permission.DefaultCreatedAt holds the default value on creation for the created_at field.
+	permission.DefaultCreatedAt = permissionDescCreatedAt.Default.(func() time.Time)
+	// permissionDescForOwner is the schema descriptor for for_owner field.
+	permissionDescForOwner := permissionFields[2].Descriptor()
+	// permission.DefaultForOwner holds the default value on creation for the for_owner field.
+	permission.DefaultForOwner = permissionDescForOwner.Default.(bool)
+	// permissionDescForTeam is the schema descriptor for for_team field.
+	permissionDescForTeam := permissionFields[3].Descriptor()
+	// permission.DefaultForTeam holds the default value on creation for the for_team field.
+	permission.DefaultForTeam = permissionDescForTeam.Default.(bool)
+	// permissionDescForAll is the schema descriptor for for_all field.
+	permissionDescForAll := permissionFields[4].Descriptor()
+	// permission.DefaultForAll holds the default value on creation for the for_all field.
+	permission.DefaultForAll = permissionDescForAll.Default.(bool)
+	permissiongroupMixin := schema.PermissionGroup{}.Mixin()
+	permissiongroupMixinFields0 := permissiongroupMixin[0].Fields()
+	_ = permissiongroupMixinFields0
+	permissiongroupFields := schema.PermissionGroup{}.Fields()
+	_ = permissiongroupFields
+	// permissiongroupDescCreatedAt is the schema descriptor for created_at field.
+	permissiongroupDescCreatedAt := permissiongroupMixinFields0[1].Descriptor()
+	// permissiongroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	permissiongroup.DefaultCreatedAt = permissiongroupDescCreatedAt.Default.(func() time.Time)
+	roleMixin := schema.Role{}.Mixin()
+	roleMixinFields0 := roleMixin[0].Fields()
+	_ = roleMixinFields0
+	roleFields := schema.Role{}.Fields()
+	_ = roleFields
+	// roleDescCreatedAt is the schema descriptor for created_at field.
+	roleDescCreatedAt := roleMixinFields0[1].Descriptor()
+	// role.DefaultCreatedAt holds the default value on creation for the created_at field.
+	role.DefaultCreatedAt = roleDescCreatedAt.Default.(func() time.Time)
 	skillMixin := schema.Skill{}.Mixin()
 	skillMixinFields0 := skillMixin[0].Fields()
 	_ = skillMixinFields0
@@ -381,4 +446,13 @@ func init() {
 	userDescOid := userFields[3].Descriptor()
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
+	userroleMixin := schema.UserRole{}.Mixin()
+	userroleMixinFields0 := userroleMixin[0].Fields()
+	_ = userroleMixinFields0
+	userroleFields := schema.UserRole{}.Fields()
+	_ = userroleFields
+	// userroleDescCreatedAt is the schema descriptor for created_at field.
+	userroleDescCreatedAt := userroleMixinFields0[1].Descriptor()
+	// userrole.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userrole.DefaultCreatedAt = userroleDescCreatedAt.Default.(func() time.Time)
 }

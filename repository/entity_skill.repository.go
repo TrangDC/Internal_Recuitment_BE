@@ -20,7 +20,7 @@ type entitySkillRepoImpl struct {
 	client *ent.Client
 }
 
-type updateRecord struct {
+type updateEntitySkillRecord struct {
 	RecordInput *ent.EntitySkillRecordInput
 	Record      *ent.EntitySkill
 }
@@ -69,7 +69,7 @@ func (rps entitySkillRepoImpl) CreateAndUpdateEntitySkill(ctx context.Context, e
 	entitySkillRecord []*ent.EntitySkill, entitySkillType entityskill.EntityType) error {
 	var newInput []*ent.EntitySkillRecordInput
 	var deletedIds []uuid.UUID
-	var updatedRecord []updateRecord
+	var updatedRecord []updateEntitySkillRecord
 	for _, entity := range input {
 		if entity.ID == nil || *entity.ID == "" {
 			newInput = append(newInput, entity)
@@ -84,7 +84,7 @@ func (rps entitySkillRepoImpl) CreateAndUpdateEntitySkill(ctx context.Context, e
 				deletedIds = append(deletedIds, entity.ID)
 			} else {
 				if inputRecord.OrderID != entity.OrderID {
-					updatedRecord = append(updatedRecord, updateRecord{
+					updatedRecord = append(updatedRecord, updateEntitySkillRecord{
 						RecordInput: inputRecord,
 						Record:      entity,
 					})
@@ -115,7 +115,7 @@ func (rps entitySkillRepoImpl) CreateAndUpdateEntitySkill(ctx context.Context, e
 	return nil
 }
 
-func (rps entitySkillRepoImpl) DeleteAllEntitySkill(ctx context.Context, entityId uuid.UUID) (error) {
+func (rps entitySkillRepoImpl) DeleteAllEntitySkill(ctx context.Context, entityId uuid.UUID) error {
 	_, err := rps.client.EntitySkill.Update().Where(entityskill.EntityID(entityId)).
 		SetDeletedAt(time.Now().UTC()).
 		SetUpdatedAt(time.Now().UTC()).

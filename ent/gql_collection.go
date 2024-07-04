@@ -854,6 +854,105 @@ func newCandidateJobStepPaginateArgs(rv map[string]interface{}) *candidatejobste
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ep *EntityPermissionQuery) CollectFields(ctx context.Context, satisfies ...string) (*EntityPermissionQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ep, nil
+	}
+	if err := ep.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ep, nil
+}
+
+func (ep *EntityPermissionQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "permissionEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &PermissionQuery{config: ep.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ep.withPermissionEdges = query
+		case "userEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: ep.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ep.withUserEdge = query
+		case "roleEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoleQuery{config: ep.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ep.withRoleEdge = query
+		}
+	}
+	return nil
+}
+
+type entitypermissionPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EntityPermissionPaginateOption
+}
+
+func newEntityPermissionPaginateArgs(rv map[string]interface{}) *entitypermissionPaginateArgs {
+	args := &entitypermissionPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &EntityPermissionOrder{Field: &EntityPermissionOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithEntityPermissionOrder(order))
+			}
+		case *EntityPermissionOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithEntityPermissionOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (es *EntitySkillQuery) CollectFields(ctx context.Context, satisfies ...string) (*EntitySkillQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -1059,6 +1158,305 @@ func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs 
 		case *HiringJobOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithHiringJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pe *PermissionQuery) CollectFields(ctx context.Context, satisfies ...string) (*PermissionQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pe, nil
+	}
+	if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pe, nil
+}
+
+func (pe *PermissionQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "groupPermissionEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &PermissionGroupQuery{config: pe.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			pe.withGroupPermissionEdge = query
+		case "userPermissionEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntityPermissionQuery{config: pe.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			pe.WithNamedUserPermissionEdge(alias, func(wq *EntityPermissionQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type permissionPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []PermissionPaginateOption
+}
+
+func newPermissionPaginateArgs(rv map[string]interface{}) *permissionPaginateArgs {
+	args := &permissionPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &PermissionOrder{Field: &PermissionOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithPermissionOrder(order))
+			}
+		case *PermissionOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithPermissionOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pg *PermissionGroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*PermissionGroupQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pg, nil
+	}
+	if err := pg.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pg, nil
+}
+
+func (pg *PermissionGroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "groupPermissionParent":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &PermissionGroupQuery{config: pg.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			pg.withGroupPermissionParent = query
+		case "groupPermissionChildren":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &PermissionGroupQuery{config: pg.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			pg.WithNamedGroupPermissionChildren(alias, func(wq *PermissionGroupQuery) {
+				*wq = *query
+			})
+		case "permissionEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &PermissionQuery{config: pg.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			pg.WithNamedPermissionEdges(alias, func(wq *PermissionQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type permissiongroupPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []PermissionGroupPaginateOption
+}
+
+func newPermissionGroupPaginateArgs(rv map[string]interface{}) *permissiongroupPaginateArgs {
+	args := &permissiongroupPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &PermissionGroupOrder{Field: &PermissionGroupOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithPermissionGroupOrder(order))
+			}
+		case *PermissionGroupOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithPermissionGroupOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (r *RoleQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoleQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return r, nil
+	}
+	if err := r.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func (r *RoleQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "rolePermissionEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntityPermissionQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedRolePermissionEdges(alias, func(wq *EntityPermissionQuery) {
+				*wq = *query
+			})
+		case "userEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedUserEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "userRoles":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserRoleQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedUserRoles(alias, func(wq *UserRoleQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type rolePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RolePaginateOption
+}
+
+func newRolePaginateArgs(rv map[string]interface{}) *rolePaginateArgs {
+	args := &rolePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &RoleOrder{Field: &RoleOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRoleOrder(order))
+			}
+		case *RoleOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRoleOrder(v))
 			}
 		}
 	}
@@ -1275,6 +1673,18 @@ func (t *TeamQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			t.WithNamedTeamJobEdges(alias, func(wq *HiringJobQuery) {
+				*wq = *query
+			})
+		case "memberEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: t.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			t.WithNamedMemberEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
 		case "userTeams":
@@ -1543,6 +1953,40 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedCandidateReferenceEdges(alias, func(wq *CandidateQuery) {
 				*wq = *query
 			})
+		case "userPermissionEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EntityPermissionQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedUserPermissionEdges(alias, func(wq *EntityPermissionQuery) {
+				*wq = *query
+			})
+		case "teamEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withTeamEdge = query
+		case "roleEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoleQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedRoleEdges(alias, func(wq *RoleQuery) {
+				*wq = *query
+			})
 		case "teamUsers":
 			var (
 				alias = field.Alias
@@ -1565,6 +2009,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedInterviewUsers(alias, func(wq *CandidateInterviewerQuery) {
+				*wq = *query
+			})
+		case "roleUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserRoleQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedRoleUsers(alias, func(wq *UserRoleQuery) {
 				*wq = *query
 			})
 		}
@@ -1614,6 +2070,95 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 		case *UserOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithUserOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ur *UserRoleQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserRoleQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ur, nil
+	}
+	if err := ur.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ur, nil
+}
+
+func (ur *UserRoleQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "userEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: ur.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ur.withUserEdge = query
+		case "roleEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoleQuery{config: ur.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ur.withRoleEdge = query
+		}
+	}
+	return nil
+}
+
+type userrolePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []UserRolePaginateOption
+}
+
+func newUserRolePaginateArgs(rv map[string]interface{}) *userrolePaginateArgs {
+	args := &userrolePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &UserRoleOrder{Field: &UserRoleOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithUserRoleOrder(order))
+			}
+		case *UserRoleOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithUserRoleOrder(v))
 			}
 		}
 	}

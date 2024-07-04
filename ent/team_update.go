@@ -114,6 +114,21 @@ func (tu *TeamUpdate) AddTeamJobEdges(h ...*HiringJob) *TeamUpdate {
 	return tu.AddTeamJobEdgeIDs(ids...)
 }
 
+// AddMemberEdgeIDs adds the "member_edges" edge to the User entity by IDs.
+func (tu *TeamUpdate) AddMemberEdgeIDs(ids ...uuid.UUID) *TeamUpdate {
+	tu.mutation.AddMemberEdgeIDs(ids...)
+	return tu
+}
+
+// AddMemberEdges adds the "member_edges" edges to the User entity.
+func (tu *TeamUpdate) AddMemberEdges(u ...*User) *TeamUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return tu.AddMemberEdgeIDs(ids...)
+}
+
 // AddUserTeamIDs adds the "user_teams" edge to the TeamManager entity by IDs.
 func (tu *TeamUpdate) AddUserTeamIDs(ids ...uuid.UUID) *TeamUpdate {
 	tu.mutation.AddUserTeamIDs(ids...)
@@ -174,6 +189,27 @@ func (tu *TeamUpdate) RemoveTeamJobEdges(h ...*HiringJob) *TeamUpdate {
 		ids[i] = h[i].ID
 	}
 	return tu.RemoveTeamJobEdgeIDs(ids...)
+}
+
+// ClearMemberEdges clears all "member_edges" edges to the User entity.
+func (tu *TeamUpdate) ClearMemberEdges() *TeamUpdate {
+	tu.mutation.ClearMemberEdges()
+	return tu
+}
+
+// RemoveMemberEdgeIDs removes the "member_edges" edge to User entities by IDs.
+func (tu *TeamUpdate) RemoveMemberEdgeIDs(ids ...uuid.UUID) *TeamUpdate {
+	tu.mutation.RemoveMemberEdgeIDs(ids...)
+	return tu
+}
+
+// RemoveMemberEdges removes "member_edges" edges to User entities.
+func (tu *TeamUpdate) RemoveMemberEdges(u ...*User) *TeamUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return tu.RemoveMemberEdgeIDs(ids...)
 }
 
 // ClearUserTeams clears all "user_teams" edges to the TeamManager entity.
@@ -428,6 +464,60 @@ func (tu *TeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.MemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedMemberEdgesIDs(); len(nodes) > 0 && !tu.mutation.MemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.MemberEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if tu.mutation.UserTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -583,6 +673,21 @@ func (tuo *TeamUpdateOne) AddTeamJobEdges(h ...*HiringJob) *TeamUpdateOne {
 	return tuo.AddTeamJobEdgeIDs(ids...)
 }
 
+// AddMemberEdgeIDs adds the "member_edges" edge to the User entity by IDs.
+func (tuo *TeamUpdateOne) AddMemberEdgeIDs(ids ...uuid.UUID) *TeamUpdateOne {
+	tuo.mutation.AddMemberEdgeIDs(ids...)
+	return tuo
+}
+
+// AddMemberEdges adds the "member_edges" edges to the User entity.
+func (tuo *TeamUpdateOne) AddMemberEdges(u ...*User) *TeamUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return tuo.AddMemberEdgeIDs(ids...)
+}
+
 // AddUserTeamIDs adds the "user_teams" edge to the TeamManager entity by IDs.
 func (tuo *TeamUpdateOne) AddUserTeamIDs(ids ...uuid.UUID) *TeamUpdateOne {
 	tuo.mutation.AddUserTeamIDs(ids...)
@@ -643,6 +748,27 @@ func (tuo *TeamUpdateOne) RemoveTeamJobEdges(h ...*HiringJob) *TeamUpdateOne {
 		ids[i] = h[i].ID
 	}
 	return tuo.RemoveTeamJobEdgeIDs(ids...)
+}
+
+// ClearMemberEdges clears all "member_edges" edges to the User entity.
+func (tuo *TeamUpdateOne) ClearMemberEdges() *TeamUpdateOne {
+	tuo.mutation.ClearMemberEdges()
+	return tuo
+}
+
+// RemoveMemberEdgeIDs removes the "member_edges" edge to User entities by IDs.
+func (tuo *TeamUpdateOne) RemoveMemberEdgeIDs(ids ...uuid.UUID) *TeamUpdateOne {
+	tuo.mutation.RemoveMemberEdgeIDs(ids...)
+	return tuo
+}
+
+// RemoveMemberEdges removes "member_edges" edges to User entities.
+func (tuo *TeamUpdateOne) RemoveMemberEdges(u ...*User) *TeamUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return tuo.RemoveMemberEdgeIDs(ids...)
 }
 
 // ClearUserTeams clears all "user_teams" edges to the TeamManager entity.
@@ -919,6 +1045,60 @@ func (tuo *TeamUpdateOne) sqlSave(ctx context.Context) (_node *Team, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.MemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedMemberEdgesIDs(); len(nodes) > 0 && !tuo.mutation.MemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.MemberEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.MemberEdgesTable,
+			Columns: []string{team.MemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

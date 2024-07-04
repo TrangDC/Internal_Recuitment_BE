@@ -296,6 +296,8 @@ type HiringJobFilter struct {
 	Location     []*LocationEnum  `json:"location"`
 	SkillIds     []string         `json:"skill_ids"`
 	CreatedByIds []string         `json:"created_by_ids"`
+	ForOwner     *bool            `json:"for_owner"`
+	ForTeam      *bool            `json:"for_team"`
 }
 
 type HiringJobFreeWord struct {
@@ -386,6 +388,14 @@ type NewCandidateJobInput struct {
 	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
+type NewEntityPermissionInput struct {
+	ID           *string `json:"id"`
+	ForOwner     bool    `json:"for_owner"`
+	ForTeam      bool    `json:"for_team"`
+	ForAll       bool    `json:"for_all"`
+	PermissionID string  `json:"permission_id"`
+}
+
 type NewHiringJobInput struct {
 	Status             HiringJobStatus           `json:"status"`
 	Name               string                    `json:"name"`
@@ -400,6 +410,12 @@ type NewHiringJobInput struct {
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+}
+
+type NewRoleInput struct {
+	Name              string                      `json:"name"`
+	Description       *string                     `json:"description"`
+	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
 }
 
 type NewSkillInput struct {
@@ -419,8 +435,12 @@ type NewTeamInput struct {
 }
 
 type NewUserInput struct {
-	Name      string `json:"name"`
-	WorkEmail string `json:"work_email"`
+	Name              string                      `json:"name"`
+	WorkEmail         string                      `json:"work_email"`
+	Status            UserStatus                  `json:"status"`
+	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
+	TeamID            *string                     `json:"team_id"`
+	RoleID            []string                    `json:"role_id"`
 }
 
 type Pagination struct {
@@ -432,6 +452,48 @@ type Pagination struct {
 type PaginationInput struct {
 	Page    *int `json:"page"`
 	PerPage *int `json:"perPage"`
+}
+
+type PermissionGroupResponse struct {
+	Data *PermissionGroup `json:"data"`
+}
+
+type PermissionGroupResponseGetAll struct {
+	Edges      []*PermissionGroupEdge `json:"edges"`
+	Pagination *Pagination            `json:"pagination"`
+}
+
+type RoleFilter struct {
+	Name *string `json:"name"`
+}
+
+type RoleFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type RoleResponse struct {
+	Data *Role `json:"data"`
+}
+
+type RoleResponseGetAll struct {
+	Edges      []*RoleEdge `json:"edges"`
+	Pagination *Pagination `json:"pagination"`
+}
+
+type RoleSelection struct {
+	ID     string            `json:"id"`
+	Name   string            `json:"name"`
+	Skills []*SkillSelection `json:"skills"`
+}
+
+type RoleSelectionEdge struct {
+	Node   *RoleSelection `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+type RoleSelectionResponseGetAll struct {
+	Edges      []*RoleSelectionEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
 type SkillFilter struct {
@@ -500,7 +562,9 @@ type SkillTypeSelectionResponseGetAll struct {
 }
 
 type TeamFilter struct {
-	Name *string `json:"name"`
+	Name     *string `json:"name"`
+	ForTeam  *bool   `json:"for_team"`
+	ForOwner *bool   `json:"for_owner"`
 }
 
 type TeamFreeWord struct {
@@ -601,6 +665,12 @@ type UpdateHiringJobInput struct {
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 }
 
+type UpdateRoleInput struct {
+	Name              *string                     `json:"name"`
+	Description       *string                     `json:"description"`
+	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
+}
+
 type UpdateSkillInput struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
@@ -618,9 +688,12 @@ type UpdateTeamInput struct {
 }
 
 type UpdateUserInput struct {
-	Name      string     `json:"name"`
-	WorkEmail string     `json:"work_email"`
-	Status    UserStatus `json:"status"`
+	Name              string                      `json:"name"`
+	WorkEmail         string                      `json:"work_email"`
+	Status            UserStatus                  `json:"status"`
+	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
+	TeamID            *string                     `json:"team_id"`
+	RoleID            []string                    `json:"role_id"`
 }
 
 type UpdateUserStatusInput struct {
@@ -628,11 +701,14 @@ type UpdateUserStatusInput struct {
 }
 
 type UserFilter struct {
-	Name      *string     `json:"name"`
-	Ids       []string    `json:"ids"`
-	IgnoreIds []string    `json:"ignore_ids"`
-	NotInTeam *bool       `json:"not_in_team"`
-	Status    *UserStatus `json:"status"`
+	Name                *string     `json:"name"`
+	Ids                 []string    `json:"ids"`
+	IgnoreIds           []string    `json:"ignore_ids"`
+	NotInTeam           *bool       `json:"not_in_team"`
+	Status              *UserStatus `json:"status"`
+	IsAbleToInterviewer *bool       `json:"is_able_to_interviewer"`
+	TeamID              []string    `json:"team_id"`
+	RoleID              []string    `json:"role_id"`
 }
 
 type UserFreeWord struct {
@@ -1799,6 +1875,47 @@ func (e *LocationEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PermissionGroupType string
+
+const (
+	PermissionGroupTypeSystem   PermissionGroupType = "system"
+	PermissionGroupTypeFunction PermissionGroupType = "function"
+)
+
+var AllPermissionGroupType = []PermissionGroupType{
+	PermissionGroupTypeSystem,
+	PermissionGroupTypeFunction,
+}
+
+func (e PermissionGroupType) IsValid() bool {
+	switch e {
+	case PermissionGroupTypeSystem, PermissionGroupTypeFunction:
+		return true
+	}
+	return false
+}
+
+func (e PermissionGroupType) String() string {
+	return string(e)
+}
+
+func (e *PermissionGroupType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PermissionGroupType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PermissionGroupType", str)
+	}
+	return nil
+}
+
+func (e PermissionGroupType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

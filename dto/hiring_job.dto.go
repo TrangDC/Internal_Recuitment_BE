@@ -79,11 +79,27 @@ func (d hiringJobDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *
 				oldValueField = d.currencyI18n(oldRecord.Currency)
 				newValueField = d.currencyI18n(newRecord.Currency)
 			case "model.hiring_jobs.team":
-				oldValueField = oldRecord.Edges.TeamEdge.Name
-				newValueField = newRecord.Edges.TeamEdge.Name
+				if oldRecord.Edges.TeamEdge == nil {
+					oldValueField = oldRecord.Edges.TeamEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.TeamEdge == nil {
+					newValueField = newRecord.Edges.TeamEdge.Name
+				} else {
+					newValueField = ""
+				}
 			case "model.hiring_jobs.created_by":
-				oldValueField = oldRecord.Edges.OwnerEdge.Name
-				newValueField = newRecord.Edges.OwnerEdge.Name
+				if oldRecord.Edges.OwnerEdge == nil {
+					oldValueField = oldRecord.Edges.OwnerEdge.Name
+				} else {
+					oldValueField = ""
+				}
+				if newRecord.Edges.OwnerEdge == nil {
+					newValueField = newRecord.Edges.OwnerEdge.Name
+				} else {
+					newValueField = ""
+				}
 			case "model.hiring_jobs.priority":
 				oldValueField = d.priorityI18n(oldRecord.Priority)
 				newValueField = d.priorityI18n(newRecord.Priority)
@@ -123,9 +139,17 @@ func (d hiringJobDtoImpl) recordAudit(record *ent.HiringJob) []interface{} {
 		case "model.hiring_jobs.currency":
 			valueField = d.currencyI18n(record.Currency)
 		case "model.hiring_jobs.team":
-			valueField = record.Edges.TeamEdge.Name
+			if record.Edges.TeamEdge == nil {
+				valueField = record.Edges.TeamEdge.Name
+			} else {
+				valueField = ""
+			}
 		case "model.hiring_jobs.created_by":
-			valueField = record.Edges.OwnerEdge.Name
+			if record.Edges.OwnerEdge == nil {
+				valueField = record.Edges.OwnerEdge.Name
+			} else {
+				valueField = ""
+			}
 		case "model.hiring_jobs.priority":
 			valueField = d.priorityI18n(record.Priority)
 		}

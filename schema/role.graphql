@@ -1,0 +1,67 @@
+enum RoleOrderField {
+  name
+}
+
+input RoleFreeWord {
+  name: String
+}
+
+input RoleFilter {
+  name: String
+}
+
+input RoleOrder {
+  direction: OrderDirection!
+  field: RoleOrderField!
+}
+
+type Role {
+  id: ID!
+  name: String!
+  description: String
+  entity_permissions: [EntityPermission!]!
+}
+
+input NewRoleInput {
+  name: String!
+  description: String
+  entity_permissions: [NewEntityPermissionInput!]!
+}
+
+input UpdateRoleInput {
+  name: String
+  description: String
+  entity_permissions: [NewEntityPermissionInput!]!
+}
+
+type RoleResponse {
+  data: Role!
+}
+
+type RoleResponseGetAll {
+  edges: [RoleEdge!]!
+  pagination: Pagination!
+}
+
+type RoleEdge {
+  node: Role!
+  cursor: Cursor!
+}
+
+type RoleSelection {
+  id: ID!
+  name: String!
+  skills: [SkillSelection!]
+}
+
+type RoleSelectionEdge {
+  node: RoleSelection!
+  cursor: Cursor!
+}
+
+type RoleSelectionResponseGetAll {
+  edges: [RoleSelectionEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/role.graphql

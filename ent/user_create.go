@@ -13,10 +13,13 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/entitypermission"
 	"trec/ent/hiringjob"
+	"trec/ent/role"
 	"trec/ent/team"
 	"trec/ent/teammanager"
 	"trec/ent/user"
+	"trec/ent/userrole"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -101,6 +104,20 @@ func (uc *UserCreate) SetNillableStatus(u *user.Status) *UserCreate {
 // SetOid sets the "oid" field.
 func (uc *UserCreate) SetOid(s string) *UserCreate {
 	uc.mutation.SetOid(s)
+	return uc
+}
+
+// SetTeamID sets the "team_id" field.
+func (uc *UserCreate) SetTeamID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetTeamID(u)
+	return uc
+}
+
+// SetNillableTeamID sets the "team_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableTeamID(u *uuid.UUID) *UserCreate {
+	if u != nil {
+		uc.SetTeamID(*u)
+	}
 	return uc
 }
 
@@ -230,6 +247,55 @@ func (uc *UserCreate) AddCandidateReferenceEdges(c ...*Candidate) *UserCreate {
 	return uc.AddCandidateReferenceEdgeIDs(ids...)
 }
 
+// AddUserPermissionEdgeIDs adds the "user_permission_edges" edge to the EntityPermission entity by IDs.
+func (uc *UserCreate) AddUserPermissionEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddUserPermissionEdgeIDs(ids...)
+	return uc
+}
+
+// AddUserPermissionEdges adds the "user_permission_edges" edges to the EntityPermission entity.
+func (uc *UserCreate) AddUserPermissionEdges(e ...*EntityPermission) *UserCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddUserPermissionEdgeIDs(ids...)
+}
+
+// SetTeamEdgeID sets the "team_edge" edge to the Team entity by ID.
+func (uc *UserCreate) SetTeamEdgeID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetTeamEdgeID(id)
+	return uc
+}
+
+// SetNillableTeamEdgeID sets the "team_edge" edge to the Team entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableTeamEdgeID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetTeamEdgeID(*id)
+	}
+	return uc
+}
+
+// SetTeamEdge sets the "team_edge" edge to the Team entity.
+func (uc *UserCreate) SetTeamEdge(t *Team) *UserCreate {
+	return uc.SetTeamEdgeID(t.ID)
+}
+
+// AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by IDs.
+func (uc *UserCreate) AddRoleEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddRoleEdgeIDs(ids...)
+	return uc
+}
+
+// AddRoleEdges adds the "role_edges" edges to the Role entity.
+func (uc *UserCreate) AddRoleEdges(r ...*Role) *UserCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddRoleEdgeIDs(ids...)
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
 func (uc *UserCreate) AddTeamUserIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddTeamUserIDs(ids...)
@@ -258,6 +324,21 @@ func (uc *UserCreate) AddInterviewUsers(c ...*CandidateInterviewer) *UserCreate 
 		ids[i] = c[i].ID
 	}
 	return uc.AddInterviewUserIDs(ids...)
+}
+
+// AddRoleUserIDs adds the "role_users" edge to the UserRole entity by IDs.
+func (uc *UserCreate) AddRoleUserIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddRoleUserIDs(ids...)
+	return uc
+}
+
+// AddRoleUsers adds the "role_users" edges to the UserRole entity.
+func (uc *UserCreate) AddRoleUsers(u ...*UserRole) *UserCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddRoleUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -608,6 +689,68 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := uc.mutation.UserPermissionEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserPermissionEdgesTable,
+			Columns: []string{user.UserPermissionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: entitypermission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TeamEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.TeamEdgeTable,
+			Columns: []string{user.TeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: team.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.TeamID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RoleEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RoleEdgesTable,
+			Columns: user.RoleEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &UserRoleCreate{config: uc.config, mutation: newUserRoleMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := uc.mutation.TeamUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -638,6 +781,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidateinterviewer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RoleUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.RoleUsersTable,
+			Columns: []string{user.RoleUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: userrole.FieldID,
 				},
 			},
 		}

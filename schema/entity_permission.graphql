@@ -1,0 +1,15 @@
+type EntityPermission {
+  id: ID!
+  for_owner: Boolean!
+  for_team: Boolean!
+  for_all: Boolean!
+  permission: Permission!
+}
+
+input NewEntityPermissionInput {
+  id: ID
+  for_owner: Boolean!
+  for_team: Boolean!
+  for_all: Boolean!
+  permission_id: ID!
+}

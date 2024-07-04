@@ -8,10 +8,14 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
+	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -45,7 +49,31 @@ func NewCandidateJobFeedbackService(repoRegistry repository.Repository, dtoRegis
 }
 
 func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateJobFeedback *ent.CandidateJobFeedback
+	query := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.IDEQ(uuid.MustParse(input.CandidateJobID)))
+	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionCreateUpdate(payload, hiringJob.Edges.TeamEdge) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
 	status, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -92,13 +120,27 @@ func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.C
 }
 
 func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.Context, id uuid.UUID, input *ent.UpdateCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	userId := ctx.Value("user_id").(uuid.UUID)
-	if record.CreatedBy != userId {
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, _ := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if !svc.validPermissionCreateUpdate(payload, hiringJob.Edges.TeamEdge) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+	}
+	createdById := payload.UserID
+	if record.CreatedBy != createdById {
 		return nil, util.WrapGQLError(ctx, "model.candidate_job_feedbacks.validation.editor_not_is_owner", http.StatusBadGateway, util.ErrorFlagValidateFail)
 	}
 	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
@@ -145,10 +187,24 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 }
 
 func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.Context, id uuid.UUID, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
+		func(query *ent.TeamQuery) {
+			query.WithUserEdges(
+				func(query *ent.UserQuery) {
+					query.Where(user.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	hiringJob, _ := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
+	if !svc.validPermissionDelete(payload, record, hiringJob.Edges.TeamEdge) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
 	if err != nil {
@@ -187,6 +243,9 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 }
 
 func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedback(ctx context.Context, id uuid.UUID) (*ent.CandidateJobFeedbackResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	query := svc.repoRegistry.CandidateJobFeedback().BuildQuery().Where(candidatejobfeedback.IDEQ(id))
+	svc.validPermissionGet(payload, query)
 	result, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -198,11 +257,13 @@ func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedback(ctx context.Cont
 }
 
 func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFeedbackFreeWord, filter *ent.CandidateJobFeedbackFilter, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.CandidateJobFeedbackResponseGetAll
 	var edges []*ent.CandidateJobFeedbackEdge
 	var page int
 	var perPage int
 	query := svc.repoRegistry.CandidateJobFeedback().BuildQuery().Where(candidatejobfeedback.CandidateJobID(uuid.MustParse(filter.CandidateJobID)))
+	svc.validPermissionGet(payload, query)
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
 	count, err := svc.repoRegistry.CandidateJobFeedback().BuildCount(ctx, query)
@@ -270,3 +331,56 @@ func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.Ca
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedByEQ(uuid.MustParse(*input.CreatedBy)))
 	}
 }
+
+// permission
+func (svc candidateJobFeedbackSvcImpl) validPermissionCreateUpdate(payload *middleware.Payload, teamRecord *ent.Team) bool {
+	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	if payload.ForAll {
+		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (svc candidateJobFeedbackSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateJobFeedback, teamRecord *ent.Team) bool {
+	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+		return item.ID
+	})
+	if payload.ForTeam {
+		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+			return true
+		}
+	}
+	if payload.ForAll {
+		return true
+	}
+	if payload.ForOwner && record.CreatedBy == payload.UserID {
+		return true
+	}
+	return false
+}
+
+func (svc candidateJobFeedbackSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.CandidateJobFeedbackQuery) {
+	if !payload.ForAll {
+		return
+	}
+	if payload.ForTeam {
+		query.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasTeamEdgeWith(
+			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		))))
+	}
+	if payload.ForOwner {
+		query.Where(candidatejobfeedback.CreatedByEQ(payload.UserID))
+	}
+}
+
+// Path: service/candidate_job_feedback.service.go

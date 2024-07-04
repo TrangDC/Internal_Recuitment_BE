@@ -30,10 +30,18 @@ type Tx struct {
 	CandidateJobFeedback *CandidateJobFeedbackClient
 	// CandidateJobStep is the client for interacting with the CandidateJobStep builders.
 	CandidateJobStep *CandidateJobStepClient
+	// EntityPermission is the client for interacting with the EntityPermission builders.
+	EntityPermission *EntityPermissionClient
 	// EntitySkill is the client for interacting with the EntitySkill builders.
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// Permission is the client for interacting with the Permission builders.
+	Permission *PermissionClient
+	// PermissionGroup is the client for interacting with the PermissionGroup builders.
+	PermissionGroup *PermissionGroupClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
 	// Skill is the client for interacting with the Skill builders.
 	Skill *SkillClient
 	// SkillType is the client for interacting with the SkillType builders.
@@ -44,6 +52,8 @@ type Tx struct {
 	TeamManager *TeamManagerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserRole is the client for interacting with the UserRole builders.
+	UserRole *UserRoleClient
 
 	// lazily loaded.
 	client     *Client
@@ -183,13 +193,18 @@ func (tx *Tx) init() {
 	tx.CandidateJob = NewCandidateJobClient(tx.config)
 	tx.CandidateJobFeedback = NewCandidateJobFeedbackClient(tx.config)
 	tx.CandidateJobStep = NewCandidateJobStepClient(tx.config)
+	tx.EntityPermission = NewEntityPermissionClient(tx.config)
 	tx.EntitySkill = NewEntitySkillClient(tx.config)
 	tx.HiringJob = NewHiringJobClient(tx.config)
+	tx.Permission = NewPermissionClient(tx.config)
+	tx.PermissionGroup = NewPermissionGroupClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
 	tx.SkillType = NewSkillTypeClient(tx.config)
 	tx.Team = NewTeamClient(tx.config)
 	tx.TeamManager = NewTeamManagerClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserRole = NewUserRoleClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

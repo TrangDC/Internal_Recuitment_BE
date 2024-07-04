@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
 	"trec/ent/user"
+	"trec/middleware"
 
 	"github.com/google/uuid"
 )
@@ -105,7 +106,8 @@ func (rps CandidateJobFeedbackRepoImpl) BuildSaveUpdateOne(ctx context.Context, 
 
 // mutation
 func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, status string) (*ent.CandidateJobFeedback, error) {
-	createdById := ctx.Value("user_id").(uuid.UUID)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	createdById := payload.UserID
 	return rps.BuildCreate().
 		SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
 		SetFeedback(input.Feedback).

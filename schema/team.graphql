@@ -17,6 +17,8 @@ input TeamOrderBy {
 
 input TeamFilter {
   name: String
+  for_team: Boolean
+  for_owner: Boolean
 }
 
 input TeamFreeWord {

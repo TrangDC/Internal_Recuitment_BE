@@ -1,0 +1,25 @@
+type PermissionGroup {
+  id: ID!
+  title: String!
+  group_type: PermissionGroupType!
+  permissions: [Permission!]!
+}
+
+type PermissionGroupResponse {
+  data: PermissionGroup!
+}
+
+type PermissionGroupResponseGetAll {
+  edges: [PermissionGroupEdge!]!
+  pagination: Pagination!
+}
+
+type PermissionGroupEdge {
+  node: PermissionGroup!
+  cursor: Cursor!
+}
+
+enum PermissionGroupType {
+  system
+  function
+}

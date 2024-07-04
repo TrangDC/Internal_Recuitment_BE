@@ -53,6 +53,8 @@ input HiringJobFilter {
   location: [LocationEnum]
   skill_ids: [ID!]
   created_by_ids: [ID!]
+  for_owner: Boolean
+  for_team: Boolean
 }
 
 input HiringJobFreeWord {

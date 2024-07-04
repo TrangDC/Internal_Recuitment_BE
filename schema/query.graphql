@@ -6,6 +6,7 @@ type Query {
 	# User
 	GetUser(id: ID!): UserResponse!
 	GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
+	GetMe: UserResponse!
 
 	# HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
@@ -52,6 +53,14 @@ type Query {
 	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
 	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
 	SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
+	SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
+
+	# Role
+	GetRole(id: ID!): RoleResponse!
+	GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
+
+	# Permission
+	GetAllPermissionGroups: PermissionGroupResponseGetAll
 }
 
 # Path: schema/query.graphql

@@ -26,6 +26,7 @@ type TeamRepository interface {
 	BuildBaseQuery() *ent.TeamQuery
 	BuildCount(ctx context.Context, query *ent.TeamQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.TeamQuery) ([]*ent.Team, error)
+	BuildGetOne(ctx context.Context, query *ent.TeamQuery) (*ent.Team, error)
 
 	// common function
 	ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error)
@@ -64,7 +65,15 @@ func (rps *teamRepoImpl) BuildQuery() *ent.TeamQuery {
 		func(query *ent.HiringJobQuery) {
 			query.Where(hiringjob.DeletedAtIsNil()).Order(ent.Desc(hiringjob.FieldLastApplyDate))
 		},
+	).WithMemberEdges(
+		func(query *ent.UserQuery) {
+			query.Where(user.DeletedAtIsNil())
+		},
 	)
+}
+
+func (rps *teamRepoImpl) BuildGetOne(ctx context.Context, query *ent.TeamQuery) (*ent.Team, error) {
+	return query.First(ctx)
 }
 
 func (rps *teamRepoImpl) BuildBaseQuery() *ent.TeamQuery {

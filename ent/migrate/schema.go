@@ -58,7 +58,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills", "users", "skill_types"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills", "users", "skill_types", "roles"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -275,6 +275,45 @@ var (
 			},
 		},
 	}
+	// EntityPermissionsColumns holds the columns for the "entity_permissions" table.
+	EntityPermissionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "for_owner", Type: field.TypeBool, Default: false},
+		{Name: "for_team", Type: field.TypeBool, Default: false},
+		{Name: "for_all", Type: field.TypeBool, Default: false},
+		{Name: "entity_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"user", "role"}},
+		{Name: "permission_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "entity_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// EntityPermissionsTable holds the schema information for the "entity_permissions" table.
+	EntityPermissionsTable = &schema.Table{
+		Name:       "entity_permissions",
+		Columns:    EntityPermissionsColumns,
+		PrimaryKey: []*schema.Column{EntityPermissionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_permissions_permissions_user_permission_edge",
+				Columns:    []*schema.Column{EntityPermissionsColumns[8]},
+				RefColumns: []*schema.Column{PermissionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entity_permissions_roles_role_permission_edges",
+				Columns:    []*schema.Column{EntityPermissionsColumns[9]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "entity_permissions_users_user_permission_edges",
+				Columns:    []*schema.Column{EntityPermissionsColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// EntitySkillsColumns holds the columns for the "entity_skills" table.
 	EntitySkillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -352,6 +391,75 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// PermissionsColumns holds the columns for the "permissions" table.
+	PermissionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "for_owner", Type: field.TypeBool, Default: false},
+		{Name: "for_team", Type: field.TypeBool, Default: false},
+		{Name: "for_all", Type: field.TypeBool, Default: false},
+		{Name: "operation_name", Type: field.TypeString, Nullable: true},
+		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "group_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// PermissionsTable holds the schema information for the "permissions" table.
+	PermissionsTable = &schema.Table{
+		Name:       "permissions",
+		Columns:    PermissionsColumns,
+		PrimaryKey: []*schema.Column{PermissionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "permissions_permission_groups_permission_edges",
+				Columns:    []*schema.Column{PermissionsColumns[11]},
+				RefColumns: []*schema.Column{PermissionGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// PermissionGroupsColumns holds the columns for the "permission_groups" table.
+	PermissionGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "group_type", Type: field.TypeEnum, Enums: []string{"function", "system"}, Default: "function"},
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// PermissionGroupsTable holds the schema information for the "permission_groups" table.
+	PermissionGroupsTable = &schema.Table{
+		Name:       "permission_groups",
+		Columns:    PermissionGroupsColumns,
+		PrimaryKey: []*schema.Column{PermissionGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "permission_groups_permission_groups_group_permission_children",
+				Columns:    []*schema.Column{PermissionGroupsColumns[7]},
+				RefColumns: []*schema.Column{PermissionGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
 	}
 	// SkillsColumns holds the columns for the "skills" table.
 	SkillsColumns = []*schema.Column{
@@ -453,12 +561,57 @@ var (
 		{Name: "work_email", Type: field.TypeString, Size: 255},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_teams_member_edges",
+				Columns:    []*schema.Column{UsersColumns[8]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// UserRolesColumns holds the columns for the "user_roles" table.
+	UserRolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID},
+	}
+	// UserRolesTable holds the schema information for the "user_roles" table.
+	UserRolesTable = &schema.Table{
+		Name:       "user_roles",
+		Columns:    UserRolesColumns,
+		PrimaryKey: []*schema.Column{UserRolesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_roles_users_user_edge",
+				Columns:    []*schema.Column{UserRolesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "user_roles_roles_role_edge",
+				Columns:    []*schema.Column{UserRolesColumns[5]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userrole_user_id_role_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserRolesColumns[4], UserRolesColumns[5]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -470,13 +623,18 @@ var (
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
+		EntityPermissionsTable,
 		EntitySkillsTable,
 		HiringJobsTable,
+		PermissionsTable,
+		PermissionGroupsTable,
+		RolesTable,
 		SkillsTable,
 		SkillTypesTable,
 		TeamsTable,
 		TeamManagersTable,
 		UsersTable,
+		UserRolesTable,
 	}
 )
 
@@ -497,12 +655,20 @@ func init() {
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	EntityPermissionsTable.ForeignKeys[0].RefTable = PermissionsTable
+	EntityPermissionsTable.ForeignKeys[1].RefTable = RolesTable
+	EntityPermissionsTable.ForeignKeys[2].RefTable = UsersTable
 	EntitySkillsTable.ForeignKeys[0].RefTable = CandidatesTable
 	EntitySkillsTable.ForeignKeys[1].RefTable = HiringJobsTable
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
+	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
+	UsersTable.ForeignKeys[0].RefTable = TeamsTable
+	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

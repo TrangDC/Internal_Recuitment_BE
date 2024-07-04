@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"trec/ent/team"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,8 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// Oid holds the value of the "oid" field.
 	Oid string `json:"oid,omitempty"`
+	// TeamID holds the value of the "team_id" field.
+	TeamID uuid.UUID `json:"team_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -54,15 +57,23 @@ type UserEdges struct {
 	CandidateInterviewEdges []*CandidateInterview `json:"candidate_interview_edges,omitempty"`
 	// CandidateReferenceEdges holds the value of the candidate_reference_edges edge.
 	CandidateReferenceEdges []*Candidate `json:"candidate_reference_edges,omitempty"`
+	// UserPermissionEdges holds the value of the user_permission_edges edge.
+	UserPermissionEdges []*EntityPermission `json:"user_permission_edges,omitempty"`
+	// TeamEdge holds the value of the team_edge edge.
+	TeamEdge *Team `json:"team_edge,omitempty"`
+	// RoleEdges holds the value of the role_edges edge.
+	RoleEdges []*Role `json:"role_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
 	InterviewUsers []*CandidateInterviewer `json:"interview_users,omitempty"`
+	// RoleUsers holds the value of the role_users edge.
+	RoleUsers []*UserRole `json:"role_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [14]bool
 	// totalCount holds the count of the edges above.
-	totalCount [10]map[string]int
+	totalCount [14]map[string]int
 
 	namedAuditEdge               map[string][]*AuditTrail
 	namedHiringOwner             map[string][]*HiringJob
@@ -72,8 +83,11 @@ type UserEdges struct {
 	namedCandidateJobEdges       map[string][]*CandidateJob
 	namedCandidateInterviewEdges map[string][]*CandidateInterview
 	namedCandidateReferenceEdges map[string][]*Candidate
+	namedUserPermissionEdges     map[string][]*EntityPermission
+	namedRoleEdges               map[string][]*Role
 	namedTeamUsers               map[string][]*TeamManager
 	namedInterviewUsers          map[string][]*CandidateInterviewer
+	namedRoleUsers               map[string][]*UserRole
 }
 
 // AuditEdgeOrErr returns the AuditEdge value or an error if the edge
@@ -148,10 +162,41 @@ func (e UserEdges) CandidateReferenceEdgesOrErr() ([]*Candidate, error) {
 	return nil, &NotLoadedError{edge: "candidate_reference_edges"}
 }
 
+// UserPermissionEdgesOrErr returns the UserPermissionEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserPermissionEdgesOrErr() ([]*EntityPermission, error) {
+	if e.loadedTypes[8] {
+		return e.UserPermissionEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "user_permission_edges"}
+}
+
+// TeamEdgeOrErr returns the TeamEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) TeamEdgeOrErr() (*Team, error) {
+	if e.loadedTypes[9] {
+		if e.TeamEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: team.Label}
+		}
+		return e.TeamEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "team_edge"}
+}
+
+// RoleEdgesOrErr returns the RoleEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RoleEdgesOrErr() ([]*Role, error) {
+	if e.loadedTypes[10] {
+		return e.RoleEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "role_edges"}
+}
+
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[11] {
 		return e.TeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "team_users"}
@@ -160,10 +205,19 @@ func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
 // InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[12] {
 		return e.InterviewUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "interview_users"}
+}
+
+// RoleUsersOrErr returns the RoleUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RoleUsersOrErr() ([]*UserRole, error) {
+	if e.loadedTypes[13] {
+		return e.RoleUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "role_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -175,7 +229,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID:
+		case user.FieldID, user.FieldTeamID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -240,6 +294,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Oid = value.String
 			}
+		case user.FieldTeamID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field team_id", values[i])
+			} else if value != nil {
+				u.TeamID = *value
+			}
 		}
 	}
 	return nil
@@ -285,6 +345,21 @@ func (u *User) QueryCandidateReferenceEdges() *CandidateQuery {
 	return (&UserClient{config: u.config}).QueryCandidateReferenceEdges(u)
 }
 
+// QueryUserPermissionEdges queries the "user_permission_edges" edge of the User entity.
+func (u *User) QueryUserPermissionEdges() *EntityPermissionQuery {
+	return (&UserClient{config: u.config}).QueryUserPermissionEdges(u)
+}
+
+// QueryTeamEdge queries the "team_edge" edge of the User entity.
+func (u *User) QueryTeamEdge() *TeamQuery {
+	return (&UserClient{config: u.config}).QueryTeamEdge(u)
+}
+
+// QueryRoleEdges queries the "role_edges" edge of the User entity.
+func (u *User) QueryRoleEdges() *RoleQuery {
+	return (&UserClient{config: u.config}).QueryRoleEdges(u)
+}
+
 // QueryTeamUsers queries the "team_users" edge of the User entity.
 func (u *User) QueryTeamUsers() *TeamManagerQuery {
 	return (&UserClient{config: u.config}).QueryTeamUsers(u)
@@ -293,6 +368,11 @@ func (u *User) QueryTeamUsers() *TeamManagerQuery {
 // QueryInterviewUsers queries the "interview_users" edge of the User entity.
 func (u *User) QueryInterviewUsers() *CandidateInterviewerQuery {
 	return (&UserClient{config: u.config}).QueryInterviewUsers(u)
+}
+
+// QueryRoleUsers queries the "role_users" edge of the User entity.
+func (u *User) QueryRoleUsers() *UserRoleQuery {
+	return (&UserClient{config: u.config}).QueryRoleUsers(u)
 }
 
 // Update returns a builder for updating this User.
@@ -338,6 +418,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("oid=")
 	builder.WriteString(u.Oid)
+	builder.WriteString(", ")
+	builder.WriteString("team_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.TeamID))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -534,6 +617,54 @@ func (u *User) appendNamedCandidateReferenceEdges(name string, edges ...*Candida
 	}
 }
 
+// NamedUserPermissionEdges returns the UserPermissionEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedUserPermissionEdges(name string) ([]*EntityPermission, error) {
+	if u.Edges.namedUserPermissionEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedUserPermissionEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedUserPermissionEdges(name string, edges ...*EntityPermission) {
+	if u.Edges.namedUserPermissionEdges == nil {
+		u.Edges.namedUserPermissionEdges = make(map[string][]*EntityPermission)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedUserPermissionEdges[name] = []*EntityPermission{}
+	} else {
+		u.Edges.namedUserPermissionEdges[name] = append(u.Edges.namedUserPermissionEdges[name], edges...)
+	}
+}
+
+// NamedRoleEdges returns the RoleEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedRoleEdges(name string) ([]*Role, error) {
+	if u.Edges.namedRoleEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedRoleEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedRoleEdges(name string, edges ...*Role) {
+	if u.Edges.namedRoleEdges == nil {
+		u.Edges.namedRoleEdges = make(map[string][]*Role)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedRoleEdges[name] = []*Role{}
+	} else {
+		u.Edges.namedRoleEdges[name] = append(u.Edges.namedRoleEdges[name], edges...)
+	}
+}
+
 // NamedTeamUsers returns the TeamUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (u *User) NamedTeamUsers(name string) ([]*TeamManager, error) {
@@ -579,6 +710,30 @@ func (u *User) appendNamedInterviewUsers(name string, edges ...*CandidateIntervi
 		u.Edges.namedInterviewUsers[name] = []*CandidateInterviewer{}
 	} else {
 		u.Edges.namedInterviewUsers[name] = append(u.Edges.namedInterviewUsers[name], edges...)
+	}
+}
+
+// NamedRoleUsers returns the RoleUsers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedRoleUsers(name string) ([]*UserRole, error) {
+	if u.Edges.namedRoleUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedRoleUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedRoleUsers(name string, edges ...*UserRole) {
+	if u.Edges.namedRoleUsers == nil {
+		u.Edges.namedRoleUsers = make(map[string][]*UserRole)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedRoleUsers[name] = []*UserRole{}
+	} else {
+		u.Edges.namedRoleUsers[name] = append(u.Edges.namedRoleUsers[name], edges...)
 	}
 }
 
