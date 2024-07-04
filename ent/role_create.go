@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/role"
 	"trec/ent/user"
@@ -114,6 +116,21 @@ func (rc *RoleCreate) AddUserEdges(u ...*User) *RoleCreate {
 	return rc.AddUserEdgeIDs(ids...)
 }
 
+// AddEmailTemplateEdgeIDs adds the "email_template_edges" edge to the EmailTemplate entity by IDs.
+func (rc *RoleCreate) AddEmailTemplateEdgeIDs(ids ...uuid.UUID) *RoleCreate {
+	rc.mutation.AddEmailTemplateEdgeIDs(ids...)
+	return rc
+}
+
+// AddEmailTemplateEdges adds the "email_template_edges" edges to the EmailTemplate entity.
+func (rc *RoleCreate) AddEmailTemplateEdges(e ...*EmailTemplate) *RoleCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return rc.AddEmailTemplateEdgeIDs(ids...)
+}
+
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
 func (rc *RoleCreate) AddUserRoleIDs(ids ...uuid.UUID) *RoleCreate {
 	rc.mutation.AddUserRoleIDs(ids...)
@@ -127,6 +144,21 @@ func (rc *RoleCreate) AddUserRoles(u ...*UserRole) *RoleCreate {
 		ids[i] = u[i].ID
 	}
 	return rc.AddUserRoleIDs(ids...)
+}
+
+// AddEmailTemplateRoleIDs adds the "email_template_roles" edge to the EmailRoleAttribute entity by IDs.
+func (rc *RoleCreate) AddEmailTemplateRoleIDs(ids ...uuid.UUID) *RoleCreate {
+	rc.mutation.AddEmailTemplateRoleIDs(ids...)
+	return rc
+}
+
+// AddEmailTemplateRoles adds the "email_template_roles" edges to the EmailRoleAttribute entity.
+func (rc *RoleCreate) AddEmailTemplateRoles(e ...*EmailRoleAttribute) *RoleCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return rc.AddEmailTemplateRoleIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -321,6 +353,29 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := rc.mutation.EmailTemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EmailRoleAttributeCreate{config: rc.config, mutation: newEmailRoleAttributeMutation(rc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := rc.mutation.UserRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -332,6 +387,25 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: userrole.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.EmailTemplateRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
 				},
 			},
 		}

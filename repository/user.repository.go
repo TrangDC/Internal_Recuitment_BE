@@ -104,8 +104,8 @@ func (rps *userRepoImpl) BuildExist(ctx context.Context, query *ent.UserQuery) (
 	return query.Exist(ctx)
 }
 
-func (rps *userRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.User) *ent.UserUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now().UTC())
+func (rps *userRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.User) *ent.UserUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps *userRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.UserUpdateOne) (*ent.User, error) {

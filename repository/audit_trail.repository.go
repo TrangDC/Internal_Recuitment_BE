@@ -65,8 +65,8 @@ func (rps *auditTrailRepoImpl) BuildExist(ctx context.Context, query *ent.AuditT
 	return query.Exist(ctx)
 }
 
-func (rps *auditTrailRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.AuditTrail) *ent.AuditTrailUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *auditTrailRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.AuditTrail) *ent.AuditTrailUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *auditTrailRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.AuditTrailUpdateOne) (*ent.AuditTrail, error) {

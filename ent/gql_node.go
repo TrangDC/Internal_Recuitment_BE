@@ -14,6 +14,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
@@ -962,6 +964,196 @@ func (cjs *CandidateJobStep) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (era *EmailRoleAttribute) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     era.ID,
+		Type:   "EmailRoleAttribute",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(era.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(era.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(era.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(era.EmailTemplateID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "email_template_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(era.RoleID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "role_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Team",
+		Name: "email_template_edge",
+	}
+	err = era.QueryEmailTemplateEdge().
+		Select(team.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Role",
+		Name: "role_edge",
+	}
+	err = era.QueryRoleEdge().
+		Select(role.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (et *EmailTemplate) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     et.ID,
+		Type:   "EmailTemplate",
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(et.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Event); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "emailtemplate.Event",
+		Name:  "event",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.SendTo); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "[]string",
+		Name:  "send_to",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Cc); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]string",
+		Name:  "cc",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Bcc); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "[]string",
+		Name:  "bcc",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Subject); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "subject",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Content); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "string",
+		Name:  "content",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Signature); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "string",
+		Name:  "signature",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(et.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "emailtemplate.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Role",
+		Name: "role_edges",
+	}
+	err = et.QueryRoleEdges().
+		Select(role.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "EmailRoleAttribute",
+		Name: "role_email_templates",
+	}
+	err = et.QueryRoleEmailTemplates().
+		Select(emailroleattribute.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ep.ID,
@@ -1572,7 +1764,7 @@ func (r *Role) Node(ctx context.Context) (node *Node, err error) {
 		ID:     r.ID,
 		Type:   "Role",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(r.CreatedAt); err != nil {
@@ -1636,12 +1828,32 @@ func (r *Role) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[2] = &Edge{
+		Type: "EmailTemplate",
+		Name: "email_template_edges",
+	}
+	err = r.QueryEmailTemplateEdges().
+		Select(emailtemplate.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
 		Type: "UserRole",
 		Name: "user_roles",
 	}
 	err = r.QueryUserRoles().
 		Select(userrole.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
+		Scan(ctx, &node.Edges[3].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		Type: "EmailRoleAttribute",
+		Name: "email_template_roles",
+	}
+	err = r.QueryEmailTemplateRoles().
+		Select(emailroleattribute.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2398,6 +2610,30 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case emailroleattribute.Table:
+		query := c.EmailRoleAttribute.Query().
+			Where(emailroleattribute.ID(id))
+		query, err := query.CollectFields(ctx, "EmailRoleAttribute")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case emailtemplate.Table:
+		query := c.EmailTemplate.Query().
+			Where(emailtemplate.ID(id))
+		query, err := query.CollectFields(ctx, "EmailTemplate")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case entitypermission.Table:
 		query := c.EntityPermission.Query().
 			Where(entitypermission.ID(id))
@@ -2731,6 +2967,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.CandidateJobStep.Query().
 			Where(candidatejobstep.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "CandidateJobStep")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case emailroleattribute.Table:
+		query := c.EmailRoleAttribute.Query().
+			Where(emailroleattribute.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "EmailRoleAttribute")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case emailtemplate.Table:
+		query := c.EmailTemplate.Query().
+			Where(emailtemplate.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "EmailTemplate")
 		if err != nil {
 			return nil, err
 		}

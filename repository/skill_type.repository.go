@@ -14,8 +14,8 @@ import (
 
 type SkillTypeRepository interface {
 	CreateSkillType(ctx context.Context, input ent.NewSkillTypeInput) (*ent.SkillType, error)
-	UpdateSkillType(ctx context.Context, model *ent.SkillType, input ent.UpdateSkillTypeInput) (*ent.SkillType, error)
-	DeleteSkillType(ctx context.Context, model *ent.SkillType) (*ent.SkillType, error)
+	UpdateSkillType(ctx context.Context, record *ent.SkillType, input ent.UpdateSkillTypeInput) (*ent.SkillType, error)
+	DeleteSkillType(ctx context.Context, record *ent.SkillType) (*ent.SkillType, error)
 
 	// query
 	GetSkillType(ctx context.Context, id uuid.UUID) (*ent.SkillType, error)
@@ -74,8 +74,8 @@ func (rps *skillTypeRepoImpl) BuildExist(ctx context.Context, query *ent.SkillTy
 	return query.Exist(ctx)
 }
 
-func (rps *skillTypeRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.SkillType) *ent.SkillTypeUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *skillTypeRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.SkillType) *ent.SkillTypeUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *skillTypeRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.SkillTypeUpdateOne) (*ent.SkillType, error) {
@@ -89,14 +89,14 @@ func (rps *skillTypeRepoImpl) CreateSkillType(ctx context.Context, input ent.New
 		SetDescription(strings.TrimSpace(input.Description)).Save(ctx)
 }
 
-func (rps *skillTypeRepoImpl) UpdateSkillType(ctx context.Context, model *ent.SkillType, input ent.UpdateSkillTypeInput) (*ent.SkillType, error) {
-	return rps.BuildUpdateOne(ctx, model).
+func (rps *skillTypeRepoImpl) UpdateSkillType(ctx context.Context, record *ent.SkillType, input ent.UpdateSkillTypeInput) (*ent.SkillType, error) {
+	return rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).Save(ctx)
 }
 
-func (rps *skillTypeRepoImpl) DeleteSkillType(ctx context.Context, model *ent.SkillType) (*ent.SkillType, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+func (rps *skillTypeRepoImpl) DeleteSkillType(ctx context.Context, record *ent.SkillType) (*ent.SkillType, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
 	return update.Save(ctx)
 }
 

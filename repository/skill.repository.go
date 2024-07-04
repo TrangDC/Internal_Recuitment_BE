@@ -88,8 +88,8 @@ func (rps skillRepoImpl) BuildExist(ctx context.Context, query *ent.SkillQuery) 
 	return query.Exist(ctx)
 }
 
-func (rps *skillRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Skill) *ent.SkillUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now().UTC())
+func (rps *skillRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Skill) *ent.SkillUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps *skillRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.SkillUpdateOne) (*ent.Skill, error) {

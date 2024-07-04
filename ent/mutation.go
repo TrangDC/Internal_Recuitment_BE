@@ -16,6 +16,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
@@ -52,6 +54,8 @@ const (
 	TypeCandidateJob         = "CandidateJob"
 	TypeCandidateJobFeedback = "CandidateJobFeedback"
 	TypeCandidateJobStep     = "CandidateJobStep"
+	TypeEmailRoleAttribute   = "EmailRoleAttribute"
+	TypeEmailTemplate        = "EmailTemplate"
 	TypeEntityPermission     = "EntityPermission"
 	TypeEntitySkill          = "EntitySkill"
 	TypeHiringJob            = "HiringJob"
@@ -8559,6 +8563,1845 @@ func (m *CandidateJobStepMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CandidateJobStep edge %s", name)
 }
 
+// EmailRoleAttributeMutation represents an operation that mutates the EmailRoleAttribute nodes in the graph.
+type EmailRoleAttributeMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	deleted_at                 *time.Time
+	clearedFields              map[string]struct{}
+	email_template_edge        *uuid.UUID
+	clearedemail_template_edge bool
+	role_edge                  *uuid.UUID
+	clearedrole_edge           bool
+	done                       bool
+	oldValue                   func(context.Context) (*EmailRoleAttribute, error)
+	predicates                 []predicate.EmailRoleAttribute
+}
+
+var _ ent.Mutation = (*EmailRoleAttributeMutation)(nil)
+
+// emailroleattributeOption allows management of the mutation configuration using functional options.
+type emailroleattributeOption func(*EmailRoleAttributeMutation)
+
+// newEmailRoleAttributeMutation creates new mutation for the EmailRoleAttribute entity.
+func newEmailRoleAttributeMutation(c config, op Op, opts ...emailroleattributeOption) *EmailRoleAttributeMutation {
+	m := &EmailRoleAttributeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEmailRoleAttribute,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEmailRoleAttributeID sets the ID field of the mutation.
+func withEmailRoleAttributeID(id uuid.UUID) emailroleattributeOption {
+	return func(m *EmailRoleAttributeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EmailRoleAttribute
+		)
+		m.oldValue = func(ctx context.Context) (*EmailRoleAttribute, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EmailRoleAttribute.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEmailRoleAttribute sets the old EmailRoleAttribute of the mutation.
+func withEmailRoleAttribute(node *EmailRoleAttribute) emailroleattributeOption {
+	return func(m *EmailRoleAttributeMutation) {
+		m.oldValue = func(context.Context) (*EmailRoleAttribute, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EmailRoleAttributeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EmailRoleAttributeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EmailRoleAttribute entities.
+func (m *EmailRoleAttributeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EmailRoleAttributeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EmailRoleAttributeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EmailRoleAttribute.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EmailRoleAttributeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EmailRoleAttributeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EmailRoleAttribute entity.
+// If the EmailRoleAttribute object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailRoleAttributeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EmailRoleAttributeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EmailRoleAttributeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EmailRoleAttributeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EmailRoleAttribute entity.
+// If the EmailRoleAttribute object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailRoleAttributeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *EmailRoleAttributeMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[emailroleattribute.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *EmailRoleAttributeMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[emailroleattribute.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EmailRoleAttributeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, emailroleattribute.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *EmailRoleAttributeMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *EmailRoleAttributeMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the EmailRoleAttribute entity.
+// If the EmailRoleAttribute object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailRoleAttributeMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *EmailRoleAttributeMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[emailroleattribute.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *EmailRoleAttributeMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[emailroleattribute.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *EmailRoleAttributeMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, emailroleattribute.FieldDeletedAt)
+}
+
+// SetEmailTemplateID sets the "email_template_id" field.
+func (m *EmailRoleAttributeMutation) SetEmailTemplateID(u uuid.UUID) {
+	m.email_template_edge = &u
+}
+
+// EmailTemplateID returns the value of the "email_template_id" field in the mutation.
+func (m *EmailRoleAttributeMutation) EmailTemplateID() (r uuid.UUID, exists bool) {
+	v := m.email_template_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmailTemplateID returns the old "email_template_id" field's value of the EmailRoleAttribute entity.
+// If the EmailRoleAttribute object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailRoleAttributeMutation) OldEmailTemplateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmailTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmailTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmailTemplateID: %w", err)
+	}
+	return oldValue.EmailTemplateID, nil
+}
+
+// ResetEmailTemplateID resets all changes to the "email_template_id" field.
+func (m *EmailRoleAttributeMutation) ResetEmailTemplateID() {
+	m.email_template_edge = nil
+}
+
+// SetRoleID sets the "role_id" field.
+func (m *EmailRoleAttributeMutation) SetRoleID(u uuid.UUID) {
+	m.role_edge = &u
+}
+
+// RoleID returns the value of the "role_id" field in the mutation.
+func (m *EmailRoleAttributeMutation) RoleID() (r uuid.UUID, exists bool) {
+	v := m.role_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoleID returns the old "role_id" field's value of the EmailRoleAttribute entity.
+// If the EmailRoleAttribute object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailRoleAttributeMutation) OldRoleID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoleID: %w", err)
+	}
+	return oldValue.RoleID, nil
+}
+
+// ResetRoleID resets all changes to the "role_id" field.
+func (m *EmailRoleAttributeMutation) ResetRoleID() {
+	m.role_edge = nil
+}
+
+// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the Team entity by id.
+func (m *EmailRoleAttributeMutation) SetEmailTemplateEdgeID(id uuid.UUID) {
+	m.email_template_edge = &id
+}
+
+// ClearEmailTemplateEdge clears the "email_template_edge" edge to the Team entity.
+func (m *EmailRoleAttributeMutation) ClearEmailTemplateEdge() {
+	m.clearedemail_template_edge = true
+}
+
+// EmailTemplateEdgeCleared reports if the "email_template_edge" edge to the Team entity was cleared.
+func (m *EmailRoleAttributeMutation) EmailTemplateEdgeCleared() bool {
+	return m.clearedemail_template_edge
+}
+
+// EmailTemplateEdgeID returns the "email_template_edge" edge ID in the mutation.
+func (m *EmailRoleAttributeMutation) EmailTemplateEdgeID() (id uuid.UUID, exists bool) {
+	if m.email_template_edge != nil {
+		return *m.email_template_edge, true
+	}
+	return
+}
+
+// EmailTemplateEdgeIDs returns the "email_template_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EmailTemplateEdgeID instead. It exists only for internal usage by the builders.
+func (m *EmailRoleAttributeMutation) EmailTemplateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.email_template_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEmailTemplateEdge resets all changes to the "email_template_edge" edge.
+func (m *EmailRoleAttributeMutation) ResetEmailTemplateEdge() {
+	m.email_template_edge = nil
+	m.clearedemail_template_edge = false
+}
+
+// SetRoleEdgeID sets the "role_edge" edge to the Role entity by id.
+func (m *EmailRoleAttributeMutation) SetRoleEdgeID(id uuid.UUID) {
+	m.role_edge = &id
+}
+
+// ClearRoleEdge clears the "role_edge" edge to the Role entity.
+func (m *EmailRoleAttributeMutation) ClearRoleEdge() {
+	m.clearedrole_edge = true
+}
+
+// RoleEdgeCleared reports if the "role_edge" edge to the Role entity was cleared.
+func (m *EmailRoleAttributeMutation) RoleEdgeCleared() bool {
+	return m.clearedrole_edge
+}
+
+// RoleEdgeID returns the "role_edge" edge ID in the mutation.
+func (m *EmailRoleAttributeMutation) RoleEdgeID() (id uuid.UUID, exists bool) {
+	if m.role_edge != nil {
+		return *m.role_edge, true
+	}
+	return
+}
+
+// RoleEdgeIDs returns the "role_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RoleEdgeID instead. It exists only for internal usage by the builders.
+func (m *EmailRoleAttributeMutation) RoleEdgeIDs() (ids []uuid.UUID) {
+	if id := m.role_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRoleEdge resets all changes to the "role_edge" edge.
+func (m *EmailRoleAttributeMutation) ResetRoleEdge() {
+	m.role_edge = nil
+	m.clearedrole_edge = false
+}
+
+// Where appends a list predicates to the EmailRoleAttributeMutation builder.
+func (m *EmailRoleAttributeMutation) Where(ps ...predicate.EmailRoleAttribute) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *EmailRoleAttributeMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (EmailRoleAttribute).
+func (m *EmailRoleAttributeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EmailRoleAttributeMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, emailroleattribute.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, emailroleattribute.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, emailroleattribute.FieldDeletedAt)
+	}
+	if m.email_template_edge != nil {
+		fields = append(fields, emailroleattribute.FieldEmailTemplateID)
+	}
+	if m.role_edge != nil {
+		fields = append(fields, emailroleattribute.FieldRoleID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EmailRoleAttributeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case emailroleattribute.FieldCreatedAt:
+		return m.CreatedAt()
+	case emailroleattribute.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case emailroleattribute.FieldDeletedAt:
+		return m.DeletedAt()
+	case emailroleattribute.FieldEmailTemplateID:
+		return m.EmailTemplateID()
+	case emailroleattribute.FieldRoleID:
+		return m.RoleID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EmailRoleAttributeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case emailroleattribute.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case emailroleattribute.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case emailroleattribute.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case emailroleattribute.FieldEmailTemplateID:
+		return m.OldEmailTemplateID(ctx)
+	case emailroleattribute.FieldRoleID:
+		return m.OldRoleID(ctx)
+	}
+	return nil, fmt.Errorf("unknown EmailRoleAttribute field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EmailRoleAttributeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case emailroleattribute.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case emailroleattribute.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case emailroleattribute.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case emailroleattribute.FieldEmailTemplateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmailTemplateID(v)
+		return nil
+	case emailroleattribute.FieldRoleID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoleID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EmailRoleAttributeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EmailRoleAttributeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EmailRoleAttributeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EmailRoleAttributeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(emailroleattribute.FieldUpdatedAt) {
+		fields = append(fields, emailroleattribute.FieldUpdatedAt)
+	}
+	if m.FieldCleared(emailroleattribute.FieldDeletedAt) {
+		fields = append(fields, emailroleattribute.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EmailRoleAttributeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EmailRoleAttributeMutation) ClearField(name string) error {
+	switch name {
+	case emailroleattribute.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case emailroleattribute.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EmailRoleAttributeMutation) ResetField(name string) error {
+	switch name {
+	case emailroleattribute.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case emailroleattribute.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case emailroleattribute.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case emailroleattribute.FieldEmailTemplateID:
+		m.ResetEmailTemplateID()
+		return nil
+	case emailroleattribute.FieldRoleID:
+		m.ResetRoleID()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EmailRoleAttributeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.email_template_edge != nil {
+		edges = append(edges, emailroleattribute.EdgeEmailTemplateEdge)
+	}
+	if m.role_edge != nil {
+		edges = append(edges, emailroleattribute.EdgeRoleEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EmailRoleAttributeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case emailroleattribute.EdgeEmailTemplateEdge:
+		if id := m.email_template_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case emailroleattribute.EdgeRoleEdge:
+		if id := m.role_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EmailRoleAttributeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EmailRoleAttributeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EmailRoleAttributeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedemail_template_edge {
+		edges = append(edges, emailroleattribute.EdgeEmailTemplateEdge)
+	}
+	if m.clearedrole_edge {
+		edges = append(edges, emailroleattribute.EdgeRoleEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EmailRoleAttributeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case emailroleattribute.EdgeEmailTemplateEdge:
+		return m.clearedemail_template_edge
+	case emailroleattribute.EdgeRoleEdge:
+		return m.clearedrole_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EmailRoleAttributeMutation) ClearEdge(name string) error {
+	switch name {
+	case emailroleattribute.EdgeEmailTemplateEdge:
+		m.ClearEmailTemplateEdge()
+		return nil
+	case emailroleattribute.EdgeRoleEdge:
+		m.ClearRoleEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EmailRoleAttributeMutation) ResetEdge(name string) error {
+	switch name {
+	case emailroleattribute.EdgeEmailTemplateEdge:
+		m.ResetEmailTemplateEdge()
+		return nil
+	case emailroleattribute.EdgeRoleEdge:
+		m.ResetRoleEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailRoleAttribute edge %s", name)
+}
+
+// EmailTemplateMutation represents an operation that mutates the EmailTemplate nodes in the graph.
+type EmailTemplateMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	deleted_at                  *time.Time
+	event                       *emailtemplate.Event
+	send_to                     *[]string
+	appendsend_to               []string
+	cc                          *[]string
+	appendcc                    []string
+	bcc                         *[]string
+	appendbcc                   []string
+	subject                     *string
+	content                     *string
+	signature                   *string
+	status                      *emailtemplate.Status
+	clearedFields               map[string]struct{}
+	role_edges                  map[uuid.UUID]struct{}
+	removedrole_edges           map[uuid.UUID]struct{}
+	clearedrole_edges           bool
+	role_email_templates        map[uuid.UUID]struct{}
+	removedrole_email_templates map[uuid.UUID]struct{}
+	clearedrole_email_templates bool
+	done                        bool
+	oldValue                    func(context.Context) (*EmailTemplate, error)
+	predicates                  []predicate.EmailTemplate
+}
+
+var _ ent.Mutation = (*EmailTemplateMutation)(nil)
+
+// emailtemplateOption allows management of the mutation configuration using functional options.
+type emailtemplateOption func(*EmailTemplateMutation)
+
+// newEmailTemplateMutation creates new mutation for the EmailTemplate entity.
+func newEmailTemplateMutation(c config, op Op, opts ...emailtemplateOption) *EmailTemplateMutation {
+	m := &EmailTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEmailTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEmailTemplateID sets the ID field of the mutation.
+func withEmailTemplateID(id uuid.UUID) emailtemplateOption {
+	return func(m *EmailTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EmailTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*EmailTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EmailTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEmailTemplate sets the old EmailTemplate of the mutation.
+func withEmailTemplate(node *EmailTemplate) emailtemplateOption {
+	return func(m *EmailTemplateMutation) {
+		m.oldValue = func(context.Context) (*EmailTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EmailTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EmailTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EmailTemplate entities.
+func (m *EmailTemplateMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EmailTemplateMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EmailTemplateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EmailTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EmailTemplateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EmailTemplateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EmailTemplateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EmailTemplateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EmailTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *EmailTemplateMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[emailtemplate.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *EmailTemplateMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[emailtemplate.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EmailTemplateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, emailtemplate.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *EmailTemplateMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *EmailTemplateMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *EmailTemplateMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[emailtemplate.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *EmailTemplateMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[emailtemplate.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *EmailTemplateMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, emailtemplate.FieldDeletedAt)
+}
+
+// SetEvent sets the "event" field.
+func (m *EmailTemplateMutation) SetEvent(e emailtemplate.Event) {
+	m.event = &e
+}
+
+// Event returns the value of the "event" field in the mutation.
+func (m *EmailTemplateMutation) Event() (r emailtemplate.Event, exists bool) {
+	v := m.event
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEvent returns the old "event" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldEvent(ctx context.Context) (v emailtemplate.Event, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEvent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEvent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEvent: %w", err)
+	}
+	return oldValue.Event, nil
+}
+
+// ResetEvent resets all changes to the "event" field.
+func (m *EmailTemplateMutation) ResetEvent() {
+	m.event = nil
+}
+
+// SetSendTo sets the "send_to" field.
+func (m *EmailTemplateMutation) SetSendTo(s []string) {
+	m.send_to = &s
+	m.appendsend_to = nil
+}
+
+// SendTo returns the value of the "send_to" field in the mutation.
+func (m *EmailTemplateMutation) SendTo() (r []string, exists bool) {
+	v := m.send_to
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSendTo returns the old "send_to" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldSendTo(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSendTo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSendTo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSendTo: %w", err)
+	}
+	return oldValue.SendTo, nil
+}
+
+// AppendSendTo adds s to the "send_to" field.
+func (m *EmailTemplateMutation) AppendSendTo(s []string) {
+	m.appendsend_to = append(m.appendsend_to, s...)
+}
+
+// AppendedSendTo returns the list of values that were appended to the "send_to" field in this mutation.
+func (m *EmailTemplateMutation) AppendedSendTo() ([]string, bool) {
+	if len(m.appendsend_to) == 0 {
+		return nil, false
+	}
+	return m.appendsend_to, true
+}
+
+// ResetSendTo resets all changes to the "send_to" field.
+func (m *EmailTemplateMutation) ResetSendTo() {
+	m.send_to = nil
+	m.appendsend_to = nil
+}
+
+// SetCc sets the "cc" field.
+func (m *EmailTemplateMutation) SetCc(s []string) {
+	m.cc = &s
+	m.appendcc = nil
+}
+
+// Cc returns the value of the "cc" field in the mutation.
+func (m *EmailTemplateMutation) Cc() (r []string, exists bool) {
+	v := m.cc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCc returns the old "cc" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldCc(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCc: %w", err)
+	}
+	return oldValue.Cc, nil
+}
+
+// AppendCc adds s to the "cc" field.
+func (m *EmailTemplateMutation) AppendCc(s []string) {
+	m.appendcc = append(m.appendcc, s...)
+}
+
+// AppendedCc returns the list of values that were appended to the "cc" field in this mutation.
+func (m *EmailTemplateMutation) AppendedCc() ([]string, bool) {
+	if len(m.appendcc) == 0 {
+		return nil, false
+	}
+	return m.appendcc, true
+}
+
+// ResetCc resets all changes to the "cc" field.
+func (m *EmailTemplateMutation) ResetCc() {
+	m.cc = nil
+	m.appendcc = nil
+}
+
+// SetBcc sets the "bcc" field.
+func (m *EmailTemplateMutation) SetBcc(s []string) {
+	m.bcc = &s
+	m.appendbcc = nil
+}
+
+// Bcc returns the value of the "bcc" field in the mutation.
+func (m *EmailTemplateMutation) Bcc() (r []string, exists bool) {
+	v := m.bcc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBcc returns the old "bcc" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldBcc(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBcc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBcc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBcc: %w", err)
+	}
+	return oldValue.Bcc, nil
+}
+
+// AppendBcc adds s to the "bcc" field.
+func (m *EmailTemplateMutation) AppendBcc(s []string) {
+	m.appendbcc = append(m.appendbcc, s...)
+}
+
+// AppendedBcc returns the list of values that were appended to the "bcc" field in this mutation.
+func (m *EmailTemplateMutation) AppendedBcc() ([]string, bool) {
+	if len(m.appendbcc) == 0 {
+		return nil, false
+	}
+	return m.appendbcc, true
+}
+
+// ResetBcc resets all changes to the "bcc" field.
+func (m *EmailTemplateMutation) ResetBcc() {
+	m.bcc = nil
+	m.appendbcc = nil
+}
+
+// SetSubject sets the "subject" field.
+func (m *EmailTemplateMutation) SetSubject(s string) {
+	m.subject = &s
+}
+
+// Subject returns the value of the "subject" field in the mutation.
+func (m *EmailTemplateMutation) Subject() (r string, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubject returns the old "subject" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldSubject(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubject is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubject requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubject: %w", err)
+	}
+	return oldValue.Subject, nil
+}
+
+// ResetSubject resets all changes to the "subject" field.
+func (m *EmailTemplateMutation) ResetSubject() {
+	m.subject = nil
+}
+
+// SetContent sets the "content" field.
+func (m *EmailTemplateMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *EmailTemplateMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *EmailTemplateMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetSignature sets the "signature" field.
+func (m *EmailTemplateMutation) SetSignature(s string) {
+	m.signature = &s
+}
+
+// Signature returns the value of the "signature" field in the mutation.
+func (m *EmailTemplateMutation) Signature() (r string, exists bool) {
+	v := m.signature
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignature returns the old "signature" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldSignature(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignature is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignature requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignature: %w", err)
+	}
+	return oldValue.Signature, nil
+}
+
+// ClearSignature clears the value of the "signature" field.
+func (m *EmailTemplateMutation) ClearSignature() {
+	m.signature = nil
+	m.clearedFields[emailtemplate.FieldSignature] = struct{}{}
+}
+
+// SignatureCleared returns if the "signature" field was cleared in this mutation.
+func (m *EmailTemplateMutation) SignatureCleared() bool {
+	_, ok := m.clearedFields[emailtemplate.FieldSignature]
+	return ok
+}
+
+// ResetSignature resets all changes to the "signature" field.
+func (m *EmailTemplateMutation) ResetSignature() {
+	m.signature = nil
+	delete(m.clearedFields, emailtemplate.FieldSignature)
+}
+
+// SetStatus sets the "status" field.
+func (m *EmailTemplateMutation) SetStatus(e emailtemplate.Status) {
+	m.status = &e
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *EmailTemplateMutation) Status() (r emailtemplate.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldStatus(ctx context.Context) (v emailtemplate.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *EmailTemplateMutation) ResetStatus() {
+	m.status = nil
+}
+
+// AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by ids.
+func (m *EmailTemplateMutation) AddRoleEdgeIDs(ids ...uuid.UUID) {
+	if m.role_edges == nil {
+		m.role_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.role_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRoleEdges clears the "role_edges" edge to the Role entity.
+func (m *EmailTemplateMutation) ClearRoleEdges() {
+	m.clearedrole_edges = true
+}
+
+// RoleEdgesCleared reports if the "role_edges" edge to the Role entity was cleared.
+func (m *EmailTemplateMutation) RoleEdgesCleared() bool {
+	return m.clearedrole_edges
+}
+
+// RemoveRoleEdgeIDs removes the "role_edges" edge to the Role entity by IDs.
+func (m *EmailTemplateMutation) RemoveRoleEdgeIDs(ids ...uuid.UUID) {
+	if m.removedrole_edges == nil {
+		m.removedrole_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.role_edges, ids[i])
+		m.removedrole_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRoleEdges returns the removed IDs of the "role_edges" edge to the Role entity.
+func (m *EmailTemplateMutation) RemovedRoleEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedrole_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoleEdgesIDs returns the "role_edges" edge IDs in the mutation.
+func (m *EmailTemplateMutation) RoleEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.role_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRoleEdges resets all changes to the "role_edges" edge.
+func (m *EmailTemplateMutation) ResetRoleEdges() {
+	m.role_edges = nil
+	m.clearedrole_edges = false
+	m.removedrole_edges = nil
+}
+
+// AddRoleEmailTemplateIDs adds the "role_email_templates" edge to the EmailRoleAttribute entity by ids.
+func (m *EmailTemplateMutation) AddRoleEmailTemplateIDs(ids ...uuid.UUID) {
+	if m.role_email_templates == nil {
+		m.role_email_templates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.role_email_templates[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRoleEmailTemplates clears the "role_email_templates" edge to the EmailRoleAttribute entity.
+func (m *EmailTemplateMutation) ClearRoleEmailTemplates() {
+	m.clearedrole_email_templates = true
+}
+
+// RoleEmailTemplatesCleared reports if the "role_email_templates" edge to the EmailRoleAttribute entity was cleared.
+func (m *EmailTemplateMutation) RoleEmailTemplatesCleared() bool {
+	return m.clearedrole_email_templates
+}
+
+// RemoveRoleEmailTemplateIDs removes the "role_email_templates" edge to the EmailRoleAttribute entity by IDs.
+func (m *EmailTemplateMutation) RemoveRoleEmailTemplateIDs(ids ...uuid.UUID) {
+	if m.removedrole_email_templates == nil {
+		m.removedrole_email_templates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.role_email_templates, ids[i])
+		m.removedrole_email_templates[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRoleEmailTemplates returns the removed IDs of the "role_email_templates" edge to the EmailRoleAttribute entity.
+func (m *EmailTemplateMutation) RemovedRoleEmailTemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.removedrole_email_templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoleEmailTemplatesIDs returns the "role_email_templates" edge IDs in the mutation.
+func (m *EmailTemplateMutation) RoleEmailTemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.role_email_templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRoleEmailTemplates resets all changes to the "role_email_templates" edge.
+func (m *EmailTemplateMutation) ResetRoleEmailTemplates() {
+	m.role_email_templates = nil
+	m.clearedrole_email_templates = false
+	m.removedrole_email_templates = nil
+}
+
+// Where appends a list predicates to the EmailTemplateMutation builder.
+func (m *EmailTemplateMutation) Where(ps ...predicate.EmailTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *EmailTemplateMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (EmailTemplate).
+func (m *EmailTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EmailTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, emailtemplate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, emailtemplate.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, emailtemplate.FieldDeletedAt)
+	}
+	if m.event != nil {
+		fields = append(fields, emailtemplate.FieldEvent)
+	}
+	if m.send_to != nil {
+		fields = append(fields, emailtemplate.FieldSendTo)
+	}
+	if m.cc != nil {
+		fields = append(fields, emailtemplate.FieldCc)
+	}
+	if m.bcc != nil {
+		fields = append(fields, emailtemplate.FieldBcc)
+	}
+	if m.subject != nil {
+		fields = append(fields, emailtemplate.FieldSubject)
+	}
+	if m.content != nil {
+		fields = append(fields, emailtemplate.FieldContent)
+	}
+	if m.signature != nil {
+		fields = append(fields, emailtemplate.FieldSignature)
+	}
+	if m.status != nil {
+		fields = append(fields, emailtemplate.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EmailTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case emailtemplate.FieldCreatedAt:
+		return m.CreatedAt()
+	case emailtemplate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case emailtemplate.FieldDeletedAt:
+		return m.DeletedAt()
+	case emailtemplate.FieldEvent:
+		return m.Event()
+	case emailtemplate.FieldSendTo:
+		return m.SendTo()
+	case emailtemplate.FieldCc:
+		return m.Cc()
+	case emailtemplate.FieldBcc:
+		return m.Bcc()
+	case emailtemplate.FieldSubject:
+		return m.Subject()
+	case emailtemplate.FieldContent:
+		return m.Content()
+	case emailtemplate.FieldSignature:
+		return m.Signature()
+	case emailtemplate.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EmailTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case emailtemplate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case emailtemplate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case emailtemplate.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case emailtemplate.FieldEvent:
+		return m.OldEvent(ctx)
+	case emailtemplate.FieldSendTo:
+		return m.OldSendTo(ctx)
+	case emailtemplate.FieldCc:
+		return m.OldCc(ctx)
+	case emailtemplate.FieldBcc:
+		return m.OldBcc(ctx)
+	case emailtemplate.FieldSubject:
+		return m.OldSubject(ctx)
+	case emailtemplate.FieldContent:
+		return m.OldContent(ctx)
+	case emailtemplate.FieldSignature:
+		return m.OldSignature(ctx)
+	case emailtemplate.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown EmailTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EmailTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case emailtemplate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case emailtemplate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case emailtemplate.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case emailtemplate.FieldEvent:
+		v, ok := value.(emailtemplate.Event)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEvent(v)
+		return nil
+	case emailtemplate.FieldSendTo:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSendTo(v)
+		return nil
+	case emailtemplate.FieldCc:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCc(v)
+		return nil
+	case emailtemplate.FieldBcc:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBcc(v)
+		return nil
+	case emailtemplate.FieldSubject:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubject(v)
+		return nil
+	case emailtemplate.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case emailtemplate.FieldSignature:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignature(v)
+		return nil
+	case emailtemplate.FieldStatus:
+		v, ok := value.(emailtemplate.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EmailTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EmailTemplateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EmailTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EmailTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EmailTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EmailTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(emailtemplate.FieldUpdatedAt) {
+		fields = append(fields, emailtemplate.FieldUpdatedAt)
+	}
+	if m.FieldCleared(emailtemplate.FieldDeletedAt) {
+		fields = append(fields, emailtemplate.FieldDeletedAt)
+	}
+	if m.FieldCleared(emailtemplate.FieldSignature) {
+		fields = append(fields, emailtemplate.FieldSignature)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EmailTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EmailTemplateMutation) ClearField(name string) error {
+	switch name {
+	case emailtemplate.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case emailtemplate.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case emailtemplate.FieldSignature:
+		m.ClearSignature()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EmailTemplateMutation) ResetField(name string) error {
+	switch name {
+	case emailtemplate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case emailtemplate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case emailtemplate.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case emailtemplate.FieldEvent:
+		m.ResetEvent()
+		return nil
+	case emailtemplate.FieldSendTo:
+		m.ResetSendTo()
+		return nil
+	case emailtemplate.FieldCc:
+		m.ResetCc()
+		return nil
+	case emailtemplate.FieldBcc:
+		m.ResetBcc()
+		return nil
+	case emailtemplate.FieldSubject:
+		m.ResetSubject()
+		return nil
+	case emailtemplate.FieldContent:
+		m.ResetContent()
+		return nil
+	case emailtemplate.FieldSignature:
+		m.ResetSignature()
+		return nil
+	case emailtemplate.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EmailTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.role_edges != nil {
+		edges = append(edges, emailtemplate.EdgeRoleEdges)
+	}
+	if m.role_email_templates != nil {
+		edges = append(edges, emailtemplate.EdgeRoleEmailTemplates)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EmailTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case emailtemplate.EdgeRoleEdges:
+		ids := make([]ent.Value, 0, len(m.role_edges))
+		for id := range m.role_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case emailtemplate.EdgeRoleEmailTemplates:
+		ids := make([]ent.Value, 0, len(m.role_email_templates))
+		for id := range m.role_email_templates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EmailTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedrole_edges != nil {
+		edges = append(edges, emailtemplate.EdgeRoleEdges)
+	}
+	if m.removedrole_email_templates != nil {
+		edges = append(edges, emailtemplate.EdgeRoleEmailTemplates)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EmailTemplateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case emailtemplate.EdgeRoleEdges:
+		ids := make([]ent.Value, 0, len(m.removedrole_edges))
+		for id := range m.removedrole_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case emailtemplate.EdgeRoleEmailTemplates:
+		ids := make([]ent.Value, 0, len(m.removedrole_email_templates))
+		for id := range m.removedrole_email_templates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EmailTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedrole_edges {
+		edges = append(edges, emailtemplate.EdgeRoleEdges)
+	}
+	if m.clearedrole_email_templates {
+		edges = append(edges, emailtemplate.EdgeRoleEmailTemplates)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EmailTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case emailtemplate.EdgeRoleEdges:
+		return m.clearedrole_edges
+	case emailtemplate.EdgeRoleEmailTemplates:
+		return m.clearedrole_email_templates
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EmailTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EmailTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EmailTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case emailtemplate.EdgeRoleEdges:
+		m.ResetRoleEdges()
+		return nil
+	case emailtemplate.EdgeRoleEmailTemplates:
+		m.ResetRoleEmailTemplates()
+		return nil
+	}
+	return fmt.Errorf("unknown EmailTemplate edge %s", name)
+}
+
 // EntityPermissionMutation represents an operation that mutates the EntityPermission nodes in the graph.
 type EntityPermissionMutation struct {
 	config
@@ -14312,9 +16155,15 @@ type RoleMutation struct {
 	user_edges                   map[uuid.UUID]struct{}
 	removeduser_edges            map[uuid.UUID]struct{}
 	cleareduser_edges            bool
+	email_template_edges         map[uuid.UUID]struct{}
+	removedemail_template_edges  map[uuid.UUID]struct{}
+	clearedemail_template_edges  bool
 	user_roles                   map[uuid.UUID]struct{}
 	removeduser_roles            map[uuid.UUID]struct{}
 	cleareduser_roles            bool
+	email_template_roles         map[uuid.UUID]struct{}
+	removedemail_template_roles  map[uuid.UUID]struct{}
+	clearedemail_template_roles  bool
 	done                         bool
 	oldValue                     func(context.Context) (*Role, error)
 	predicates                   []predicate.Role
@@ -14738,6 +16587,60 @@ func (m *RoleMutation) ResetUserEdges() {
 	m.removeduser_edges = nil
 }
 
+// AddEmailTemplateEdgeIDs adds the "email_template_edges" edge to the EmailTemplate entity by ids.
+func (m *RoleMutation) AddEmailTemplateEdgeIDs(ids ...uuid.UUID) {
+	if m.email_template_edges == nil {
+		m.email_template_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.email_template_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEmailTemplateEdges clears the "email_template_edges" edge to the EmailTemplate entity.
+func (m *RoleMutation) ClearEmailTemplateEdges() {
+	m.clearedemail_template_edges = true
+}
+
+// EmailTemplateEdgesCleared reports if the "email_template_edges" edge to the EmailTemplate entity was cleared.
+func (m *RoleMutation) EmailTemplateEdgesCleared() bool {
+	return m.clearedemail_template_edges
+}
+
+// RemoveEmailTemplateEdgeIDs removes the "email_template_edges" edge to the EmailTemplate entity by IDs.
+func (m *RoleMutation) RemoveEmailTemplateEdgeIDs(ids ...uuid.UUID) {
+	if m.removedemail_template_edges == nil {
+		m.removedemail_template_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.email_template_edges, ids[i])
+		m.removedemail_template_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEmailTemplateEdges returns the removed IDs of the "email_template_edges" edge to the EmailTemplate entity.
+func (m *RoleMutation) RemovedEmailTemplateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedemail_template_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EmailTemplateEdgesIDs returns the "email_template_edges" edge IDs in the mutation.
+func (m *RoleMutation) EmailTemplateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.email_template_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEmailTemplateEdges resets all changes to the "email_template_edges" edge.
+func (m *RoleMutation) ResetEmailTemplateEdges() {
+	m.email_template_edges = nil
+	m.clearedemail_template_edges = false
+	m.removedemail_template_edges = nil
+}
+
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by ids.
 func (m *RoleMutation) AddUserRoleIDs(ids ...uuid.UUID) {
 	if m.user_roles == nil {
@@ -14790,6 +16693,60 @@ func (m *RoleMutation) ResetUserRoles() {
 	m.user_roles = nil
 	m.cleareduser_roles = false
 	m.removeduser_roles = nil
+}
+
+// AddEmailTemplateRoleIDs adds the "email_template_roles" edge to the EmailRoleAttribute entity by ids.
+func (m *RoleMutation) AddEmailTemplateRoleIDs(ids ...uuid.UUID) {
+	if m.email_template_roles == nil {
+		m.email_template_roles = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.email_template_roles[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEmailTemplateRoles clears the "email_template_roles" edge to the EmailRoleAttribute entity.
+func (m *RoleMutation) ClearEmailTemplateRoles() {
+	m.clearedemail_template_roles = true
+}
+
+// EmailTemplateRolesCleared reports if the "email_template_roles" edge to the EmailRoleAttribute entity was cleared.
+func (m *RoleMutation) EmailTemplateRolesCleared() bool {
+	return m.clearedemail_template_roles
+}
+
+// RemoveEmailTemplateRoleIDs removes the "email_template_roles" edge to the EmailRoleAttribute entity by IDs.
+func (m *RoleMutation) RemoveEmailTemplateRoleIDs(ids ...uuid.UUID) {
+	if m.removedemail_template_roles == nil {
+		m.removedemail_template_roles = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.email_template_roles, ids[i])
+		m.removedemail_template_roles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEmailTemplateRoles returns the removed IDs of the "email_template_roles" edge to the EmailRoleAttribute entity.
+func (m *RoleMutation) RemovedEmailTemplateRolesIDs() (ids []uuid.UUID) {
+	for id := range m.removedemail_template_roles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EmailTemplateRolesIDs returns the "email_template_roles" edge IDs in the mutation.
+func (m *RoleMutation) EmailTemplateRolesIDs() (ids []uuid.UUID) {
+	for id := range m.email_template_roles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEmailTemplateRoles resets all changes to the "email_template_roles" edge.
+func (m *RoleMutation) ResetEmailTemplateRoles() {
+	m.email_template_roles = nil
+	m.clearedemail_template_roles = false
+	m.removedemail_template_roles = nil
 }
 
 // Where appends a list predicates to the RoleMutation builder.
@@ -14993,15 +16950,21 @@ func (m *RoleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.role_permission_edges != nil {
 		edges = append(edges, role.EdgeRolePermissionEdges)
 	}
 	if m.user_edges != nil {
 		edges = append(edges, role.EdgeUserEdges)
 	}
+	if m.email_template_edges != nil {
+		edges = append(edges, role.EdgeEmailTemplateEdges)
+	}
 	if m.user_roles != nil {
 		edges = append(edges, role.EdgeUserRoles)
+	}
+	if m.email_template_roles != nil {
+		edges = append(edges, role.EdgeEmailTemplateRoles)
 	}
 	return edges
 }
@@ -15022,9 +16985,21 @@ func (m *RoleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case role.EdgeEmailTemplateEdges:
+		ids := make([]ent.Value, 0, len(m.email_template_edges))
+		for id := range m.email_template_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case role.EdgeUserRoles:
 		ids := make([]ent.Value, 0, len(m.user_roles))
 		for id := range m.user_roles {
+			ids = append(ids, id)
+		}
+		return ids
+	case role.EdgeEmailTemplateRoles:
+		ids := make([]ent.Value, 0, len(m.email_template_roles))
+		for id := range m.email_template_roles {
 			ids = append(ids, id)
 		}
 		return ids
@@ -15034,15 +17009,21 @@ func (m *RoleMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.removedrole_permission_edges != nil {
 		edges = append(edges, role.EdgeRolePermissionEdges)
 	}
 	if m.removeduser_edges != nil {
 		edges = append(edges, role.EdgeUserEdges)
 	}
+	if m.removedemail_template_edges != nil {
+		edges = append(edges, role.EdgeEmailTemplateEdges)
+	}
 	if m.removeduser_roles != nil {
 		edges = append(edges, role.EdgeUserRoles)
+	}
+	if m.removedemail_template_roles != nil {
+		edges = append(edges, role.EdgeEmailTemplateRoles)
 	}
 	return edges
 }
@@ -15063,9 +17044,21 @@ func (m *RoleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case role.EdgeEmailTemplateEdges:
+		ids := make([]ent.Value, 0, len(m.removedemail_template_edges))
+		for id := range m.removedemail_template_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case role.EdgeUserRoles:
 		ids := make([]ent.Value, 0, len(m.removeduser_roles))
 		for id := range m.removeduser_roles {
+			ids = append(ids, id)
+		}
+		return ids
+	case role.EdgeEmailTemplateRoles:
+		ids := make([]ent.Value, 0, len(m.removedemail_template_roles))
+		for id := range m.removedemail_template_roles {
 			ids = append(ids, id)
 		}
 		return ids
@@ -15075,15 +17068,21 @@ func (m *RoleMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.clearedrole_permission_edges {
 		edges = append(edges, role.EdgeRolePermissionEdges)
 	}
 	if m.cleareduser_edges {
 		edges = append(edges, role.EdgeUserEdges)
 	}
+	if m.clearedemail_template_edges {
+		edges = append(edges, role.EdgeEmailTemplateEdges)
+	}
 	if m.cleareduser_roles {
 		edges = append(edges, role.EdgeUserRoles)
+	}
+	if m.clearedemail_template_roles {
+		edges = append(edges, role.EdgeEmailTemplateRoles)
 	}
 	return edges
 }
@@ -15096,8 +17095,12 @@ func (m *RoleMutation) EdgeCleared(name string) bool {
 		return m.clearedrole_permission_edges
 	case role.EdgeUserEdges:
 		return m.cleareduser_edges
+	case role.EdgeEmailTemplateEdges:
+		return m.clearedemail_template_edges
 	case role.EdgeUserRoles:
 		return m.cleareduser_roles
+	case role.EdgeEmailTemplateRoles:
+		return m.clearedemail_template_roles
 	}
 	return false
 }
@@ -15120,8 +17123,14 @@ func (m *RoleMutation) ResetEdge(name string) error {
 	case role.EdgeUserEdges:
 		m.ResetUserEdges()
 		return nil
+	case role.EdgeEmailTemplateEdges:
+		m.ResetEmailTemplateEdges()
+		return nil
 	case role.EdgeUserRoles:
 		m.ResetUserRoles()
+		return nil
+	case role.EdgeEmailTemplateRoles:
+		m.ResetEmailTemplateRoles()
 		return nil
 	}
 	return fmt.Errorf("unknown Role edge %s", name)

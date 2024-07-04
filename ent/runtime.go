@@ -12,6 +12,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
@@ -185,6 +187,46 @@ func init() {
 	candidatejobstepDescCreatedAt := candidatejobstepMixinFields0[1].Descriptor()
 	// candidatejobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobstep.DefaultCreatedAt = candidatejobstepDescCreatedAt.Default.(func() time.Time)
+	emailroleattributeMixin := schema.EmailRoleAttribute{}.Mixin()
+	emailroleattributeMixinFields0 := emailroleattributeMixin[0].Fields()
+	_ = emailroleattributeMixinFields0
+	emailroleattributeFields := schema.EmailRoleAttribute{}.Fields()
+	_ = emailroleattributeFields
+	// emailroleattributeDescCreatedAt is the schema descriptor for created_at field.
+	emailroleattributeDescCreatedAt := emailroleattributeMixinFields0[1].Descriptor()
+	// emailroleattribute.DefaultCreatedAt holds the default value on creation for the created_at field.
+	emailroleattribute.DefaultCreatedAt = emailroleattributeDescCreatedAt.Default.(func() time.Time)
+	emailtemplateMixin := schema.EmailTemplate{}.Mixin()
+	emailtemplateMixinFields0 := emailtemplateMixin[0].Fields()
+	_ = emailtemplateMixinFields0
+	emailtemplateFields := schema.EmailTemplate{}.Fields()
+	_ = emailtemplateFields
+	// emailtemplateDescCreatedAt is the schema descriptor for created_at field.
+	emailtemplateDescCreatedAt := emailtemplateMixinFields0[1].Descriptor()
+	// emailtemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	emailtemplate.DefaultCreatedAt = emailtemplateDescCreatedAt.Default.(func() time.Time)
+	// emailtemplateDescSubject is the schema descriptor for subject field.
+	emailtemplateDescSubject := emailtemplateFields[4].Descriptor()
+	// emailtemplate.SubjectValidator is a validator for the "subject" field. It is called by the builders before save.
+	emailtemplate.SubjectValidator = func() func(string) error {
+		validators := emailtemplateDescSubject.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(subject string) error {
+			for _, fn := range fns {
+				if err := fn(subject); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// emailtemplateDescContent is the schema descriptor for content field.
+	emailtemplateDescContent := emailtemplateFields[5].Descriptor()
+	// emailtemplate.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	emailtemplate.ContentValidator = emailtemplateDescContent.Validators[0].(func(string) error)
 	entitypermissionFields := schema.EntityPermission{}.Fields()
 	_ = entitypermissionFields
 	// entitypermissionDescForOwner is the schema descriptor for for_owner field.

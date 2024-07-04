@@ -18,6 +18,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
@@ -2744,6 +2746,610 @@ func (cjs *CandidateJobStep) ToEdge(order *CandidateJobStepOrder) *CandidateJobS
 	return &CandidateJobStepEdge{
 		Node:   cjs,
 		Cursor: order.Field.toCursor(cjs),
+	}
+}
+
+// EmailRoleAttributeEdge is the edge representation of EmailRoleAttribute.
+type EmailRoleAttributeEdge struct {
+	Node   *EmailRoleAttribute `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// EmailRoleAttributeConnection is the connection containing edges to EmailRoleAttribute.
+type EmailRoleAttributeConnection struct {
+	Edges      []*EmailRoleAttributeEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *EmailRoleAttributeConnection) build(nodes []*EmailRoleAttribute, pager *emailroleattributePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *EmailRoleAttribute
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *EmailRoleAttribute {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *EmailRoleAttribute {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*EmailRoleAttributeEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &EmailRoleAttributeEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// EmailRoleAttributePaginateOption enables pagination customization.
+type EmailRoleAttributePaginateOption func(*emailroleattributePager) error
+
+// WithEmailRoleAttributeOrder configures pagination ordering.
+func WithEmailRoleAttributeOrder(order *EmailRoleAttributeOrder) EmailRoleAttributePaginateOption {
+	if order == nil {
+		order = DefaultEmailRoleAttributeOrder
+	}
+	o := *order
+	return func(pager *emailroleattributePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultEmailRoleAttributeOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithEmailRoleAttributeFilter configures pagination filter.
+func WithEmailRoleAttributeFilter(filter func(*EmailRoleAttributeQuery) (*EmailRoleAttributeQuery, error)) EmailRoleAttributePaginateOption {
+	return func(pager *emailroleattributePager) error {
+		if filter == nil {
+			return errors.New("EmailRoleAttributeQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type emailroleattributePager struct {
+	order  *EmailRoleAttributeOrder
+	filter func(*EmailRoleAttributeQuery) (*EmailRoleAttributeQuery, error)
+}
+
+func newEmailRoleAttributePager(opts []EmailRoleAttributePaginateOption) (*emailroleattributePager, error) {
+	pager := &emailroleattributePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultEmailRoleAttributeOrder
+	}
+	return pager, nil
+}
+
+func (p *emailroleattributePager) applyFilter(query *EmailRoleAttributeQuery) (*EmailRoleAttributeQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *emailroleattributePager) toCursor(era *EmailRoleAttribute) Cursor {
+	return p.order.Field.toCursor(era)
+}
+
+func (p *emailroleattributePager) applyCursors(query *EmailRoleAttributeQuery, after, before *Cursor) *EmailRoleAttributeQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultEmailRoleAttributeOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *emailroleattributePager) applyOrder(query *EmailRoleAttributeQuery, reverse bool) *EmailRoleAttributeQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultEmailRoleAttributeOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultEmailRoleAttributeOrder.Field.field))
+	}
+	return query
+}
+
+func (p *emailroleattributePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultEmailRoleAttributeOrder.Field {
+			b.Comma().Ident(DefaultEmailRoleAttributeOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to EmailRoleAttribute.
+func (era *EmailRoleAttributeQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...EmailRoleAttributePaginateOption,
+) (*EmailRoleAttributeConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newEmailRoleAttributePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if era, err = pager.applyFilter(era); err != nil {
+		return nil, err
+	}
+	conn := &EmailRoleAttributeConnection{Edges: []*EmailRoleAttributeEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = era.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	era = pager.applyCursors(era, after, before)
+	era = pager.applyOrder(era, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		era.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := era.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := era.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// EmailRoleAttributeOrderFieldCreatedAt orders EmailRoleAttribute by created_at.
+	EmailRoleAttributeOrderFieldCreatedAt = &EmailRoleAttributeOrderField{
+		field: emailroleattribute.FieldCreatedAt,
+		toCursor: func(era *EmailRoleAttribute) Cursor {
+			return Cursor{
+				ID:    era.ID,
+				Value: era.CreatedAt,
+			}
+		},
+	}
+	// EmailRoleAttributeOrderFieldUpdatedAt orders EmailRoleAttribute by updated_at.
+	EmailRoleAttributeOrderFieldUpdatedAt = &EmailRoleAttributeOrderField{
+		field: emailroleattribute.FieldUpdatedAt,
+		toCursor: func(era *EmailRoleAttribute) Cursor {
+			return Cursor{
+				ID:    era.ID,
+				Value: era.UpdatedAt,
+			}
+		},
+	}
+	// EmailRoleAttributeOrderFieldDeletedAt orders EmailRoleAttribute by deleted_at.
+	EmailRoleAttributeOrderFieldDeletedAt = &EmailRoleAttributeOrderField{
+		field: emailroleattribute.FieldDeletedAt,
+		toCursor: func(era *EmailRoleAttribute) Cursor {
+			return Cursor{
+				ID:    era.ID,
+				Value: era.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f EmailRoleAttributeOrderField) String() string {
+	var str string
+	switch f.field {
+	case emailroleattribute.FieldCreatedAt:
+		str = "created_at"
+	case emailroleattribute.FieldUpdatedAt:
+		str = "updated_at"
+	case emailroleattribute.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f EmailRoleAttributeOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *EmailRoleAttributeOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("EmailRoleAttributeOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *EmailRoleAttributeOrderFieldCreatedAt
+	case "updated_at":
+		*f = *EmailRoleAttributeOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *EmailRoleAttributeOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid EmailRoleAttributeOrderField", str)
+	}
+	return nil
+}
+
+// EmailRoleAttributeOrderField defines the ordering field of EmailRoleAttribute.
+type EmailRoleAttributeOrderField struct {
+	field    string
+	toCursor func(*EmailRoleAttribute) Cursor
+}
+
+// EmailRoleAttributeOrder defines the ordering of EmailRoleAttribute.
+type EmailRoleAttributeOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *EmailRoleAttributeOrderField `json:"field"`
+}
+
+// DefaultEmailRoleAttributeOrder is the default ordering of EmailRoleAttribute.
+var DefaultEmailRoleAttributeOrder = &EmailRoleAttributeOrder{
+	Direction: OrderDirectionAsc,
+	Field: &EmailRoleAttributeOrderField{
+		field: emailroleattribute.FieldID,
+		toCursor: func(era *EmailRoleAttribute) Cursor {
+			return Cursor{ID: era.ID}
+		},
+	},
+}
+
+// ToEdge converts EmailRoleAttribute into EmailRoleAttributeEdge.
+func (era *EmailRoleAttribute) ToEdge(order *EmailRoleAttributeOrder) *EmailRoleAttributeEdge {
+	if order == nil {
+		order = DefaultEmailRoleAttributeOrder
+	}
+	return &EmailRoleAttributeEdge{
+		Node:   era,
+		Cursor: order.Field.toCursor(era),
+	}
+}
+
+// EmailTemplateEdge is the edge representation of EmailTemplate.
+type EmailTemplateEdge struct {
+	Node   *EmailTemplate `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// EmailTemplateConnection is the connection containing edges to EmailTemplate.
+type EmailTemplateConnection struct {
+	Edges      []*EmailTemplateEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *EmailTemplateConnection) build(nodes []*EmailTemplate, pager *emailtemplatePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *EmailTemplate
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *EmailTemplate {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *EmailTemplate {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*EmailTemplateEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &EmailTemplateEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// EmailTemplatePaginateOption enables pagination customization.
+type EmailTemplatePaginateOption func(*emailtemplatePager) error
+
+// WithEmailTemplateOrder configures pagination ordering.
+func WithEmailTemplateOrder(order *EmailTemplateOrder) EmailTemplatePaginateOption {
+	if order == nil {
+		order = DefaultEmailTemplateOrder
+	}
+	o := *order
+	return func(pager *emailtemplatePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultEmailTemplateOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithEmailTemplateFilter configures pagination filter.
+func WithEmailTemplateFilter(filter func(*EmailTemplateQuery) (*EmailTemplateQuery, error)) EmailTemplatePaginateOption {
+	return func(pager *emailtemplatePager) error {
+		if filter == nil {
+			return errors.New("EmailTemplateQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type emailtemplatePager struct {
+	order  *EmailTemplateOrder
+	filter func(*EmailTemplateQuery) (*EmailTemplateQuery, error)
+}
+
+func newEmailTemplatePager(opts []EmailTemplatePaginateOption) (*emailtemplatePager, error) {
+	pager := &emailtemplatePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultEmailTemplateOrder
+	}
+	return pager, nil
+}
+
+func (p *emailtemplatePager) applyFilter(query *EmailTemplateQuery) (*EmailTemplateQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *emailtemplatePager) toCursor(et *EmailTemplate) Cursor {
+	return p.order.Field.toCursor(et)
+}
+
+func (p *emailtemplatePager) applyCursors(query *EmailTemplateQuery, after, before *Cursor) *EmailTemplateQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultEmailTemplateOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *emailtemplatePager) applyOrder(query *EmailTemplateQuery, reverse bool) *EmailTemplateQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultEmailTemplateOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultEmailTemplateOrder.Field.field))
+	}
+	return query
+}
+
+func (p *emailtemplatePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultEmailTemplateOrder.Field {
+			b.Comma().Ident(DefaultEmailTemplateOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to EmailTemplate.
+func (et *EmailTemplateQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...EmailTemplatePaginateOption,
+) (*EmailTemplateConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newEmailTemplatePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if et, err = pager.applyFilter(et); err != nil {
+		return nil, err
+	}
+	conn := &EmailTemplateConnection{Edges: []*EmailTemplateEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = et.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	et = pager.applyCursors(et, after, before)
+	et = pager.applyOrder(et, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		et.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := et.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := et.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// EmailTemplateOrderFieldCreatedAt orders EmailTemplate by created_at.
+	EmailTemplateOrderFieldCreatedAt = &EmailTemplateOrderField{
+		field: emailtemplate.FieldCreatedAt,
+		toCursor: func(et *EmailTemplate) Cursor {
+			return Cursor{
+				ID:    et.ID,
+				Value: et.CreatedAt,
+			}
+		},
+	}
+	// EmailTemplateOrderFieldUpdatedAt orders EmailTemplate by updated_at.
+	EmailTemplateOrderFieldUpdatedAt = &EmailTemplateOrderField{
+		field: emailtemplate.FieldUpdatedAt,
+		toCursor: func(et *EmailTemplate) Cursor {
+			return Cursor{
+				ID:    et.ID,
+				Value: et.UpdatedAt,
+			}
+		},
+	}
+	// EmailTemplateOrderFieldDeletedAt orders EmailTemplate by deleted_at.
+	EmailTemplateOrderFieldDeletedAt = &EmailTemplateOrderField{
+		field: emailtemplate.FieldDeletedAt,
+		toCursor: func(et *EmailTemplate) Cursor {
+			return Cursor{
+				ID:    et.ID,
+				Value: et.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f EmailTemplateOrderField) String() string {
+	var str string
+	switch f.field {
+	case emailtemplate.FieldCreatedAt:
+		str = "created_at"
+	case emailtemplate.FieldUpdatedAt:
+		str = "updated_at"
+	case emailtemplate.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f EmailTemplateOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *EmailTemplateOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("EmailTemplateOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *EmailTemplateOrderFieldCreatedAt
+	case "updated_at":
+		*f = *EmailTemplateOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *EmailTemplateOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid EmailTemplateOrderField", str)
+	}
+	return nil
+}
+
+// EmailTemplateOrderField defines the ordering field of EmailTemplate.
+type EmailTemplateOrderField struct {
+	field    string
+	toCursor func(*EmailTemplate) Cursor
+}
+
+// EmailTemplateOrder defines the ordering of EmailTemplate.
+type EmailTemplateOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *EmailTemplateOrderField `json:"field"`
+}
+
+// DefaultEmailTemplateOrder is the default ordering of EmailTemplate.
+var DefaultEmailTemplateOrder = &EmailTemplateOrder{
+	Direction: OrderDirectionAsc,
+	Field: &EmailTemplateOrderField{
+		field: emailtemplate.FieldID,
+		toCursor: func(et *EmailTemplate) Cursor {
+			return Cursor{ID: et.ID}
+		},
+	},
+}
+
+// ToEdge converts EmailTemplate into EmailTemplateEdge.
+func (et *EmailTemplate) ToEdge(order *EmailTemplateOrder) *EmailTemplateEdge {
+	if order == nil {
+		order = DefaultEmailTemplateOrder
+	}
+	return &EmailTemplateEdge{
+		Node:   et,
+		Cursor: order.Field.toCursor(et),
 	}
 }
 

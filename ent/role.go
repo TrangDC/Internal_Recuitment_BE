@@ -38,17 +38,23 @@ type RoleEdges struct {
 	RolePermissionEdges []*EntityPermission `json:"role_permission_edges,omitempty"`
 	// UserEdges holds the value of the user_edges edge.
 	UserEdges []*User `json:"user_edges,omitempty"`
+	// EmailTemplateEdges holds the value of the email_template_edges edge.
+	EmailTemplateEdges []*EmailTemplate `json:"email_template_edges,omitempty"`
 	// UserRoles holds the value of the user_roles edge.
 	UserRoles []*UserRole `json:"user_roles,omitempty"`
+	// EmailTemplateRoles holds the value of the email_template_roles edge.
+	EmailTemplateRoles []*EmailRoleAttribute `json:"email_template_roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [5]map[string]int
 
 	namedRolePermissionEdges map[string][]*EntityPermission
 	namedUserEdges           map[string][]*User
+	namedEmailTemplateEdges  map[string][]*EmailTemplate
 	namedUserRoles           map[string][]*UserRole
+	namedEmailTemplateRoles  map[string][]*EmailRoleAttribute
 }
 
 // RolePermissionEdgesOrErr returns the RolePermissionEdges value or an error if the edge
@@ -69,13 +75,31 @@ func (e RoleEdges) UserEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "user_edges"}
 }
 
+// EmailTemplateEdgesOrErr returns the EmailTemplateEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) EmailTemplateEdgesOrErr() ([]*EmailTemplate, error) {
+	if e.loadedTypes[2] {
+		return e.EmailTemplateEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "email_template_edges"}
+}
+
 // UserRolesOrErr returns the UserRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e RoleEdges) UserRolesOrErr() ([]*UserRole, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.UserRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "user_roles"}
+}
+
+// EmailTemplateRolesOrErr returns the EmailTemplateRoles value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) EmailTemplateRolesOrErr() ([]*EmailRoleAttribute, error) {
+	if e.loadedTypes[4] {
+		return e.EmailTemplateRoles, nil
+	}
+	return nil, &NotLoadedError{edge: "email_template_roles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -155,9 +179,19 @@ func (r *Role) QueryUserEdges() *UserQuery {
 	return (&RoleClient{config: r.config}).QueryUserEdges(r)
 }
 
+// QueryEmailTemplateEdges queries the "email_template_edges" edge of the Role entity.
+func (r *Role) QueryEmailTemplateEdges() *EmailTemplateQuery {
+	return (&RoleClient{config: r.config}).QueryEmailTemplateEdges(r)
+}
+
 // QueryUserRoles queries the "user_roles" edge of the Role entity.
 func (r *Role) QueryUserRoles() *UserRoleQuery {
 	return (&RoleClient{config: r.config}).QueryUserRoles(r)
+}
+
+// QueryEmailTemplateRoles queries the "email_template_roles" edge of the Role entity.
+func (r *Role) QueryEmailTemplateRoles() *EmailRoleAttributeQuery {
+	return (&RoleClient{config: r.config}).QueryEmailTemplateRoles(r)
 }
 
 // Update returns a builder for updating this Role.
@@ -249,6 +283,30 @@ func (r *Role) appendNamedUserEdges(name string, edges ...*User) {
 	}
 }
 
+// NamedEmailTemplateEdges returns the EmailTemplateEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Role) NamedEmailTemplateEdges(name string) ([]*EmailTemplate, error) {
+	if r.Edges.namedEmailTemplateEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedEmailTemplateEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Role) appendNamedEmailTemplateEdges(name string, edges ...*EmailTemplate) {
+	if r.Edges.namedEmailTemplateEdges == nil {
+		r.Edges.namedEmailTemplateEdges = make(map[string][]*EmailTemplate)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedEmailTemplateEdges[name] = []*EmailTemplate{}
+	} else {
+		r.Edges.namedEmailTemplateEdges[name] = append(r.Edges.namedEmailTemplateEdges[name], edges...)
+	}
+}
+
 // NamedUserRoles returns the UserRoles named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (r *Role) NamedUserRoles(name string) ([]*UserRole, error) {
@@ -270,6 +328,30 @@ func (r *Role) appendNamedUserRoles(name string, edges ...*UserRole) {
 		r.Edges.namedUserRoles[name] = []*UserRole{}
 	} else {
 		r.Edges.namedUserRoles[name] = append(r.Edges.namedUserRoles[name], edges...)
+	}
+}
+
+// NamedEmailTemplateRoles returns the EmailTemplateRoles named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Role) NamedEmailTemplateRoles(name string) ([]*EmailRoleAttribute, error) {
+	if r.Edges.namedEmailTemplateRoles == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedEmailTemplateRoles[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Role) appendNamedEmailTemplateRoles(name string, edges ...*EmailRoleAttribute) {
+	if r.Edges.namedEmailTemplateRoles == nil {
+		r.Edges.namedEmailTemplateRoles = make(map[string][]*EmailRoleAttribute)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedEmailTemplateRoles[name] = []*EmailRoleAttribute{}
+	} else {
+		r.Edges.namedEmailTemplateRoles[name] = append(r.Edges.namedEmailTemplateRoles[name], edges...)
 	}
 }
 

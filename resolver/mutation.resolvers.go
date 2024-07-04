@@ -297,6 +297,34 @@ func (r *mutationResolver) DeleteRole(ctx context.Context, id string, note strin
 	return true, nil
 }
 
+// CreateEmailTemplate is the resolver for the CreateEmailTemplate field.
+func (r *mutationResolver) CreateEmailTemplate(ctx context.Context, input ent.NewEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
+	return r.serviceRegistry.EmailTemplate().CreateEmailTemplate(ctx, input, note)
+}
+
+// UpdateEmailTemplate is the resolver for the UpdateEmailTemplate field.
+func (r *mutationResolver) UpdateEmailTemplate(ctx context.Context, id string, input ent.UpdateEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
+	return r.serviceRegistry.EmailTemplate().UpdateEmailTemplate(ctx, uuid.MustParse(id), input, note)
+}
+
+// UpdateEmailTemplateStatus is the resolver for the UpdateEmailTemplateStatus field.
+func (r *mutationResolver) UpdateEmailTemplateStatus(ctx context.Context, id string, input ent.UpdateEmailTemplateStatusInput, note string) (bool, error) {
+	err := r.serviceRegistry.EmailTemplate().UpdateEmailTemplateStatus(ctx, uuid.MustParse(id), input, note)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+// DeleteEmailTemplate is the resolver for the DeleteEmailTemplate field.
+func (r *mutationResolver) DeleteEmailTemplate(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.EmailTemplate().DeleteEmailTemplate(ctx, uuid.MustParse(id), note)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // ValidateCandidateInterview is the resolver for the ValidateCandidateInterview field.
 func (r *mutationResolver) ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error) {
 	return r.serviceRegistry.CandidateInterview().ValidateCandidateInterview(ctx, input)

@@ -31,6 +31,7 @@ type Service interface {
 	SkillType() SkillTypeService
 	Role() RoleService
 	PermissionGroup() PermissionGroupService
+	EmailTemplate() EmailTemplateService
 }
 
 // serviceImpl is the implementation of Service.
@@ -53,6 +54,7 @@ type serviceImpl struct {
 	skillTypeService            SkillTypeService
 	roleService                 RoleService
 	permissionGroup             PermissionGroupService
+	emailTemplate               EmailTemplateService
 }
 
 // NewService creates a new Service.
@@ -79,6 +81,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		skillTypeService:            NewSkillTypeService(repoRegistry, dtoRegistry, logger),
 		roleService:                 NewRoleService(repoRegistry, dtoRegistry, logger),
 		permissionGroup:             NewPermissionGroupService(repoRegistry, logger),
+		emailTemplate:               NewEmailTemplateService(repoRegistry, dtoRegistry, logger),
 	}
 }
 
@@ -166,4 +169,8 @@ func (i serviceImpl) Role() RoleService {
 
 func (i serviceImpl) PermissionGroup() PermissionGroupService {
 	return i.permissionGroup
+}
+
+func (i serviceImpl) EmailTemplate() EmailTemplateService {
+	return i.emailTemplate
 }

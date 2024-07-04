@@ -19,8 +19,8 @@ import (
 type CandidateJobFeedbackRepository interface {
 	// mutation
 	CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, status string) (*ent.CandidateJobFeedback, error)
-	UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
-	DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error)
+	UpdateCandidateJobFeedback(ctx context.Context, record *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error)
+	DeleteCandidateJobFeedback(ctx context.Context, record *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error)
 	// query
 	GetCandidateJobFeedback(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJobFeedback, error)
 	BuildQuery() *ent.CandidateJobFeedbackQuery
@@ -96,8 +96,8 @@ func (rps CandidateJobFeedbackRepoImpl) BuildExist(ctx context.Context, query *e
 	return query.Exist(ctx)
 }
 
-func (rps CandidateJobFeedbackRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.CandidateJobFeedback) *ent.CandidateJobFeedbackUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now().UTC())
+func (rps CandidateJobFeedbackRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.CandidateJobFeedback) *ent.CandidateJobFeedbackUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps CandidateJobFeedbackRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.CandidateJobFeedbackUpdateOne) (*ent.CandidateJobFeedback, error) {
@@ -117,11 +117,11 @@ func (rps CandidateJobFeedbackRepoImpl) CreateCandidateJobFeedback(ctx context.C
 		Save(ctx)
 }
 
-func (rps CandidateJobFeedbackRepoImpl) DeleteCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error) {
-	return rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now().UTC()).Save(ctx)
+func (rps CandidateJobFeedbackRepoImpl) DeleteCandidateJobFeedback(ctx context.Context, record *ent.CandidateJobFeedback) (*ent.CandidateJobFeedback, error) {
+	return rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).Save(ctx)
 }
-func (rps CandidateJobFeedbackRepoImpl) UpdateCandidateJobFeedback(ctx context.Context, model *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error) {
-	return rps.BuildUpdateOne(ctx, model).SetFeedback(input.Feedback).Save(ctx)
+func (rps CandidateJobFeedbackRepoImpl) UpdateCandidateJobFeedback(ctx context.Context, record *ent.CandidateJobFeedback, input *ent.UpdateCandidateJobFeedbackInput) (*ent.CandidateJobFeedback, error) {
+	return rps.BuildUpdateOne(ctx, record).SetFeedback(input.Feedback).Save(ctx)
 }
 
 // query

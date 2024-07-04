@@ -268,6 +268,46 @@ func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJo
 	return result, MaskNotFound(err)
 }
 
+func (era *EmailRoleAttribute) EmailTemplateEdge(ctx context.Context) (*Team, error) {
+	result, err := era.Edges.EmailTemplateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = era.QueryEmailTemplateEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (era *EmailRoleAttribute) RoleEdge(ctx context.Context) (*Role, error) {
+	result, err := era.Edges.RoleEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = era.QueryRoleEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (et *EmailTemplate) RoleEdges(ctx context.Context) (result []*Role, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = et.NamedRoleEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = et.Edges.RoleEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = et.QueryRoleEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (et *EmailTemplate) RoleEmailTemplates(ctx context.Context) (result []*EmailRoleAttribute, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = et.NamedRoleEmailTemplates(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = et.Edges.RoleEmailTemplatesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = et.QueryRoleEmailTemplates().All(ctx)
+	}
+	return result, err
+}
+
 func (ep *EntityPermission) PermissionEdges(ctx context.Context) (*Permission, error) {
 	result, err := ep.Edges.PermissionEdgesOrErr()
 	if IsNotLoaded(err) {
@@ -432,6 +472,18 @@ func (r *Role) UserEdges(ctx context.Context) (result []*User, err error) {
 	return result, err
 }
 
+func (r *Role) EmailTemplateEdges(ctx context.Context) (result []*EmailTemplate, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedEmailTemplateEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.EmailTemplateEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryEmailTemplateEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (r *Role) UserRoles(ctx context.Context) (result []*UserRole, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = r.NamedUserRoles(graphql.GetFieldContext(ctx).Field.Alias)
@@ -440,6 +492,18 @@ func (r *Role) UserRoles(ctx context.Context) (result []*UserRole, err error) {
 	}
 	if IsNotLoaded(err) {
 		result, err = r.QueryUserRoles().All(ctx)
+	}
+	return result, err
+}
+
+func (r *Role) EmailTemplateRoles(ctx context.Context) (result []*EmailRoleAttribute, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = r.NamedEmailTemplateRoles(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = r.Edges.EmailTemplateRolesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = r.QueryEmailTemplateRoles().All(ctx)
 	}
 	return result, err
 }

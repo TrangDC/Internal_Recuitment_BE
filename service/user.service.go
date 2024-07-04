@@ -291,6 +291,7 @@ func (svc *userSvcImpl) GetUser(ctx context.Context, id uuid.UUID) (*ent.UserRes
 		Data: result,
 	}, nil
 }
+
 func (svc *userSvcImpl) GetMe(ctx context.Context) (*ent.UserResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	result, err := svc.repoRegistry.User().GetUser(ctx, payload.UserID)

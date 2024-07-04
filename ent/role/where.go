@@ -591,6 +591,34 @@ func HasUserEdgesWith(preds ...predicate.User) predicate.Role {
 	})
 }
 
+// HasEmailTemplateEdges applies the HasEdge predicate on the "email_template_edges" edge.
+func HasEmailTemplateEdges() predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EmailTemplateEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, EmailTemplateEdgesTable, EmailTemplateEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEmailTemplateEdgesWith applies the HasEdge predicate on the "email_template_edges" edge with a given conditions (other predicates).
+func HasEmailTemplateEdgesWith(preds ...predicate.EmailTemplate) predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EmailTemplateEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, EmailTemplateEdgesTable, EmailTemplateEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUserRoles applies the HasEdge predicate on the "user_roles" edge.
 func HasUserRoles() predicate.Role {
 	return predicate.Role(func(s *sql.Selector) {
@@ -610,6 +638,34 @@ func HasUserRolesWith(preds ...predicate.UserRole) predicate.Role {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UserRolesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, UserRolesTable, UserRolesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEmailTemplateRoles applies the HasEdge predicate on the "email_template_roles" edge.
+func HasEmailTemplateRoles() predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EmailTemplateRolesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, EmailTemplateRolesTable, EmailTemplateRolesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEmailTemplateRolesWith applies the HasEdge predicate on the "email_template_roles" edge with a given conditions (other predicates).
+func HasEmailTemplateRolesWith(preds ...predicate.EmailRoleAttribute) predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EmailTemplateRolesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, EmailTemplateRolesTable, EmailTemplateRolesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

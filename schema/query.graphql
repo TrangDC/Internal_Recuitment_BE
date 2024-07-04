@@ -59,6 +59,11 @@ type Query {
 	GetRole(id: ID!): RoleResponse!
 	GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
 
+	# EmailTemplate
+	GetEmailTemplate(id: ID!): EmailTemplateResponse!
+	GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
+	GetAllEmailTemplateKeywords: GetEmailTemplateKeywordResponse!
+
 	# Permission
 	GetAllPermissionGroups: PermissionGroupResponseGetAll
 }
