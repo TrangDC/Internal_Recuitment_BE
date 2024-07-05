@@ -24,48 +24,6 @@ type EntityPermissionCreate struct {
 	hooks    []Hook
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (epc *EntityPermissionCreate) SetCreatedAt(t time.Time) *EntityPermissionCreate {
-	epc.mutation.SetCreatedAt(t)
-	return epc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (epc *EntityPermissionCreate) SetNillableCreatedAt(t *time.Time) *EntityPermissionCreate {
-	if t != nil {
-		epc.SetCreatedAt(*t)
-	}
-	return epc
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (epc *EntityPermissionCreate) SetUpdatedAt(t time.Time) *EntityPermissionCreate {
-	epc.mutation.SetUpdatedAt(t)
-	return epc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (epc *EntityPermissionCreate) SetNillableUpdatedAt(t *time.Time) *EntityPermissionCreate {
-	if t != nil {
-		epc.SetUpdatedAt(*t)
-	}
-	return epc
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (epc *EntityPermissionCreate) SetDeletedAt(t time.Time) *EntityPermissionCreate {
-	epc.mutation.SetDeletedAt(t)
-	return epc
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (epc *EntityPermissionCreate) SetNillableDeletedAt(t *time.Time) *EntityPermissionCreate {
-	if t != nil {
-		epc.SetDeletedAt(*t)
-	}
-	return epc
-}
-
 // SetEntityID sets the "entity_id" field.
 func (epc *EntityPermissionCreate) SetEntityID(u uuid.UUID) *EntityPermissionCreate {
 	epc.mutation.SetEntityID(u)
@@ -146,6 +104,34 @@ func (epc *EntityPermissionCreate) SetEntityType(et entitypermission.EntityType)
 func (epc *EntityPermissionCreate) SetNillableEntityType(et *entitypermission.EntityType) *EntityPermissionCreate {
 	if et != nil {
 		epc.SetEntityType(*et)
+	}
+	return epc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (epc *EntityPermissionCreate) SetCreatedAt(t time.Time) *EntityPermissionCreate {
+	epc.mutation.SetCreatedAt(t)
+	return epc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (epc *EntityPermissionCreate) SetNillableCreatedAt(t *time.Time) *EntityPermissionCreate {
+	if t != nil {
+		epc.SetCreatedAt(*t)
+	}
+	return epc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (epc *EntityPermissionCreate) SetUpdatedAt(t time.Time) *EntityPermissionCreate {
+	epc.mutation.SetUpdatedAt(t)
+	return epc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (epc *EntityPermissionCreate) SetNillableUpdatedAt(t *time.Time) *EntityPermissionCreate {
+	if t != nil {
+		epc.SetUpdatedAt(*t)
 	}
 	return epc
 }
@@ -290,10 +276,6 @@ func (epc *EntityPermissionCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (epc *EntityPermissionCreate) defaults() {
-	if _, ok := epc.mutation.CreatedAt(); !ok {
-		v := entitypermission.DefaultCreatedAt()
-		epc.mutation.SetCreatedAt(v)
-	}
 	if _, ok := epc.mutation.ForOwner(); !ok {
 		v := entitypermission.DefaultForOwner
 		epc.mutation.SetForOwner(v)
@@ -306,13 +288,14 @@ func (epc *EntityPermissionCreate) defaults() {
 		v := entitypermission.DefaultForAll
 		epc.mutation.SetForAll(v)
 	}
+	if _, ok := epc.mutation.CreatedAt(); !ok {
+		v := entitypermission.DefaultCreatedAt()
+		epc.mutation.SetCreatedAt(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (epc *EntityPermissionCreate) check() error {
-	if _, ok := epc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EntityPermission.created_at"`)}
-	}
 	if _, ok := epc.mutation.ForOwner(); !ok {
 		return &ValidationError{Name: "for_owner", err: errors.New(`ent: missing required field "EntityPermission.for_owner"`)}
 	}
@@ -326,6 +309,9 @@ func (epc *EntityPermissionCreate) check() error {
 		if err := entitypermission.EntityTypeValidator(v); err != nil {
 			return &ValidationError{Name: "entity_type", err: fmt.Errorf(`ent: validator failed for field "EntityPermission.entity_type": %w`, err)}
 		}
+	}
+	if _, ok := epc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EntityPermission.created_at"`)}
 	}
 	return nil
 }
@@ -363,18 +349,6 @@ func (epc *EntityPermissionCreate) createSpec() (*EntityPermission, *sqlgraph.Cr
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := epc.mutation.CreatedAt(); ok {
-		_spec.SetField(entitypermission.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := epc.mutation.UpdatedAt(); ok {
-		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
-	if value, ok := epc.mutation.DeletedAt(); ok {
-		_spec.SetField(entitypermission.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = value
-	}
 	if value, ok := epc.mutation.ForOwner(); ok {
 		_spec.SetField(entitypermission.FieldForOwner, field.TypeBool, value)
 		_node.ForOwner = value
@@ -390,6 +364,14 @@ func (epc *EntityPermissionCreate) createSpec() (*EntityPermission, *sqlgraph.Cr
 	if value, ok := epc.mutation.EntityType(); ok {
 		_spec.SetField(entitypermission.FieldEntityType, field.TypeEnum, value)
 		_node.EntityType = value
+	}
+	if value, ok := epc.mutation.CreatedAt(); ok {
+		_spec.SetField(entitypermission.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := epc.mutation.UpdatedAt(); ok {
+		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := epc.mutation.PermissionEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -54,10 +54,7 @@ func (rps entityPermissionRepoImpl) CreateBulkEntityPermission(ctx context.Conte
 }
 
 func (rps entityPermissionRepoImpl) DeleteEntityPermission(ctx context.Context, entityPermissionIds []uuid.UUID) error {
-	_, err := rps.client.EntityPermission.Update().Where(entitypermission.IDIn(entityPermissionIds...)).
-		SetDeletedAt(time.Now().UTC()).
-		SetUpdatedAt(time.Now().UTC()).
-		Save(ctx)
+	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.IDIn(entityPermissionIds...)).Exec(ctx)
 	return err
 }
 
@@ -124,10 +121,7 @@ func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.
 }
 
 func (rps entityPermissionRepoImpl) DeleteAllEntityPermission(ctx context.Context, entityId uuid.UUID) error {
-	_, err := rps.client.EntityPermission.Update().Where(entitypermission.EntityID(entityId)).
-		SetDeletedAt(time.Now().UTC()).
-		SetUpdatedAt(time.Now().UTC()).
-		Save(ctx)
+	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.EntityID(entityId)).Exec(ctx)
 	return err
 }
 
