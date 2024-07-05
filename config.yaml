@@ -5,6 +5,7 @@ app:
   serviceName: $APP_SERVICE_NAME
   serverName: $APP_SERVER_NAME
   debug: $APP_DEBUG
+  azureAdminOid: $AZURE_ADMIN_OID
 
 postgres:
   connectionString: $POSTGRES_CONNECTION_STRING
