@@ -8,12 +8,13 @@ type Configurations struct {
 }
 
 type AppConfig struct {
-	Name        string `mapstructure:"name"`
-	Environment string `mapstructure:"environment"`
-	Version     string `mapstructure:"version"`
-	ServiceName string `mapstructure:"serviceName"`
-	SeverName   string `mapstructure:"serverName"`
-	Debug       bool   `mapstructure:"debug"`
+	Name         string `mapstructure:"name"`
+	Environment  string `mapstructure:"environment"`
+	Version      string `mapstructure:"version"`
+	ServiceName  string `mapstructure:"serviceName"`
+	SeverName    string `mapstructure:"serverName"`
+	Debug        bool   `mapstructure:"debug"`
+	AzureAdminOid string `mapstructure:"azureAdminOid"`
 }
 
 type PostgresConfig struct {

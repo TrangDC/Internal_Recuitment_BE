@@ -174,6 +174,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 			}
 
 			scripts.ImportMasterDB(db, logger, configs)
+			scripts.ImportAdminPermission(db, logger, configs)
 
 			server := &http.Server{
 				ReadTimeout:  15 * time.Second,
