@@ -14,12 +14,6 @@ const (
 	Label = "entity_permission"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
-	FieldDeletedAt = "deleted_at"
 	// FieldEntityID holds the string denoting the entity_id field in the database.
 	FieldEntityID = "entity_id"
 	// FieldPermissionID holds the string denoting the permission_id field in the database.
@@ -32,6 +26,10 @@ const (
 	FieldForAll = "for_all"
 	// FieldEntityType holds the string denoting the entity_type field in the database.
 	FieldEntityType = "entity_type"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// EdgePermissionEdges holds the string denoting the permission_edges edge name in mutations.
 	EdgePermissionEdges = "permission_edges"
 	// EdgeUserEdge holds the string denoting the user_edge edge name in mutations.
@@ -66,15 +64,14 @@ const (
 // Columns holds all SQL columns for entitypermission fields.
 var Columns = []string{
 	FieldID,
-	FieldCreatedAt,
-	FieldUpdatedAt,
-	FieldDeletedAt,
 	FieldEntityID,
 	FieldPermissionID,
 	FieldForOwner,
 	FieldForTeam,
 	FieldForAll,
 	FieldEntityType,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -88,14 +85,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
 	// DefaultForOwner holds the default value on creation for the "for_owner" field.
 	DefaultForOwner bool
 	// DefaultForTeam holds the default value on creation for the "for_team" field.
 	DefaultForTeam bool
 	// DefaultForAll holds the default value on creation for the "for_all" field.
 	DefaultForAll bool
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
 )
 
 // EntityType defines the type for the "entity_type" enum field.

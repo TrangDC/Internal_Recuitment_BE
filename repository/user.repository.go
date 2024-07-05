@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
-	"trec/ent/entitypermission"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
@@ -64,7 +63,7 @@ func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 		},
 	).WithUserPermissionEdges(
 		func(query *ent.EntityPermissionQuery) {
-			query.Where(entitypermission.DeletedAtIsNil()).WithPermissionEdges(
+			query.WithPermissionEdges(
 				func(query *ent.PermissionQuery) {
 					query.Where(permission.DeletedAtIsNil()).WithGroupPermissionEdge(
 						func(query *ent.PermissionGroupQuery) {

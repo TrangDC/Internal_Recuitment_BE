@@ -2965,16 +2965,6 @@ var (
 			}
 		},
 	}
-	// EntityPermissionOrderFieldDeletedAt orders EntityPermission by deleted_at.
-	EntityPermissionOrderFieldDeletedAt = &EntityPermissionOrderField{
-		field: entitypermission.FieldDeletedAt,
-		toCursor: func(ep *EntityPermission) Cursor {
-			return Cursor{
-				ID:    ep.ID,
-				Value: ep.DeletedAt,
-			}
-		},
-	}
 )
 
 // String implement fmt.Stringer interface.
@@ -2985,8 +2975,6 @@ func (f EntityPermissionOrderField) String() string {
 		str = "created_at"
 	case entitypermission.FieldUpdatedAt:
 		str = "updated_at"
-	case entitypermission.FieldDeletedAt:
-		str = "deleted_at"
 	}
 	return str
 }
@@ -3007,8 +2995,6 @@ func (f *EntityPermissionOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *EntityPermissionOrderFieldCreatedAt
 	case "updated_at":
 		*f = *EntityPermissionOrderFieldUpdatedAt
-	case "deleted_at":
-		*f = *EntityPermissionOrderFieldDeletedAt
 	default:
 		return fmt.Errorf("%s is not a valid EntityPermissionOrderField", str)
 	}

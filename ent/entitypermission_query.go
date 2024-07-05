@@ -364,12 +364,12 @@ func (epq *EntityPermissionQuery) WithRoleEdge(opts ...func(*RoleQuery)) *Entity
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		EntityID uuid.UUID `json:"entity_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.EntityPermission.Query().
-//		GroupBy(entitypermission.FieldCreatedAt).
+//		GroupBy(entitypermission.FieldEntityID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (epq *EntityPermissionQuery) GroupBy(field string, fields ...string) *EntityPermissionGroupBy {
@@ -392,11 +392,11 @@ func (epq *EntityPermissionQuery) GroupBy(field string, fields ...string) *Entit
 // Example:
 //
 //	var v []struct {
-//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		EntityID uuid.UUID `json:"entity_id,omitempty"`
 //	}
 //
 //	client.EntityPermission.Query().
-//		Select(entitypermission.FieldCreatedAt).
+//		Select(entitypermission.FieldEntityID).
 //		Scan(ctx, &v)
 func (epq *EntityPermissionQuery) Select(fields ...string) *EntityPermissionSelect {
 	epq.fields = append(epq.fields, fields...)

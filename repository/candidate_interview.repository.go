@@ -338,7 +338,7 @@ func (rps *candidateInterviewRepoImpl) validInterviewer(ctx context.Context, int
 	query := rps.client.User.Query().Where(user.IDIn(lo.Map(interviewers, func(item string, index int) uuid.UUID {
 		return uuid.MustParse(item)
 	})...), user.HasUserPermissionEdgesWith(
-		entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+		entitypermission.HasPermissionEdgesWith(
 			permission.OperationNameEQ(models.BeInterviewer),
 		),
 	))

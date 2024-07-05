@@ -966,38 +966,14 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ep.ID,
 		Type:   "EntityPermission",
-		Fields: make([]*Field, 9),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(ep.CreatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "time.Time",
-		Name:  "created_at",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(ep.UpdatedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "time.Time",
-		Name:  "updated_at",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(ep.DeletedAt); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "time.Time",
-		Name:  "deleted_at",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(ep.EntityID); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "entity_id",
 		Value: string(buf),
@@ -1005,7 +981,7 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(ep.PermissionID); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "permission_id",
 		Value: string(buf),
@@ -1013,7 +989,7 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(ep.ForOwner); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[2] = &Field{
 		Type:  "bool",
 		Name:  "for_owner",
 		Value: string(buf),
@@ -1021,7 +997,7 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(ep.ForTeam); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[3] = &Field{
 		Type:  "bool",
 		Name:  "for_team",
 		Value: string(buf),
@@ -1029,7 +1005,7 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(ep.ForAll); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "bool",
 		Name:  "for_all",
 		Value: string(buf),
@@ -1037,9 +1013,25 @@ func (ep *EntityPermission) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(ep.EntityType); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "entitypermission.EntityType",
 		Name:  "entity_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ep.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"time"
+
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -21,6 +24,9 @@ func (EntityPermission) Fields() []ent.Field {
 		field.Bool("for_team").Default(false),
 		field.Bool("for_all").Default(false),
 		field.Enum("entity_type").Values("user", "role").Optional(),
+		field.UUID("id", uuid.UUID{}).Unique().Annotations(entgql.OrderField("ID")),
+		field.Time("created_at").Default(time.Now).Immutable().Annotations(entgql.OrderField("created_at")),
+		field.Time("updated_at").Optional().Annotations(entgql.OrderField("updated_at")),
 	}
 }
 
@@ -34,7 +40,5 @@ func (EntityPermission) Edges() []ent.Edge {
 }
 
 func (EntityPermission) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		CommonMixin{},
-	}
+	return []ent.Mixin{}
 }

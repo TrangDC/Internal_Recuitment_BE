@@ -278,13 +278,12 @@ var (
 	// EntityPermissionsColumns holds the columns for the "entity_permissions" table.
 	EntityPermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "for_owner", Type: field.TypeBool, Default: false},
 		{Name: "for_team", Type: field.TypeBool, Default: false},
 		{Name: "for_all", Type: field.TypeBool, Default: false},
 		{Name: "entity_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"user", "role"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "permission_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "entity_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -296,19 +295,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "entity_permissions_permissions_user_permission_edge",
-				Columns:    []*schema.Column{EntityPermissionsColumns[8]},
+				Columns:    []*schema.Column{EntityPermissionsColumns[7]},
 				RefColumns: []*schema.Column{PermissionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "entity_permissions_roles_role_permission_edges",
-				Columns:    []*schema.Column{EntityPermissionsColumns[9]},
+				Columns:    []*schema.Column{EntityPermissionsColumns[8]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "entity_permissions_users_user_permission_edges",
-				Columns:    []*schema.Column{EntityPermissionsColumns[9]},
+				Columns:    []*schema.Column{EntityPermissionsColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

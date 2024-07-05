@@ -20,12 +20,6 @@ type EntityPermission struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// EntityID holds the value of the "entity_id" field.
 	EntityID uuid.UUID `json:"entity_id,omitempty"`
 	// PermissionID holds the value of the "permission_id" field.
@@ -38,6 +32,10 @@ type EntityPermission struct {
 	ForAll bool `json:"for_all,omitempty"`
 	// EntityType holds the value of the "entity_type" field.
 	EntityType entitypermission.EntityType `json:"entity_type,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EntityPermissionQuery when eager-loading is set.
 	Edges EntityPermissionEdges `json:"edges"`
@@ -106,7 +104,7 @@ func (*EntityPermission) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case entitypermission.FieldEntityType:
 			values[i] = new(sql.NullString)
-		case entitypermission.FieldCreatedAt, entitypermission.FieldUpdatedAt, entitypermission.FieldDeletedAt:
+		case entitypermission.FieldCreatedAt, entitypermission.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case entitypermission.FieldID, entitypermission.FieldEntityID, entitypermission.FieldPermissionID:
 			values[i] = new(uuid.UUID)
@@ -130,24 +128,6 @@ func (ep *EntityPermission) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				ep.ID = *value
-			}
-		case entitypermission.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				ep.CreatedAt = value.Time
-			}
-		case entitypermission.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				ep.UpdatedAt = value.Time
-			}
-		case entitypermission.FieldDeletedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
-			} else if value.Valid {
-				ep.DeletedAt = value.Time
 			}
 		case entitypermission.FieldEntityID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -184,6 +164,18 @@ func (ep *EntityPermission) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field entity_type", values[i])
 			} else if value.Valid {
 				ep.EntityType = entitypermission.EntityType(value.String)
+			}
+		case entitypermission.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				ep.CreatedAt = value.Time
+			}
+		case entitypermission.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				ep.UpdatedAt = value.Time
 			}
 		}
 	}
@@ -228,15 +220,6 @@ func (ep *EntityPermission) String() string {
 	var builder strings.Builder
 	builder.WriteString("EntityPermission(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ep.ID))
-	builder.WriteString("created_at=")
-	builder.WriteString(ep.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(ep.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("deleted_at=")
-	builder.WriteString(ep.DeletedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
 	builder.WriteString("entity_id=")
 	builder.WriteString(fmt.Sprintf("%v", ep.EntityID))
 	builder.WriteString(", ")
@@ -254,6 +237,12 @@ func (ep *EntityPermission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("entity_type=")
 	builder.WriteString(fmt.Sprintf("%v", ep.EntityType))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(ep.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(ep.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

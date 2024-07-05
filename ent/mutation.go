@@ -8565,13 +8565,12 @@ type EntityPermissionMutation struct {
 	op                      Op
 	typ                     string
 	id                      *uuid.UUID
-	created_at              *time.Time
-	updated_at              *time.Time
-	deleted_at              *time.Time
 	for_owner               *bool
 	for_team                *bool
 	for_all                 *bool
 	entity_type             *entitypermission.EntityType
+	created_at              *time.Time
+	updated_at              *time.Time
 	clearedFields           map[string]struct{}
 	permission_edges        *uuid.UUID
 	clearedpermission_edges bool
@@ -8686,140 +8685,6 @@ func (m *EntityPermissionMutation) IDs(ctx context.Context) ([]uuid.UUID, error)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *EntityPermissionMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *EntityPermissionMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the EntityPermission entity.
-// If the EntityPermission object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EntityPermissionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *EntityPermissionMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *EntityPermissionMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *EntityPermissionMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the EntityPermission entity.
-// If the EntityPermission object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EntityPermissionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (m *EntityPermissionMutation) ClearUpdatedAt() {
-	m.updated_at = nil
-	m.clearedFields[entitypermission.FieldUpdatedAt] = struct{}{}
-}
-
-// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
-func (m *EntityPermissionMutation) UpdatedAtCleared() bool {
-	_, ok := m.clearedFields[entitypermission.FieldUpdatedAt]
-	return ok
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *EntityPermissionMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-	delete(m.clearedFields, entitypermission.FieldUpdatedAt)
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (m *EntityPermissionMutation) SetDeletedAt(t time.Time) {
-	m.deleted_at = &t
-}
-
-// DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *EntityPermissionMutation) DeletedAt() (r time.Time, exists bool) {
-	v := m.deleted_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletedAt returns the old "deleted_at" field's value of the EntityPermission entity.
-// If the EntityPermission object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EntityPermissionMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
-	}
-	return oldValue.DeletedAt, nil
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (m *EntityPermissionMutation) ClearDeletedAt() {
-	m.deleted_at = nil
-	m.clearedFields[entitypermission.FieldDeletedAt] = struct{}{}
-}
-
-// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
-func (m *EntityPermissionMutation) DeletedAtCleared() bool {
-	_, ok := m.clearedFields[entitypermission.FieldDeletedAt]
-	return ok
-}
-
-// ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *EntityPermissionMutation) ResetDeletedAt() {
-	m.deleted_at = nil
-	delete(m.clearedFields, entitypermission.FieldDeletedAt)
 }
 
 // SetEntityID sets the "entity_id" field.
@@ -9077,6 +8942,91 @@ func (m *EntityPermissionMutation) ResetEntityType() {
 	delete(m.clearedFields, entitypermission.FieldEntityType)
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (m *EntityPermissionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EntityPermissionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EntityPermission entity.
+// If the EntityPermission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityPermissionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EntityPermissionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EntityPermissionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EntityPermissionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EntityPermission entity.
+// If the EntityPermission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityPermissionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *EntityPermissionMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[entitypermission.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *EntityPermissionMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[entitypermission.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EntityPermissionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, entitypermission.FieldUpdatedAt)
+}
+
 // SetPermissionEdgesID sets the "permission_edges" edge to the Permission entity by id.
 func (m *EntityPermissionMutation) SetPermissionEdgesID(id uuid.UUID) {
 	m.permission_edges = &id
@@ -9213,16 +9163,7 @@ func (m *EntityPermissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EntityPermissionMutation) Fields() []string {
-	fields := make([]string, 0, 9)
-	if m.created_at != nil {
-		fields = append(fields, entitypermission.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, entitypermission.FieldUpdatedAt)
-	}
-	if m.deleted_at != nil {
-		fields = append(fields, entitypermission.FieldDeletedAt)
-	}
+	fields := make([]string, 0, 8)
 	if m.user_edge != nil {
 		fields = append(fields, entitypermission.FieldEntityID)
 	}
@@ -9241,6 +9182,12 @@ func (m *EntityPermissionMutation) Fields() []string {
 	if m.entity_type != nil {
 		fields = append(fields, entitypermission.FieldEntityType)
 	}
+	if m.created_at != nil {
+		fields = append(fields, entitypermission.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, entitypermission.FieldUpdatedAt)
+	}
 	return fields
 }
 
@@ -9249,12 +9196,6 @@ func (m *EntityPermissionMutation) Fields() []string {
 // schema.
 func (m *EntityPermissionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case entitypermission.FieldCreatedAt:
-		return m.CreatedAt()
-	case entitypermission.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case entitypermission.FieldDeletedAt:
-		return m.DeletedAt()
 	case entitypermission.FieldEntityID:
 		return m.EntityID()
 	case entitypermission.FieldPermissionID:
@@ -9267,6 +9208,10 @@ func (m *EntityPermissionMutation) Field(name string) (ent.Value, bool) {
 		return m.ForAll()
 	case entitypermission.FieldEntityType:
 		return m.EntityType()
+	case entitypermission.FieldCreatedAt:
+		return m.CreatedAt()
+	case entitypermission.FieldUpdatedAt:
+		return m.UpdatedAt()
 	}
 	return nil, false
 }
@@ -9276,12 +9221,6 @@ func (m *EntityPermissionMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EntityPermissionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case entitypermission.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case entitypermission.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case entitypermission.FieldDeletedAt:
-		return m.OldDeletedAt(ctx)
 	case entitypermission.FieldEntityID:
 		return m.OldEntityID(ctx)
 	case entitypermission.FieldPermissionID:
@@ -9294,6 +9233,10 @@ func (m *EntityPermissionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldForAll(ctx)
 	case entitypermission.FieldEntityType:
 		return m.OldEntityType(ctx)
+	case entitypermission.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case entitypermission.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown EntityPermission field %s", name)
 }
@@ -9303,27 +9246,6 @@ func (m *EntityPermissionMutation) OldField(ctx context.Context, name string) (e
 // type.
 func (m *EntityPermissionMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case entitypermission.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case entitypermission.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case entitypermission.FieldDeletedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletedAt(v)
-		return nil
 	case entitypermission.FieldEntityID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -9366,6 +9288,20 @@ func (m *EntityPermissionMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetEntityType(v)
 		return nil
+	case entitypermission.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case entitypermission.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown EntityPermission field %s", name)
 }
@@ -9396,12 +9332,6 @@ func (m *EntityPermissionMutation) AddField(name string, value ent.Value) error 
 // mutation.
 func (m *EntityPermissionMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(entitypermission.FieldUpdatedAt) {
-		fields = append(fields, entitypermission.FieldUpdatedAt)
-	}
-	if m.FieldCleared(entitypermission.FieldDeletedAt) {
-		fields = append(fields, entitypermission.FieldDeletedAt)
-	}
 	if m.FieldCleared(entitypermission.FieldEntityID) {
 		fields = append(fields, entitypermission.FieldEntityID)
 	}
@@ -9410,6 +9340,9 @@ func (m *EntityPermissionMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(entitypermission.FieldEntityType) {
 		fields = append(fields, entitypermission.FieldEntityType)
+	}
+	if m.FieldCleared(entitypermission.FieldUpdatedAt) {
+		fields = append(fields, entitypermission.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -9425,12 +9358,6 @@ func (m *EntityPermissionMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *EntityPermissionMutation) ClearField(name string) error {
 	switch name {
-	case entitypermission.FieldUpdatedAt:
-		m.ClearUpdatedAt()
-		return nil
-	case entitypermission.FieldDeletedAt:
-		m.ClearDeletedAt()
-		return nil
 	case entitypermission.FieldEntityID:
 		m.ClearEntityID()
 		return nil
@@ -9440,6 +9367,9 @@ func (m *EntityPermissionMutation) ClearField(name string) error {
 	case entitypermission.FieldEntityType:
 		m.ClearEntityType()
 		return nil
+	case entitypermission.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
 	}
 	return fmt.Errorf("unknown EntityPermission nullable field %s", name)
 }
@@ -9448,15 +9378,6 @@ func (m *EntityPermissionMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EntityPermissionMutation) ResetField(name string) error {
 	switch name {
-	case entitypermission.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case entitypermission.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case entitypermission.FieldDeletedAt:
-		m.ResetDeletedAt()
-		return nil
 	case entitypermission.FieldEntityID:
 		m.ResetEntityID()
 		return nil
@@ -9474,6 +9395,12 @@ func (m *EntityPermissionMutation) ResetField(name string) error {
 		return nil
 	case entitypermission.FieldEntityType:
 		m.ResetEntityType()
+		return nil
+	case entitypermission.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case entitypermission.FieldUpdatedAt:
+		m.ResetUpdatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown EntityPermission field %s", name)

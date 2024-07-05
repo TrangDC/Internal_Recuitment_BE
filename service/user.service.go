@@ -429,13 +429,13 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 		if input.IsAbleToInterviewer != nil {
 			if *input.IsAbleToInterviewer {
 				userQuery.Where(user.HasUserPermissionEdgesWith(
-					entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+					entitypermission.HasPermissionEdgesWith(
 						permission.OperationNameEQ(models.BeInterviewer),
 					),
 				))
 			} else {
 				userQuery.Where(user.Not(user.HasUserPermissionEdgesWith(
-					entitypermission.DeletedAtIsNil(), entitypermission.HasPermissionEdgesWith(
+					entitypermission.HasPermissionEdgesWith(
 						permission.OperationNameEQ(models.BeInterviewer),
 					),
 				)))

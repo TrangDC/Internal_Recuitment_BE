@@ -32,46 +32,6 @@ func (epu *EntityPermissionUpdate) Where(ps ...predicate.EntityPermission) *Enti
 	return epu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (epu *EntityPermissionUpdate) SetUpdatedAt(t time.Time) *EntityPermissionUpdate {
-	epu.mutation.SetUpdatedAt(t)
-	return epu
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (epu *EntityPermissionUpdate) SetNillableUpdatedAt(t *time.Time) *EntityPermissionUpdate {
-	if t != nil {
-		epu.SetUpdatedAt(*t)
-	}
-	return epu
-}
-
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (epu *EntityPermissionUpdate) ClearUpdatedAt() *EntityPermissionUpdate {
-	epu.mutation.ClearUpdatedAt()
-	return epu
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (epu *EntityPermissionUpdate) SetDeletedAt(t time.Time) *EntityPermissionUpdate {
-	epu.mutation.SetDeletedAt(t)
-	return epu
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (epu *EntityPermissionUpdate) SetNillableDeletedAt(t *time.Time) *EntityPermissionUpdate {
-	if t != nil {
-		epu.SetDeletedAt(*t)
-	}
-	return epu
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (epu *EntityPermissionUpdate) ClearDeletedAt() *EntityPermissionUpdate {
-	epu.mutation.ClearDeletedAt()
-	return epu
-}
-
 // SetEntityID sets the "entity_id" field.
 func (epu *EntityPermissionUpdate) SetEntityID(u uuid.UUID) *EntityPermissionUpdate {
 	epu.mutation.SetEntityID(u)
@@ -171,6 +131,26 @@ func (epu *EntityPermissionUpdate) SetNillableEntityType(et *entitypermission.En
 // ClearEntityType clears the value of the "entity_type" field.
 func (epu *EntityPermissionUpdate) ClearEntityType() *EntityPermissionUpdate {
 	epu.mutation.ClearEntityType()
+	return epu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (epu *EntityPermissionUpdate) SetUpdatedAt(t time.Time) *EntityPermissionUpdate {
+	epu.mutation.SetUpdatedAt(t)
+	return epu
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (epu *EntityPermissionUpdate) SetNillableUpdatedAt(t *time.Time) *EntityPermissionUpdate {
+	if t != nil {
+		epu.SetUpdatedAt(*t)
+	}
+	return epu
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (epu *EntityPermissionUpdate) ClearUpdatedAt() *EntityPermissionUpdate {
+	epu.mutation.ClearUpdatedAt()
 	return epu
 }
 
@@ -342,18 +322,6 @@ func (epu *EntityPermissionUpdate) sqlSave(ctx context.Context) (n int, err erro
 			}
 		}
 	}
-	if value, ok := epu.mutation.UpdatedAt(); ok {
-		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if epu.mutation.UpdatedAtCleared() {
-		_spec.ClearField(entitypermission.FieldUpdatedAt, field.TypeTime)
-	}
-	if value, ok := epu.mutation.DeletedAt(); ok {
-		_spec.SetField(entitypermission.FieldDeletedAt, field.TypeTime, value)
-	}
-	if epu.mutation.DeletedAtCleared() {
-		_spec.ClearField(entitypermission.FieldDeletedAt, field.TypeTime)
-	}
 	if value, ok := epu.mutation.ForOwner(); ok {
 		_spec.SetField(entitypermission.FieldForOwner, field.TypeBool, value)
 	}
@@ -368,6 +336,12 @@ func (epu *EntityPermissionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if epu.mutation.EntityTypeCleared() {
 		_spec.ClearField(entitypermission.FieldEntityType, field.TypeEnum)
+	}
+	if value, ok := epu.mutation.UpdatedAt(); ok {
+		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if epu.mutation.UpdatedAtCleared() {
+		_spec.ClearField(entitypermission.FieldUpdatedAt, field.TypeTime)
 	}
 	if epu.mutation.PermissionEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -493,46 +467,6 @@ type EntityPermissionUpdateOne struct {
 	mutation *EntityPermissionMutation
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (epuo *EntityPermissionUpdateOne) SetUpdatedAt(t time.Time) *EntityPermissionUpdateOne {
-	epuo.mutation.SetUpdatedAt(t)
-	return epuo
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (epuo *EntityPermissionUpdateOne) SetNillableUpdatedAt(t *time.Time) *EntityPermissionUpdateOne {
-	if t != nil {
-		epuo.SetUpdatedAt(*t)
-	}
-	return epuo
-}
-
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (epuo *EntityPermissionUpdateOne) ClearUpdatedAt() *EntityPermissionUpdateOne {
-	epuo.mutation.ClearUpdatedAt()
-	return epuo
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (epuo *EntityPermissionUpdateOne) SetDeletedAt(t time.Time) *EntityPermissionUpdateOne {
-	epuo.mutation.SetDeletedAt(t)
-	return epuo
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (epuo *EntityPermissionUpdateOne) SetNillableDeletedAt(t *time.Time) *EntityPermissionUpdateOne {
-	if t != nil {
-		epuo.SetDeletedAt(*t)
-	}
-	return epuo
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (epuo *EntityPermissionUpdateOne) ClearDeletedAt() *EntityPermissionUpdateOne {
-	epuo.mutation.ClearDeletedAt()
-	return epuo
-}
-
 // SetEntityID sets the "entity_id" field.
 func (epuo *EntityPermissionUpdateOne) SetEntityID(u uuid.UUID) *EntityPermissionUpdateOne {
 	epuo.mutation.SetEntityID(u)
@@ -632,6 +566,26 @@ func (epuo *EntityPermissionUpdateOne) SetNillableEntityType(et *entitypermissio
 // ClearEntityType clears the value of the "entity_type" field.
 func (epuo *EntityPermissionUpdateOne) ClearEntityType() *EntityPermissionUpdateOne {
 	epuo.mutation.ClearEntityType()
+	return epuo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (epuo *EntityPermissionUpdateOne) SetUpdatedAt(t time.Time) *EntityPermissionUpdateOne {
+	epuo.mutation.SetUpdatedAt(t)
+	return epuo
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (epuo *EntityPermissionUpdateOne) SetNillableUpdatedAt(t *time.Time) *EntityPermissionUpdateOne {
+	if t != nil {
+		epuo.SetUpdatedAt(*t)
+	}
+	return epuo
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (epuo *EntityPermissionUpdateOne) ClearUpdatedAt() *EntityPermissionUpdateOne {
+	epuo.mutation.ClearUpdatedAt()
 	return epuo
 }
 
@@ -833,18 +787,6 @@ func (epuo *EntityPermissionUpdateOne) sqlSave(ctx context.Context) (_node *Enti
 			}
 		}
 	}
-	if value, ok := epuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if epuo.mutation.UpdatedAtCleared() {
-		_spec.ClearField(entitypermission.FieldUpdatedAt, field.TypeTime)
-	}
-	if value, ok := epuo.mutation.DeletedAt(); ok {
-		_spec.SetField(entitypermission.FieldDeletedAt, field.TypeTime, value)
-	}
-	if epuo.mutation.DeletedAtCleared() {
-		_spec.ClearField(entitypermission.FieldDeletedAt, field.TypeTime)
-	}
 	if value, ok := epuo.mutation.ForOwner(); ok {
 		_spec.SetField(entitypermission.FieldForOwner, field.TypeBool, value)
 	}
@@ -859,6 +801,12 @@ func (epuo *EntityPermissionUpdateOne) sqlSave(ctx context.Context) (_node *Enti
 	}
 	if epuo.mutation.EntityTypeCleared() {
 		_spec.ClearField(entitypermission.FieldEntityType, field.TypeEnum)
+	}
+	if value, ok := epuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(entitypermission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if epuo.mutation.UpdatedAtCleared() {
+		_spec.ClearField(entitypermission.FieldUpdatedAt, field.TypeTime)
 	}
 	if epuo.mutation.PermissionEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

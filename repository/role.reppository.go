@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
-	"trec/ent/entitypermission"
 	"trec/ent/permission"
 	"trec/ent/role"
 
@@ -55,7 +54,7 @@ func (rps *roleRepoImpl) BuildDelete() *ent.RoleUpdate {
 func (rps *roleRepoImpl) BuildQuery() *ent.RoleQuery {
 	return rps.client.Role.Query().Where(role.DeletedAtIsNil()).WithRolePermissionEdges(
 		func(query *ent.EntityPermissionQuery) {
-			query.Where(entitypermission.DeletedAtIsNil()).WithPermissionEdges(
+			query.WithPermissionEdges(
 				func(query *ent.PermissionQuery) {
 					query.Where(permission.DeletedAtIsNil())
 				},

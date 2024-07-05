@@ -185,15 +185,8 @@ func init() {
 	candidatejobstepDescCreatedAt := candidatejobstepMixinFields0[1].Descriptor()
 	// candidatejobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobstep.DefaultCreatedAt = candidatejobstepDescCreatedAt.Default.(func() time.Time)
-	entitypermissionMixin := schema.EntityPermission{}.Mixin()
-	entitypermissionMixinFields0 := entitypermissionMixin[0].Fields()
-	_ = entitypermissionMixinFields0
 	entitypermissionFields := schema.EntityPermission{}.Fields()
 	_ = entitypermissionFields
-	// entitypermissionDescCreatedAt is the schema descriptor for created_at field.
-	entitypermissionDescCreatedAt := entitypermissionMixinFields0[1].Descriptor()
-	// entitypermission.DefaultCreatedAt holds the default value on creation for the created_at field.
-	entitypermission.DefaultCreatedAt = entitypermissionDescCreatedAt.Default.(func() time.Time)
 	// entitypermissionDescForOwner is the schema descriptor for for_owner field.
 	entitypermissionDescForOwner := entitypermissionFields[2].Descriptor()
 	// entitypermission.DefaultForOwner holds the default value on creation for the for_owner field.
@@ -206,6 +199,10 @@ func init() {
 	entitypermissionDescForAll := entitypermissionFields[4].Descriptor()
 	// entitypermission.DefaultForAll holds the default value on creation for the for_all field.
 	entitypermission.DefaultForAll = entitypermissionDescForAll.Default.(bool)
+	// entitypermissionDescCreatedAt is the schema descriptor for created_at field.
+	entitypermissionDescCreatedAt := entitypermissionFields[7].Descriptor()
+	// entitypermission.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entitypermission.DefaultCreatedAt = entitypermissionDescCreatedAt.Default.(func() time.Time)
 	entityskillMixin := schema.EntitySkill{}.Mixin()
 	entityskillMixinFields0 := entityskillMixin[0].Fields()
 	_ = entityskillMixinFields0
