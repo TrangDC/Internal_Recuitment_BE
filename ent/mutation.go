@@ -18285,11 +18285,11 @@ type UserMutation struct {
 	user_permission_edges            map[uuid.UUID]struct{}
 	removeduser_permission_edges     map[uuid.UUID]struct{}
 	cleareduser_permission_edges     bool
-	team_edge                        *uuid.UUID
-	clearedteam_edge                 bool
 	role_edges                       map[uuid.UUID]struct{}
 	removedrole_edges                map[uuid.UUID]struct{}
 	clearedrole_edges                bool
+	member_of_team_edges             *uuid.UUID
+	clearedmember_of_team_edges      bool
 	team_users                       map[uuid.UUID]struct{}
 	removedteam_users                map[uuid.UUID]struct{}
 	clearedteam_users                bool
@@ -18688,12 +18688,12 @@ func (m *UserMutation) ResetOid() {
 
 // SetTeamID sets the "team_id" field.
 func (m *UserMutation) SetTeamID(u uuid.UUID) {
-	m.team_edge = &u
+	m.member_of_team_edges = &u
 }
 
 // TeamID returns the value of the "team_id" field in the mutation.
 func (m *UserMutation) TeamID() (r uuid.UUID, exists bool) {
-	v := m.team_edge
+	v := m.member_of_team_edges
 	if v == nil {
 		return
 	}
@@ -18719,7 +18719,7 @@ func (m *UserMutation) OldTeamID(ctx context.Context) (v uuid.UUID, err error) {
 
 // ClearTeamID clears the value of the "team_id" field.
 func (m *UserMutation) ClearTeamID() {
-	m.team_edge = nil
+	m.member_of_team_edges = nil
 	m.clearedFields[user.FieldTeamID] = struct{}{}
 }
 
@@ -18731,7 +18731,7 @@ func (m *UserMutation) TeamIDCleared() bool {
 
 // ResetTeamID resets all changes to the "team_id" field.
 func (m *UserMutation) ResetTeamID() {
-	m.team_edge = nil
+	m.member_of_team_edges = nil
 	delete(m.clearedFields, user.FieldTeamID)
 }
 
@@ -19221,45 +19221,6 @@ func (m *UserMutation) ResetUserPermissionEdges() {
 	m.removeduser_permission_edges = nil
 }
 
-// SetTeamEdgeID sets the "team_edge" edge to the Team entity by id.
-func (m *UserMutation) SetTeamEdgeID(id uuid.UUID) {
-	m.team_edge = &id
-}
-
-// ClearTeamEdge clears the "team_edge" edge to the Team entity.
-func (m *UserMutation) ClearTeamEdge() {
-	m.clearedteam_edge = true
-}
-
-// TeamEdgeCleared reports if the "team_edge" edge to the Team entity was cleared.
-func (m *UserMutation) TeamEdgeCleared() bool {
-	return m.TeamIDCleared() || m.clearedteam_edge
-}
-
-// TeamEdgeID returns the "team_edge" edge ID in the mutation.
-func (m *UserMutation) TeamEdgeID() (id uuid.UUID, exists bool) {
-	if m.team_edge != nil {
-		return *m.team_edge, true
-	}
-	return
-}
-
-// TeamEdgeIDs returns the "team_edge" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// TeamEdgeID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) TeamEdgeIDs() (ids []uuid.UUID) {
-	if id := m.team_edge; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetTeamEdge resets all changes to the "team_edge" edge.
-func (m *UserMutation) ResetTeamEdge() {
-	m.team_edge = nil
-	m.clearedteam_edge = false
-}
-
 // AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by ids.
 func (m *UserMutation) AddRoleEdgeIDs(ids ...uuid.UUID) {
 	if m.role_edges == nil {
@@ -19312,6 +19273,45 @@ func (m *UserMutation) ResetRoleEdges() {
 	m.role_edges = nil
 	m.clearedrole_edges = false
 	m.removedrole_edges = nil
+}
+
+// SetMemberOfTeamEdgesID sets the "member_of_team_edges" edge to the Team entity by id.
+func (m *UserMutation) SetMemberOfTeamEdgesID(id uuid.UUID) {
+	m.member_of_team_edges = &id
+}
+
+// ClearMemberOfTeamEdges clears the "member_of_team_edges" edge to the Team entity.
+func (m *UserMutation) ClearMemberOfTeamEdges() {
+	m.clearedmember_of_team_edges = true
+}
+
+// MemberOfTeamEdgesCleared reports if the "member_of_team_edges" edge to the Team entity was cleared.
+func (m *UserMutation) MemberOfTeamEdgesCleared() bool {
+	return m.TeamIDCleared() || m.clearedmember_of_team_edges
+}
+
+// MemberOfTeamEdgesID returns the "member_of_team_edges" edge ID in the mutation.
+func (m *UserMutation) MemberOfTeamEdgesID() (id uuid.UUID, exists bool) {
+	if m.member_of_team_edges != nil {
+		return *m.member_of_team_edges, true
+	}
+	return
+}
+
+// MemberOfTeamEdgesIDs returns the "member_of_team_edges" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MemberOfTeamEdgesID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) MemberOfTeamEdgesIDs() (ids []uuid.UUID) {
+	if id := m.member_of_team_edges; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMemberOfTeamEdges resets all changes to the "member_of_team_edges" edge.
+func (m *UserMutation) ResetMemberOfTeamEdges() {
+	m.member_of_team_edges = nil
+	m.clearedmember_of_team_edges = false
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by ids.
@@ -19517,7 +19517,7 @@ func (m *UserMutation) Fields() []string {
 	if m.oid != nil {
 		fields = append(fields, user.FieldOid)
 	}
-	if m.team_edge != nil {
+	if m.member_of_team_edges != nil {
 		fields = append(fields, user.FieldTeamID)
 	}
 	return fields
@@ -19762,11 +19762,11 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.user_permission_edges != nil {
 		edges = append(edges, user.EdgeUserPermissionEdges)
 	}
-	if m.team_edge != nil {
-		edges = append(edges, user.EdgeTeamEdge)
-	}
 	if m.role_edges != nil {
 		edges = append(edges, user.EdgeRoleEdges)
+	}
+	if m.member_of_team_edges != nil {
+		edges = append(edges, user.EdgeMemberOfTeamEdges)
 	}
 	if m.team_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
@@ -19838,16 +19838,16 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeTeamEdge:
-		if id := m.team_edge; id != nil {
-			return []ent.Value{*id}
-		}
 	case user.EdgeRoleEdges:
 		ids := make([]ent.Value, 0, len(m.role_edges))
 		for id := range m.role_edges {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeMemberOfTeamEdges:
+		if id := m.member_of_team_edges; id != nil {
+			return []ent.Value{*id}
+		}
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.team_users))
 		for id := range m.team_users {
@@ -20031,11 +20031,11 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.cleareduser_permission_edges {
 		edges = append(edges, user.EdgeUserPermissionEdges)
 	}
-	if m.clearedteam_edge {
-		edges = append(edges, user.EdgeTeamEdge)
-	}
 	if m.clearedrole_edges {
 		edges = append(edges, user.EdgeRoleEdges)
+	}
+	if m.clearedmember_of_team_edges {
+		edges = append(edges, user.EdgeMemberOfTeamEdges)
 	}
 	if m.clearedteam_users {
 		edges = append(edges, user.EdgeTeamUsers)
@@ -20071,10 +20071,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_reference_edges
 	case user.EdgeUserPermissionEdges:
 		return m.cleareduser_permission_edges
-	case user.EdgeTeamEdge:
-		return m.clearedteam_edge
 	case user.EdgeRoleEdges:
 		return m.clearedrole_edges
+	case user.EdgeMemberOfTeamEdges:
+		return m.clearedmember_of_team_edges
 	case user.EdgeTeamUsers:
 		return m.clearedteam_users
 	case user.EdgeInterviewUsers:
@@ -20089,8 +20089,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
-	case user.EdgeTeamEdge:
-		m.ClearTeamEdge()
+	case user.EdgeMemberOfTeamEdges:
+		m.ClearMemberOfTeamEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
@@ -20127,11 +20127,11 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeUserPermissionEdges:
 		m.ResetUserPermissionEdges()
 		return nil
-	case user.EdgeTeamEdge:
-		m.ResetTeamEdge()
-		return nil
 	case user.EdgeRoleEdges:
 		m.ResetRoleEdges()
+		return nil
+	case user.EdgeMemberOfTeamEdges:
+		m.ResetMemberOfTeamEdges()
 		return nil
 	case user.EdgeTeamUsers:
 		m.ResetTeamUsers()

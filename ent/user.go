@@ -59,10 +59,10 @@ type UserEdges struct {
 	CandidateReferenceEdges []*Candidate `json:"candidate_reference_edges,omitempty"`
 	// UserPermissionEdges holds the value of the user_permission_edges edge.
 	UserPermissionEdges []*EntityPermission `json:"user_permission_edges,omitempty"`
-	// TeamEdge holds the value of the team_edge edge.
-	TeamEdge *Team `json:"team_edge,omitempty"`
 	// RoleEdges holds the value of the role_edges edge.
 	RoleEdges []*Role `json:"role_edges,omitempty"`
+	// MemberOfTeamEdges holds the value of the member_of_team_edges edge.
+	MemberOfTeamEdges *Team `json:"member_of_team_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
@@ -171,26 +171,26 @@ func (e UserEdges) UserPermissionEdgesOrErr() ([]*EntityPermission, error) {
 	return nil, &NotLoadedError{edge: "user_permission_edges"}
 }
 
-// TeamEdgeOrErr returns the TeamEdge value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) TeamEdgeOrErr() (*Team, error) {
-	if e.loadedTypes[9] {
-		if e.TeamEdge == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: team.Label}
-		}
-		return e.TeamEdge, nil
-	}
-	return nil, &NotLoadedError{edge: "team_edge"}
-}
-
 // RoleEdgesOrErr returns the RoleEdges value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RoleEdgesOrErr() ([]*Role, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[9] {
 		return e.RoleEdges, nil
 	}
 	return nil, &NotLoadedError{edge: "role_edges"}
+}
+
+// MemberOfTeamEdgesOrErr returns the MemberOfTeamEdges value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) MemberOfTeamEdgesOrErr() (*Team, error) {
+	if e.loadedTypes[10] {
+		if e.MemberOfTeamEdges == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: team.Label}
+		}
+		return e.MemberOfTeamEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "member_of_team_edges"}
 }
 
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
@@ -350,14 +350,14 @@ func (u *User) QueryUserPermissionEdges() *EntityPermissionQuery {
 	return (&UserClient{config: u.config}).QueryUserPermissionEdges(u)
 }
 
-// QueryTeamEdge queries the "team_edge" edge of the User entity.
-func (u *User) QueryTeamEdge() *TeamQuery {
-	return (&UserClient{config: u.config}).QueryTeamEdge(u)
-}
-
 // QueryRoleEdges queries the "role_edges" edge of the User entity.
 func (u *User) QueryRoleEdges() *RoleQuery {
 	return (&UserClient{config: u.config}).QueryRoleEdges(u)
+}
+
+// QueryMemberOfTeamEdges queries the "member_of_team_edges" edge of the User entity.
+func (u *User) QueryMemberOfTeamEdges() *TeamQuery {
+	return (&UserClient{config: u.config}).QueryMemberOfTeamEdges(u)
 }
 
 // QueryTeamUsers queries the "team_users" edge of the User entity.

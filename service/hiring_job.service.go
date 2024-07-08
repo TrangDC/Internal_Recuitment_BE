@@ -497,7 +497,7 @@ func (svc hiringJobSvcImpl) validPermissionMutation(payload *middleware.Payload,
 }
 
 func (svc hiringJobSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.HiringJobQuery) {
-	if !payload.ForAll {
+	if payload.ForAll {
 		return
 	}
 	if payload.ForTeam {

@@ -175,7 +175,6 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if len(team.Edges.TeamJobEdges) != 0 {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, "model.teams.validation.cannot_delete_team", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	memberIds := lo.Map(team.Edges.UserEdges, func(user *ent.User, index int) uuid.UUID {

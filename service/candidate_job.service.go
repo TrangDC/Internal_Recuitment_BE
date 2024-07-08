@@ -397,7 +397,7 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		candidatejob.HasCandidateEdgeWith(
 			candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
 		), candidatejob.HasHiringJobEdgeWith(
-			hiringjob.DeletedAtIsNil(),
+			hiringjob.DeletedAtIsNil(), hiringjob.StatusNEQ(hiringjob.StatusClosed),
 		))
 	svc.validPermissionGet(payload, query)
 	if pagination != nil {
@@ -756,7 +756,7 @@ func (svc candidateJobSvcImpl) validPermissionMutation(payload *middleware.Paylo
 }
 
 func (svc candidateJobSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.CandidateJobQuery) {
-	if !payload.ForAll {
+	if payload.ForAll {
 		return
 	}
 	if payload.ForTeam {
