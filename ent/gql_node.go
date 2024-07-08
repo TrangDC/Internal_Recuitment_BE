@@ -2113,21 +2113,21 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[9] = &Edge{
-		Type: "Team",
-		Name: "team_edge",
-	}
-	err = u.QueryTeamEdge().
-		Select(team.FieldID).
-		Scan(ctx, &node.Edges[9].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[10] = &Edge{
 		Type: "Role",
 		Name: "role_edges",
 	}
 	err = u.QueryRoleEdges().
 		Select(role.FieldID).
+		Scan(ctx, &node.Edges[9].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[10] = &Edge{
+		Type: "Team",
+		Name: "member_of_team_edges",
+	}
+	err = u.QueryMemberOfTeamEdges().
+		Select(team.FieldID).
 		Scan(ctx, &node.Edges[10].IDs)
 	if err != nil {
 		return nil, err

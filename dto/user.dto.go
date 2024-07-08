@@ -68,13 +68,13 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
 			case "model.users.team":
-				if oldRecord.Edges.TeamEdge != nil {
-					oldValueField = oldRecord.Edges.TeamEdge.Name
+				if oldRecord.Edges.MemberOfTeamEdges != nil {
+					oldValueField = oldRecord.Edges.MemberOfTeamEdges.Name
 				} else {
 					oldValueField = ""
 				}
-				if newRecord.Edges.TeamEdge != nil {
-					newValueField = newRecord.Edges.TeamEdge.Name
+				if newRecord.Edges.MemberOfTeamEdges != nil {
+					newValueField = newRecord.Edges.MemberOfTeamEdges.Name
 				} else {
 					newValueField = ""
 				}
@@ -102,8 +102,8 @@ func (d userDtoImpl) AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) 
 	}
 	entity := []interface{}{}
 	oldTeamName := ""
-	if oldRecord.Edges.TeamEdge != nil {
-		oldTeamName = oldRecord.Edges.TeamEdge.Name
+	if oldRecord.Edges.MemberOfTeamEdges != nil {
+		oldTeamName = oldRecord.Edges.MemberOfTeamEdges.Name
 	}
 	entity = append(entity, models.AuditTrailUpdate{
 		Field: "model.users.team",
@@ -131,7 +131,7 @@ func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 		case "model.users.status":
 			valueField = d.statusI18n(record.Status)
 		case "model.users.team":
-			valueField = record.Edges.TeamEdge.Name
+			valueField = record.Edges.MemberOfTeamEdges.Name
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,

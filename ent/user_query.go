@@ -46,8 +46,8 @@ type UserQuery struct {
 	withCandidateInterviewEdges      *CandidateInterviewQuery
 	withCandidateReferenceEdges      *CandidateQuery
 	withUserPermissionEdges          *EntityPermissionQuery
-	withTeamEdge                     *TeamQuery
 	withRoleEdges                    *RoleQuery
+	withMemberOfTeamEdges            *TeamQuery
 	withTeamUsers                    *TeamManagerQuery
 	withInterviewUsers               *CandidateInterviewerQuery
 	withRoleUsers                    *UserRoleQuery
@@ -300,28 +300,6 @@ func (uq *UserQuery) QueryUserPermissionEdges() *EntityPermissionQuery {
 	return query
 }
 
-// QueryTeamEdge chains the current query on the "team_edge" edge.
-func (uq *UserQuery) QueryTeamEdge() *TeamQuery {
-	query := &TeamQuery{config: uq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := uq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := uq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(team.Table, team.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, user.TeamEdgeTable, user.TeamEdgeColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryRoleEdges chains the current query on the "role_edges" edge.
 func (uq *UserQuery) QueryRoleEdges() *RoleQuery {
 	query := &RoleQuery{config: uq.config}
@@ -337,6 +315,28 @@ func (uq *UserQuery) QueryRoleEdges() *RoleQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.RoleEdgesTable, user.RoleEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMemberOfTeamEdges chains the current query on the "member_of_team_edges" edge.
+func (uq *UserQuery) QueryMemberOfTeamEdges() *TeamQuery {
+	query := &TeamQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.MemberOfTeamEdgesTable, user.MemberOfTeamEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -600,8 +600,8 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withCandidateInterviewEdges: uq.withCandidateInterviewEdges.Clone(),
 		withCandidateReferenceEdges: uq.withCandidateReferenceEdges.Clone(),
 		withUserPermissionEdges:     uq.withUserPermissionEdges.Clone(),
-		withTeamEdge:                uq.withTeamEdge.Clone(),
 		withRoleEdges:               uq.withRoleEdges.Clone(),
+		withMemberOfTeamEdges:       uq.withMemberOfTeamEdges.Clone(),
 		withTeamUsers:               uq.withTeamUsers.Clone(),
 		withInterviewUsers:          uq.withInterviewUsers.Clone(),
 		withRoleUsers:               uq.withRoleUsers.Clone(),
@@ -711,17 +711,6 @@ func (uq *UserQuery) WithUserPermissionEdges(opts ...func(*EntityPermissionQuery
 	return uq
 }
 
-// WithTeamEdge tells the query-builder to eager-load the nodes that are connected to
-// the "team_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithTeamEdge(opts ...func(*TeamQuery)) *UserQuery {
-	query := &TeamQuery{config: uq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	uq.withTeamEdge = query
-	return uq
-}
-
 // WithRoleEdges tells the query-builder to eager-load the nodes that are connected to
 // the "role_edges" edge. The optional arguments are used to configure the query builder of the edge.
 func (uq *UserQuery) WithRoleEdges(opts ...func(*RoleQuery)) *UserQuery {
@@ -730,6 +719,17 @@ func (uq *UserQuery) WithRoleEdges(opts ...func(*RoleQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withRoleEdges = query
+	return uq
+}
+
+// WithMemberOfTeamEdges tells the query-builder to eager-load the nodes that are connected to
+// the "member_of_team_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMemberOfTeamEdges(opts ...func(*TeamQuery)) *UserQuery {
+	query := &TeamQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withMemberOfTeamEdges = query
 	return uq
 }
 
@@ -849,8 +849,8 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withCandidateInterviewEdges != nil,
 			uq.withCandidateReferenceEdges != nil,
 			uq.withUserPermissionEdges != nil,
-			uq.withTeamEdge != nil,
 			uq.withRoleEdges != nil,
+			uq.withMemberOfTeamEdges != nil,
 			uq.withTeamUsers != nil,
 			uq.withInterviewUsers != nil,
 			uq.withRoleUsers != nil,
@@ -948,16 +948,16 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withTeamEdge; query != nil {
-		if err := uq.loadTeamEdge(ctx, query, nodes, nil,
-			func(n *User, e *Team) { n.Edges.TeamEdge = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := uq.withRoleEdges; query != nil {
 		if err := uq.loadRoleEdges(ctx, query, nodes,
 			func(n *User) { n.Edges.RoleEdges = []*Role{} },
 			func(n *User, e *Role) { n.Edges.RoleEdges = append(n.Edges.RoleEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withMemberOfTeamEdges; query != nil {
+		if err := uq.loadMemberOfTeamEdges(ctx, query, nodes, nil,
+			func(n *User, e *Team) { n.Edges.MemberOfTeamEdges = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -1386,32 +1386,6 @@ func (uq *UserQuery) loadUserPermissionEdges(ctx context.Context, query *EntityP
 	}
 	return nil
 }
-func (uq *UserQuery) loadTeamEdge(ctx context.Context, query *TeamQuery, nodes []*User, init func(*User), assign func(*User, *Team)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*User)
-	for i := range nodes {
-		fk := nodes[i].TeamID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	query.Where(team.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "team_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (uq *UserQuery) loadRoleEdges(ctx context.Context, query *RoleQuery, nodes []*User, init func(*User), assign func(*User, *Role)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*User)
@@ -1466,6 +1440,32 @@ func (uq *UserQuery) loadRoleEdges(ctx context.Context, query *RoleQuery, nodes 
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadMemberOfTeamEdges(ctx context.Context, query *TeamQuery, nodes []*User, init func(*User), assign func(*User, *Team)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*User)
+	for i := range nodes {
+		fk := nodes[i].TeamID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(team.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "team_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

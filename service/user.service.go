@@ -10,6 +10,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/permission"
 	"trec/ent/predicate"
+	"trec/ent/role"
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -163,6 +164,10 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 		roleIds = lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
 			return uuid.MustParse(member)
 		})
+	}
+	if len(record.Edges.TeamEdges) != 0 {
+		currentTeamId := record.Edges.TeamEdges[0].ID.String()
+		input.TeamID = &currentTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
@@ -440,6 +445,18 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 					),
 				)))
 			}
+		}
+		if input.RoleID != nil {
+			roles := lo.Map(input.RoleID, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			userQuery.Where(user.HasRoleEdgesWith(role.IDIn(roles...)))
+		}
+		if input.TeamID != nil {
+			teamIds := lo.Map(input.TeamID, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			userQuery.Where(user.Or(user.TeamIDIn(teamIds...), user.HasTeamEdgesWith(team.IDIn(teamIds...))))
 		}
 	}
 }

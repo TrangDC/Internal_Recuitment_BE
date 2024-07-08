@@ -1965,16 +1965,6 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedUserPermissionEdges(alias, func(wq *EntityPermissionQuery) {
 				*wq = *query
 			})
-		case "teamEdge":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &TeamQuery{config: u.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			u.withTeamEdge = query
 		case "roleEdges":
 			var (
 				alias = field.Alias
@@ -1987,6 +1977,16 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedRoleEdges(alias, func(wq *RoleQuery) {
 				*wq = *query
 			})
+		case "memberOfTeamEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withMemberOfTeamEdges = query
 		case "teamUsers":
 			var (
 				alias = field.Alias

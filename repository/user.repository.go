@@ -73,7 +73,7 @@ func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 				},
 			)
 		},
-	).WithTeamEdge(
+	).WithMemberOfTeamEdges(
 		func(query *ent.TeamQuery) {
 			query.Where(team.DeletedAtIsNil())
 		},

@@ -49,31 +49,7 @@ func NewCandidateJobFeedbackService(repoRegistry repository.Repository, dtoRegis
 }
 
 func (svc *candidateJobFeedbackSvcImpl) CreateCandidateJobFeedback(ctx context.Context, input *ent.NewCandidateJobFeedbackInput, note string) (*ent.CandidateJobFeedbackResponse, error) {
-	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateJobFeedback *ent.CandidateJobFeedback
-	query := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.IDEQ(uuid.MustParse(input.CandidateJobID)))
-	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
-	}
-	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
-			query.WithUserEdges(
-				func(query *ent.UserQuery) {
-					query.Where(user.DeletedAtIsNil())
-				},
-			)
-		},
-	)
-	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
-	}
-	if !svc.validPermissionCreateUpdate(payload, hiringJob.Edges.TeamEdge) {
-		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
-	}
 	status, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, uuid.MustParse(input.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -125,19 +101,6 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
-	}
-	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
-			query.WithUserEdges(
-				func(query *ent.UserQuery) {
-					query.Where(user.DeletedAtIsNil())
-				},
-			)
-		},
-	)
-	hiringJob, _ := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
-	if !svc.validPermissionCreateUpdate(payload, hiringJob.Edges.TeamEdge) {
-		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	createdById := payload.UserID
 	if record.CreatedBy != createdById {
@@ -223,7 +186,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		record, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, record)
+		_, err = repoRegistry.CandidateJobFeedback().DeleteCandidateJobFeedback(ctx, record)
 		if err != nil {
 			return err
 		}
@@ -239,7 +202,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	return err
+	return nil
 }
 
 func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedback(ctx context.Context, id uuid.UUID) (*ent.CandidateJobFeedbackResponse, error) {
@@ -333,21 +296,6 @@ func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.Ca
 }
 
 // permission
-func (svc candidateJobFeedbackSvcImpl) validPermissionCreateUpdate(payload *middleware.Payload, teamRecord *ent.Team) bool {
-	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
-		return item.ID
-	})
-	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
-		return item.ID
-	})
-	if payload.ForAll {
-		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
-			return true
-		}
-	}
-	return false
-}
-
 func (svc candidateJobFeedbackSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateJobFeedback, teamRecord *ent.Team) bool {
 	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
 		return item.ID
@@ -370,7 +318,7 @@ func (svc candidateJobFeedbackSvcImpl) validPermissionDelete(payload *middleware
 }
 
 func (svc candidateJobFeedbackSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.CandidateJobFeedbackQuery) {
-	if !payload.ForAll {
+	if payload.ForAll {
 		return
 	}
 	if payload.ForTeam {

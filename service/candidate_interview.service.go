@@ -684,7 +684,7 @@ func (svc candidateInterviewSvcImpl) validPermissionUpdate(payload *middleware.P
 }
 
 func (svc candidateInterviewSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.CandidateInterviewQuery) {
-	if !payload.ForAll {
+	if payload.ForAll {
 		return
 	}
 	if payload.ForTeam {

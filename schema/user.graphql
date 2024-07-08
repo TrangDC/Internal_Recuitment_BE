@@ -27,6 +27,7 @@ type User {
   team: Team
   entity_permissions: [EntityPermission!]!
   roles: [Role!]!
+  member_of_teams: Team
 }
 
 type UserSelectionEdge {

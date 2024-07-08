@@ -648,14 +648,6 @@ func (u *User) UserPermissionEdges(ctx context.Context) (result []*EntityPermiss
 	return result, err
 }
 
-func (u *User) TeamEdge(ctx context.Context) (*Team, error) {
-	result, err := u.Edges.TeamEdgeOrErr()
-	if IsNotLoaded(err) {
-		result, err = u.QueryTeamEdge().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
 func (u *User) RoleEdges(ctx context.Context) (result []*Role, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedRoleEdges(graphql.GetFieldContext(ctx).Field.Alias)
@@ -666,6 +658,14 @@ func (u *User) RoleEdges(ctx context.Context) (result []*Role, err error) {
 		result, err = u.QueryRoleEdges().All(ctx)
 	}
 	return result, err
+}
+
+func (u *User) MemberOfTeamEdges(ctx context.Context) (*Team, error) {
+	result, err := u.Edges.MemberOfTeamEdgesOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryMemberOfTeamEdges().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (u *User) TeamUsers(ctx context.Context) (result []*TeamManager, err error) {

@@ -48,10 +48,10 @@ const (
 	EdgeCandidateReferenceEdges = "candidate_reference_edges"
 	// EdgeUserPermissionEdges holds the string denoting the user_permission_edges edge name in mutations.
 	EdgeUserPermissionEdges = "user_permission_edges"
-	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
-	EdgeTeamEdge = "team_edge"
 	// EdgeRoleEdges holds the string denoting the role_edges edge name in mutations.
 	EdgeRoleEdges = "role_edges"
+	// EdgeMemberOfTeamEdges holds the string denoting the member_of_team_edges edge name in mutations.
+	EdgeMemberOfTeamEdges = "member_of_team_edges"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
@@ -119,18 +119,18 @@ const (
 	UserPermissionEdgesInverseTable = "entity_permissions"
 	// UserPermissionEdgesColumn is the table column denoting the user_permission_edges relation/edge.
 	UserPermissionEdgesColumn = "entity_id"
-	// TeamEdgeTable is the table that holds the team_edge relation/edge.
-	TeamEdgeTable = "users"
-	// TeamEdgeInverseTable is the table name for the Team entity.
-	// It exists in this package in order to avoid circular dependency with the "team" package.
-	TeamEdgeInverseTable = "teams"
-	// TeamEdgeColumn is the table column denoting the team_edge relation/edge.
-	TeamEdgeColumn = "team_id"
 	// RoleEdgesTable is the table that holds the role_edges relation/edge. The primary key declared below.
 	RoleEdgesTable = "user_roles"
 	// RoleEdgesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RoleEdgesInverseTable = "roles"
+	// MemberOfTeamEdgesTable is the table that holds the member_of_team_edges relation/edge.
+	MemberOfTeamEdgesTable = "users"
+	// MemberOfTeamEdgesInverseTable is the table name for the Team entity.
+	// It exists in this package in order to avoid circular dependency with the "team" package.
+	MemberOfTeamEdgesInverseTable = "teams"
+	// MemberOfTeamEdgesColumn is the table column denoting the member_of_team_edges relation/edge.
+	MemberOfTeamEdgesColumn = "team_id"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.

@@ -132,6 +132,9 @@ func (rps entityPermissionRepoImpl) ValidActionPermission(ctx context.Context, i
 		return nil, err
 	}
 	for _, record := range input {
+		if (!record.ForAll && !record.ForOwner && !record.ForTeam) || (record.ForAll && record.ForOwner && record.ForTeam) {
+			return fmt.Errorf("model.permissions.validation.invalid_permission"), nil
+		}
 		permissionRecord, exist := lo.Find(permissions, func(permission *ent.Permission) bool {
 			return permission.ID.String() == record.PermissionID
 		})

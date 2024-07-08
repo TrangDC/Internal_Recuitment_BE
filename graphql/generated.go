@@ -672,6 +672,7 @@ type ComplexityRoot struct {
 	User struct {
 		EntityPermissions func(childComplexity int) int
 		ID                func(childComplexity int) int
+		MemberOfTeams     func(childComplexity int) int
 		Name              func(childComplexity int) int
 		Roles             func(childComplexity int) int
 		Status            func(childComplexity int) int
@@ -913,6 +914,7 @@ type UserResolver interface {
 	Team(ctx context.Context, obj *ent.User) (*ent.Team, error)
 	EntityPermissions(ctx context.Context, obj *ent.User) ([]*ent.EntityPermission, error)
 	Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, error)
+	MemberOfTeams(ctx context.Context, obj *ent.User) (*ent.Team, error)
 }
 
 type executableSchema struct {
@@ -3819,6 +3821,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.member_of_teams":
+		if e.complexity.User.MemberOfTeams == nil {
+			break
+		}
+
+		return e.complexity.User.MemberOfTeams(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -5482,6 +5491,7 @@ type User {
   team: Team
   entity_permissions: [EntityPermission!]!
   roles: [Role!]!
+  member_of_teams: Team
 }
 
 type UserSelectionEdge {
@@ -8179,6 +8189,8 @@ func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Cont
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -9883,6 +9895,8 @@ func (ec *executionContext) fieldContext_Candidate_reference_user(ctx context.Co
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -10511,6 +10525,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -10686,6 +10702,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Co
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -11835,6 +11853,8 @@ func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context,
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -12489,6 +12509,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -16319,6 +16341,8 @@ func (ec *executionContext) fieldContext_HiringJob_user(ctx context.Context, fie
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -25421,6 +25445,8 @@ func (ec *executionContext) fieldContext_Team_members(ctx context.Context, field
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -26547,6 +26573,67 @@ func (ec *executionContext) fieldContext_User_roles(ctx context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _User_member_of_teams(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_member_of_teams(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().MemberOfTeams(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Team)
+	fc.Result = res
+	return ec.marshalOTeam2ᚖtrecᚋentᚐTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_member_of_teams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Team_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Team_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_Team_slug(ctx, field)
+			case "members":
+				return ec.fieldContext_Team_members(ctx, field)
+			case "opening_requests":
+				return ec.fieldContext_Team_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Team_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Team_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Team_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UserEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserEdge_node(ctx, field)
 	if err != nil {
@@ -26600,6 +26687,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -26701,6 +26790,8 @@ func (ec *executionContext) fieldContext_UserResponse_data(ctx context.Context, 
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -38230,6 +38321,23 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "member_of_teams":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_member_of_teams(ctx, field, obj)
 				return res
 			}
 
