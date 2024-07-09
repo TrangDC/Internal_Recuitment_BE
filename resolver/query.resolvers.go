@@ -201,6 +201,11 @@ func (r *queryResolver) GetAllPermissionGroups(ctx context.Context) (*ent.Permis
 	return r.serviceRegistry.PermissionGroup().GetAllPermissionGroups(ctx)
 }
 
+// GetCandidateReport is the resolver for the GetCandidateReport field.
+func (r *queryResolver) GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error) {
+	return r.serviceRegistry.Report().GetCandidateReport(ctx, filter)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

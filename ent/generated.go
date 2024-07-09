@@ -240,6 +240,18 @@ type CandidateJobResponseGetAll struct {
 	Pagination *Pagination         `json:"pagination"`
 }
 
+type CandidateReport struct {
+	Total           int                   `json:"total"`
+	ActiveNumber    int                   `json:"active_number"`
+	BlacklistNumber int                   `json:"blacklist_number"`
+	NumberByRefType []*ReportNumberByType `json:"number_by_ref_type"`
+	StatsByTime     *ReportStatsByTime    `json:"stats_by_time"`
+}
+
+type CandidateReportResponse struct {
+	Data *CandidateReport `json:"data"`
+}
+
 type CandidateResponse struct {
 	Data *Candidate `json:"data"`
 }
@@ -510,6 +522,33 @@ type PermissionGroupResponse struct {
 type PermissionGroupResponseGetAll struct {
 	Edges      []*PermissionGroupEdge `json:"edges"`
 	Pagination *Pagination            `json:"pagination"`
+}
+
+type ReportFilter struct {
+	FilterPeriod ReportFilterPeriod `json:"filter_period"`
+	FromDate     time.Time          `json:"from_date"`
+	ToDate       time.Time          `json:"to_date"`
+}
+
+type ReportNumberByType struct {
+	Type   string `json:"type"`
+	Number int    `json:"number"`
+}
+
+type ReportStatsByTime struct {
+	Total              int                         `json:"total"`
+	FilterPeriod       ReportFilterPeriod          `json:"filter_period"`
+	FromDate           time.Time                   `json:"from_date"`
+	ToDate             time.Time                   `json:"to_date"`
+	NumberByType       []*ReportNumberByType       `json:"number_by_type"`
+	StatsPerTimePeriod []*ReportStatsPerTimePeriod `json:"stats_per_time_period"`
+}
+
+type ReportStatsPerTimePeriod struct {
+	FromDate     time.Time             `json:"from_date"`
+	ToDate       time.Time             `json:"to_date"`
+	Total        int                   `json:"total"`
+	NumberByType []*ReportNumberByType `json:"number_by_type"`
 }
 
 type RoleFilter struct {
@@ -2252,6 +2291,51 @@ func (e *PermissionGroupType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PermissionGroupType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReportFilterPeriod string
+
+const (
+	ReportFilterPeriodYear    ReportFilterPeriod = "year"
+	ReportFilterPeriodQuarter ReportFilterPeriod = "quarter"
+	ReportFilterPeriodMonth   ReportFilterPeriod = "month"
+	ReportFilterPeriodWeek    ReportFilterPeriod = "week"
+)
+
+var AllReportFilterPeriod = []ReportFilterPeriod{
+	ReportFilterPeriodYear,
+	ReportFilterPeriodQuarter,
+	ReportFilterPeriodMonth,
+	ReportFilterPeriodWeek,
+}
+
+func (e ReportFilterPeriod) IsValid() bool {
+	switch e {
+	case ReportFilterPeriodYear, ReportFilterPeriodQuarter, ReportFilterPeriodMonth, ReportFilterPeriodWeek:
+		return true
+	}
+	return false
+}
+
+func (e ReportFilterPeriod) String() string {
+	return string(e)
+}
+
+func (e *ReportFilterPeriod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReportFilterPeriod(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReportFilterPeriod", str)
+	}
+	return nil
+}
+
+func (e ReportFilterPeriod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

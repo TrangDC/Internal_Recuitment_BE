@@ -1,0 +1,45 @@
+enum ReportFilterPeriod {
+  year
+  quarter
+  month
+  week
+}
+
+type ReportNumberByType {
+  type: String!
+  number: Int!
+}
+
+type ReportStatsPerTimePeriod {
+  from_date: Time!
+  to_date: Time!
+  total: Int!
+  number_by_type: [ReportNumberByType!]!
+}
+
+type ReportStatsByTime {
+  total: Int!
+  filter_period: ReportFilterPeriod!
+  from_date: Time!
+  to_date: Time!
+  number_by_type: [ReportNumberByType!]!
+  stats_per_time_period: [ReportStatsPerTimePeriod!]!
+}
+
+type CandidateReport {
+  total: Int!
+  active_number: Int!
+  blacklist_number: Int!
+  number_by_ref_type: [ReportNumberByType!]!
+  stats_by_time: ReportStatsByTime!
+}
+
+type CandidateReportResponse {
+  data: CandidateReport!
+}
+
+input ReportFilter {
+ filter_period: ReportFilterPeriod!
+ from_date: Time!
+ to_date: Time!
+}

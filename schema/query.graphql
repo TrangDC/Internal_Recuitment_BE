@@ -66,6 +66,9 @@ type Query {
 
 	# Permission
 	GetAllPermissionGroups: PermissionGroupResponseGetAll
+
+	# Report
+	GetCandidateReport(filter: ReportFilter!): CandidateReportResponse!
 }
 
 # Path: schema/query.graphql
