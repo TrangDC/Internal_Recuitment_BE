@@ -56,27 +56,20 @@ var LinkEmailTpKeyword = []string{
 	"lk:candidate_job_application",
 	"lk:interview",
 }
-var EmailTpSubjectKeyword = append(
-	append(
-		append(
-			append(
-				append(GeneralEmailTpKeyword, TeamEmailTpKeyword...),
-				HiringJobEmailTpKeyword...),
-			CandidateEmailTpKeyword...),
-		CandidateAppEmailTpKeyword...),
-	InterviewEmailTpKeyword...)
 
-var EmailTpContentKeyword = append(
+var EmailTpApplicationSubjectKeyword = append(
 	append(
 		append(
-			append(
-				append(
-					append(GeneralEmailTpKeyword, TeamEmailTpKeyword...),
-					HiringJobEmailTpKeyword...),
-				CandidateEmailTpKeyword...),
-			CandidateAppEmailTpKeyword...),
-		InterviewEmailTpKeyword...),
-	LinkEmailTpKeyword...)
+			append(GeneralEmailTpKeyword, TeamEmailTpKeyword...),
+			HiringJobEmailTpKeyword...),
+		CandidateEmailTpKeyword...),
+	CandidateAppEmailTpKeyword...)
+
+var EmailTpApplicationContentKeyword = append(EmailTpApplicationSubjectKeyword, LinkEmailTpKeyword...)
+
+var EmailTpInterviewSubjectKeyword = append(EmailTpApplicationSubjectKeyword, CandidateAppEmailTpKeyword...)
+
+var EmailTpInterviewContentKeyword = append(EmailTpInterviewSubjectKeyword, LinkEmailTpKeyword...)
 
 var GeneralEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "gl:receiver_name", Value: "Receiver name"},
@@ -134,11 +127,11 @@ var LinkEmailTpKeywordJson = []*ent.JSONFormat{
 }
 
 var EmailTpErrorString = map[string]string{
-	"gl":   "model.email_template.validation.gl.keyword_not_found",
-	"tm":   "model.email_template.validation.tm.keyword_not_found",
-	"hrjb": "model.email_template.validation.hrjb.keyword_not_found",
-	"cdjb": "model.email_template.validation.cdjb.keyword_not_found",
-	"intv": "model.email_template.validation.intv.keyword_not_found",
-	"lk":   "model.email_template.validation.lk.keyword_not_found",
-	"cd":   "model.email_template.validation.cd.keyword_not_found",
+	"gl":   "model.email_template.validation.gl.keyword_invalid",
+	"tm":   "model.email_template.validation.tm.keyword_invalid",
+	"hrjb": "model.email_template.validation.hrjb.keyword_invalid",
+	"cdjb": "model.email_template.validation.cdjb.keyword_invalid",
+	"intv": "model.email_template.validation.intv.keyword_invalid",
+	"lk":   "model.email_template.validation.lk.keyword_invalid",
+	"cd":   "model.email_template.validation.cd.keyword_invalid",
 }

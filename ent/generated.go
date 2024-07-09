@@ -1719,6 +1719,49 @@ func (e CurrencyEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type EmailTemplateApplicationEventEnum string
+
+const (
+	EmailTemplateApplicationEventEnumCandidateAppliedToKiv           EmailTemplateApplicationEventEnum = "candidate_applied_to_kiv"
+	EmailTemplateApplicationEventEnumCandidateInterviewingToKiv      EmailTemplateApplicationEventEnum = "candidate_interviewing_to_kiv"
+	EmailTemplateApplicationEventEnumCandidateInterviewingToOffering EmailTemplateApplicationEventEnum = "candidate_interviewing_to_offering"
+)
+
+var AllEmailTemplateApplicationEventEnum = []EmailTemplateApplicationEventEnum{
+	EmailTemplateApplicationEventEnumCandidateAppliedToKiv,
+	EmailTemplateApplicationEventEnumCandidateInterviewingToKiv,
+	EmailTemplateApplicationEventEnumCandidateInterviewingToOffering,
+}
+
+func (e EmailTemplateApplicationEventEnum) IsValid() bool {
+	switch e {
+	case EmailTemplateApplicationEventEnumCandidateAppliedToKiv, EmailTemplateApplicationEventEnumCandidateInterviewingToKiv, EmailTemplateApplicationEventEnumCandidateInterviewingToOffering:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateApplicationEventEnum) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateApplicationEventEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateApplicationEventEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateApplicationEventEnum", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateApplicationEventEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type EmailTemplateEvent string
 
 const (
@@ -1765,6 +1808,49 @@ func (e *EmailTemplateEvent) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EmailTemplateEvent) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailTemplateInterviewEventEnum string
+
+const (
+	EmailTemplateInterviewEventEnumCreatedCandidate  EmailTemplateInterviewEventEnum = "created_candidate"
+	EmailTemplateInterviewEventEnumUpdatingInterview EmailTemplateInterviewEventEnum = "updating_interview"
+	EmailTemplateInterviewEventEnumCancelInterview   EmailTemplateInterviewEventEnum = "cancel_interview"
+)
+
+var AllEmailTemplateInterviewEventEnum = []EmailTemplateInterviewEventEnum{
+	EmailTemplateInterviewEventEnumCreatedCandidate,
+	EmailTemplateInterviewEventEnumUpdatingInterview,
+	EmailTemplateInterviewEventEnumCancelInterview,
+}
+
+func (e EmailTemplateInterviewEventEnum) IsValid() bool {
+	switch e {
+	case EmailTemplateInterviewEventEnumCreatedCandidate, EmailTemplateInterviewEventEnumUpdatingInterview, EmailTemplateInterviewEventEnumCancelInterview:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateInterviewEventEnum) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateInterviewEventEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateInterviewEventEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateInterviewEventEnum", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateInterviewEventEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
