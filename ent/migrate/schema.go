@@ -58,7 +58,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills", "users", "skill_types", "roles"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"teams", "hiring_jobs", "candidates", "skills", "users", "skill_types", "roles", "email_templates"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},
@@ -274,6 +274,63 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// EmailRoleAttributesColumns holds the columns for the "email_role_attributes" table.
+	EmailRoleAttributesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "email_template_id", Type: field.TypeUUID},
+		{Name: "role_id", Type: field.TypeUUID},
+	}
+	// EmailRoleAttributesTable holds the schema information for the "email_role_attributes" table.
+	EmailRoleAttributesTable = &schema.Table{
+		Name:       "email_role_attributes",
+		Columns:    EmailRoleAttributesColumns,
+		PrimaryKey: []*schema.Column{EmailRoleAttributesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "email_role_attributes_teams_email_template_edge",
+				Columns:    []*schema.Column{EmailRoleAttributesColumns[4]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "email_role_attributes_roles_role_edge",
+				Columns:    []*schema.Column{EmailRoleAttributesColumns[5]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "emailroleattribute_role_id_email_template_id",
+				Unique:  true,
+				Columns: []*schema.Column{EmailRoleAttributesColumns[5], EmailRoleAttributesColumns[4]},
+			},
+		},
+	}
+	// EmailTemplatesColumns holds the columns for the "email_templates" table.
+	EmailTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_candidate", "updating_interview"}},
+		{Name: "send_to", Type: field.TypeJSON},
+		{Name: "cc", Type: field.TypeJSON},
+		{Name: "bcc", Type: field.TypeJSON},
+		{Name: "subject", Type: field.TypeString, Size: 255},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
+	}
+	// EmailTemplatesTable holds the schema information for the "email_templates" table.
+	EmailTemplatesTable = &schema.Table{
+		Name:       "email_templates",
+		Columns:    EmailTemplatesColumns,
+		PrimaryKey: []*schema.Column{EmailTemplatesColumns[0]},
 	}
 	// EntityPermissionsColumns holds the columns for the "entity_permissions" table.
 	EntityPermissionsColumns = []*schema.Column{
@@ -622,6 +679,8 @@ var (
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
+		EmailRoleAttributesTable,
+		EmailTemplatesTable,
 		EntityPermissionsTable,
 		EntitySkillsTable,
 		HiringJobsTable,
@@ -654,6 +713,8 @@ func init() {
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	EmailRoleAttributesTable.ForeignKeys[0].RefTable = TeamsTable
+	EmailRoleAttributesTable.ForeignKeys[1].RefTable = RolesTable
 	EntityPermissionsTable.ForeignKeys[0].RefTable = PermissionsTable
 	EntityPermissionsTable.ForeignKeys[1].RefTable = RolesTable
 	EntityPermissionsTable.ForeignKeys[2].RefTable = UsersTable

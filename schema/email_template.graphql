@@ -1,0 +1,112 @@
+enum EmailTemplateEvent {
+  candidate_applied_to_kiv
+  candidate_interviewing_to_kiv
+  candidate_interviewing_to_offering
+  created_candidate
+  updating_interview
+}
+
+enum EmailTemplateStatus {
+  active
+  inactive
+}
+
+enum EmailTemplateSendTo {
+  interviewer
+  job_request
+  team_manager
+  team_member
+  role
+  candidate
+}
+
+input EmailTemplateOrder {
+  direction: OrderDirection!
+  field: EmailTemplateOrderField!
+}
+
+enum EmailTemplateOrderField {
+  created_at
+}
+
+input EmailTemplateFilter {
+  event: [EmailTemplateEvent]
+  status: EmailTemplateStatus
+  send_to: [EmailTemplateSendTo]
+}
+
+input EmailTemplateFreeWord {
+  subject: String
+}
+
+input NewEmailTemplateInput {
+  event: EmailTemplateEvent!
+  subject: String!
+  content: String!
+  send_to: [EmailTemplateSendTo!]!
+  # status: EmailTemplateStatus!
+  roleIds: [ID!]!
+  signature: String!
+  cc: [String!]!
+  bcc: [String!]!
+}
+
+input UpdateEmailTemplateInput {
+  event: EmailTemplateEvent!
+  subject: String!
+  content: String!
+  send_to: [EmailTemplateSendTo!]!
+  # status: EmailTemplateStatus!
+  roleIds: [ID!]!
+  signature: String!
+  cc: [String!]!
+  bcc: [String!]!
+}
+
+input UpdateEmailTemplateStatusInput {
+  status: EmailTemplateStatus
+}
+
+type EmailTemplate {
+  id: ID!
+  event: EmailTemplateEvent!
+  subject: String!
+  content: String!
+  send_to: [EmailTemplateSendTo!]
+  status: EmailTemplateStatus!
+  signature: String
+  roles: [Role!]
+  cc: [String!]
+  bcc: [String!]
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type EmailTemplateResponse {
+  data: EmailTemplate
+}
+
+type EmailTemplateEdge {
+  node: EmailTemplate!
+  cursor: Cursor!
+}
+
+type EmailTemplateResponseGetAll {
+  edges: [EmailTemplateEdge!]!
+  pagination: Pagination!
+}
+
+type EmailTemplateKeyword {
+  general: [JsonFormat!]!
+  team: [JsonFormat!]!
+  hiringJob: [JsonFormat!]!
+  candidate: [JsonFormat!]!
+  candidateJob: [JsonFormat!]!
+  interview: [JsonFormat!]!
+  link: [JsonFormat!]!
+}
+
+type GetEmailTemplateKeywordResponse {
+  data: EmailTemplateKeyword!
+}

@@ -25,8 +25,12 @@ const (
 	EdgeRolePermissionEdges = "role_permission_edges"
 	// EdgeUserEdges holds the string denoting the user_edges edge name in mutations.
 	EdgeUserEdges = "user_edges"
+	// EdgeEmailTemplateEdges holds the string denoting the email_template_edges edge name in mutations.
+	EdgeEmailTemplateEdges = "email_template_edges"
 	// EdgeUserRoles holds the string denoting the user_roles edge name in mutations.
 	EdgeUserRoles = "user_roles"
+	// EdgeEmailTemplateRoles holds the string denoting the email_template_roles edge name in mutations.
+	EdgeEmailTemplateRoles = "email_template_roles"
 	// Table holds the table name of the role in the database.
 	Table = "roles"
 	// RolePermissionEdgesTable is the table that holds the role_permission_edges relation/edge.
@@ -41,6 +45,11 @@ const (
 	// UserEdgesInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserEdgesInverseTable = "users"
+	// EmailTemplateEdgesTable is the table that holds the email_template_edges relation/edge. The primary key declared below.
+	EmailTemplateEdgesTable = "email_role_attributes"
+	// EmailTemplateEdgesInverseTable is the table name for the EmailTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "emailtemplate" package.
+	EmailTemplateEdgesInverseTable = "email_templates"
 	// UserRolesTable is the table that holds the user_roles relation/edge.
 	UserRolesTable = "user_roles"
 	// UserRolesInverseTable is the table name for the UserRole entity.
@@ -48,6 +57,13 @@ const (
 	UserRolesInverseTable = "user_roles"
 	// UserRolesColumn is the table column denoting the user_roles relation/edge.
 	UserRolesColumn = "role_id"
+	// EmailTemplateRolesTable is the table that holds the email_template_roles relation/edge.
+	EmailTemplateRolesTable = "email_role_attributes"
+	// EmailTemplateRolesInverseTable is the table name for the EmailRoleAttribute entity.
+	// It exists in this package in order to avoid circular dependency with the "emailroleattribute" package.
+	EmailTemplateRolesInverseTable = "email_role_attributes"
+	// EmailTemplateRolesColumn is the table column denoting the email_template_roles relation/edge.
+	EmailTemplateRolesColumn = "role_id"
 )
 
 // Columns holds all SQL columns for role fields.
@@ -64,6 +80,9 @@ var (
 	// UserEdgesPrimaryKey and UserEdgesColumn2 are the table columns denoting the
 	// primary key for the user_edges relation (M2M).
 	UserEdgesPrimaryKey = []string{"user_id", "role_id"}
+	// EmailTemplateEdgesPrimaryKey and EmailTemplateEdgesColumn2 are the table columns denoting the
+	// primary key for the email_template_edges relation (M2M).
+	EmailTemplateEdgesPrimaryKey = []string{"role_id", "email_template_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

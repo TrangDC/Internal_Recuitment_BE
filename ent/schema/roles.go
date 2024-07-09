@@ -25,6 +25,7 @@ func (Role) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("role_permission_edges", EntityPermission.Type),
 		edge.From("user_edges", User.Type).Ref("role_edges").Through("user_roles", UserRole.Type),
+		edge.To("email_template_edges", EmailTemplate.Type).Through("email_template_roles", EmailRoleAttribute.Type),
 	}
 }
 

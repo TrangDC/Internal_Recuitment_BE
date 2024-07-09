@@ -7,6 +7,8 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/predicate"
 	"trec/ent/role"
@@ -30,12 +32,16 @@ type RoleQuery struct {
 	predicates                   []predicate.Role
 	withRolePermissionEdges      *EntityPermissionQuery
 	withUserEdges                *UserQuery
+	withEmailTemplateEdges       *EmailTemplateQuery
 	withUserRoles                *UserRoleQuery
+	withEmailTemplateRoles       *EmailRoleAttributeQuery
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*Role) error
 	withNamedRolePermissionEdges map[string]*EntityPermissionQuery
 	withNamedUserEdges           map[string]*UserQuery
+	withNamedEmailTemplateEdges  map[string]*EmailTemplateQuery
 	withNamedUserRoles           map[string]*UserRoleQuery
+	withNamedEmailTemplateRoles  map[string]*EmailRoleAttributeQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -116,6 +122,28 @@ func (rq *RoleQuery) QueryUserEdges() *UserQuery {
 	return query
 }
 
+// QueryEmailTemplateEdges chains the current query on the "email_template_edges" edge.
+func (rq *RoleQuery) QueryEmailTemplateEdges() *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, selector),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, role.EmailTemplateEdgesTable, role.EmailTemplateEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryUserRoles chains the current query on the "user_roles" edge.
 func (rq *RoleQuery) QueryUserRoles() *UserRoleQuery {
 	query := &UserRoleQuery{config: rq.config}
@@ -131,6 +159,28 @@ func (rq *RoleQuery) QueryUserRoles() *UserRoleQuery {
 			sqlgraph.From(role.Table, role.FieldID, selector),
 			sqlgraph.To(userrole.Table, userrole.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, role.UserRolesTable, role.UserRolesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEmailTemplateRoles chains the current query on the "email_template_roles" edge.
+func (rq *RoleQuery) QueryEmailTemplateRoles() *EmailRoleAttributeQuery {
+	query := &EmailRoleAttributeQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, selector),
+			sqlgraph.To(emailroleattribute.Table, emailroleattribute.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, role.EmailTemplateRolesTable, role.EmailTemplateRolesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -321,7 +371,9 @@ func (rq *RoleQuery) Clone() *RoleQuery {
 		predicates:              append([]predicate.Role{}, rq.predicates...),
 		withRolePermissionEdges: rq.withRolePermissionEdges.Clone(),
 		withUserEdges:           rq.withUserEdges.Clone(),
+		withEmailTemplateEdges:  rq.withEmailTemplateEdges.Clone(),
 		withUserRoles:           rq.withUserRoles.Clone(),
+		withEmailTemplateRoles:  rq.withEmailTemplateRoles.Clone(),
 		// clone intermediate query.
 		sql:    rq.sql.Clone(),
 		path:   rq.path,
@@ -351,6 +403,17 @@ func (rq *RoleQuery) WithUserEdges(opts ...func(*UserQuery)) *RoleQuery {
 	return rq
 }
 
+// WithEmailTemplateEdges tells the query-builder to eager-load the nodes that are connected to
+// the "email_template_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoleQuery) WithEmailTemplateEdges(opts ...func(*EmailTemplateQuery)) *RoleQuery {
+	query := &EmailTemplateQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withEmailTemplateEdges = query
+	return rq
+}
+
 // WithUserRoles tells the query-builder to eager-load the nodes that are connected to
 // the "user_roles" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RoleQuery) WithUserRoles(opts ...func(*UserRoleQuery)) *RoleQuery {
@@ -359,6 +422,17 @@ func (rq *RoleQuery) WithUserRoles(opts ...func(*UserRoleQuery)) *RoleQuery {
 		opt(query)
 	}
 	rq.withUserRoles = query
+	return rq
+}
+
+// WithEmailTemplateRoles tells the query-builder to eager-load the nodes that are connected to
+// the "email_template_roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoleQuery) WithEmailTemplateRoles(opts ...func(*EmailRoleAttributeQuery)) *RoleQuery {
+	query := &EmailRoleAttributeQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withEmailTemplateRoles = query
 	return rq
 }
 
@@ -435,10 +509,12 @@ func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 	var (
 		nodes       = []*Role{}
 		_spec       = rq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			rq.withRolePermissionEdges != nil,
 			rq.withUserEdges != nil,
+			rq.withEmailTemplateEdges != nil,
 			rq.withUserRoles != nil,
+			rq.withEmailTemplateRoles != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -478,10 +554,26 @@ func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 			return nil, err
 		}
 	}
+	if query := rq.withEmailTemplateEdges; query != nil {
+		if err := rq.loadEmailTemplateEdges(ctx, query, nodes,
+			func(n *Role) { n.Edges.EmailTemplateEdges = []*EmailTemplate{} },
+			func(n *Role, e *EmailTemplate) { n.Edges.EmailTemplateEdges = append(n.Edges.EmailTemplateEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := rq.withUserRoles; query != nil {
 		if err := rq.loadUserRoles(ctx, query, nodes,
 			func(n *Role) { n.Edges.UserRoles = []*UserRole{} },
 			func(n *Role, e *UserRole) { n.Edges.UserRoles = append(n.Edges.UserRoles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withEmailTemplateRoles; query != nil {
+		if err := rq.loadEmailTemplateRoles(ctx, query, nodes,
+			func(n *Role) { n.Edges.EmailTemplateRoles = []*EmailRoleAttribute{} },
+			func(n *Role, e *EmailRoleAttribute) {
+				n.Edges.EmailTemplateRoles = append(n.Edges.EmailTemplateRoles, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -499,10 +591,24 @@ func (rq *RoleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Role, e
 			return nil, err
 		}
 	}
+	for name, query := range rq.withNamedEmailTemplateEdges {
+		if err := rq.loadEmailTemplateEdges(ctx, query, nodes,
+			func(n *Role) { n.appendNamedEmailTemplateEdges(name) },
+			func(n *Role, e *EmailTemplate) { n.appendNamedEmailTemplateEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range rq.withNamedUserRoles {
 		if err := rq.loadUserRoles(ctx, query, nodes,
 			func(n *Role) { n.appendNamedUserRoles(name) },
 			func(n *Role, e *UserRole) { n.appendNamedUserRoles(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedEmailTemplateRoles {
+		if err := rq.loadEmailTemplateRoles(ctx, query, nodes,
+			func(n *Role) { n.appendNamedEmailTemplateRoles(name) },
+			func(n *Role, e *EmailRoleAttribute) { n.appendNamedEmailTemplateRoles(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -599,6 +705,64 @@ func (rq *RoleQuery) loadUserEdges(ctx context.Context, query *UserQuery, nodes 
 	}
 	return nil
 }
+func (rq *RoleQuery) loadEmailTemplateEdges(ctx context.Context, query *EmailTemplateQuery, nodes []*Role, init func(*Role), assign func(*Role, *EmailTemplate)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Role)
+	nids := make(map[uuid.UUID]map[*Role]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(role.EmailTemplateEdgesTable)
+		s.Join(joinT).On(s.C(emailtemplate.FieldID), joinT.C(role.EmailTemplateEdgesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(role.EmailTemplateEdgesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(role.EmailTemplateEdgesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*Role]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "email_template_edges" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (rq *RoleQuery) loadUserRoles(ctx context.Context, query *UserRoleQuery, nodes []*Role, init func(*Role), assign func(*Role, *UserRole)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Role)
@@ -611,6 +775,33 @@ func (rq *RoleQuery) loadUserRoles(ctx context.Context, query *UserRoleQuery, no
 	}
 	query.Where(predicate.UserRole(func(s *sql.Selector) {
 		s.Where(sql.InValues(role.UserRolesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "role_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoleQuery) loadEmailTemplateRoles(ctx context.Context, query *EmailRoleAttributeQuery, nodes []*Role, init func(*Role), assign func(*Role, *EmailRoleAttribute)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Role)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.EmailRoleAttribute(func(s *sql.Selector) {
+		s.Where(sql.InValues(role.EmailTemplateRolesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -758,6 +949,20 @@ func (rq *RoleQuery) WithNamedUserEdges(name string, opts ...func(*UserQuery)) *
 	return rq
 }
 
+// WithNamedEmailTemplateEdges tells the query-builder to eager-load the nodes that are connected to the "email_template_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoleQuery) WithNamedEmailTemplateEdges(name string, opts ...func(*EmailTemplateQuery)) *RoleQuery {
+	query := &EmailTemplateQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedEmailTemplateEdges == nil {
+		rq.withNamedEmailTemplateEdges = make(map[string]*EmailTemplateQuery)
+	}
+	rq.withNamedEmailTemplateEdges[name] = query
+	return rq
+}
+
 // WithNamedUserRoles tells the query-builder to eager-load the nodes that are connected to the "user_roles"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
 func (rq *RoleQuery) WithNamedUserRoles(name string, opts ...func(*UserRoleQuery)) *RoleQuery {
@@ -769,6 +974,20 @@ func (rq *RoleQuery) WithNamedUserRoles(name string, opts ...func(*UserRoleQuery
 		rq.withNamedUserRoles = make(map[string]*UserRoleQuery)
 	}
 	rq.withNamedUserRoles[name] = query
+	return rq
+}
+
+// WithNamedEmailTemplateRoles tells the query-builder to eager-load the nodes that are connected to the "email_template_roles"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoleQuery) WithNamedEmailTemplateRoles(name string, opts ...func(*EmailRoleAttributeQuery)) *RoleQuery {
+	query := &EmailRoleAttributeQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedEmailTemplateRoles == nil {
+		rq.withNamedEmailTemplateRoles = make(map[string]*EmailRoleAttributeQuery)
+	}
+	rq.withNamedEmailTemplateRoles[name] = query
 	return rq
 }
 

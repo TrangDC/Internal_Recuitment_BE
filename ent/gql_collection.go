@@ -854,6 +854,188 @@ func newCandidateJobStepPaginateArgs(rv map[string]interface{}) *candidatejobste
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (era *EmailRoleAttributeQuery) CollectFields(ctx context.Context, satisfies ...string) (*EmailRoleAttributeQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return era, nil
+	}
+	if err := era.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return era, nil
+}
+
+func (era *EmailRoleAttributeQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "emailTemplateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &TeamQuery{config: era.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			era.withEmailTemplateEdge = query
+		case "roleEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoleQuery{config: era.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			era.withRoleEdge = query
+		}
+	}
+	return nil
+}
+
+type emailroleattributePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EmailRoleAttributePaginateOption
+}
+
+func newEmailRoleAttributePaginateArgs(rv map[string]interface{}) *emailroleattributePaginateArgs {
+	args := &emailroleattributePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &EmailRoleAttributeOrder{Field: &EmailRoleAttributeOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithEmailRoleAttributeOrder(order))
+			}
+		case *EmailRoleAttributeOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithEmailRoleAttributeOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (et *EmailTemplateQuery) CollectFields(ctx context.Context, satisfies ...string) (*EmailTemplateQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return et, nil
+	}
+	if err := et.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return et, nil
+}
+
+func (et *EmailTemplateQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "roleEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoleQuery{config: et.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			et.WithNamedRoleEdges(alias, func(wq *RoleQuery) {
+				*wq = *query
+			})
+		case "roleEmailTemplates":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailRoleAttributeQuery{config: et.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			et.WithNamedRoleEmailTemplates(alias, func(wq *EmailRoleAttributeQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type emailtemplatePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EmailTemplatePaginateOption
+}
+
+func newEmailTemplatePaginateArgs(rv map[string]interface{}) *emailtemplatePaginateArgs {
+	args := &emailtemplatePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &EmailTemplateOrder{Field: &EmailTemplateOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithEmailTemplateOrder(order))
+			}
+		case *EmailTemplateOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithEmailTemplateOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (ep *EntityPermissionQuery) CollectFields(ctx context.Context, satisfies ...string) (*EntityPermissionQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -1398,6 +1580,18 @@ func (r *RoleQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			r.WithNamedUserEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "emailTemplateEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailTemplateQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedEmailTemplateEdges(alias, func(wq *EmailTemplateQuery) {
+				*wq = *query
+			})
 		case "userRoles":
 			var (
 				alias = field.Alias
@@ -1408,6 +1602,18 @@ func (r *RoleQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			r.WithNamedUserRoles(alias, func(wq *UserRoleQuery) {
+				*wq = *query
+			})
+		case "emailTemplateRoles":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailRoleAttributeQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedEmailTemplateRoles(alias, func(wq *EmailRoleAttributeQuery) {
 				*wq = *query
 			})
 		}

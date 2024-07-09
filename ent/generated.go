@@ -266,6 +266,35 @@ type CandidateSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type EmailTemplateFilter struct {
+	Event  []*EmailTemplateEvent  `json:"event"`
+	Status *EmailTemplateStatus   `json:"status"`
+	SendTo []*EmailTemplateSendTo `json:"send_to"`
+}
+
+type EmailTemplateFreeWord struct {
+	Subject *string `json:"subject"`
+}
+
+type EmailTemplateKeyword struct {
+	General      []*JSONFormat `json:"general"`
+	Team         []*JSONFormat `json:"team"`
+	HiringJob    []*JSONFormat `json:"hiringJob"`
+	Candidate    []*JSONFormat `json:"candidate"`
+	CandidateJob []*JSONFormat `json:"candidateJob"`
+	Interview    []*JSONFormat `json:"interview"`
+	Link         []*JSONFormat `json:"link"`
+}
+
+type EmailTemplateResponse struct {
+	Data *EmailTemplate `json:"data"`
+}
+
+type EmailTemplateResponseGetAll struct {
+	Edges      []*EmailTemplateEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
+}
+
 type EntitySkillRecord struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
@@ -286,6 +315,10 @@ type EntitySkillType struct {
 	Description  *string              `json:"description"`
 	EntitySkills []*EntitySkillRecord `json:"entity_skills"`
 	OrderID      int                  `json:"orderId"`
+}
+
+type GetEmailTemplateKeywordResponse struct {
+	Data *EmailTemplateKeyword `json:"data"`
 }
 
 type HiringJobFilter struct {
@@ -331,6 +364,11 @@ type HiringJobSelectionEdge struct {
 type HiringJobSelectionResponseGetAll struct {
 	Edges      []*HiringJobSelectionEdge `json:"edges"`
 	Pagination *Pagination               `json:"pagination"`
+}
+
+type JSONFormat struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type NewAttachmentInput struct {
@@ -386,6 +424,17 @@ type NewCandidateJobInput struct {
 	HiringJobID string                `json:"hiring_job_id"`
 	Status      CandidateJobStatus    `json:"status"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
+}
+
+type NewEmailTemplateInput struct {
+	Event     EmailTemplateEvent    `json:"event"`
+	Subject   string                `json:"subject"`
+	Content   string                `json:"content"`
+	SendTo    []EmailTemplateSendTo `json:"send_to"`
+	RoleIds   []string              `json:"roleIds"`
+	Signature string                `json:"signature"`
+	Cc        []string              `json:"cc"`
+	Bcc       []string              `json:"bcc"`
 }
 
 type NewEntityPermissionInput struct {
@@ -648,6 +697,21 @@ type UpdateCandidateJobFeedbackInput struct {
 type UpdateCandidateJobStatus struct {
 	Status       CandidateJobStatus         `json:"status"`
 	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
+}
+
+type UpdateEmailTemplateInput struct {
+	Event     EmailTemplateEvent    `json:"event"`
+	Subject   string                `json:"subject"`
+	Content   string                `json:"content"`
+	SendTo    []EmailTemplateSendTo `json:"send_to"`
+	RoleIds   []string              `json:"roleIds"`
+	Signature string                `json:"signature"`
+	Cc        []string              `json:"cc"`
+	Bcc       []string              `json:"bcc"`
+}
+
+type UpdateEmailTemplateStatusInput struct {
+	Status *EmailTemplateStatus `json:"status"`
 }
 
 type UpdateHiringJobInput struct {
@@ -1652,6 +1716,143 @@ func (e *CurrencyEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CurrencyEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailTemplateEvent string
+
+const (
+	EmailTemplateEventCandidateAppliedToKiv           EmailTemplateEvent = "candidate_applied_to_kiv"
+	EmailTemplateEventCandidateInterviewingToKiv      EmailTemplateEvent = "candidate_interviewing_to_kiv"
+	EmailTemplateEventCandidateInterviewingToOffering EmailTemplateEvent = "candidate_interviewing_to_offering"
+	EmailTemplateEventCreatedCandidate                EmailTemplateEvent = "created_candidate"
+	EmailTemplateEventUpdatingInterview               EmailTemplateEvent = "updating_interview"
+)
+
+var AllEmailTemplateEvent = []EmailTemplateEvent{
+	EmailTemplateEventCandidateAppliedToKiv,
+	EmailTemplateEventCandidateInterviewingToKiv,
+	EmailTemplateEventCandidateInterviewingToOffering,
+	EmailTemplateEventCreatedCandidate,
+	EmailTemplateEventUpdatingInterview,
+}
+
+func (e EmailTemplateEvent) IsValid() bool {
+	switch e {
+	case EmailTemplateEventCandidateAppliedToKiv, EmailTemplateEventCandidateInterviewingToKiv, EmailTemplateEventCandidateInterviewingToOffering, EmailTemplateEventCreatedCandidate, EmailTemplateEventUpdatingInterview:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateEvent) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateEvent) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateEvent(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateEvent", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateEvent) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailTemplateSendTo string
+
+const (
+	EmailTemplateSendToInterviewer EmailTemplateSendTo = "interviewer"
+	EmailTemplateSendToJobRequest  EmailTemplateSendTo = "job_request"
+	EmailTemplateSendToTeamManager EmailTemplateSendTo = "team_manager"
+	EmailTemplateSendToTeamMember  EmailTemplateSendTo = "team_member"
+	EmailTemplateSendToRole        EmailTemplateSendTo = "role"
+	EmailTemplateSendToCandidate   EmailTemplateSendTo = "candidate"
+)
+
+var AllEmailTemplateSendTo = []EmailTemplateSendTo{
+	EmailTemplateSendToInterviewer,
+	EmailTemplateSendToJobRequest,
+	EmailTemplateSendToTeamManager,
+	EmailTemplateSendToTeamMember,
+	EmailTemplateSendToRole,
+	EmailTemplateSendToCandidate,
+}
+
+func (e EmailTemplateSendTo) IsValid() bool {
+	switch e {
+	case EmailTemplateSendToInterviewer, EmailTemplateSendToJobRequest, EmailTemplateSendToTeamManager, EmailTemplateSendToTeamMember, EmailTemplateSendToRole, EmailTemplateSendToCandidate:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateSendTo) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateSendTo) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateSendTo(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateSendTo", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateSendTo) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailTemplateStatus string
+
+const (
+	EmailTemplateStatusActive   EmailTemplateStatus = "active"
+	EmailTemplateStatusInactive EmailTemplateStatus = "inactive"
+)
+
+var AllEmailTemplateStatus = []EmailTemplateStatus{
+	EmailTemplateStatusActive,
+	EmailTemplateStatusInactive,
+}
+
+func (e EmailTemplateStatus) IsValid() bool {
+	switch e {
+	case EmailTemplateStatusActive, EmailTemplateStatusInactive:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateStatus) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateStatus", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

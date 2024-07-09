@@ -77,3 +77,8 @@ enum I18nLanguage {
   en
   vi
 }
+
+type JsonFormat {
+  key: String!
+  value: String!
+}

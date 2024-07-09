@@ -121,8 +121,8 @@ func (rps candidateRepoImpl) BuildExist(ctx context.Context, query *ent.Candidat
 	return query.Exist(ctx)
 }
 
-func (rps candidateRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Candidate) *ent.CandidateUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now().UTC())
+func (rps candidateRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Candidate) *ent.CandidateUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps candidateRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.CandidateUpdateOne) (*ent.Candidate, error) {

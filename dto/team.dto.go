@@ -74,7 +74,7 @@ func (d teamDtoImpl) AuditTrailUpdate(oldRecord *ent.Team, newRecord *ent.Team) 
 			})
 		}
 	}
-	entity = append(entity, d.teamMemberAuditTrailUpdate(oldRecord, newRecord, entity))
+	entity = d.teamMemberAuditTrailUpdate(oldRecord, newRecord, entity)
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err

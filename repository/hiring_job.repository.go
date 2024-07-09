@@ -114,8 +114,8 @@ func (rps *hiringJobRepoImpl) BuildExist(ctx context.Context, query *ent.HiringJ
 	return query.Exist(ctx)
 }
 
-func (rps *hiringJobRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.HiringJob) *ent.HiringJobUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *hiringJobRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.HiringJob) *ent.HiringJobUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *hiringJobRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.HiringJobUpdateOne) (*ent.HiringJob, error) {

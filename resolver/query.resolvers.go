@@ -181,6 +181,21 @@ func (r *queryResolver) GetAllRoles(ctx context.Context, pagination *ent.Paginat
 	return r.serviceRegistry.Role().GetRoles(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// GetEmailTemplate is the resolver for the GetEmailTemplate field.
+func (r *queryResolver) GetEmailTemplate(ctx context.Context, id string) (*ent.EmailTemplateResponse, error) {
+	return r.serviceRegistry.EmailTemplate().GetEmailTemplate(ctx, uuid.MustParse(id))
+}
+
+// GetAllEmailTemplates is the resolver for the GetAllEmailTemplates field.
+func (r *queryResolver) GetAllEmailTemplates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) (*ent.EmailTemplateResponseGetAll, error) {
+	return r.serviceRegistry.EmailTemplate().GetEmailTemplates(ctx, pagination, freeWord, filter, *orderBy)
+}
+
+// GetAllEmailTemplateKeywords is the resolver for the GetAllEmailTemplateKeywords field.
+func (r *queryResolver) GetAllEmailTemplateKeywords(ctx context.Context) (*ent.GetEmailTemplateKeywordResponse, error) {
+	return r.serviceRegistry.EmailTemplate().GetAllEmailTemplateKeyword()
+}
+
 // GetAllPermissionGroups is the resolver for the GetAllPermissionGroups field.
 func (r *queryResolver) GetAllPermissionGroups(ctx context.Context) (*ent.PermissionGroupResponseGetAll, error) {
 	return r.serviceRegistry.PermissionGroup().GetAllPermissionGroups(ctx)

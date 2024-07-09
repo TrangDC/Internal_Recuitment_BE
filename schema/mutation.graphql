@@ -60,6 +60,12 @@ type Mutation {
   UpdateRole(id: ID!, input: UpdateRoleInput!, note: String!): RoleResponse!
   DeleteRole(id: ID!, note: String!): Boolean!
 
+  #EmailTemplate
+  CreateEmailTemplate(input: NewEmailTemplateInput!, note: String!): EmailTemplateResponse!
+  UpdateEmailTemplate(id: ID!, input: UpdateEmailTemplateInput!, note: String!): EmailTemplateResponse!
+  UpdateEmailTemplateStatus(id: ID!, input: UpdateEmailTemplateStatusInput!, note: String!): Boolean!
+  DeleteEmailTemplate(id: ID!, note: String!): Boolean!
+
   #Validate
   ValidateCandidateInterview(input: CandidateInterviewValidateInput!): CandidateInterviewResponseValidate!
 }

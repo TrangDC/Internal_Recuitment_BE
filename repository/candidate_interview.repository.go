@@ -105,8 +105,8 @@ func (rps *candidateInterviewRepoImpl) BuildExist(ctx context.Context, query *en
 	return query.Exist(ctx)
 }
 
-func (rps *candidateInterviewRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.CandidateInterview) *ent.CandidateInterviewUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *candidateInterviewRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.CandidateInterview) *ent.CandidateInterviewUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *candidateInterviewRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.CandidateInterviewUpdateOne) (*ent.CandidateInterview, error) {
@@ -129,8 +129,8 @@ func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Cont
 	return create.Save(ctx)
 }
 
-func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetTitle(strings.TrimSpace(input.Title)).
+func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetTitle(strings.TrimSpace(input.Title)).
 		SetDescription(input.Description).SetCandidateJobID(uuid.MustParse(input.CandidateJobID)).
 		SetInterviewDate(input.InterviewDate).
 		SetStartFrom(input.StartFrom).
@@ -139,8 +139,8 @@ func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Cont
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
-func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx context.Context, model *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
-	update := rps.BuildUpdateOne(ctx, model).
+func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewScheduleInput, newMemberIds, removeMemberIds []uuid.UUID) (*ent.CandidateInterview, error) {
+	update := rps.BuildUpdateOne(ctx, record).
 		SetInterviewDate(input.InterviewDate).
 		SetStartFrom(input.StartFrom).
 		SetEndAt(input.EndAt)
@@ -150,8 +150,8 @@ func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewSchedule(ctx cont
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
-func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Context, model *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveInterviewerEdgeIDs(memberIds...)
+func (rps *candidateInterviewRepoImpl) DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveInterviewerEdgeIDs(memberIds...)
 	return update.Save(ctx)
 }
 

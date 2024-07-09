@@ -76,8 +76,8 @@ func (rps *attachmentRepoImpl) BuildExist(ctx context.Context, query *ent.Attach
 	return query.Exist(ctx)
 }
 
-func (rps *attachmentRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Attachment) *ent.AttachmentUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *attachmentRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Attachment) *ent.AttachmentUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *attachmentRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.AttachmentUpdateOne) (*ent.Attachment, error) {

@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/predicate"
 	"trec/ent/role"
@@ -114,6 +116,21 @@ func (ru *RoleUpdate) AddUserEdges(u ...*User) *RoleUpdate {
 	return ru.AddUserEdgeIDs(ids...)
 }
 
+// AddEmailTemplateEdgeIDs adds the "email_template_edges" edge to the EmailTemplate entity by IDs.
+func (ru *RoleUpdate) AddEmailTemplateEdgeIDs(ids ...uuid.UUID) *RoleUpdate {
+	ru.mutation.AddEmailTemplateEdgeIDs(ids...)
+	return ru
+}
+
+// AddEmailTemplateEdges adds the "email_template_edges" edges to the EmailTemplate entity.
+func (ru *RoleUpdate) AddEmailTemplateEdges(e ...*EmailTemplate) *RoleUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ru.AddEmailTemplateEdgeIDs(ids...)
+}
+
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
 func (ru *RoleUpdate) AddUserRoleIDs(ids ...uuid.UUID) *RoleUpdate {
 	ru.mutation.AddUserRoleIDs(ids...)
@@ -127,6 +144,21 @@ func (ru *RoleUpdate) AddUserRoles(u ...*UserRole) *RoleUpdate {
 		ids[i] = u[i].ID
 	}
 	return ru.AddUserRoleIDs(ids...)
+}
+
+// AddEmailTemplateRoleIDs adds the "email_template_roles" edge to the EmailRoleAttribute entity by IDs.
+func (ru *RoleUpdate) AddEmailTemplateRoleIDs(ids ...uuid.UUID) *RoleUpdate {
+	ru.mutation.AddEmailTemplateRoleIDs(ids...)
+	return ru
+}
+
+// AddEmailTemplateRoles adds the "email_template_roles" edges to the EmailRoleAttribute entity.
+func (ru *RoleUpdate) AddEmailTemplateRoles(e ...*EmailRoleAttribute) *RoleUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ru.AddEmailTemplateRoleIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -176,6 +208,27 @@ func (ru *RoleUpdate) RemoveUserEdges(u ...*User) *RoleUpdate {
 	return ru.RemoveUserEdgeIDs(ids...)
 }
 
+// ClearEmailTemplateEdges clears all "email_template_edges" edges to the EmailTemplate entity.
+func (ru *RoleUpdate) ClearEmailTemplateEdges() *RoleUpdate {
+	ru.mutation.ClearEmailTemplateEdges()
+	return ru
+}
+
+// RemoveEmailTemplateEdgeIDs removes the "email_template_edges" edge to EmailTemplate entities by IDs.
+func (ru *RoleUpdate) RemoveEmailTemplateEdgeIDs(ids ...uuid.UUID) *RoleUpdate {
+	ru.mutation.RemoveEmailTemplateEdgeIDs(ids...)
+	return ru
+}
+
+// RemoveEmailTemplateEdges removes "email_template_edges" edges to EmailTemplate entities.
+func (ru *RoleUpdate) RemoveEmailTemplateEdges(e ...*EmailTemplate) *RoleUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ru.RemoveEmailTemplateEdgeIDs(ids...)
+}
+
 // ClearUserRoles clears all "user_roles" edges to the UserRole entity.
 func (ru *RoleUpdate) ClearUserRoles() *RoleUpdate {
 	ru.mutation.ClearUserRoles()
@@ -195,6 +248,27 @@ func (ru *RoleUpdate) RemoveUserRoles(u ...*UserRole) *RoleUpdate {
 		ids[i] = u[i].ID
 	}
 	return ru.RemoveUserRoleIDs(ids...)
+}
+
+// ClearEmailTemplateRoles clears all "email_template_roles" edges to the EmailRoleAttribute entity.
+func (ru *RoleUpdate) ClearEmailTemplateRoles() *RoleUpdate {
+	ru.mutation.ClearEmailTemplateRoles()
+	return ru
+}
+
+// RemoveEmailTemplateRoleIDs removes the "email_template_roles" edge to EmailRoleAttribute entities by IDs.
+func (ru *RoleUpdate) RemoveEmailTemplateRoleIDs(ids ...uuid.UUID) *RoleUpdate {
+	ru.mutation.RemoveEmailTemplateRoleIDs(ids...)
+	return ru
+}
+
+// RemoveEmailTemplateRoles removes "email_template_roles" edges to EmailRoleAttribute entities.
+func (ru *RoleUpdate) RemoveEmailTemplateRoles(e ...*EmailRoleAttribute) *RoleUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ru.RemoveEmailTemplateRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -407,6 +481,72 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ru.mutation.EmailTemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		createE := &EmailRoleAttributeCreate{config: ru.config, mutation: newEmailRoleAttributeMutation(ru.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedEmailTemplateEdgesIDs(); len(nodes) > 0 && !ru.mutation.EmailTemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EmailRoleAttributeCreate{config: ru.config, mutation: newEmailRoleAttributeMutation(ru.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.EmailTemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EmailRoleAttributeCreate{config: ru.config, mutation: newEmailRoleAttributeMutation(ru.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if ru.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -453,6 +593,60 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: userrole.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.EmailTemplateRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedEmailTemplateRolesIDs(); len(nodes) > 0 && !ru.mutation.EmailTemplateRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.EmailTemplateRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
 				},
 			},
 		}
@@ -562,6 +756,21 @@ func (ruo *RoleUpdateOne) AddUserEdges(u ...*User) *RoleUpdateOne {
 	return ruo.AddUserEdgeIDs(ids...)
 }
 
+// AddEmailTemplateEdgeIDs adds the "email_template_edges" edge to the EmailTemplate entity by IDs.
+func (ruo *RoleUpdateOne) AddEmailTemplateEdgeIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	ruo.mutation.AddEmailTemplateEdgeIDs(ids...)
+	return ruo
+}
+
+// AddEmailTemplateEdges adds the "email_template_edges" edges to the EmailTemplate entity.
+func (ruo *RoleUpdateOne) AddEmailTemplateEdges(e ...*EmailTemplate) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ruo.AddEmailTemplateEdgeIDs(ids...)
+}
+
 // AddUserRoleIDs adds the "user_roles" edge to the UserRole entity by IDs.
 func (ruo *RoleUpdateOne) AddUserRoleIDs(ids ...uuid.UUID) *RoleUpdateOne {
 	ruo.mutation.AddUserRoleIDs(ids...)
@@ -575,6 +784,21 @@ func (ruo *RoleUpdateOne) AddUserRoles(u ...*UserRole) *RoleUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return ruo.AddUserRoleIDs(ids...)
+}
+
+// AddEmailTemplateRoleIDs adds the "email_template_roles" edge to the EmailRoleAttribute entity by IDs.
+func (ruo *RoleUpdateOne) AddEmailTemplateRoleIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	ruo.mutation.AddEmailTemplateRoleIDs(ids...)
+	return ruo
+}
+
+// AddEmailTemplateRoles adds the "email_template_roles" edges to the EmailRoleAttribute entity.
+func (ruo *RoleUpdateOne) AddEmailTemplateRoles(e ...*EmailRoleAttribute) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ruo.AddEmailTemplateRoleIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -624,6 +848,27 @@ func (ruo *RoleUpdateOne) RemoveUserEdges(u ...*User) *RoleUpdateOne {
 	return ruo.RemoveUserEdgeIDs(ids...)
 }
 
+// ClearEmailTemplateEdges clears all "email_template_edges" edges to the EmailTemplate entity.
+func (ruo *RoleUpdateOne) ClearEmailTemplateEdges() *RoleUpdateOne {
+	ruo.mutation.ClearEmailTemplateEdges()
+	return ruo
+}
+
+// RemoveEmailTemplateEdgeIDs removes the "email_template_edges" edge to EmailTemplate entities by IDs.
+func (ruo *RoleUpdateOne) RemoveEmailTemplateEdgeIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	ruo.mutation.RemoveEmailTemplateEdgeIDs(ids...)
+	return ruo
+}
+
+// RemoveEmailTemplateEdges removes "email_template_edges" edges to EmailTemplate entities.
+func (ruo *RoleUpdateOne) RemoveEmailTemplateEdges(e ...*EmailTemplate) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ruo.RemoveEmailTemplateEdgeIDs(ids...)
+}
+
 // ClearUserRoles clears all "user_roles" edges to the UserRole entity.
 func (ruo *RoleUpdateOne) ClearUserRoles() *RoleUpdateOne {
 	ruo.mutation.ClearUserRoles()
@@ -643,6 +888,27 @@ func (ruo *RoleUpdateOne) RemoveUserRoles(u ...*UserRole) *RoleUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return ruo.RemoveUserRoleIDs(ids...)
+}
+
+// ClearEmailTemplateRoles clears all "email_template_roles" edges to the EmailRoleAttribute entity.
+func (ruo *RoleUpdateOne) ClearEmailTemplateRoles() *RoleUpdateOne {
+	ruo.mutation.ClearEmailTemplateRoles()
+	return ruo
+}
+
+// RemoveEmailTemplateRoleIDs removes the "email_template_roles" edge to EmailRoleAttribute entities by IDs.
+func (ruo *RoleUpdateOne) RemoveEmailTemplateRoleIDs(ids ...uuid.UUID) *RoleUpdateOne {
+	ruo.mutation.RemoveEmailTemplateRoleIDs(ids...)
+	return ruo
+}
+
+// RemoveEmailTemplateRoles removes "email_template_roles" edges to EmailRoleAttribute entities.
+func (ruo *RoleUpdateOne) RemoveEmailTemplateRoles(e ...*EmailRoleAttribute) *RoleUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return ruo.RemoveEmailTemplateRoleIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -885,6 +1151,72 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ruo.mutation.EmailTemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		createE := &EmailRoleAttributeCreate{config: ruo.config, mutation: newEmailRoleAttributeMutation(ruo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedEmailTemplateEdgesIDs(); len(nodes) > 0 && !ruo.mutation.EmailTemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EmailRoleAttributeCreate{config: ruo.config, mutation: newEmailRoleAttributeMutation(ruo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.EmailTemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   role.EmailTemplateEdgesTable,
+			Columns: role.EmailTemplateEdgesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &EmailRoleAttributeCreate{config: ruo.config, mutation: newEmailRoleAttributeMutation(ruo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if ruo.mutation.UserRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -931,6 +1263,60 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: userrole.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.EmailTemplateRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedEmailTemplateRolesIDs(); len(nodes) > 0 && !ruo.mutation.EmailTemplateRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.EmailTemplateRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   role.EmailTemplateRolesTable,
+			Columns: []string{role.EmailTemplateRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailroleattribute.FieldID,
 				},
 			},
 		}

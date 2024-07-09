@@ -30,6 +30,12 @@ type CandidateJobFeedback func(*sql.Selector)
 // CandidateJobStep is the predicate function for candidatejobstep builders.
 type CandidateJobStep func(*sql.Selector)
 
+// EmailRoleAttribute is the predicate function for emailroleattribute builders.
+type EmailRoleAttribute func(*sql.Selector)
+
+// EmailTemplate is the predicate function for emailtemplate builders.
+type EmailTemplate func(*sql.Selector)
+
 // EntityPermission is the predicate function for entitypermission builders.
 type EntityPermission func(*sql.Selector)
 

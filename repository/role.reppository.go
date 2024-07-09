@@ -14,8 +14,8 @@ import (
 
 type RoleRepository interface {
 	CreateRole(ctx context.Context, input ent.NewRoleInput) (*ent.Role, error)
-	UpdateRole(ctx context.Context, model *ent.Role, input ent.UpdateRoleInput) (*ent.Role, error)
-	DeleteRole(ctx context.Context, model *ent.Role) (*ent.Role, error)
+	UpdateRole(ctx context.Context, record *ent.Role, input ent.UpdateRoleInput) (*ent.Role, error)
+	DeleteRole(ctx context.Context, record *ent.Role) (*ent.Role, error)
 
 	// query
 	GetRole(ctx context.Context, id uuid.UUID) (*ent.Role, error)
@@ -81,8 +81,8 @@ func (rps *roleRepoImpl) BuildExist(ctx context.Context, query *ent.RoleQuery) (
 	return query.Exist(ctx)
 }
 
-func (rps *roleRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Role) *ent.RoleUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *roleRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Role) *ent.RoleUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *roleRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.RoleUpdateOne) (*ent.Role, error) {
@@ -96,14 +96,14 @@ func (rps *roleRepoImpl) CreateRole(ctx context.Context, input ent.NewRoleInput)
 		SetDescription(strings.TrimSpace(*input.Description)).Save(ctx)
 }
 
-func (rps *roleRepoImpl) UpdateRole(ctx context.Context, model *ent.Role, input ent.UpdateRoleInput) (*ent.Role, error) {
-	return rps.BuildUpdateOne(ctx, model).
+func (rps *roleRepoImpl) UpdateRole(ctx context.Context, record *ent.Role, input ent.UpdateRoleInput) (*ent.Role, error) {
+	return rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(*input.Name)).
 		SetDescription(strings.TrimSpace(*input.Description)).Save(ctx)
 }
 
-func (rps *roleRepoImpl) DeleteRole(ctx context.Context, model *ent.Role) (*ent.Role, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+func (rps *roleRepoImpl) DeleteRole(ctx context.Context, record *ent.Role) (*ent.Role, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
 	return update.Save(ctx)
 }
 

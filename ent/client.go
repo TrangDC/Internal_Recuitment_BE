@@ -18,6 +18,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
@@ -58,6 +60,10 @@ type Client struct {
 	CandidateJobFeedback *CandidateJobFeedbackClient
 	// CandidateJobStep is the client for interacting with the CandidateJobStep builders.
 	CandidateJobStep *CandidateJobStepClient
+	// EmailRoleAttribute is the client for interacting with the EmailRoleAttribute builders.
+	EmailRoleAttribute *EmailRoleAttributeClient
+	// EmailTemplate is the client for interacting with the EmailTemplate builders.
+	EmailTemplate *EmailTemplateClient
 	// EntityPermission is the client for interacting with the EntityPermission builders.
 	EntityPermission *EntityPermissionClient
 	// EntitySkill is the client for interacting with the EntitySkill builders.
@@ -103,6 +109,8 @@ func (c *Client) init() {
 	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
+	c.EmailRoleAttribute = NewEmailRoleAttributeClient(c.config)
+	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.EntityPermission = NewEntityPermissionClient(c.config)
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
@@ -156,6 +164,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
+		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
@@ -195,6 +205,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
+		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
@@ -243,6 +255,8 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateJob.Use(hooks...)
 	c.CandidateJobFeedback.Use(hooks...)
 	c.CandidateJobStep.Use(hooks...)
+	c.EmailRoleAttribute.Use(hooks...)
+	c.EmailTemplate.Use(hooks...)
 	c.EntityPermission.Use(hooks...)
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
@@ -1409,6 +1423,250 @@ func (c *CandidateJobStepClient) Hooks() []Hook {
 	return c.hooks.CandidateJobStep
 }
 
+// EmailRoleAttributeClient is a client for the EmailRoleAttribute schema.
+type EmailRoleAttributeClient struct {
+	config
+}
+
+// NewEmailRoleAttributeClient returns a client for the EmailRoleAttribute from the given config.
+func NewEmailRoleAttributeClient(c config) *EmailRoleAttributeClient {
+	return &EmailRoleAttributeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `emailroleattribute.Hooks(f(g(h())))`.
+func (c *EmailRoleAttributeClient) Use(hooks ...Hook) {
+	c.hooks.EmailRoleAttribute = append(c.hooks.EmailRoleAttribute, hooks...)
+}
+
+// Create returns a builder for creating a EmailRoleAttribute entity.
+func (c *EmailRoleAttributeClient) Create() *EmailRoleAttributeCreate {
+	mutation := newEmailRoleAttributeMutation(c.config, OpCreate)
+	return &EmailRoleAttributeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmailRoleAttribute entities.
+func (c *EmailRoleAttributeClient) CreateBulk(builders ...*EmailRoleAttributeCreate) *EmailRoleAttributeCreateBulk {
+	return &EmailRoleAttributeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmailRoleAttribute.
+func (c *EmailRoleAttributeClient) Update() *EmailRoleAttributeUpdate {
+	mutation := newEmailRoleAttributeMutation(c.config, OpUpdate)
+	return &EmailRoleAttributeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmailRoleAttributeClient) UpdateOne(era *EmailRoleAttribute) *EmailRoleAttributeUpdateOne {
+	mutation := newEmailRoleAttributeMutation(c.config, OpUpdateOne, withEmailRoleAttribute(era))
+	return &EmailRoleAttributeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmailRoleAttributeClient) UpdateOneID(id uuid.UUID) *EmailRoleAttributeUpdateOne {
+	mutation := newEmailRoleAttributeMutation(c.config, OpUpdateOne, withEmailRoleAttributeID(id))
+	return &EmailRoleAttributeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmailRoleAttribute.
+func (c *EmailRoleAttributeClient) Delete() *EmailRoleAttributeDelete {
+	mutation := newEmailRoleAttributeMutation(c.config, OpDelete)
+	return &EmailRoleAttributeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmailRoleAttributeClient) DeleteOne(era *EmailRoleAttribute) *EmailRoleAttributeDeleteOne {
+	return c.DeleteOneID(era.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmailRoleAttributeClient) DeleteOneID(id uuid.UUID) *EmailRoleAttributeDeleteOne {
+	builder := c.Delete().Where(emailroleattribute.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmailRoleAttributeDeleteOne{builder}
+}
+
+// Query returns a query builder for EmailRoleAttribute.
+func (c *EmailRoleAttributeClient) Query() *EmailRoleAttributeQuery {
+	return &EmailRoleAttributeQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a EmailRoleAttribute entity by its id.
+func (c *EmailRoleAttributeClient) Get(ctx context.Context, id uuid.UUID) (*EmailRoleAttribute, error) {
+	return c.Query().Where(emailroleattribute.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmailRoleAttributeClient) GetX(ctx context.Context, id uuid.UUID) *EmailRoleAttribute {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEmailTemplateEdge queries the email_template_edge edge of a EmailRoleAttribute.
+func (c *EmailRoleAttributeClient) QueryEmailTemplateEdge(era *EmailRoleAttribute) *TeamQuery {
+	query := &TeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := era.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailroleattribute.Table, emailroleattribute.FieldID, id),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, emailroleattribute.EmailTemplateEdgeTable, emailroleattribute.EmailTemplateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(era.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleEdge queries the role_edge edge of a EmailRoleAttribute.
+func (c *EmailRoleAttributeClient) QueryRoleEdge(era *EmailRoleAttribute) *RoleQuery {
+	query := &RoleQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := era.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailroleattribute.Table, emailroleattribute.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, emailroleattribute.RoleEdgeTable, emailroleattribute.RoleEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(era.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EmailRoleAttributeClient) Hooks() []Hook {
+	return c.hooks.EmailRoleAttribute
+}
+
+// EmailTemplateClient is a client for the EmailTemplate schema.
+type EmailTemplateClient struct {
+	config
+}
+
+// NewEmailTemplateClient returns a client for the EmailTemplate from the given config.
+func NewEmailTemplateClient(c config) *EmailTemplateClient {
+	return &EmailTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `emailtemplate.Hooks(f(g(h())))`.
+func (c *EmailTemplateClient) Use(hooks ...Hook) {
+	c.hooks.EmailTemplate = append(c.hooks.EmailTemplate, hooks...)
+}
+
+// Create returns a builder for creating a EmailTemplate entity.
+func (c *EmailTemplateClient) Create() *EmailTemplateCreate {
+	mutation := newEmailTemplateMutation(c.config, OpCreate)
+	return &EmailTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmailTemplate entities.
+func (c *EmailTemplateClient) CreateBulk(builders ...*EmailTemplateCreate) *EmailTemplateCreateBulk {
+	return &EmailTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmailTemplate.
+func (c *EmailTemplateClient) Update() *EmailTemplateUpdate {
+	mutation := newEmailTemplateMutation(c.config, OpUpdate)
+	return &EmailTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmailTemplateClient) UpdateOne(et *EmailTemplate) *EmailTemplateUpdateOne {
+	mutation := newEmailTemplateMutation(c.config, OpUpdateOne, withEmailTemplate(et))
+	return &EmailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmailTemplateClient) UpdateOneID(id uuid.UUID) *EmailTemplateUpdateOne {
+	mutation := newEmailTemplateMutation(c.config, OpUpdateOne, withEmailTemplateID(id))
+	return &EmailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmailTemplate.
+func (c *EmailTemplateClient) Delete() *EmailTemplateDelete {
+	mutation := newEmailTemplateMutation(c.config, OpDelete)
+	return &EmailTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmailTemplateClient) DeleteOne(et *EmailTemplate) *EmailTemplateDeleteOne {
+	return c.DeleteOneID(et.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmailTemplateClient) DeleteOneID(id uuid.UUID) *EmailTemplateDeleteOne {
+	builder := c.Delete().Where(emailtemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmailTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for EmailTemplate.
+func (c *EmailTemplateClient) Query() *EmailTemplateQuery {
+	return &EmailTemplateQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a EmailTemplate entity by its id.
+func (c *EmailTemplateClient) Get(ctx context.Context, id uuid.UUID) (*EmailTemplate, error) {
+	return c.Query().Where(emailtemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmailTemplateClient) GetX(ctx context.Context, id uuid.UUID) *EmailTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRoleEdges queries the role_edges edge of a EmailTemplate.
+func (c *EmailTemplateClient) QueryRoleEdges(et *EmailTemplate) *RoleQuery {
+	query := &RoleQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := et.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, id),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, emailtemplate.RoleEdgesTable, emailtemplate.RoleEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleEmailTemplates queries the role_email_templates edge of a EmailTemplate.
+func (c *EmailTemplateClient) QueryRoleEmailTemplates(et *EmailTemplate) *EmailRoleAttributeQuery {
+	query := &EmailRoleAttributeQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := et.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, id),
+			sqlgraph.To(emailroleattribute.Table, emailroleattribute.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, emailtemplate.RoleEmailTemplatesTable, emailtemplate.RoleEmailTemplatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EmailTemplateClient) Hooks() []Hook {
+	return c.hooks.EmailTemplate
+}
+
 // EntityPermissionClient is a client for the EntityPermission schema.
 type EntityPermissionClient struct {
 	config
@@ -2216,6 +2474,22 @@ func (c *RoleClient) QueryUserEdges(r *Role) *UserQuery {
 	return query
 }
 
+// QueryEmailTemplateEdges queries the email_template_edges edge of a Role.
+func (c *RoleClient) QueryEmailTemplateEdges(r *Role) *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, role.EmailTemplateEdgesTable, role.EmailTemplateEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUserRoles queries the user_roles edge of a Role.
 func (c *RoleClient) QueryUserRoles(r *Role) *UserRoleQuery {
 	query := &UserRoleQuery{config: c.config}
@@ -2225,6 +2499,22 @@ func (c *RoleClient) QueryUserRoles(r *Role) *UserRoleQuery {
 			sqlgraph.From(role.Table, role.FieldID, id),
 			sqlgraph.To(userrole.Table, userrole.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, role.UserRolesTable, role.UserRolesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmailTemplateRoles queries the email_template_roles edge of a Role.
+func (c *RoleClient) QueryEmailTemplateRoles(r *Role) *EmailRoleAttributeQuery {
+	query := &EmailRoleAttributeQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(emailroleattribute.Table, emailroleattribute.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, role.EmailTemplateRolesTable, role.EmailTemplateRolesColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil

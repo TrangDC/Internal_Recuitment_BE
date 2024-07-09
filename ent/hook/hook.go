@@ -112,6 +112,32 @@ func (f CandidateJobStepFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return f(ctx, mv)
 }
 
+// The EmailRoleAttributeFunc type is an adapter to allow the use of ordinary
+// function as EmailRoleAttribute mutator.
+type EmailRoleAttributeFunc func(context.Context, *ent.EmailRoleAttributeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EmailRoleAttributeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.EmailRoleAttributeMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailRoleAttributeMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The EmailTemplateFunc type is an adapter to allow the use of ordinary
+// function as EmailTemplate mutator.
+type EmailTemplateFunc func(context.Context, *ent.EmailTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EmailTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.EmailTemplateMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailTemplateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The EntityPermissionFunc type is an adapter to allow the use of ordinary
 // function as EntityPermission mutator.
 type EntityPermissionFunc func(context.Context, *ent.EntityPermissionMutation) (ent.Value, error)

@@ -17,8 +17,8 @@ import (
 
 type TeamRepository interface {
 	CreateTeam(ctx context.Context, input ent.NewTeamInput, memberIds []uuid.UUID) (*ent.Team, error)
-	UpdateTeam(ctx context.Context, model *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error)
-	DeleteTeam(ctx context.Context, model *ent.Team, memberIds []uuid.UUID) (*ent.Team, error)
+	UpdateTeam(ctx context.Context, record *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error)
+	DeleteTeam(ctx context.Context, record *ent.Team, memberIds []uuid.UUID) (*ent.Team, error)
 
 	// query
 	GetTeam(ctx context.Context, id uuid.UUID) (*ent.Team, error)
@@ -96,8 +96,8 @@ func (rps *teamRepoImpl) BuildExist(ctx context.Context, query *ent.TeamQuery) (
 	return query.Exist(ctx)
 }
 
-func (rps *teamRepoImpl) BuildUpdateOne(ctx context.Context, model *ent.Team) *ent.TeamUpdateOne {
-	return model.Update().SetUpdatedAt(time.Now())
+func (rps *teamRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Team) *ent.TeamUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
 }
 
 func (rps *teamRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.TeamUpdateOne) (*ent.Team, error) {
@@ -110,14 +110,14 @@ func (rps *teamRepoImpl) CreateTeam(ctx context.Context, input ent.NewTeamInput,
 	return create.Save(ctx)
 }
 
-func (rps *teamRepoImpl) UpdateTeam(ctx context.Context, model *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
+func (rps *teamRepoImpl) UpdateTeam(ctx context.Context, record *ent.Team, input ent.UpdateTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.Team, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
 		AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
-func (rps *teamRepoImpl) DeleteTeam(ctx context.Context, model *ent.Team, memberIds []uuid.UUID) (*ent.Team, error) {
-	update := rps.BuildUpdateOne(ctx, model).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveUserEdgeIDs(memberIds...)
+func (rps *teamRepoImpl) DeleteTeam(ctx context.Context, record *ent.Team, memberIds []uuid.UUID) (*ent.Team, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveUserEdgeIDs(memberIds...)
 	return update.Save(ctx)
 }
 

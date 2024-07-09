@@ -105,6 +105,17 @@ func ValidPermission(db *sql.DB) gin.HandlerFunc {
 			operationName = bodyQuery.OperationName
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
+		if operationName == "" {
+			ctx = context.WithValue(ctx, Payload{}, &Payload{
+				UserID:   userId,
+				ForOwner: forOwner,
+				ForTeam:  forTeam,
+				ForAll:   forAll,
+			})
+			c.Request = c.Request.WithContext(ctx)
+			c.Next()
+			return
+		}
 		id := uuid.UUID{}
 		err := db.QueryRow("SELECT id FROM permissions WHERE operation_name LIKE '%' || $1 || '%'", operationName).Scan(&id)
 		if err != nil && err != sql.ErrNoRows {
