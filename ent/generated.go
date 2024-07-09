@@ -1727,6 +1727,7 @@ const (
 	EmailTemplateEventCandidateInterviewingToOffering EmailTemplateEvent = "candidate_interviewing_to_offering"
 	EmailTemplateEventCreatedCandidate                EmailTemplateEvent = "created_candidate"
 	EmailTemplateEventUpdatingInterview               EmailTemplateEvent = "updating_interview"
+	EmailTemplateEventCancelInterview                 EmailTemplateEvent = "cancel_interview"
 )
 
 var AllEmailTemplateEvent = []EmailTemplateEvent{
@@ -1735,11 +1736,12 @@ var AllEmailTemplateEvent = []EmailTemplateEvent{
 	EmailTemplateEventCandidateInterviewingToOffering,
 	EmailTemplateEventCreatedCandidate,
 	EmailTemplateEventUpdatingInterview,
+	EmailTemplateEventCancelInterview,
 }
 
 func (e EmailTemplateEvent) IsValid() bool {
 	switch e {
-	case EmailTemplateEventCandidateAppliedToKiv, EmailTemplateEventCandidateInterviewingToKiv, EmailTemplateEventCandidateInterviewingToOffering, EmailTemplateEventCreatedCandidate, EmailTemplateEventUpdatingInterview:
+	case EmailTemplateEventCandidateAppliedToKiv, EmailTemplateEventCandidateInterviewingToKiv, EmailTemplateEventCandidateInterviewingToOffering, EmailTemplateEventCreatedCandidate, EmailTemplateEventUpdatingInterview, EmailTemplateEventCancelInterview:
 		return true
 	}
 	return false

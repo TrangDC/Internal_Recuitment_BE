@@ -107,6 +107,7 @@ const (
 	EventCandidateInterviewingToOffering Event = "candidate_interviewing_to_offering"
 	EventCreatedCandidate                Event = "created_candidate"
 	EventUpdatingInterview               Event = "updating_interview"
+	EventCancelInterview                 Event = "cancel_interview"
 )
 
 func (e Event) String() string {
@@ -116,7 +117,7 @@ func (e Event) String() string {
 // EventValidator is a validator for the "event" field enum values. It is called by the builders before save.
 func EventValidator(e Event) error {
 	switch e {
-	case EventCandidateAppliedToKiv, EventCandidateInterviewingToKiv, EventCandidateInterviewingToOffering, EventCreatedCandidate, EventUpdatingInterview:
+	case EventCandidateAppliedToKiv, EventCandidateInterviewingToKiv, EventCandidateInterviewingToOffering, EventCreatedCandidate, EventUpdatingInterview, EventCancelInterview:
 		return nil
 	default:
 		return fmt.Errorf("emailtemplate: invalid enum value for event field: %q", e)
