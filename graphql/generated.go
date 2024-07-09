@@ -5205,6 +5205,7 @@ type JsonFormat {
   candidate_interviewing_to_offering
   created_candidate
   updating_interview
+  cancel_interview
 }
 
 enum EmailTemplateStatus {
