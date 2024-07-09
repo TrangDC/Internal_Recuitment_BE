@@ -5208,6 +5208,17 @@ type JsonFormat {
   cancel_interview
 }
 
+enum EmailTemplateApplicationEventEnum {
+  candidate_applied_to_kiv
+  candidate_interviewing_to_kiv
+  candidate_interviewing_to_offering
+}
+enum EmailTemplateInterviewEventEnum {
+  created_candidate
+  updating_interview
+  cancel_interview
+}
+
 enum EmailTemplateStatus {
   active
   inactive

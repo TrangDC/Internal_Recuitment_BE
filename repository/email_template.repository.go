@@ -30,7 +30,7 @@ type EmailTemplateRepository interface {
 	BuildGetOne(ctx context.Context, query *ent.EmailTemplateQuery) (*ent.EmailTemplate, error)
 
 	// common function
-	ValidKeyword(input string, keywordArray []string) error
+	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
 }
 
 type emailtemplateRepoImpl struct {
@@ -152,11 +152,29 @@ func (rps *emailtemplateRepoImpl) GetEmailTemplate(ctx context.Context, id uuid.
 }
 
 // common function
-func (rps emailtemplateRepoImpl) ValidKeyword(input string, keywordArray []string) error {
+func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error {
+	var err error
+	validSubjectKeyword := models.EmailTpApplicationSubjectKeyword
+	validContentKeyword := models.EmailTpApplicationContentKeyword
+	if !ent.EmailTemplateApplicationEventEnum.IsValid(ent.EmailTemplateApplicationEventEnum(event.String())) {
+		validSubjectKeyword = models.EmailTpInterviewSubjectKeyword
+		validContentKeyword = models.EmailTpInterviewContentKeyword
+	}
+	err = rps.validKeyword(subject, validSubjectKeyword)
+	if err != nil {
+		return err
+	}
+	err = rps.validKeyword(content, validContentKeyword)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []string) error {
 	re := regexp.MustCompile(`{{\s*([^}]+?)\s*}}`)
 	inputMatches := re.FindAllStringSubmatch(input, -1)
 	for _, match := range inputMatches {
-		fmt.Println("========>", match[1])
 		if lo.Contains(keywordArray, match[1]) {
 			return nil
 		} else {

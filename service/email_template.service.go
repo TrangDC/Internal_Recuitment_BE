@@ -52,11 +52,7 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 	var roleIds []uuid.UUID
 	var err error
 	var record *ent.EmailTemplate
-	err = svc.repoRegistry.EmailTemplate().ValidKeyword(input.Subject, models.EmailTpSubjectKeyword)
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	err = svc.repoRegistry.EmailTemplate().ValidKeyword(input.Content, models.EmailTpContentKeyword)
+	err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
@@ -100,11 +96,7 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 func (svc *emailtemplateSvcImpl) UpdateEmailTemplate(ctx context.Context, emailTpId uuid.UUID, input ent.UpdateEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
 	var roleIds []uuid.UUID
 	var result *ent.EmailTemplate
-	err := svc.repoRegistry.EmailTemplate().ValidKeyword(input.Subject, models.EmailTpSubjectKeyword)
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	err = svc.repoRegistry.EmailTemplate().ValidKeyword(input.Content, models.EmailTpContentKeyword)
+	err := svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
