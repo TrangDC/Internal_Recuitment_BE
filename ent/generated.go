@@ -524,6 +524,10 @@ type PermissionGroupResponseGetAll struct {
 	Pagination *Pagination            `json:"pagination"`
 }
 
+type RecruitmentReportResponse struct {
+	Data *ReportStatsByTime `json:"data"`
+}
+
 type ReportFilter struct {
 	FilterPeriod ReportFilterPeriod `json:"filter_period"`
 	FromDate     time.Time          `json:"from_date"`

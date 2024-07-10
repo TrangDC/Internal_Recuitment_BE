@@ -206,6 +206,11 @@ func (r *queryResolver) GetCandidateReport(ctx context.Context, filter ent.Repor
 	return r.serviceRegistry.Report().GetCandidateReport(ctx, filter)
 }
 
+// GetRecruitmentReport is the resolver for the GetRecruitmentReport field.
+func (r *queryResolver) GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error) {
+	return r.serviceRegistry.Report().GetRecruitmentReport(ctx, filter)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 
