@@ -32,6 +32,7 @@ type Service interface {
 	Role() RoleService
 	PermissionGroup() PermissionGroupService
 	EmailTemplate() EmailTemplateService
+	Report() ReportService
 }
 
 // serviceImpl is the implementation of Service.
@@ -55,6 +56,7 @@ type serviceImpl struct {
 	roleService                 RoleService
 	permissionGroup             PermissionGroupService
 	emailTemplate               EmailTemplateService
+	reportService               ReportService
 }
 
 // NewService creates a new Service.
@@ -82,6 +84,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		roleService:                 NewRoleService(repoRegistry, dtoRegistry, logger),
 		permissionGroup:             NewPermissionGroupService(repoRegistry, logger),
 		emailTemplate:               NewEmailTemplateService(repoRegistry, dtoRegistry, logger),
+		reportService:               NewReportService(repoRegistry, logger),
 	}
 }
 
@@ -173,4 +176,8 @@ func (i serviceImpl) PermissionGroup() PermissionGroupService {
 
 func (i serviceImpl) EmailTemplate() EmailTemplateService {
 	return i.emailTemplate
+}
+
+func (i serviceImpl) Report() ReportService {
+	return i.reportService
 }
