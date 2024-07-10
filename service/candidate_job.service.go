@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/team"
@@ -705,10 +706,14 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
 	}
 	if input.TeamID != nil {
-		teamIds := lo.Map(input.HiringJobID, func(id string, index int) uuid.UUID {
+		teamIds := lo.Map(input.TeamID, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
-		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDIn(teamIds...)))
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.HasTeamEdgeWith(
+				team.IDIn(teamIds...),
+			),
+		))
 	}
 	if input.Priority != nil {
 		priority := lo.Map(input.Priority, func(id int, index int) int {
@@ -718,6 +723,28 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 	}
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
+	}
+	if input.SkillID != nil {
+		skillIds := lo.Map(input.SkillID, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.HasHiringJobSkillEdgesWith(entityskill.SkillIDIn(skillIds...)),
+		))
+	}
+	if input.Location != nil {
+		locations := lo.Map(input.Location, func(location ent.LocationEnum, index int) hiringjob.Location {
+			return hiringjob.Location(location)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.LocationIn(locations...),
+		))
+	}
+	if input.CreatedByIds != nil {
+		createdByIds := lo.Map(input.CreatedByIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.CreatedByIn(createdByIds...))
 	}
 }
 
