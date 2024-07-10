@@ -31,6 +31,7 @@ type EmailTemplateRepository interface {
 
 	// common function
 	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
+	ValidSentToAction(event ent.EmailTemplateEvent, sentTo []ent.EmailTemplateSendTo) error
 }
 
 type emailtemplateRepoImpl struct {
@@ -167,6 +168,17 @@ func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, even
 	err = rps.validKeyword(content, validContentKeyword)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (rps emailtemplateRepoImpl) ValidSentToAction(event ent.EmailTemplateEvent, sentTo []ent.EmailTemplateSendTo) error {
+	if ent.EmailTemplateApplicationEventEnum.IsValid(ent.EmailTemplateApplicationEventEnum(event.String())) {
+		if len(lo.Filter(sentTo, func(s ent.EmailTemplateSendTo, index int) bool {
+			return ent.EmailTemplateApplicationSendToEnum.IsValid(ent.EmailTemplateApplicationSendToEnum(s.String()))
+		})) == 0 {
+			return fmt.Errorf("model.email_template.validation.invalid_sent_to")
+		}
 	}
 	return nil
 }

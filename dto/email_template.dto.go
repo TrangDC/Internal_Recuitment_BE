@@ -172,8 +172,8 @@ func (d emailTemplateDtoImpl) eventI18n(input emailtemplate.Event) string {
 		return "model.email_templates.event_enum.candidate_interviewing_to_kiv"
 	case emailtemplate.EventCandidateInterviewingToOffering:
 		return "model.email_templates.event_enum.candidate_interviewing_to_offering"
-	case emailtemplate.EventCreatedCandidate:
-		return "model.email_templates.event_enum.created_candidate"
+	case emailtemplate.EventCreatedInterview:
+		return "model.email_templates.event_enum.created_interview"
 	case emailtemplate.EventUpdatingInterview:
 		return "model.email_templates.event_enum.updating_interview"
 	case emailtemplate.EventCancelInterview:
