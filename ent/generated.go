@@ -1762,13 +1762,60 @@ func (e EmailTemplateApplicationEventEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type EmailTemplateApplicationSendToEnum string
+
+const (
+	EmailTemplateApplicationSendToEnumJobRequest  EmailTemplateApplicationSendToEnum = "job_request"
+	EmailTemplateApplicationSendToEnumTeamManager EmailTemplateApplicationSendToEnum = "team_manager"
+	EmailTemplateApplicationSendToEnumTeamMember  EmailTemplateApplicationSendToEnum = "team_member"
+	EmailTemplateApplicationSendToEnumRole        EmailTemplateApplicationSendToEnum = "role"
+	EmailTemplateApplicationSendToEnumCandidate   EmailTemplateApplicationSendToEnum = "candidate"
+)
+
+var AllEmailTemplateApplicationSendToEnum = []EmailTemplateApplicationSendToEnum{
+	EmailTemplateApplicationSendToEnumJobRequest,
+	EmailTemplateApplicationSendToEnumTeamManager,
+	EmailTemplateApplicationSendToEnumTeamMember,
+	EmailTemplateApplicationSendToEnumRole,
+	EmailTemplateApplicationSendToEnumCandidate,
+}
+
+func (e EmailTemplateApplicationSendToEnum) IsValid() bool {
+	switch e {
+	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumTeamManager, EmailTemplateApplicationSendToEnumTeamMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateApplicationSendToEnum) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateApplicationSendToEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateApplicationSendToEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateApplicationSendToEnum", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateApplicationSendToEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type EmailTemplateEvent string
 
 const (
 	EmailTemplateEventCandidateAppliedToKiv           EmailTemplateEvent = "candidate_applied_to_kiv"
 	EmailTemplateEventCandidateInterviewingToKiv      EmailTemplateEvent = "candidate_interviewing_to_kiv"
 	EmailTemplateEventCandidateInterviewingToOffering EmailTemplateEvent = "candidate_interviewing_to_offering"
-	EmailTemplateEventCreatedCandidate                EmailTemplateEvent = "created_candidate"
+	EmailTemplateEventCreatedInterview                EmailTemplateEvent = "created_interview"
 	EmailTemplateEventUpdatingInterview               EmailTemplateEvent = "updating_interview"
 	EmailTemplateEventCancelInterview                 EmailTemplateEvent = "cancel_interview"
 )
@@ -1777,14 +1824,14 @@ var AllEmailTemplateEvent = []EmailTemplateEvent{
 	EmailTemplateEventCandidateAppliedToKiv,
 	EmailTemplateEventCandidateInterviewingToKiv,
 	EmailTemplateEventCandidateInterviewingToOffering,
-	EmailTemplateEventCreatedCandidate,
+	EmailTemplateEventCreatedInterview,
 	EmailTemplateEventUpdatingInterview,
 	EmailTemplateEventCancelInterview,
 }
 
 func (e EmailTemplateEvent) IsValid() bool {
 	switch e {
-	case EmailTemplateEventCandidateAppliedToKiv, EmailTemplateEventCandidateInterviewingToKiv, EmailTemplateEventCandidateInterviewingToOffering, EmailTemplateEventCreatedCandidate, EmailTemplateEventUpdatingInterview, EmailTemplateEventCancelInterview:
+	case EmailTemplateEventCandidateAppliedToKiv, EmailTemplateEventCandidateInterviewingToKiv, EmailTemplateEventCandidateInterviewingToOffering, EmailTemplateEventCreatedInterview, EmailTemplateEventUpdatingInterview, EmailTemplateEventCancelInterview:
 		return true
 	}
 	return false
@@ -1814,20 +1861,20 @@ func (e EmailTemplateEvent) MarshalGQL(w io.Writer) {
 type EmailTemplateInterviewEventEnum string
 
 const (
-	EmailTemplateInterviewEventEnumCreatedCandidate  EmailTemplateInterviewEventEnum = "created_candidate"
+	EmailTemplateInterviewEventEnumCreatedInterview  EmailTemplateInterviewEventEnum = "created_interview"
 	EmailTemplateInterviewEventEnumUpdatingInterview EmailTemplateInterviewEventEnum = "updating_interview"
 	EmailTemplateInterviewEventEnumCancelInterview   EmailTemplateInterviewEventEnum = "cancel_interview"
 )
 
 var AllEmailTemplateInterviewEventEnum = []EmailTemplateInterviewEventEnum{
-	EmailTemplateInterviewEventEnumCreatedCandidate,
+	EmailTemplateInterviewEventEnumCreatedInterview,
 	EmailTemplateInterviewEventEnumUpdatingInterview,
 	EmailTemplateInterviewEventEnumCancelInterview,
 }
 
 func (e EmailTemplateInterviewEventEnum) IsValid() bool {
 	switch e {
-	case EmailTemplateInterviewEventEnumCreatedCandidate, EmailTemplateInterviewEventEnumUpdatingInterview, EmailTemplateInterviewEventEnumCancelInterview:
+	case EmailTemplateInterviewEventEnumCreatedInterview, EmailTemplateInterviewEventEnumUpdatingInterview, EmailTemplateInterviewEventEnumCancelInterview:
 		return true
 	}
 	return false

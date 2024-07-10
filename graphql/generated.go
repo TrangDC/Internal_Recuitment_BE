@@ -5203,7 +5203,7 @@ type JsonFormat {
   candidate_applied_to_kiv
   candidate_interviewing_to_kiv
   candidate_interviewing_to_offering
-  created_candidate
+  created_interview
   updating_interview
   cancel_interview
 }
@@ -5213,8 +5213,9 @@ enum EmailTemplateApplicationEventEnum {
   candidate_interviewing_to_kiv
   candidate_interviewing_to_offering
 }
+
 enum EmailTemplateInterviewEventEnum {
-  created_candidate
+  created_interview
   updating_interview
   cancel_interview
 }
@@ -5226,6 +5227,14 @@ enum EmailTemplateStatus {
 
 enum EmailTemplateSendTo {
   interviewer
+  job_request
+  team_manager
+  team_member
+  role
+  candidate
+}
+
+enum EmailTemplateApplicationSendToEnum {
   job_request
   team_manager
   team_member

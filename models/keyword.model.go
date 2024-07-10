@@ -126,6 +126,18 @@ var LinkEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "lk:interview", Value: "Link To Interview"},
 }
 
+var EmailTemplateKeywordJson = append(
+	append(
+		append(
+			append(
+				append(
+					append(GeneralEmailTpKeywordJson, TeamEmailTpKeywordJson...),
+					HiringJobEmailTpKeywordJson...),
+				CandidateEmailTpKeywordJson...),
+			CandidateAppEmailTpKeywordJson...),
+		InterviewEmailTpKeywordJson...),
+	LinkEmailTpKeywordJson...)
+
 var EmailTpErrorString = map[string]string{
 	"gl":   "model.email_template.validation.gl.keyword_invalid",
 	"tm":   "model.email_template.validation.tm.keyword_invalid",

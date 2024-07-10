@@ -56,6 +56,10 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	err = svc.repoRegistry.EmailTemplate().ValidSentToAction(input.Event, input.SendTo)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	sendTo := lo.Map(input.SendTo, func(s ent.EmailTemplateSendTo, index int) string {
 		return s.String()
 	})
