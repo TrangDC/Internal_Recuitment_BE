@@ -15,6 +15,7 @@ import (
 type ReportService interface {
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
+	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -53,9 +54,6 @@ func (svc *reportSvcImpl) GetCandidateReport(ctx context.Context, filter ent.Rep
 	)
 	candidateStatsByTime := &ent.ReportStatsByTime{
 		Total:              0,
-		FilterPeriod:       filter.FilterPeriod,
-		FromDate:           filter.FromDate,
-		ToDate:             filter.ToDate,
 		NumberByType:       initCandidateNumByRef(),
 		StatsPerTimePeriod: svc.createReportStatsByFilter(filter, initCandidateNumByRef),
 	}
@@ -133,9 +131,6 @@ func (svc *reportSvcImpl) GetRecruitmentReport(ctx context.Context, filter ent.R
 	result := &ent.RecruitmentReportResponse{
 		Data: &ent.ReportStatsByTime{
 			Total:              len(applicants),
-			FilterPeriod:       filter.FilterPeriod,
-			FromDate:           filter.FromDate,
-			ToDate:             filter.ToDate,
 			NumberByType:       initApplicantsNumByStatus(),
 			StatsPerTimePeriod: svc.createReportStatsByFilter(filter, initApplicantsNumByStatus),
 		},
@@ -170,6 +165,42 @@ func (svc *reportSvcImpl) GetRecruitmentReport(ctx context.Context, filter ent.R
 	return result, nil
 }
 
+func (svc *reportSvcImpl) GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error) {
+	query := svc.repoRegistry.CandidateJob().BuildBaseQuery().
+		Where(candidatejob.StatusIn(
+			candidatejob.StatusApplied,
+			candidatejob.StatusInterviewing,
+			candidatejob.StatusOffering,
+			candidatejob.StatusHired,
+		))
+	if filter.FilterPeriod != ent.ReportFilterPeriodAll {
+		query.Where(
+			candidatejob.CreatedAtGTE(filter.FromDate),
+			candidatejob.CreatedAtLTE(filter.ToDate),
+		)
+	}
+	applicants, err := svc.repoRegistry.CandidateJob().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, err
+	}
+
+	applicantsNumByStatus := map[candidatejob.Status]*ent.ReportNumberByType{
+		candidatejob.StatusApplied:      {Type: candidatejob.StatusApplied.String(), Number: 0},
+		candidatejob.StatusHired:        {Type: candidatejob.StatusHired.String(), Number: 0},
+		candidatejob.StatusOffering:     {Type: candidatejob.StatusOffering.String(), Number: 0},
+		candidatejob.StatusInterviewing: {Type: candidatejob.StatusInterviewing.String(), Number: 0},
+	}
+	for _, applicant := range applicants {
+		applicantsNumByStatus[applicant.Status].Number++
+	}
+
+	result := &ent.CandidateConversionRateReportResponse{
+		Data: lo.Values(applicantsNumByStatus),
+	}
+	return result, nil
+}
+
 func (svc *reportSvcImpl) createReportStatsByFilter(filter ent.ReportFilter, createStatsNumberByType func() []*ent.ReportNumberByType) []*ent.ReportStatsPerTimePeriod {
 	result := make([]*ent.ReportStatsPerTimePeriod, 0)
 	start := filter.FromDate
@@ -198,6 +229,12 @@ func (svc *reportSvcImpl) createReportStatsByFilter(filter ent.ReportFilter, cre
 			temp, toDate = getNextPeriodDate(start, 0, 0, 7)
 		default:
 			// Handle unexpected filter period
+			result = append(result, &ent.ReportStatsPerTimePeriod{
+				FromDate:     time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
+				ToDate:       time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC),
+				Total:        0,
+				NumberByType: createStatsNumberByType(),
+			})
 			return result
 		}
 
