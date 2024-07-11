@@ -140,10 +140,6 @@ func (svc *teamSvcImpl) UpdateTeam(ctx context.Context, teamId uuid.UUID, input 
 			return err
 		}
 		err = svc.userSvcImpl.UpdateTeam(ctx, result.Name, result.ID, newMemberIds, note)
-		if err != nil {
-			return err
-		}
-		err = svc.userSvcImpl.RemoveTeam(ctx, result.ID, removeMemberIds, note)
 		return err
 	})
 	if err != nil {
