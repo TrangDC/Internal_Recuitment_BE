@@ -1,4 +1,5 @@
 enum ReportFilterPeriod {
+  all
   year
   quarter
   month
@@ -19,9 +20,6 @@ type ReportStatsPerTimePeriod {
 
 type ReportStatsByTime {
   total: Int!
-  filter_period: ReportFilterPeriod!
-  from_date: Time!
-  to_date: Time!
   number_by_type: [ReportNumberByType!]!
   stats_per_time_period: [ReportStatsPerTimePeriod!]!
 }
@@ -42,6 +40,11 @@ type CandidateReportResponse {
 # Recruitment
 type RecruitmentReportResponse {
   data: ReportStatsByTime!
+}
+
+# Candidate conversion rate
+type CandidateConversionRateReportResponse {
+  data: [ReportNumberByType!]!
 }
 
 input ReportFilter {

@@ -211,6 +211,11 @@ func (r *queryResolver) GetRecruitmentReport(ctx context.Context, filter ent.Rep
 	return r.serviceRegistry.Report().GetRecruitmentReport(ctx, filter)
 }
 
+// GetCandidateConversionRateReport is the resolver for the GetCandidateConversionRateReport field.
+func (r *queryResolver) GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error) {
+	return r.serviceRegistry.Report().GetCandidateConversionRateReport(ctx, filter)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

@@ -141,6 +141,10 @@ type ComplexityRoot struct {
 		UpdatedAt        func(childComplexity int) int
 	}
 
+	CandidateConversionRateReportResponse struct {
+		Data func(childComplexity int) int
+	}
+
 	CandidateEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
@@ -560,6 +564,7 @@ type ComplexityRoot struct {
 		GetAllUsers                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 		GetAuditTrail                     func(childComplexity int, id string) int
 		GetCandidate                      func(childComplexity int, id string) int
+		GetCandidateConversionRateReport  func(childComplexity int, filter ent.ReportFilter) int
 		GetCandidateInterview             func(childComplexity int, id string) int
 		GetCandidateJob                   func(childComplexity int, id string) int
 		GetCandidateJobFeedback           func(childComplexity int, id string) int
@@ -594,11 +599,8 @@ type ComplexityRoot struct {
 	}
 
 	ReportStatsByTime struct {
-		FilterPeriod       func(childComplexity int) int
-		FromDate           func(childComplexity int) int
 		NumberByType       func(childComplexity int) int
 		StatsPerTimePeriod func(childComplexity int) int
-		ToDate             func(childComplexity int) int
 		Total              func(childComplexity int) int
 	}
 
@@ -1000,6 +1002,7 @@ type QueryResolver interface {
 	GetAllPermissionGroups(ctx context.Context) (*ent.PermissionGroupResponseGetAll, error)
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
+	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *ent.Role) (string, error)
@@ -1395,6 +1398,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Candidate.UpdatedAt(childComplexity), true
+
+	case "CandidateConversionRateReportResponse.data":
+		if e.complexity.CandidateConversionRateReportResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.CandidateConversionRateReportResponse.Data(childComplexity), true
 
 	case "CandidateEdge.cursor":
 		if e.complexity.CandidateEdge.Cursor == nil {
@@ -3499,6 +3509,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCandidate(childComplexity, args["id"].(string)), true
 
+	case "Query.GetCandidateConversionRateReport":
+		if e.complexity.Query.GetCandidateConversionRateReport == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidateConversionRateReport_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidateConversionRateReport(childComplexity, args["filter"].(ent.ReportFilter)), true
+
 	case "Query.GetCandidateInterview":
 		if e.complexity.Query.GetCandidateInterview == nil {
 			break
@@ -3779,20 +3801,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ReportNumberByType.Type(childComplexity), true
 
-	case "ReportStatsByTime.filter_period":
-		if e.complexity.ReportStatsByTime.FilterPeriod == nil {
-			break
-		}
-
-		return e.complexity.ReportStatsByTime.FilterPeriod(childComplexity), true
-
-	case "ReportStatsByTime.from_date":
-		if e.complexity.ReportStatsByTime.FromDate == nil {
-			break
-		}
-
-		return e.complexity.ReportStatsByTime.FromDate(childComplexity), true
-
 	case "ReportStatsByTime.number_by_type":
 		if e.complexity.ReportStatsByTime.NumberByType == nil {
 			break
@@ -3806,13 +3814,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReportStatsByTime.StatsPerTimePeriod(childComplexity), true
-
-	case "ReportStatsByTime.to_date":
-		if e.complexity.ReportStatsByTime.ToDate == nil {
-			break
-		}
-
-		return e.complexity.ReportStatsByTime.ToDate(childComplexity), true
 
 	case "ReportStatsByTime.total":
 		if e.complexity.ReportStatsByTime.Total == nil {
@@ -5875,11 +5876,13 @@ enum PermissionGroupType {
 	# Report
 	GetCandidateReport(filter: ReportFilter!): CandidateReportResponse!
 	GetRecruitmentReport(filter: ReportFilter!): RecruitmentReportResponse!
+	GetCandidateConversionRateReport(filter: ReportFilter!): CandidateConversionRateReportResponse!
 }
 
 # Path: schema/query.graphql
 `, BuiltIn: false},
 	{Name: "../schema/report.graphql", Input: `enum ReportFilterPeriod {
+  all
   year
   quarter
   month
@@ -5900,9 +5903,6 @@ type ReportStatsPerTimePeriod {
 
 type ReportStatsByTime {
   total: Int!
-  filter_period: ReportFilterPeriod!
-  from_date: Time!
-  to_date: Time!
   number_by_type: [ReportNumberByType!]!
   stats_per_time_period: [ReportStatsPerTimePeriod!]!
 }
@@ -5923,6 +5923,11 @@ type CandidateReportResponse {
 # Recruitment
 type RecruitmentReportResponse {
   data: ReportStatsByTime!
+}
+
+# Candidate conversion rate
+type CandidateConversionRateReportResponse {
+  data: [ReportNumberByType!]!
 }
 
 input ReportFilter {
@@ -8044,6 +8049,21 @@ func (ec *executionContext) field_Query_GetAuditTrail_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidateConversionRateReport_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.ReportFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNReportFilter2trecᚋentᚐReportFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -10988,6 +11008,56 @@ func (ec *executionContext) fieldContext_Candidate_deleted_at(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateConversionRateReportResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateConversionRateReportResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateConversionRateReportResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ReportNumberByType)
+	fc.Result = res
+	return ec.marshalNReportNumberByType2ᚕᚖtrecᚋentᚐReportNumberByTypeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateConversionRateReportResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateConversionRateReportResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_ReportNumberByType_type(ctx, field)
+			case "number":
+				return ec.fieldContext_ReportNumberByType_number(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReportNumberByType", field.Name)
 		},
 	}
 	return fc, nil
@@ -15722,12 +15792,6 @@ func (ec *executionContext) fieldContext_CandidateReport_stats_by_time(ctx conte
 			switch field.Name {
 			case "total":
 				return ec.fieldContext_ReportStatsByTime_total(ctx, field)
-			case "filter_period":
-				return ec.fieldContext_ReportStatsByTime_filter_period(ctx, field)
-			case "from_date":
-				return ec.fieldContext_ReportStatsByTime_from_date(ctx, field)
-			case "to_date":
-				return ec.fieldContext_ReportStatsByTime_to_date(ctx, field)
 			case "number_by_type":
 				return ec.fieldContext_ReportStatsByTime_number_by_type(ctx, field)
 			case "stats_per_time_period":
@@ -25762,6 +25826,65 @@ func (ec *executionContext) fieldContext_Query_GetRecruitmentReport(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetCandidateConversionRateReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidateConversionRateReport(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCandidateConversionRateReport(rctx, fc.Args["filter"].(ent.ReportFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateConversionRateReportResponse)
+	fc.Result = res
+	return ec.marshalNCandidateConversionRateReportResponse2ᚖtrecᚋentᚐCandidateConversionRateReportResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCandidateConversionRateReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateConversionRateReportResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateConversionRateReportResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetCandidateConversionRateReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -25932,12 +26055,6 @@ func (ec *executionContext) fieldContext_RecruitmentReportResponse_data(ctx cont
 			switch field.Name {
 			case "total":
 				return ec.fieldContext_ReportStatsByTime_total(ctx, field)
-			case "filter_period":
-				return ec.fieldContext_ReportStatsByTime_filter_period(ctx, field)
-			case "from_date":
-				return ec.fieldContext_ReportStatsByTime_from_date(ctx, field)
-			case "to_date":
-				return ec.fieldContext_ReportStatsByTime_to_date(ctx, field)
 			case "number_by_type":
 				return ec.fieldContext_ReportStatsByTime_number_by_type(ctx, field)
 			case "stats_per_time_period":
@@ -26076,138 +26193,6 @@ func (ec *executionContext) fieldContext_ReportStatsByTime_total(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ReportStatsByTime_filter_period(ctx context.Context, field graphql.CollectedField, obj *ent.ReportStatsByTime) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ReportStatsByTime_filter_period(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FilterPeriod, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(ent.ReportFilterPeriod)
-	fc.Result = res
-	return ec.marshalNReportFilterPeriod2trecᚋentᚐReportFilterPeriod(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ReportStatsByTime_filter_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ReportStatsByTime",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ReportFilterPeriod does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ReportStatsByTime_from_date(ctx context.Context, field graphql.CollectedField, obj *ent.ReportStatsByTime) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ReportStatsByTime_from_date(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FromDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ReportStatsByTime_from_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ReportStatsByTime",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ReportStatsByTime_to_date(ctx context.Context, field graphql.CollectedField, obj *ent.ReportStatsByTime) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ReportStatsByTime_to_date(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ToDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ReportStatsByTime_to_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ReportStatsByTime",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37338,6 +37323,34 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var candidateConversionRateReportResponseImplementors = []string{"CandidateConversionRateReportResponse"}
+
+func (ec *executionContext) _CandidateConversionRateReportResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateConversionRateReportResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateConversionRateReportResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateConversionRateReportResponse")
+		case "data":
+
+			out.Values[i] = ec._CandidateConversionRateReportResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var candidateEdgeImplementors = []string{"CandidateEdge"}
 
 func (ec *executionContext) _CandidateEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateEdge) graphql.Marshaler {
@@ -41702,6 +41715,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "GetCandidateConversionRateReport":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCandidateConversionRateReport(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -41801,27 +41837,6 @@ func (ec *executionContext) _ReportStatsByTime(ctx context.Context, sel ast.Sele
 		case "total":
 
 			out.Values[i] = ec._ReportStatsByTime_total(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "filter_period":
-
-			out.Values[i] = ec._ReportStatsByTime_filter_period(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "from_date":
-
-			out.Values[i] = ec._ReportStatsByTime_from_date(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "to_date":
-
-			out.Values[i] = ec._ReportStatsByTime_to_date(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -43962,6 +43977,20 @@ func (ec *executionContext) marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx cont
 		return graphql.Null
 	}
 	return ec._Candidate(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateConversionRateReportResponse2trecᚋentᚐCandidateConversionRateReportResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateConversionRateReportResponse) graphql.Marshaler {
+	return ec._CandidateConversionRateReportResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCandidateConversionRateReportResponse2ᚖtrecᚋentᚐCandidateConversionRateReportResponse(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateConversionRateReportResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateConversionRateReportResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCandidateEdge2ᚕᚖtrecᚋentᚐCandidateEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateEdge) graphql.Marshaler {

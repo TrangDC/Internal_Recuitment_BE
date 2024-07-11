@@ -56,6 +56,10 @@ type Base64Response struct {
 	Data string `json:"data"`
 }
 
+type CandidateConversionRateReportResponse struct {
+	Data []*ReportNumberByType `json:"data"`
+}
+
 type CandidateFilter struct {
 	Name                *string                    `json:"name"`
 	Email               *string                    `json:"email"`
@@ -541,9 +545,6 @@ type ReportNumberByType struct {
 
 type ReportStatsByTime struct {
 	Total              int                         `json:"total"`
-	FilterPeriod       ReportFilterPeriod          `json:"filter_period"`
-	FromDate           time.Time                   `json:"from_date"`
-	ToDate             time.Time                   `json:"to_date"`
 	NumberByType       []*ReportNumberByType       `json:"number_by_type"`
 	StatsPerTimePeriod []*ReportStatsPerTimePeriod `json:"stats_per_time_period"`
 }
@@ -2301,6 +2302,7 @@ func (e PermissionGroupType) MarshalGQL(w io.Writer) {
 type ReportFilterPeriod string
 
 const (
+	ReportFilterPeriodAll     ReportFilterPeriod = "all"
 	ReportFilterPeriodYear    ReportFilterPeriod = "year"
 	ReportFilterPeriodQuarter ReportFilterPeriod = "quarter"
 	ReportFilterPeriodMonth   ReportFilterPeriod = "month"
@@ -2308,6 +2310,7 @@ const (
 )
 
 var AllReportFilterPeriod = []ReportFilterPeriod{
+	ReportFilterPeriodAll,
 	ReportFilterPeriodYear,
 	ReportFilterPeriodQuarter,
 	ReportFilterPeriodMonth,
@@ -2316,7 +2319,7 @@ var AllReportFilterPeriod = []ReportFilterPeriod{
 
 func (e ReportFilterPeriod) IsValid() bool {
 	switch e {
-	case ReportFilterPeriodYear, ReportFilterPeriodQuarter, ReportFilterPeriodMonth, ReportFilterPeriodWeek:
+	case ReportFilterPeriodAll, ReportFilterPeriodYear, ReportFilterPeriodQuarter, ReportFilterPeriodMonth, ReportFilterPeriodWeek:
 		return true
 	}
 	return false
