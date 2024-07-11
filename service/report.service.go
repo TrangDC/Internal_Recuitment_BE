@@ -5,6 +5,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidate"
+	"trec/ent/candidatejob"
 	"trec/repository"
 
 	"github.com/samber/lo"
@@ -13,6 +14,7 @@ import (
 
 type ReportService interface {
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
+	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -43,7 +45,6 @@ func (svc *reportSvcImpl) GetCandidateReport(ctx context.Context, filter ent.Rep
 			{Type: candidate.ReferenceTypeHeadhunt.String(), Number: 0},
 		}
 	}
-
 	candidateNumByRef := lo.SliceToMap(
 		initCandidateNumByRef(),
 		func(input *ent.ReportNumberByType) (candidate.ReferenceType, *ent.ReportNumberByType) {
@@ -101,6 +102,69 @@ func (svc *reportSvcImpl) GetCandidateReport(ctx context.Context, filter ent.Rep
 			NumberByRefType: lo.Values(candidateNumByRef),
 			StatsByTime:     candidateStatsByTime,
 		},
+	}
+
+	return result, nil
+}
+
+func (svc *reportSvcImpl) GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error) {
+	applicants, err := svc.repoRegistry.CandidateJob().BuildList(
+		ctx,
+		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(
+			candidatejob.StatusNotIn(candidatejob.StatusExStaff, candidatejob.StatusOffering),
+			candidatejob.CreatedAtGTE(filter.FromDate),
+			candidatejob.CreatedAtLTE(filter.ToDate),
+		),
+	)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, err
+	}
+
+	initApplicantsNumByStatus := func() []*ent.ReportNumberByType {
+		return []*ent.ReportNumberByType{
+			{Type: candidatejob.StatusApplied.String(), Number: 0},
+			{Type: candidatejob.StatusInterviewing.String(), Number: 0},
+			{Type: candidatejob.StatusHired.String(), Number: 0},
+			{Type: candidatejob.StatusKiv.String(), Number: 0},
+			{Type: candidatejob.StatusOfferLost.String(), Number: 0},
+		}
+	}
+	result := &ent.RecruitmentReportResponse{
+		Data: &ent.ReportStatsByTime{
+			Total:              len(applicants),
+			FilterPeriod:       filter.FilterPeriod,
+			FromDate:           filter.FromDate,
+			ToDate:             filter.ToDate,
+			NumberByType:       initApplicantsNumByStatus(),
+			StatsPerTimePeriod: svc.createReportStatsByFilter(filter, initApplicantsNumByStatus),
+		},
+	}
+
+	for _, applicant := range applicants {
+		_, statsByPeriodIndex, exists := lo.FindIndexOf(
+			result.Data.StatsPerTimePeriod,
+			func(stats *ent.ReportStatsPerTimePeriod) bool {
+				return stats.FromDate.Compare(applicant.CreatedAt) <= 0 && stats.ToDate.Compare(applicant.CreatedAt) >= 0
+			},
+		)
+		if exists {
+			result.Data.StatsPerTimePeriod[statsByPeriodIndex].Total++
+			_, numByTypeIndex, _ := lo.FindIndexOf(
+				result.Data.NumberByType,
+				func(numByType *ent.ReportNumberByType) bool {
+					return numByType.Type == applicant.Status.String()
+				},
+			)
+			result.Data.NumberByType[numByTypeIndex].Number++
+			_, numByTypePerPeriodIndex, _ := lo.FindIndexOf(
+				result.Data.StatsPerTimePeriod[statsByPeriodIndex].NumberByType,
+				func(numByType *ent.ReportNumberByType) bool {
+					return numByType.Type == applicant.Status.String()
+				},
+			)
+			result.Data.StatsPerTimePeriod[statsByPeriodIndex].NumberByType[numByTypePerPeriodIndex].Number++
+		}
 	}
 
 	return result, nil

@@ -69,6 +69,7 @@ type Query {
 
 	# Report
 	GetCandidateReport(filter: ReportFilter!): CandidateReportResponse!
+	GetRecruitmentReport(filter: ReportFilter!): RecruitmentReportResponse!
 }
 
 # Path: schema/query.graphql

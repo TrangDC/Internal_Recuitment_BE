@@ -26,6 +26,7 @@ type ReportStatsByTime {
   stats_per_time_period: [ReportStatsPerTimePeriod!]!
 }
 
+# Candidate
 type CandidateReport {
   total: Int!
   active_number: Int!
@@ -36,6 +37,11 @@ type CandidateReport {
 
 type CandidateReportResponse {
   data: CandidateReport!
+}
+
+# Recruitment
+type RecruitmentReportResponse {
+  data: ReportStatsByTime!
 }
 
 input ReportFilter {
