@@ -12,6 +12,7 @@ import (
 	"trec/internal/azuread"
 	"trec/internal/azurestorage"
 	"trec/internal/pg"
+	"trec/internal/servicebus"
 	"trec/middleware"
 	"trec/models"
 	"trec/resolver"
@@ -77,6 +78,12 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 				os.Exit(1)
 			}
 
+			serviceBusClient, err := servicebus.NewServiceBus(configs.ServiceBus, entClient)
+			if err != nil {
+				logger.Error("Getting error connect to service bus", zap.Error(err))
+				os.Exit(1)
+			}
+
 			// Create validator
 			validator := validator.New()
 			// Add translator for validator
@@ -104,7 +111,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 					os.Exit(1)
 				}
 			}
-			serviceRegistry := service.NewService(azureADOAuthClient, objectStorageClient, i18n, entClient, logger)
+			serviceRegistry := service.NewService(azureADOAuthClient, objectStorageClient, serviceBusClient, i18n, entClient, logger, configs)
 			restController := rest.NewRestController(serviceRegistry, configs.AzureADOAuth.ClientRedirectUrl, logger)
 
 			// GraphQL schema resolver handler.
@@ -185,6 +192,11 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 
 			// Graceful shutdown
 			idleConnectionsClosed := make(chan struct{})
+
+			messages := make(chan models.Messages, 10000) // Use buffered channel to avoid blocking
+			go serviceBusClient.ListenToSubscription(messages)
+			go serviceBusClient.ProcessMessages(ctx, db, messages)
+
 			go func() {
 				c := make(chan os.Signal, 1)
 				signal.Notify(c, os.Interrupt)

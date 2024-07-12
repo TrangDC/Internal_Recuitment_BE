@@ -5,16 +5,18 @@ type Configurations struct {
 	Postgres     PostgresConfig     `mapstructure:"postgres"`
 	AzureADOAuth AzureADOAuthConfig `mapstructure:"azureAD"`
 	AzureStorage AzureStorageConfig `mapstructure:"azureStorage"`
+	ServiceBus   ServiceBusConfig   `mapstructure:"serviceBus"`
 }
 
 type AppConfig struct {
-	Name         string `mapstructure:"name"`
-	Environment  string `mapstructure:"environment"`
-	Version      string `mapstructure:"version"`
-	ServiceName  string `mapstructure:"serviceName"`
-	SeverName    string `mapstructure:"serverName"`
-	Debug        bool   `mapstructure:"debug"`
+	Name          string `mapstructure:"name"`
+	Environment   string `mapstructure:"environment"`
+	Version       string `mapstructure:"version"`
+	ServiceName   string `mapstructure:"serviceName"`
+	SeverName     string `mapstructure:"serverName"`
+	Debug         bool   `mapstructure:"debug"`
 	AzureAdminOid string `mapstructure:"azureAdminOid"`
+	AppUrl        string `mapstructure:"appUrl"`
 }
 
 type PostgresConfig struct {
@@ -38,4 +40,8 @@ type AzureStorageConfig struct {
 	Container                string `mapstructure:"containerName"`
 	MaximumFileSizeMB        int64  `mapstructure:"maximumFileSizeMB"`
 	SASMaximumHourExpiration int64  `mapstructure:"sasMaximumHourExpiration"`
+}
+
+type ServiceBusConfig struct {
+	ConnectionString string `mapstructure:"connectionString"`
 }

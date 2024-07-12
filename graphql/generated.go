@@ -926,7 +926,7 @@ type MutationResolver interface {
 	CreateCandidateJob(ctx context.Context, input ent.NewCandidateJobInput, note *string) (*ent.CandidateJobResponse, error)
 	UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment, note *string) (*ent.CandidateJobResponse, error)
 	DeleteCandidateJob(ctx context.Context, id string, note *string) (bool, error)
-	UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus, note *string) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus, note *string) (bool, error)
 	CreateCandidateJobFeedback(ctx context.Context, input ent.NewCandidateJobFeedbackInput, note *string) (*ent.CandidateJobFeedbackResponse, error)
 	UpdateCandidateJobFeedback(ctx context.Context, id string, input ent.UpdateCandidateJobFeedbackInput, note *string) (*ent.CandidateJobFeedbackResponse, error)
 	DeleteCandidateJobFeedback(ctx context.Context, id string, note *string) (bool, error)
@@ -5727,7 +5727,7 @@ type HiringJobSelectionResponseGetAll {
   CreateCandidateJob(input: NewCandidateJobInput!, note: String): CandidateJobResponse!
   UpdateCandidateJobAttachment(id: ID!, input: UpdateCandidateAttachment!, note: String): CandidateJobResponse!
   DeleteCandidateJob(id: ID!, note: String): Boolean!
-  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!, note: String): CandidateJobResponse!
+  UpdateCandidateJobStatus(id: ID!, input: UpdateCandidateJobStatus!, note: String): Boolean!
 
   # CandidateJobFeedback
   CreateCandidateJobFeedback(input: NewCandidateJobFeedbackInput!, note: String): CandidateJobFeedbackResponse!
@@ -21039,9 +21039,9 @@ func (ec *executionContext) _Mutation_UpdateCandidateJobStatus(ctx context.Conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.CandidateJobResponse)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalNCandidateJobResponse2ᚖtrecᚋentᚐCandidateJobResponse(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_UpdateCandidateJobStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21051,11 +21051,7 @@ func (ec *executionContext) fieldContext_Mutation_UpdateCandidateJobStatus(ctx c
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "data":
-				return ec.fieldContext_CandidateJobResponse_data(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CandidateJobResponse", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {

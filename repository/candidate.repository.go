@@ -33,6 +33,7 @@ type CandidateRepository interface {
 	BuildBaseQuery() *ent.CandidateQuery
 	BuildCount(ctx context.Context, query *ent.CandidateQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateQuery) ([]*ent.Candidate, error)
+	BuildGet(ctx context.Context, query *ent.CandidateQuery) (*ent.Candidate, error)
 	// common function
 	ValidEmail(ctx context.Context, candidateId uuid.UUID, email string) (error, error)
 }

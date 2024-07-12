@@ -17,6 +17,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
@@ -307,6 +308,23 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[12].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	outgoingemailMixin := schema.OutgoingEmail{}.Mixin()
+	outgoingemailMixinFields0 := outgoingemailMixin[0].Fields()
+	_ = outgoingemailMixinFields0
+	outgoingemailFields := schema.OutgoingEmail{}.Fields()
+	_ = outgoingemailFields
+	// outgoingemailDescCreatedAt is the schema descriptor for created_at field.
+	outgoingemailDescCreatedAt := outgoingemailMixinFields0[1].Descriptor()
+	// outgoingemail.DefaultCreatedAt holds the default value on creation for the created_at field.
+	outgoingemail.DefaultCreatedAt = outgoingemailDescCreatedAt.Default.(func() time.Time)
+	// outgoingemailDescSubject is the schema descriptor for subject field.
+	outgoingemailDescSubject := outgoingemailFields[3].Descriptor()
+	// outgoingemail.SubjectValidator is a validator for the "subject" field. It is called by the builders before save.
+	outgoingemail.SubjectValidator = outgoingemailDescSubject.Validators[0].(func(string) error)
+	// outgoingemailDescContent is the schema descriptor for content field.
+	outgoingemailDescContent := outgoingemailFields[4].Descriptor()
+	// outgoingemail.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	outgoingemail.ContentValidator = outgoingemailDescContent.Validators[0].(func(string) error)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0

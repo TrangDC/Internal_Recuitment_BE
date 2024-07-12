@@ -27,6 +27,7 @@ type UserRepository interface {
 	// query
 	GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error)
 	BuildQuery() *ent.UserQuery
+	BuildBaseQuery() *ent.UserQuery
 	BuildCount(ctx context.Context, query *ent.UserQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.UserQuery) ([]*ent.User, error)
 	// common function
@@ -82,6 +83,10 @@ func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 			query.Where(role.DeletedAtIsNil())
 		},
 	)
+}
+
+func (rps *userRepoImpl) BuildBaseQuery() *ent.UserQuery {
+	return rps.client.User.Query().Where(user.DeletedAtIsNil())
 }
 
 func (rps *userRepoImpl) BuildParanoidQuery() *ent.UserQuery {

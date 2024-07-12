@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"trec/config"
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/attachment"
@@ -16,10 +17,14 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
+	"trec/ent/skill"
+	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/user"
+	"trec/internal/servicebus"
 	"trec/internal/util"
 	"trec/middleware"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -30,7 +35,7 @@ import (
 type CandidateJobService interface {
 	// mutation
 	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, note string) (*ent.CandidateJobResponse, error)
-	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) error
 	DeleteCandidateJob(ctx context.Context, id uuid.UUID, note string) error
 	UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
 
@@ -45,19 +50,27 @@ type CandidateJobService interface {
 
 type candidateJobSvcImpl struct {
 	attachmentSvc       AttachmentService
+	emailSvc            EmailService
 	candidateJobStepSvc CandidateJobStepService
+	outgoingEmailSvc    OutgoingEmailService
+	serviceBusClient    servicebus.ServiceBus
 	repoRegistry        repository.Repository
 	dtoRegistry         dto.Dto
 	logger              *zap.Logger
+	configs             *config.Configurations
 }
 
-func NewCandidateJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateJobService {
+func NewCandidateJobService(repoRegistry repository.Repository, serviceBusClient servicebus.ServiceBus, dtoRegistry dto.Dto, logger *zap.Logger, configs *config.Configurations) CandidateJobService {
 	return &candidateJobSvcImpl{
 		attachmentSvc:       NewAttachmentService(repoRegistry, logger),
 		candidateJobStepSvc: NewCandidateJobStepService(repoRegistry, logger),
+		emailSvc:            NewEmailService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
+		outgoingEmailSvc:    NewOutgoingEmailService(repoRegistry, logger),
+		serviceBusClient:    serviceBusClient,
 		repoRegistry:        repoRegistry,
 		dtoRegistry:         dtoRegistry,
 		logger:              logger,
+		configs:             configs,
 	}
 }
 
@@ -131,12 +144,14 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	}, nil
 }
 
-func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
+func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) error {
+	var result *ent.CandidateJob
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	record, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
+	record, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx,
+		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.IDEQ(id)).WithHiringJobEdge())
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.HiringJobID)).WithTeamEdge(
 		func(query *ent.TeamQuery) {
@@ -150,32 +165,32 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
-		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if record.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
-		return nil, util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	errString, err := svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, record.CandidateID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	errString, err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, record.CandidateID, id, &input.Status)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err := repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input)
+		result, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input)
 		if err != nil {
 			return err
 		}
@@ -184,24 +199,21 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	result, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdate(record, result)
+	err = svc.triggerEventSendEmail(ctx, record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdateStatus(record.Status, candidatejob.Status(input.Status))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	return &ent.CandidateJobResponse{
-		Data: result,
-	}, nil
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	return nil
 }
 
 func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
@@ -763,6 +775,51 @@ func (svc candidateJobSvcImpl) Pagination(records []*ent.CandidateJob, page int,
 	return records
 }
 
+// third func
+func (svc candidateJobSvcImpl) triggerEventSendEmail(ctx context.Context, oldRecord, newRecord *ent.CandidateJob) error {
+	var messages []models.MessageInput
+	var outgoingEmails []models.MessageInput
+	var results []*ent.OutgoingEmail
+	emailTemplates, err := svc.repoRegistry.EmailTemplate().ValidAndGetEmailTemplates(ctx, oldRecord, newRecord)
+	if err != nil {
+		return err
+	}
+	if len(emailTemplates) == 0 {
+		return nil
+	}
+	groupModule, err := svc.getDataForKeyword(ctx, newRecord)
+	if err != nil {
+		return err
+	}
+	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildBaseQuery())
+	if err != nil {
+		return err
+	}
+	for _, entity := range emailTemplates {
+		messages = append(messages, svc.emailSvc.GenerateEmail(ctx, users, entity, groupModule)...)
+	}
+	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages)
+	if err != nil {
+		return err
+	}
+	outgoingEmails = lo.Map(results, func(entity *ent.OutgoingEmail, index int) models.MessageInput {
+		return models.MessageInput{
+			ID:        entity.ID,
+			To:        entity.To,
+			Cc:        entity.Cc,
+			Bcc:       entity.Bcc,
+			Subject:   entity.Subject,
+			Content:   entity.Content,
+			Signature: entity.Signature,
+		}
+	})
+	err = svc.emailSvc.SentEmail(ctx, outgoingEmails)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 // permission
 func (svc candidateJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.Team) bool {
 	if payload.ForAll {
@@ -791,6 +848,55 @@ func (svc candidateJobSvcImpl) validPermissionGet(payload *middleware.Payload, q
 			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
 		)))
 	}
+}
+
+func (svc candidateJobSvcImpl) getDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error) {
+	var result models.GroupModule
+	candidateQuery := svc.repoRegistry.Candidate().BuildBaseQuery().Where(candidate.IDEQ(record.CandidateID)).
+		WithReferenceUserEdge().WithCandidateSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
+		},
+	)
+	hiringjobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.HiringJobID)).WithHiringJobSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
+		},
+	).WithOwnerEdge()
+	candidateRecord, err := svc.repoRegistry.Candidate().BuildGet(ctx, candidateQuery)
+	if err != nil {
+		return result, err
+	}
+	hiringJobRecord, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringjobQuery)
+	if err != nil {
+		return result, err
+	}
+	teamRecord, err := svc.repoRegistry.Team().BuildGetOne(ctx, svc.repoRegistry.Team().BuildBaseQuery().Where(team.IDEQ(hiringJobRecord.TeamID)).WithUserEdges())
+	if err != nil {
+		return result, nil
+	}
+	return models.GroupModule{
+		Candidate:    candidateRecord,
+		HiringJob:    hiringJobRecord,
+		Team:         teamRecord,
+		CandidateJob: record,
+	}, nil
 }
 
 // Path: service/candidate_job.service.go

@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
@@ -4340,6 +4341,308 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// OutgoingEmailEdge is the edge representation of OutgoingEmail.
+type OutgoingEmailEdge struct {
+	Node   *OutgoingEmail `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// OutgoingEmailConnection is the connection containing edges to OutgoingEmail.
+type OutgoingEmailConnection struct {
+	Edges      []*OutgoingEmailEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *OutgoingEmailConnection) build(nodes []*OutgoingEmail, pager *outgoingemailPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *OutgoingEmail
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *OutgoingEmail {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *OutgoingEmail {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*OutgoingEmailEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &OutgoingEmailEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// OutgoingEmailPaginateOption enables pagination customization.
+type OutgoingEmailPaginateOption func(*outgoingemailPager) error
+
+// WithOutgoingEmailOrder configures pagination ordering.
+func WithOutgoingEmailOrder(order *OutgoingEmailOrder) OutgoingEmailPaginateOption {
+	if order == nil {
+		order = DefaultOutgoingEmailOrder
+	}
+	o := *order
+	return func(pager *outgoingemailPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultOutgoingEmailOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithOutgoingEmailFilter configures pagination filter.
+func WithOutgoingEmailFilter(filter func(*OutgoingEmailQuery) (*OutgoingEmailQuery, error)) OutgoingEmailPaginateOption {
+	return func(pager *outgoingemailPager) error {
+		if filter == nil {
+			return errors.New("OutgoingEmailQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type outgoingemailPager struct {
+	order  *OutgoingEmailOrder
+	filter func(*OutgoingEmailQuery) (*OutgoingEmailQuery, error)
+}
+
+func newOutgoingEmailPager(opts []OutgoingEmailPaginateOption) (*outgoingemailPager, error) {
+	pager := &outgoingemailPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultOutgoingEmailOrder
+	}
+	return pager, nil
+}
+
+func (p *outgoingemailPager) applyFilter(query *OutgoingEmailQuery) (*OutgoingEmailQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *outgoingemailPager) toCursor(oe *OutgoingEmail) Cursor {
+	return p.order.Field.toCursor(oe)
+}
+
+func (p *outgoingemailPager) applyCursors(query *OutgoingEmailQuery, after, before *Cursor) *OutgoingEmailQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultOutgoingEmailOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *outgoingemailPager) applyOrder(query *OutgoingEmailQuery, reverse bool) *OutgoingEmailQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultOutgoingEmailOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultOutgoingEmailOrder.Field.field))
+	}
+	return query
+}
+
+func (p *outgoingemailPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultOutgoingEmailOrder.Field {
+			b.Comma().Ident(DefaultOutgoingEmailOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to OutgoingEmail.
+func (oe *OutgoingEmailQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...OutgoingEmailPaginateOption,
+) (*OutgoingEmailConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newOutgoingEmailPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if oe, err = pager.applyFilter(oe); err != nil {
+		return nil, err
+	}
+	conn := &OutgoingEmailConnection{Edges: []*OutgoingEmailEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = oe.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	oe = pager.applyCursors(oe, after, before)
+	oe = pager.applyOrder(oe, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		oe.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := oe.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := oe.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// OutgoingEmailOrderFieldCreatedAt orders OutgoingEmail by created_at.
+	OutgoingEmailOrderFieldCreatedAt = &OutgoingEmailOrderField{
+		field: outgoingemail.FieldCreatedAt,
+		toCursor: func(oe *OutgoingEmail) Cursor {
+			return Cursor{
+				ID:    oe.ID,
+				Value: oe.CreatedAt,
+			}
+		},
+	}
+	// OutgoingEmailOrderFieldUpdatedAt orders OutgoingEmail by updated_at.
+	OutgoingEmailOrderFieldUpdatedAt = &OutgoingEmailOrderField{
+		field: outgoingemail.FieldUpdatedAt,
+		toCursor: func(oe *OutgoingEmail) Cursor {
+			return Cursor{
+				ID:    oe.ID,
+				Value: oe.UpdatedAt,
+			}
+		},
+	}
+	// OutgoingEmailOrderFieldDeletedAt orders OutgoingEmail by deleted_at.
+	OutgoingEmailOrderFieldDeletedAt = &OutgoingEmailOrderField{
+		field: outgoingemail.FieldDeletedAt,
+		toCursor: func(oe *OutgoingEmail) Cursor {
+			return Cursor{
+				ID:    oe.ID,
+				Value: oe.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f OutgoingEmailOrderField) String() string {
+	var str string
+	switch f.field {
+	case outgoingemail.FieldCreatedAt:
+		str = "created_at"
+	case outgoingemail.FieldUpdatedAt:
+		str = "updated_at"
+	case outgoingemail.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f OutgoingEmailOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *OutgoingEmailOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("OutgoingEmailOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *OutgoingEmailOrderFieldCreatedAt
+	case "updated_at":
+		*f = *OutgoingEmailOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *OutgoingEmailOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid OutgoingEmailOrderField", str)
+	}
+	return nil
+}
+
+// OutgoingEmailOrderField defines the ordering field of OutgoingEmail.
+type OutgoingEmailOrderField struct {
+	field    string
+	toCursor func(*OutgoingEmail) Cursor
+}
+
+// OutgoingEmailOrder defines the ordering of OutgoingEmail.
+type OutgoingEmailOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *OutgoingEmailOrderField `json:"field"`
+}
+
+// DefaultOutgoingEmailOrder is the default ordering of OutgoingEmail.
+var DefaultOutgoingEmailOrder = &OutgoingEmailOrder{
+	Direction: OrderDirectionAsc,
+	Field: &OutgoingEmailOrderField{
+		field: outgoingemail.FieldID,
+		toCursor: func(oe *OutgoingEmail) Cursor {
+			return Cursor{ID: oe.ID}
+		},
+	},
+}
+
+// ToEdge converts OutgoingEmail into OutgoingEmailEdge.
+func (oe *OutgoingEmail) ToEdge(order *OutgoingEmailOrder) *OutgoingEmailEdge {
+	if order == nil {
+		order = DefaultOutgoingEmailOrder
+	}
+	return &OutgoingEmailEdge{
+		Node:   oe,
+		Cursor: order.Field.toCursor(oe),
 	}
 }
 

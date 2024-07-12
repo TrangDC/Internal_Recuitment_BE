@@ -29,6 +29,7 @@ type Repository interface {
 	EntityPermission() EntityPermissionRepository
 	PermissionGroup() PermissionGroupRepository
 	EmailTemplate() EmailTemplateRepository
+	OutgoingEmail() OutgoingEmailRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -57,6 +58,7 @@ type RepoImpl struct {
 	entityPermission     EntityPermissionRepository
 	permissionGroup      PermissionGroupRepository
 	emailTemplate        EmailTemplateRepository
+	outgoingEmail        OutgoingEmailRepository
 }
 
 // NewRepository creates new repository registry
@@ -82,6 +84,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		entityPermission:     NewEntityPermissionRepository(entClient),
 		permissionGroup:      NewPermissionGroupRepository(entClient),
 		emailTemplate:        NewEmailTemplateRepository(entClient),
+		outgoingEmail:        NewOutgoingEmailRepository(entClient),
 	}
 }
 
@@ -161,6 +164,10 @@ func (r *RepoImpl) EmailTemplate() EmailTemplateRepository {
 	return r.emailTemplate
 }
 
+func (r *RepoImpl) OutgoingEmail() OutgoingEmailRepository {
+	return r.outgoingEmail
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -201,6 +208,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		role:                 NewRoleRepository(tx.Client()),
 		entityPermission:     NewEntityPermissionRepository(tx.Client()),
 		emailTemplate:        NewEmailTemplateRepository(tx.Client()),
+		outgoingEmail:        NewOutgoingEmailRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

@@ -19,6 +19,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
@@ -1543,6 +1544,105 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     oe.ID,
+		Type:   "OutgoingEmail",
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(oe.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.To); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "[]string",
+		Name:  "to",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Cc); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "[]string",
+		Name:  "cc",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Bcc); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]string",
+		Name:  "bcc",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Subject); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "string",
+		Name:  "subject",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Content); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "content",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Signature); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "string",
+		Name:  "signature",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.EmailTemplateID); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "email_template_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "outgoingemail.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (pe *Permission) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pe.ID,
@@ -2670,6 +2770,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case outgoingemail.Table:
+		query := c.OutgoingEmail.Query().
+			Where(outgoingemail.ID(id))
+		query, err := query.CollectFields(ctx, "OutgoingEmail")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case permission.Table:
 		query := c.Permission.Query().
 			Where(permission.ID(id))
@@ -3047,6 +3159,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringJob.Query().
 			Where(hiringjob.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case outgoingemail.Table:
+		query := c.OutgoingEmail.Query().
+			Where(outgoingemail.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "OutgoingEmail")
 		if err != nil {
 			return nil, err
 		}

@@ -2,6 +2,7 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"trec/ent"
 	"trec/ent/hiringjob"
@@ -15,6 +16,10 @@ type HiringJobDto interface {
 	AuditTrailDelete(record *ent.HiringJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) (string, error)
 	MappingEdge(records []*ent.HiringJob, teams []*ent.Team)
+	MappingPriority(input int) string
+	MappingLocation(input hiringjob.Location) string
+	MappingStatus(input hiringjob.Status) string
+	MappingSalary(input *ent.HiringJob) string
 }
 
 type hiringJobDtoImpl struct {
@@ -303,4 +308,72 @@ func (d hiringJobDtoImpl) MappingEdge(records []*ent.HiringJob, teams []*ent.Tea
 		})
 		record.Edges.TeamEdge = teamEdge
 	}
+}
+
+func (d hiringJobDtoImpl) MappingPriority(input int) string {
+	switch input {
+	case 4:
+		return "LOW"
+	case 3:
+		return "MEDIUM"
+	case 2:
+		return "HIGH"
+	case 1:
+		return "URGENT"
+	}
+	return ""
+}
+
+func (d hiringJobDtoImpl) MappingLocation(input hiringjob.Location) string {
+	switch input {
+	case hiringjob.LocationHaNoi:
+		return "HA NOI"
+	case hiringjob.LocationHoChiMinh:
+		return "HO CHI MINH"
+	case hiringjob.LocationDaNang:
+		return "DA NANG"
+	case hiringjob.LocationJapan:
+		return "JAPAN"
+	case hiringjob.LocationSingapore:
+		return "SINGAPORE"
+	}
+	return ""
+}
+
+func (d hiringJobDtoImpl) MappingStatus(input hiringjob.Status) string {
+	switch input {
+	case hiringjob.StatusOpened:
+		return "OPENED"
+	case hiringjob.StatusClosed:
+		return "CLOSED"
+	case hiringjob.StatusDraft:
+		return "DRAFT"
+	}
+	return ""
+}
+
+func (d hiringJobDtoImpl) mappingCurrency(input hiringjob.Currency) string {
+	switch input {
+	case hiringjob.CurrencyVnd:
+		return "VND"
+	case hiringjob.CurrencyUsd:
+		return "USD"
+	case hiringjob.CurrencyJpy:
+		return "JPY"
+	}
+	return ""
+}
+
+func (d hiringJobDtoImpl) MappingSalary(input *ent.HiringJob) string {
+	switch input.SalaryType {
+	case hiringjob.SalaryTypeRange:
+		return fmt.Sprintf("Range: %d - %d %s", input.SalaryFrom, input.SalaryTo, d.mappingCurrency(input.Currency))
+	case hiringjob.SalaryTypeUpTo:
+		return fmt.Sprintf("Up To: %d %s", input.SalaryTo, d.mappingCurrency(input.Currency))
+	case hiringjob.SalaryTypeNegotiate:
+		return "Negotiate"
+	case hiringjob.SalaryTypeMinimum:
+		return fmt.Sprintf("Minimum: %d %s", input.SalaryFrom, d.mappingCurrency(input.Currency))
+	}
+	return ""
 }

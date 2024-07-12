@@ -448,6 +448,27 @@ var (
 			},
 		},
 	}
+	// OutgoingEmailsColumns holds the columns for the "outgoing_emails" table.
+	OutgoingEmailsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "to", Type: field.TypeJSON},
+		{Name: "cc", Type: field.TypeJSON},
+		{Name: "bcc", Type: field.TypeJSON},
+		{Name: "subject", Type: field.TypeString, Size: 2147483647},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "signature", Type: field.TypeString, Size: 2147483647},
+		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
+	}
+	// OutgoingEmailsTable holds the schema information for the "outgoing_emails" table.
+	OutgoingEmailsTable = &schema.Table{
+		Name:       "outgoing_emails",
+		Columns:    OutgoingEmailsColumns,
+		PrimaryKey: []*schema.Column{OutgoingEmailsColumns[0]},
+	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -684,6 +705,7 @@ var (
 		EntityPermissionsTable,
 		EntitySkillsTable,
 		HiringJobsTable,
+		OutgoingEmailsTable,
 		PermissionsTable,
 		PermissionGroupsTable,
 		RolesTable,
