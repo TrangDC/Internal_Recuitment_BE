@@ -6,6 +6,7 @@ app:
   serverName: $APP_SERVER_NAME
   debug: $APP_DEBUG
   azureAdminOid: $AZURE_ADMIN_OID
+  appUrl: $APP_URL
 
 postgres:
   connectionString: $POSTGRES_CONNECTION_STRING
@@ -26,3 +27,6 @@ azureStorage:
   containerName: $AZURE_STORAGE_CONTAINER_NAME
   maximumFileSizeMB: 10
   sasMaximumHourExpiration: 2
+
+serviceBus:
+  connectionString: $SERVICEBUS_CONNECTION_STRING

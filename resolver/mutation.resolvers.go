@@ -130,12 +130,16 @@ func (r *mutationResolver) DeleteCandidateJob(ctx context.Context, id string, no
 }
 
 // UpdateCandidateJobStatus is the resolver for the UpdateCandidateJobStatus field.
-func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus, note *string) (*ent.CandidateJobResponse, error) {
+func (r *mutationResolver) UpdateCandidateJobStatus(ctx context.Context, id string, input ent.UpdateCandidateJobStatus, note *string) (bool, error) {
 	var inputNote string
 	if note != nil {
 		inputNote = *note
 	}
-	return r.serviceRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, input, uuid.MustParse(id), inputNote)
+	err := r.serviceRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, input, uuid.MustParse(id), inputNote)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // CreateCandidateJobFeedback is the resolver for the CreateCandidateJobFeedback field.

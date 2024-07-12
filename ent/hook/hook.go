@@ -177,6 +177,19 @@ func (f HiringJobFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return f(ctx, mv)
 }
 
+// The OutgoingEmailFunc type is an adapter to allow the use of ordinary
+// function as OutgoingEmail mutator.
+type OutgoingEmailFunc func(context.Context, *ent.OutgoingEmailMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OutgoingEmailFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.OutgoingEmailMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OutgoingEmailMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

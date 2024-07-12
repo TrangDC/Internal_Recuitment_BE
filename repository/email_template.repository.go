@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/candidatejob"
 	"trec/ent/emailtemplate"
 	"trec/ent/role"
+	"trec/ent/user"
 	"trec/models"
 
 	"github.com/google/uuid"
@@ -32,6 +34,7 @@ type EmailTemplateRepository interface {
 	// common function
 	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
 	ValidSentToAction(event ent.EmailTemplateEvent, sentTo []ent.EmailTemplateSendTo) error
+	ValidAndGetEmailTemplates(ctx context.Context, oldRecord, record *ent.CandidateJob) ([]*ent.EmailTemplate, error)
 }
 
 type emailtemplateRepoImpl struct {
@@ -60,7 +63,11 @@ func (rps *emailtemplateRepoImpl) BuildDelete() *ent.EmailTemplateUpdate {
 func (rps *emailtemplateRepoImpl) BuildQuery() *ent.EmailTemplateQuery {
 	return rps.client.EmailTemplate.Query().Where(emailtemplate.DeletedAtIsNil()).WithRoleEdges(
 		func(rq *ent.RoleQuery) {
-			rq.Where(role.DeletedAtIsNil())
+			rq.Where(role.DeletedAtIsNil()).WithUserEdges(
+				func(uq *ent.UserQuery) {
+					uq.Where(user.DeletedAtIsNil())
+				},
+			)
 		},
 	)
 }
@@ -199,4 +206,31 @@ func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []strin
 		}
 	}
 	return nil
+}
+
+func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, oldRecord, record *ent.CandidateJob) ([]*ent.EmailTemplate, error) {
+	var result []*ent.EmailTemplate
+	var eventTrigger emailtemplate.Event
+	isTrigger := false
+	if oldRecord.Status == candidatejob.StatusApplied && record.Status == candidatejob.StatusKiv {
+		eventTrigger = emailtemplate.EventCandidateAppliedToKiv
+		isTrigger = true
+	}
+	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusKiv {
+		eventTrigger = emailtemplate.EventCandidateInterviewingToKiv
+		isTrigger = true
+	}
+	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusOffering {
+		eventTrigger = emailtemplate.EventCandidateInterviewingToOffering
+		isTrigger = true
+	}
+	if !isTrigger {
+		return result, nil
+	}
+	emailTemplateQuery := rps.BuildBaseQuery().Where(
+		emailtemplate.DeletedAtIsNil(),
+		emailtemplate.StatusEQ(emailtemplate.StatusActive),
+		emailtemplate.EventEQ(eventTrigger),
+	)
+	return rps.BuildList(ctx, emailTemplateQuery)
 }

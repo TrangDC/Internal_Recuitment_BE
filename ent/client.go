@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
@@ -70,6 +71,8 @@ type Client struct {
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// OutgoingEmail is the client for interacting with the OutgoingEmail builders.
+	OutgoingEmail *OutgoingEmailClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// PermissionGroup is the client for interacting with the PermissionGroup builders.
@@ -114,6 +117,7 @@ func (c *Client) init() {
 	c.EntityPermission = NewEntityPermissionClient(c.config)
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
+	c.OutgoingEmail = NewOutgoingEmailClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.PermissionGroup = NewPermissionGroupClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -169,6 +173,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
 		Role:                 NewRoleClient(cfg),
@@ -210,6 +215,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
 		Role:                 NewRoleClient(cfg),
@@ -260,6 +266,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.EntityPermission.Use(hooks...)
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
+	c.OutgoingEmail.Use(hooks...)
 	c.Permission.Use(hooks...)
 	c.PermissionGroup.Use(hooks...)
 	c.Role.Use(hooks...)
@@ -2095,6 +2102,96 @@ func (c *HiringJobClient) QueryHiringJobSkillEdges(hj *HiringJob) *EntitySkillQu
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
+}
+
+// OutgoingEmailClient is a client for the OutgoingEmail schema.
+type OutgoingEmailClient struct {
+	config
+}
+
+// NewOutgoingEmailClient returns a client for the OutgoingEmail from the given config.
+func NewOutgoingEmailClient(c config) *OutgoingEmailClient {
+	return &OutgoingEmailClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `outgoingemail.Hooks(f(g(h())))`.
+func (c *OutgoingEmailClient) Use(hooks ...Hook) {
+	c.hooks.OutgoingEmail = append(c.hooks.OutgoingEmail, hooks...)
+}
+
+// Create returns a builder for creating a OutgoingEmail entity.
+func (c *OutgoingEmailClient) Create() *OutgoingEmailCreate {
+	mutation := newOutgoingEmailMutation(c.config, OpCreate)
+	return &OutgoingEmailCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OutgoingEmail entities.
+func (c *OutgoingEmailClient) CreateBulk(builders ...*OutgoingEmailCreate) *OutgoingEmailCreateBulk {
+	return &OutgoingEmailCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OutgoingEmail.
+func (c *OutgoingEmailClient) Update() *OutgoingEmailUpdate {
+	mutation := newOutgoingEmailMutation(c.config, OpUpdate)
+	return &OutgoingEmailUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OutgoingEmailClient) UpdateOne(oe *OutgoingEmail) *OutgoingEmailUpdateOne {
+	mutation := newOutgoingEmailMutation(c.config, OpUpdateOne, withOutgoingEmail(oe))
+	return &OutgoingEmailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OutgoingEmailClient) UpdateOneID(id uuid.UUID) *OutgoingEmailUpdateOne {
+	mutation := newOutgoingEmailMutation(c.config, OpUpdateOne, withOutgoingEmailID(id))
+	return &OutgoingEmailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OutgoingEmail.
+func (c *OutgoingEmailClient) Delete() *OutgoingEmailDelete {
+	mutation := newOutgoingEmailMutation(c.config, OpDelete)
+	return &OutgoingEmailDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OutgoingEmailClient) DeleteOne(oe *OutgoingEmail) *OutgoingEmailDeleteOne {
+	return c.DeleteOneID(oe.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OutgoingEmailClient) DeleteOneID(id uuid.UUID) *OutgoingEmailDeleteOne {
+	builder := c.Delete().Where(outgoingemail.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OutgoingEmailDeleteOne{builder}
+}
+
+// Query returns a query builder for OutgoingEmail.
+func (c *OutgoingEmailClient) Query() *OutgoingEmailQuery {
+	return &OutgoingEmailQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a OutgoingEmail entity by its id.
+func (c *OutgoingEmailClient) Get(ctx context.Context, id uuid.UUID) (*OutgoingEmail, error) {
+	return c.Query().Where(outgoingemail.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OutgoingEmailClient) GetX(ctx context.Context, id uuid.UUID) *OutgoingEmail {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OutgoingEmailClient) Hooks() []Hook {
+	return c.hooks.OutgoingEmail
 }
 
 // PermissionClient is a client for the Permission schema.

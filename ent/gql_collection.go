@@ -1347,6 +1347,71 @@ func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (oe *OutgoingEmailQuery) CollectFields(ctx context.Context, satisfies ...string) (*OutgoingEmailQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return oe, nil
+	}
+	if err := oe.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return oe, nil
+}
+
+func (oe *OutgoingEmailQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type outgoingemailPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OutgoingEmailPaginateOption
+}
+
+func newOutgoingEmailPaginateArgs(rv map[string]interface{}) *outgoingemailPaginateArgs {
+	args := &outgoingemailPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &OutgoingEmailOrder{Field: &OutgoingEmailOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithOutgoingEmailOrder(order))
+			}
+		case *OutgoingEmailOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithOutgoingEmailOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (pe *PermissionQuery) CollectFields(ctx context.Context, satisfies ...string) (*PermissionQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {

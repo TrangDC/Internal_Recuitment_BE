@@ -14,8 +14,10 @@ type CandidateJobDto interface {
 	AuditTrailCreate(record *ent.CandidateJob) (string, error)
 	AuditTrailDelete(record *ent.CandidateJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.CandidateJob, newRecord *ent.CandidateJob) (string, error)
+	AuditTrailUpdateStatus(oldStatus, newStatus candidatejob.Status) (string, error)
 
 	MappingEdge(records []*ent.CandidateJob, candidates []*ent.Candidate, interviews []*ent.CandidateInterview, hiringJobs []*ent.HiringJob)
+	MappingStatus(input candidatejob.Status) string
 }
 
 type candidateJobDtoImpl struct {
@@ -116,6 +118,34 @@ func (d *candidateJobDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateJob, newR
 	}
 	entity = d.attachmentAuditTrailUpdate(oldRecord, newRecord, entity)
 	entity = d.reasonFailAuditTrailUpdate(oldRecord, newRecord, entity)
+	candidateJobAt.Update = append(candidateJobAt.Update, entity...)
+	result.SubModule = append(result.SubModule, candidateJobAt)
+	jsonObj, err := json.Marshal(result)
+	return string(jsonObj), err
+}
+
+func (d *candidateJobDtoImpl) AuditTrailUpdateStatus(oldStatus, newStatus candidatejob.Status) (string, error) {
+	result := models.AuditTrailData{
+		Module:    CandidateI18n,
+		Create:    []interface{}{},
+		Update:    []interface{}{},
+		Delete:    []interface{}{},
+		SubModule: []interface{}{},
+	}
+	candidateJobAt := models.AuditTrailData{
+		Module: CandidateJobI18n,
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	entity := []interface{}{}
+	entity = append(entity, models.AuditTrailUpdate{
+		Field: "model.candidate_jobs.status",
+		Value: models.ValueChange{
+			OldValue: d.statusI18n(oldStatus),
+			NewValue: d.statusI18n(newStatus),
+		},
+	})
 	candidateJobAt.Update = append(candidateJobAt.Update, entity...)
 	result.SubModule = append(result.SubModule, candidateJobAt)
 	jsonObj, err := json.Marshal(result)
@@ -269,4 +299,24 @@ func (d candidateJobDtoImpl) MappingEdge(records []*ent.CandidateJob, candidates
 		record.Edges.CandidateJobInterview = interviewEdges
 		record.Edges.HiringJobEdge = hiringJobEdge
 	}
+}
+
+func (d candidateJobDtoImpl) MappingStatus(input candidatejob.Status) string {
+	switch input {
+	case candidatejob.StatusHired:
+		return "Hired"
+	case candidatejob.StatusKiv:
+		return "Kiv"
+	case candidatejob.StatusOfferLost:
+		return "OfferLost"
+	case candidatejob.StatusExStaff:
+		return "ExStaff"
+	case candidatejob.StatusApplied:
+		return "Applied"
+	case candidatejob.StatusInterviewing:
+		return "Interviewing"
+	case candidatejob.StatusOffering:
+		return "Offering"
+	}
+	return ""
 }

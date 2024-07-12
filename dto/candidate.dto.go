@@ -14,6 +14,7 @@ type CandidateDto interface {
 	AuditTrailCreate(record *ent.Candidate) (string, error)
 	AuditTrailDelete(record *ent.Candidate) (string, error)
 	AuditTrailUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) (string, error)
+	MappingReferenceType(referenceType candidate.ReferenceType, input string) string
 }
 
 type candidateDtoImpl struct {
@@ -343,6 +344,71 @@ func (d *candidateDtoImpl) referenceTypeValueI18n(referenceType candidate.Refere
 		default:
 			return input
 		}
+	}
+	return input
+}
+
+func (d *candidateDtoImpl) MappingReferenceType(referenceType candidate.ReferenceType, input string) string {
+	switch referenceType {
+	case candidate.ReferenceTypeEb:
+		switch input {
+		case ent.CandidateReferenceEbTiktokTechvifyOfficial.String():
+			return "EB - Tiktok Techvify Official"
+		case ent.CandidateReferenceEbTiktokThedevdad.String():
+			return "EB - Tiktok Thedevdad"
+		case ent.CandidateReferenceEbLinkedinJunieTruong.String():
+			return "EB - Linkedin Junie Truong"
+		case ent.CandidateReferenceEbOtherLinkedin.String():
+			return "EB - Other Linkedin"
+		case ent.CandidateReferenceEbGroupSeeding.String():
+			return "EB - Group Seeding"
+		case ent.CandidateReferenceEbFanpageTechvifyCareers.String():
+			return "EB - Fanpage Techvify Careers"
+		case ent.CandidateReferenceEbGoogleSearch.String():
+			return "EB - Google Search"
+		case ent.CandidateReferenceEbYoutubeTechvifyCareers.String():
+			return "EB - Youtube Techvify Careers"
+		case ent.CandidateReferenceEbThread.String():
+			return "EB - Thread"
+		case ent.CandidateReferenceEbInstagram.String():
+			return "EB - Instagram"
+		case ent.CandidateReferenceEbTwitter.String():
+			return "EB - Twitter"
+		case ent.CandidateReferenceEbOthers.String():
+			return "EB - Others"
+		default:
+			return input
+		}
+	case candidate.ReferenceTypeRec:
+		switch input {
+		case ent.CandidateReferenceRecLinkedin.String():
+			return "Rec - Linkedin"
+		case ent.CandidateReferenceRecFacebook.String():
+			return "Rec - Facebook"
+		case ent.CandidateReferenceRecInstagram.String():
+			return "Rec - Instagram"
+		case ent.CandidateReferenceRecThread.String():
+			return "Rec - Thread"
+		case ent.CandidateReferenceRecGithub.String():
+			return "Rec - Github"
+		default:
+			return input
+		}
+	case candidate.ReferenceTypeHiringPlatform:
+		switch input {
+		case ent.CandidateReferenceHiringPlatformTopcv.String():
+			return "Hiring Platform - TopCv"
+		case ent.CandidateReferenceHiringPlatformVietnamWorks.String():
+			return "Hiring Platform - VietnamWorks"
+		case ent.CandidateReferenceHiringPlatformItviec.String():
+			return "Hiring Platform - It Viec"
+		default:
+			return input
+		}
+	case candidate.ReferenceTypeReference:
+		return "Reference - " + input
+	case candidate.ReferenceTypeHeadhunt:
+		return "Headhunt - " + input
 	}
 	return input
 }

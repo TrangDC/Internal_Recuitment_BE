@@ -1,10 +1,12 @@
 package service
 
 import (
+	"trec/config"
 	"trec/dto"
 	"trec/ent"
 	"trec/internal/azuread"
 	"trec/internal/azurestorage"
+	"trec/internal/servicebus"
 	"trec/models"
 	"trec/repository"
 
@@ -32,7 +34,9 @@ type Service interface {
 	Role() RoleService
 	PermissionGroup() PermissionGroupService
 	EmailTemplate() EmailTemplateService
+	Email() EmailService
 	Report() ReportService
+	OutgoingEmail() OutgoingEmailService
 }
 
 // serviceImpl is the implementation of Service.
@@ -56,14 +60,16 @@ type serviceImpl struct {
 	roleService                 RoleService
 	permissionGroup             PermissionGroupService
 	emailTemplate               EmailTemplateService
+	emailService                EmailService
 	reportService               ReportService
+	outgoingEmailService        OutgoingEmailService
 }
 
 // NewService creates a new Service.
-func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestorage.AzureStorage, i18n models.I18n, entClient *ent.Client, logger *zap.Logger) Service {
+func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestorage.AzureStorage, serviceBusClient servicebus.ServiceBus,
+	i18n models.I18n, entClient *ent.Client, logger *zap.Logger, configs *config.Configurations) Service {
 	repoRegistry := repository.NewRepository(entClient)
 	dtoRegistry := dto.NewDto()
-
 	return &serviceImpl{
 		authService:                 NewAuthService(azureADOAuthClient, logger),
 		storageService:              NewStorageService(azureStorage, logger),
@@ -72,7 +78,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		hiringJobService:            NewHiringJobService(repoRegistry, dtoRegistry, logger),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
 		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
-		candidateJobService:         NewCandidateJobService(repoRegistry, dtoRegistry, logger),
+		candidateJobService:         NewCandidateJobService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		candidateJobFeedbackService: NewCandidateJobFeedbackService(repoRegistry, dtoRegistry, logger),
 		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, dtoRegistry, logger),
 		attachmentService:           NewAttachmentService(repoRegistry, logger),
@@ -84,7 +90,9 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		roleService:                 NewRoleService(repoRegistry, dtoRegistry, logger),
 		permissionGroup:             NewPermissionGroupService(repoRegistry, logger),
 		emailTemplate:               NewEmailTemplateService(repoRegistry, dtoRegistry, logger),
+		emailService:                NewEmailService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		reportService:               NewReportService(repoRegistry, logger),
+		outgoingEmailService:        NewOutgoingEmailService(repoRegistry, logger),
 	}
 }
 
@@ -178,6 +186,14 @@ func (i serviceImpl) EmailTemplate() EmailTemplateService {
 	return i.emailTemplate
 }
 
+func (i serviceImpl) Email() EmailService {
+	return i.emailService
+}
+
 func (i serviceImpl) Report() ReportService {
 	return i.reportService
+}
+
+func (i serviceImpl) OutgoingEmail() OutgoingEmailService {
+	return i.outgoingEmailService
 }

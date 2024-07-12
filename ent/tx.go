@@ -40,6 +40,8 @@ type Tx struct {
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// OutgoingEmail is the client for interacting with the OutgoingEmail builders.
+	OutgoingEmail *OutgoingEmailClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// PermissionGroup is the client for interacting with the PermissionGroup builders.
@@ -202,6 +204,7 @@ func (tx *Tx) init() {
 	tx.EntityPermission = NewEntityPermissionClient(tx.config)
 	tx.EntitySkill = NewEntitySkillClient(tx.config)
 	tx.HiringJob = NewHiringJobClient(tx.config)
+	tx.OutgoingEmail = NewOutgoingEmailClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.PermissionGroup = NewPermissionGroupClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)

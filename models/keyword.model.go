@@ -13,7 +13,6 @@ var TeamEmailTpKeyword = []string{
 
 var HiringJobEmailTpKeyword = []string{
 	"hrjb:name",
-	"hrjb:team_name",
 	"hrjb:skill_name",
 	"hrjb:location",
 	"hrjb:requester",
@@ -28,7 +27,6 @@ var CandidateEmailTpKeyword = []string{
 	"cd:name",
 	"cd:email",
 	"cd:phone",
-	"cd:status",
 	"cd:recruiter",
 	"cd:recruit_date",
 	"cd:dob",
@@ -82,7 +80,6 @@ var TeamEmailTpKeywordJson = []*ent.JSONFormat{
 
 var HiringJobEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "hrjb:name", Value: "Job name"},
-	{Key: "hrjb:team_name", Value: "Job's Team"},
 	{Key: "hrjb:skill_name", Value: "Job's Skill Required"},
 	{Key: "hrjb:location", Value: "Job Location"},
 	{Key: "hrjb:requester", Value: "Job Requester"},
@@ -97,7 +94,6 @@ var CandidateEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "cd:name", Value: "Candidate name"},
 	{Key: "cd:email", Value: "Candidate Email"},
 	{Key: "cd:phone", Value: "Candidate Phone"},
-	{Key: "cd:status", Value: "Candidate Status"},
 	{Key: "cd:recruiter", Value: "Candidate Recruiter"},
 	{Key: "cd:recruit_date", Value: "Candidate Recruit date"},
 	{Key: "cd:dob", Value: "Candidate Date of birth"},
@@ -125,18 +121,6 @@ var LinkEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "lk:candidate_job_application", Value: "Link To Application"},
 	{Key: "lk:interview", Value: "Link To Interview"},
 }
-
-var EmailTemplateKeywordJson = append(
-	append(
-		append(
-			append(
-				append(
-					append(GeneralEmailTpKeywordJson, TeamEmailTpKeywordJson...),
-					HiringJobEmailTpKeywordJson...),
-				CandidateEmailTpKeywordJson...),
-			CandidateAppEmailTpKeywordJson...),
-		InterviewEmailTpKeywordJson...),
-	LinkEmailTpKeywordJson...)
 
 var EmailTpErrorString = map[string]string{
 	"gl":   "model.email_template.validation.gl.keyword_invalid",
