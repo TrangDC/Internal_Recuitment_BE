@@ -1,4 +1,4 @@
--- create type outgoing_email_status as enum ('pending', 'sent', 'failed');
+create type outgoing_email_status as enum ('pending', 'sent', 'failed');
 
 CREATE TABLE outgoing_emails (
   "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
