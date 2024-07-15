@@ -6,10 +6,13 @@ import (
 	"trec/ent"
 	"trec/ent/outgoingemail"
 	"trec/models"
+
+	"github.com/google/uuid"
 )
 
 type OutgoingEmailRepository interface {
 	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput) ([]*ent.OutgoingEmail, error)
+	CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error)
 }
 
 type outgoingEmailRepoImpl struct {
@@ -94,4 +97,23 @@ func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, i
 		results = append(results, record)
 	}
 	return results, nil
+}
+
+func (rps *outgoingEmailRepoImpl) CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error) {
+	query := rps.BuildQuery().Where(outgoingemail.IDEQ(uuid.MustParse(input.ID)))
+	record, err := rps.BuildGetOne(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	update := rps.BuildUpdateOne(ctx, record)
+	if input.IsSuccess {
+		update.SetStatus("sent")
+	} else {
+		update.SetStatus("failed")
+	}
+	record, err = rps.BuildSaveUpdateOne(ctx, update)
+	if err != nil {
+		return nil, err
+	}
+	return record, nil
 }

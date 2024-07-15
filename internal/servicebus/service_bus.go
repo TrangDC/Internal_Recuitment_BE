@@ -2,7 +2,6 @@ package servicebus
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"log"
 	"time"
@@ -12,8 +11,6 @@ import (
 	"trec/repository"
 
 	servicebus "github.com/Azure/azure-service-bus-go"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 const (
@@ -27,7 +24,7 @@ type ServiceBus interface {
 	ListenToSubscription(messages chan<- models.Messages)
 	SendEmailTriggerMessage(ctx context.Context, input models.MessageInput) error
 	SendInterviewScheduleMessage(ctx context.Context, input models.MessageInput, schedule time.Time) error
-	ProcessMessages(ctx context.Context, db *sql.DB, messages <-chan models.Messages)
+	ProcessMessages(ctx context.Context, messages <-chan models.Messages)
 }
 
 type serviceBusImpl struct {
@@ -98,7 +95,7 @@ func (s *serviceBusImpl) ListenToSubscription(messages chan<- models.Messages) {
 	}
 }
 
-func (s *serviceBusImpl) ProcessMessages(ctx context.Context, db *sql.DB, messages <-chan models.Messages) {
+func (s *serviceBusImpl) ProcessMessages(ctx context.Context, messages <-chan models.Messages) {
 	for {
 		select {
 		case msg := <-messages:
@@ -106,16 +103,7 @@ func (s *serviceBusImpl) ProcessMessages(ctx context.Context, db *sql.DB, messag
 			json.Unmarshal(msg.Message.Data, &input)
 			switch msg.QueueName {
 			case EmailEventTriggerCallbackQueue:
-				var id uuid.UUID
-				status := "failed"
-				if input.IsSuccess {
-					status = "sent"
-				}
-				err := db.QueryRow("UPDATE outgoing_emails SET status = $2 WHERE id = $1;", input.ID, status).Scan(&id)
-				if err != nil && err != sql.ErrNoRows {
-					log.Println("[Update Outgoing Email Message]", zap.Error(err))
-					return
-				}
+				s.repository.OutgoingEmail().CallbackOutgoingEmail(ctx, input)
 			case InterviewScheduleCallbackQueue:
 				// Do something with interview schedule callback
 				log.Printf("Interview schedule callback: %v", input)
