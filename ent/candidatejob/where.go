@@ -124,6 +124,20 @@ func CreatedBy(v uuid.UUID) predicate.CandidateJob {
 	})
 }
 
+// OnboardDate applies equality check predicate on the "onboard_date" field. It's identical to OnboardDateEQ.
+func OnboardDate(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OfferExpirationDate applies equality check predicate on the "offer_expiration_date" field. It's identical to OfferExpirationDateEQ.
+func OfferExpirationDate(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {
@@ -541,6 +555,162 @@ func FailedReasonIsNil() predicate.CandidateJob {
 func FailedReasonNotNil() predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldFailedReason)))
+	})
+}
+
+// OnboardDateEQ applies the EQ predicate on the "onboard_date" field.
+func OnboardDateEQ(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateNEQ applies the NEQ predicate on the "onboard_date" field.
+func OnboardDateNEQ(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateIn applies the In predicate on the "onboard_date" field.
+func OnboardDateIn(vs ...time.Time) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOnboardDate), v...))
+	})
+}
+
+// OnboardDateNotIn applies the NotIn predicate on the "onboard_date" field.
+func OnboardDateNotIn(vs ...time.Time) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOnboardDate), v...))
+	})
+}
+
+// OnboardDateGT applies the GT predicate on the "onboard_date" field.
+func OnboardDateGT(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateGTE applies the GTE predicate on the "onboard_date" field.
+func OnboardDateGTE(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateLT applies the LT predicate on the "onboard_date" field.
+func OnboardDateLT(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateLTE applies the LTE predicate on the "onboard_date" field.
+func OnboardDateLTE(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOnboardDate), v))
+	})
+}
+
+// OnboardDateIsNil applies the IsNil predicate on the "onboard_date" field.
+func OnboardDateIsNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOnboardDate)))
+	})
+}
+
+// OnboardDateNotNil applies the NotNil predicate on the "onboard_date" field.
+func OnboardDateNotNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOnboardDate)))
+	})
+}
+
+// OfferExpirationDateEQ applies the EQ predicate on the "offer_expiration_date" field.
+func OfferExpirationDateEQ(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateNEQ applies the NEQ predicate on the "offer_expiration_date" field.
+func OfferExpirationDateNEQ(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateIn applies the In predicate on the "offer_expiration_date" field.
+func OfferExpirationDateIn(vs ...time.Time) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOfferExpirationDate), v...))
+	})
+}
+
+// OfferExpirationDateNotIn applies the NotIn predicate on the "offer_expiration_date" field.
+func OfferExpirationDateNotIn(vs ...time.Time) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOfferExpirationDate), v...))
+	})
+}
+
+// OfferExpirationDateGT applies the GT predicate on the "offer_expiration_date" field.
+func OfferExpirationDateGT(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateGTE applies the GTE predicate on the "offer_expiration_date" field.
+func OfferExpirationDateGTE(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateLT applies the LT predicate on the "offer_expiration_date" field.
+func OfferExpirationDateLT(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateLTE applies the LTE predicate on the "offer_expiration_date" field.
+func OfferExpirationDateLTE(v time.Time) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOfferExpirationDate), v))
+	})
+}
+
+// OfferExpirationDateIsNil applies the IsNil predicate on the "offer_expiration_date" field.
+func OfferExpirationDateIsNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOfferExpirationDate)))
+	})
+}
+
+// OfferExpirationDateNotNil applies the NotNil predicate on the "offer_expiration_date" field.
+func OfferExpirationDateNotNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOfferExpirationDate)))
 	})
 }
 

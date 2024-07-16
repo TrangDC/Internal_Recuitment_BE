@@ -37,6 +37,10 @@ type CandidateJob struct {
 	Status candidatejob.Status `json:"status,omitempty"`
 	// FailedReason holds the value of the "failed_reason" field.
 	FailedReason []string `json:"failed_reason,omitempty"`
+	// OnboardDate holds the value of the "onboard_date" field.
+	OnboardDate time.Time `json:"onboard_date,omitempty"`
+	// OfferExpirationDate holds the value of the "offer_expiration_date" field.
+	OfferExpirationDate time.Time `json:"offer_expiration_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateJobQuery when eager-loading is set.
 	Edges CandidateJobEdges `json:"edges"`
@@ -154,7 +158,7 @@ func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case candidatejob.FieldStatus:
 			values[i] = new(sql.NullString)
-		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt:
+		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt, candidatejob.FieldOnboardDate, candidatejob.FieldOfferExpirationDate:
 			values[i] = new(sql.NullTime)
 		case candidatejob.FieldID, candidatejob.FieldHiringJobID, candidatejob.FieldCandidateID, candidatejob.FieldCreatedBy:
 			values[i] = new(uuid.UUID)
@@ -228,6 +232,18 @@ func (cj *CandidateJob) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &cj.FailedReason); err != nil {
 					return fmt.Errorf("unmarshal field failed_reason: %w", err)
 				}
+			}
+		case candidatejob.FieldOnboardDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field onboard_date", values[i])
+			} else if value.Valid {
+				cj.OnboardDate = value.Time
+			}
+		case candidatejob.FieldOfferExpirationDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field offer_expiration_date", values[i])
+			} else if value.Valid {
+				cj.OfferExpirationDate = value.Time
 			}
 		}
 	}
@@ -315,6 +331,12 @@ func (cj *CandidateJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("failed_reason=")
 	builder.WriteString(fmt.Sprintf("%v", cj.FailedReason))
+	builder.WriteString(", ")
+	builder.WriteString("onboard_date=")
+	builder.WriteString(cj.OnboardDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("offer_expiration_date=")
+	builder.WriteString(cj.OfferExpirationDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

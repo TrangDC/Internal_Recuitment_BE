@@ -30,6 +30,10 @@ const (
 	FieldStatus = "status"
 	// FieldFailedReason holds the string denoting the failed_reason field in the database.
 	FieldFailedReason = "failed_reason"
+	// FieldOnboardDate holds the string denoting the onboard_date field in the database.
+	FieldOnboardDate = "onboard_date"
+	// FieldOfferExpirationDate holds the string denoting the offer_expiration_date field in the database.
+	FieldOfferExpirationDate = "offer_expiration_date"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
@@ -108,6 +112,8 @@ var Columns = []string{
 	FieldCreatedBy,
 	FieldStatus,
 	FieldFailedReason,
+	FieldOnboardDate,
+	FieldOfferExpirationDate,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

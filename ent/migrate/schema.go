@@ -191,6 +191,8 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
 		{Name: "failed_reason", Type: field.TypeJSON, Nullable: true},
+		{Name: "onboard_date", Type: field.TypeTime, Nullable: true},
+		{Name: "offer_expiration_date", Type: field.TypeTime, Nullable: true},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
@@ -203,19 +205,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_jobs_candidates_candidate_job_edges",
-				Columns:    []*schema.Column{CandidateJobsColumns[6]},
+				Columns:    []*schema.Column{CandidateJobsColumns[8]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "candidate_jobs_hiring_jobs_candidate_job_edges",
-				Columns:    []*schema.Column{CandidateJobsColumns[7]},
+				Columns:    []*schema.Column{CandidateJobsColumns[9]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "candidate_jobs_users_candidate_job_edges",
-				Columns:    []*schema.Column{CandidateJobsColumns[8]},
+				Columns:    []*schema.Column{CandidateJobsColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

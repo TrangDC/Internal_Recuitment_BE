@@ -5644,6 +5644,8 @@ type CandidateJobMutation struct {
 	status                         *candidatejob.Status
 	failed_reason                  *[]string
 	appendfailed_reason            []string
+	onboard_date                   *time.Time
+	offer_expiration_date          *time.Time
 	clearedFields                  map[string]struct{}
 	attachment_edges               map[uuid.UUID]struct{}
 	removedattachment_edges        map[uuid.UUID]struct{}
@@ -6154,6 +6156,104 @@ func (m *CandidateJobMutation) ResetFailedReason() {
 	delete(m.clearedFields, candidatejob.FieldFailedReason)
 }
 
+// SetOnboardDate sets the "onboard_date" field.
+func (m *CandidateJobMutation) SetOnboardDate(t time.Time) {
+	m.onboard_date = &t
+}
+
+// OnboardDate returns the value of the "onboard_date" field in the mutation.
+func (m *CandidateJobMutation) OnboardDate() (r time.Time, exists bool) {
+	v := m.onboard_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnboardDate returns the old "onboard_date" field's value of the CandidateJob entity.
+// If the CandidateJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobMutation) OldOnboardDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnboardDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnboardDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnboardDate: %w", err)
+	}
+	return oldValue.OnboardDate, nil
+}
+
+// ClearOnboardDate clears the value of the "onboard_date" field.
+func (m *CandidateJobMutation) ClearOnboardDate() {
+	m.onboard_date = nil
+	m.clearedFields[candidatejob.FieldOnboardDate] = struct{}{}
+}
+
+// OnboardDateCleared returns if the "onboard_date" field was cleared in this mutation.
+func (m *CandidateJobMutation) OnboardDateCleared() bool {
+	_, ok := m.clearedFields[candidatejob.FieldOnboardDate]
+	return ok
+}
+
+// ResetOnboardDate resets all changes to the "onboard_date" field.
+func (m *CandidateJobMutation) ResetOnboardDate() {
+	m.onboard_date = nil
+	delete(m.clearedFields, candidatejob.FieldOnboardDate)
+}
+
+// SetOfferExpirationDate sets the "offer_expiration_date" field.
+func (m *CandidateJobMutation) SetOfferExpirationDate(t time.Time) {
+	m.offer_expiration_date = &t
+}
+
+// OfferExpirationDate returns the value of the "offer_expiration_date" field in the mutation.
+func (m *CandidateJobMutation) OfferExpirationDate() (r time.Time, exists bool) {
+	v := m.offer_expiration_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOfferExpirationDate returns the old "offer_expiration_date" field's value of the CandidateJob entity.
+// If the CandidateJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobMutation) OldOfferExpirationDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOfferExpirationDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOfferExpirationDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOfferExpirationDate: %w", err)
+	}
+	return oldValue.OfferExpirationDate, nil
+}
+
+// ClearOfferExpirationDate clears the value of the "offer_expiration_date" field.
+func (m *CandidateJobMutation) ClearOfferExpirationDate() {
+	m.offer_expiration_date = nil
+	m.clearedFields[candidatejob.FieldOfferExpirationDate] = struct{}{}
+}
+
+// OfferExpirationDateCleared returns if the "offer_expiration_date" field was cleared in this mutation.
+func (m *CandidateJobMutation) OfferExpirationDateCleared() bool {
+	_, ok := m.clearedFields[candidatejob.FieldOfferExpirationDate]
+	return ok
+}
+
+// ResetOfferExpirationDate resets all changes to the "offer_expiration_date" field.
+func (m *CandidateJobMutation) ResetOfferExpirationDate() {
+	m.offer_expiration_date = nil
+	delete(m.clearedFields, candidatejob.FieldOfferExpirationDate)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateJobMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -6506,7 +6606,7 @@ func (m *CandidateJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateJobMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, candidatejob.FieldCreatedAt)
 	}
@@ -6530,6 +6630,12 @@ func (m *CandidateJobMutation) Fields() []string {
 	}
 	if m.failed_reason != nil {
 		fields = append(fields, candidatejob.FieldFailedReason)
+	}
+	if m.onboard_date != nil {
+		fields = append(fields, candidatejob.FieldOnboardDate)
+	}
+	if m.offer_expiration_date != nil {
+		fields = append(fields, candidatejob.FieldOfferExpirationDate)
 	}
 	return fields
 }
@@ -6555,6 +6661,10 @@ func (m *CandidateJobMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case candidatejob.FieldFailedReason:
 		return m.FailedReason()
+	case candidatejob.FieldOnboardDate:
+		return m.OnboardDate()
+	case candidatejob.FieldOfferExpirationDate:
+		return m.OfferExpirationDate()
 	}
 	return nil, false
 }
@@ -6580,6 +6690,10 @@ func (m *CandidateJobMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldStatus(ctx)
 	case candidatejob.FieldFailedReason:
 		return m.OldFailedReason(ctx)
+	case candidatejob.FieldOnboardDate:
+		return m.OldOnboardDate(ctx)
+	case candidatejob.FieldOfferExpirationDate:
+		return m.OldOfferExpirationDate(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -6645,6 +6759,20 @@ func (m *CandidateJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFailedReason(v)
 		return nil
+	case candidatejob.FieldOnboardDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnboardDate(v)
+		return nil
+	case candidatejob.FieldOfferExpirationDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOfferExpirationDate(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -6693,6 +6821,12 @@ func (m *CandidateJobMutation) ClearedFields() []string {
 	if m.FieldCleared(candidatejob.FieldFailedReason) {
 		fields = append(fields, candidatejob.FieldFailedReason)
 	}
+	if m.FieldCleared(candidatejob.FieldOnboardDate) {
+		fields = append(fields, candidatejob.FieldOnboardDate)
+	}
+	if m.FieldCleared(candidatejob.FieldOfferExpirationDate) {
+		fields = append(fields, candidatejob.FieldOfferExpirationDate)
+	}
 	return fields
 }
 
@@ -6725,6 +6859,12 @@ func (m *CandidateJobMutation) ClearField(name string) error {
 	case candidatejob.FieldFailedReason:
 		m.ClearFailedReason()
 		return nil
+	case candidatejob.FieldOnboardDate:
+		m.ClearOnboardDate()
+		return nil
+	case candidatejob.FieldOfferExpirationDate:
+		m.ClearOfferExpirationDate()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob nullable field %s", name)
 }
@@ -6756,6 +6896,12 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 		return nil
 	case candidatejob.FieldFailedReason:
 		m.ResetFailedReason()
+		return nil
+	case candidatejob.FieldOnboardDate:
+		m.ResetOnboardDate()
+		return nil
+	case candidatejob.FieldOfferExpirationDate:
+		m.ResetOfferExpirationDate()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)

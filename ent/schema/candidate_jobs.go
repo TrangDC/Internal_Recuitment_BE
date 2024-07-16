@@ -23,6 +23,8 @@ func (CandidateJob) Fields() []ent.Field {
 			"poor_fit_and_engagement", "over_expectations", "over_qualification", "language_deficiency",
 			"weak_technical_skills", "poor_interpersonal_skills", "poor_problem_solving_skills", "poor_management_skills",
 			"candidate_withdrawal", "others"}).Optional(),
+		field.Time("onboard_date").Optional(),
+		field.Time("offer_expiration_date").Optional(),
 	}
 }
 
