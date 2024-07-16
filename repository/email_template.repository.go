@@ -195,7 +195,7 @@ func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []strin
 	inputMatches := re.FindAllStringSubmatch(input, -1)
 	for _, match := range inputMatches {
 		if lo.Contains(keywordArray, match[1]) {
-			return nil
+			continue
 		} else {
 			prefix := strings.Split(match[1], ":")
 			if models.EmailTpErrorString[prefix[0]] != "" {

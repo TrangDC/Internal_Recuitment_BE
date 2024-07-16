@@ -28,7 +28,7 @@ type EmailTemplateService interface {
 	GetEmailTemplate(ctx context.Context, emailTpId uuid.UUID) (*ent.EmailTemplateResponse, error)
 	GetEmailTemplates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.EmailTemplateFreeWord,
 		filter *ent.EmailTemplateFilter, orderBy ent.EmailTemplateOrder) (*ent.EmailTemplateResponseGetAll, error)
-	GetAllEmailTemplateKeyword() (*ent.GetEmailTemplateKeywordResponse, error)
+	GetAllEmailTemplateKeyword(filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error)
 }
 
 type emailtemplateSvcImpl struct {
@@ -258,17 +258,22 @@ func (svc *emailtemplateSvcImpl) GetEmailTemplates(ctx context.Context, paginati
 	return result, nil
 }
 
-func (svc *emailtemplateSvcImpl) GetAllEmailTemplateKeyword() (*ent.GetEmailTemplateKeywordResponse, error) {
+func (svc *emailtemplateSvcImpl) GetAllEmailTemplateKeyword(filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error) {
+	result := &ent.EmailTemplateKeyword{
+		General:      models.GeneralEmailTpKeywordJson,
+		Team:         models.TeamEmailTpKeywordJson,
+		HiringJob:    models.HiringJobEmailTpKeywordJson,
+		Candidate:    models.CandidateEmailTpKeywordJson,
+		CandidateJob: models.CandidateAppEmailTpKeywordJson,
+		Link:         models.LinkEmailTpKeywordCandidateJson,
+	}
+	if ent.EmailTemplateInterviewEventEnum.IsValid(ent.EmailTemplateInterviewEventEnum(filter.Event)) {
+		result.Interview = models.InterviewEmailTpKeywordJson
+		result.Link = append(result.Link, models.LinkEmailTpKeywordInterviewJson...)
+	}
 	return &ent.GetEmailTemplateKeywordResponse{
-		Data: &ent.EmailTemplateKeyword{
-			General:      models.GeneralEmailTpKeywordJson,
-			Team:         models.TeamEmailTpKeywordJson,
-			HiringJob:    models.HiringJobEmailTpKeywordJson,
-			Candidate:    models.CandidateEmailTpKeywordJson,
-			CandidateJob: models.CandidateAppEmailTpKeywordJson,
-			Interview:    models.InterviewEmailTpKeywordJson,
-			Link:         models.LinkEmailTpKeywordJson,
-		}}, nil
+		Data: result,
+	}, nil
 }
 
 // common function

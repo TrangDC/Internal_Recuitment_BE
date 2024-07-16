@@ -62,7 +62,7 @@ type Query {
 	# EmailTemplate
 	GetEmailTemplate(id: ID!): EmailTemplateResponse!
 	GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
-	GetAllEmailTemplateKeywords: GetEmailTemplateKeywordResponse!
+	GetAllEmailTemplateKeywords(filter: EmailTemplateKeywordFilter!): GetEmailTemplateKeywordResponse!
 
 	# Permission
 	GetAllPermissionGroups: PermissionGroupResponseGetAll

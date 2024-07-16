@@ -47,7 +47,14 @@ var InterviewEmailTpKeyword = []string{
 	"intv:location",
 }
 
-var LinkEmailTpKeyword = []string{
+var LinkEmailTpCandidateKeyword = []string{
+	"lk:team",
+	"lk:job",
+	"lk:candidate",
+	"lk:candidate_job_application",
+	"lk:interview",
+}
+var LinkEmailTpInterviewKeyword = []string{
 	"lk:team",
 	"lk:job",
 	"lk:candidate",
@@ -63,11 +70,14 @@ var EmailTpApplicationSubjectKeyword = append(
 		CandidateEmailTpKeyword...),
 	CandidateAppEmailTpKeyword...)
 
-var EmailTpApplicationContentKeyword = append(EmailTpApplicationSubjectKeyword, LinkEmailTpKeyword...)
+var EmailTpApplicationContentKeyword = append(EmailTpApplicationSubjectKeyword, LinkEmailTpCandidateKeyword...)
 
 var EmailTpInterviewSubjectKeyword = append(EmailTpApplicationSubjectKeyword, CandidateAppEmailTpKeyword...)
 
-var EmailTpInterviewContentKeyword = append(EmailTpInterviewSubjectKeyword, LinkEmailTpKeyword...)
+var EmailTpInterviewContentKeyword = append(
+	append(
+		EmailTpInterviewSubjectKeyword, LinkEmailTpCandidateKeyword...),
+	LinkEmailTpInterviewKeyword...)
 
 var GeneralEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "gl:receiver_name", Value: "Receiver name"},
@@ -114,11 +124,13 @@ var InterviewEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "intv:location", Value: "Interview Location"},
 }
 
-var LinkEmailTpKeywordJson = []*ent.JSONFormat{
+var LinkEmailTpKeywordCandidateJson = []*ent.JSONFormat{
 	{Key: "lk:team", Value: "Link To Team"},
 	{Key: "lk:job", Value: "Link To Job"},
 	{Key: "lk:candidate", Value: "Link To Candidate"},
 	{Key: "lk:candidate_job_application", Value: "Link To Application"},
+}
+var LinkEmailTpKeywordInterviewJson = []*ent.JSONFormat{
 	{Key: "lk:interview", Value: "Link To Interview"},
 }
 
