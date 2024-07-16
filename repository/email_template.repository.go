@@ -30,6 +30,7 @@ type EmailTemplateRepository interface {
 	BuildCount(ctx context.Context, query *ent.EmailTemplateQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.EmailTemplateQuery) ([]*ent.EmailTemplate, error)
 	BuildGetOne(ctx context.Context, query *ent.EmailTemplateQuery) (*ent.EmailTemplate, error)
+	GetEmailTpInterviewEvent(ctx context.Context, event emailtemplate.Event) ([]*ent.EmailTemplate, error)
 
 	// common function
 	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
@@ -159,6 +160,11 @@ func (rps *emailtemplateRepoImpl) GetEmailTemplate(ctx context.Context, id uuid.
 	return rps.BuildGet(ctx, query)
 }
 
+func (rps *emailtemplateRepoImpl) GetEmailTpInterviewEvent(ctx context.Context, event emailtemplate.Event) ([]*ent.EmailTemplate, error) {
+	query := rps.BuildQuery().Where(emailtemplate.EventEQ(event), emailtemplate.StatusEQ(emailtemplate.StatusActive))
+	return rps.BuildList(ctx, query)
+}
+
 // common function
 func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error {
 	var err error
@@ -199,6 +205,7 @@ func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []strin
 		} else {
 			prefix := strings.Split(match[1], ":")
 			if models.EmailTpErrorString[prefix[0]] != "" {
+				fmt.Println("======>", prefix[0], prefix[1])
 				return fmt.Errorf(models.EmailTpErrorString[prefix[0]])
 			} else {
 				return fmt.Errorf("model.email_template.validation.keyword_not_found")

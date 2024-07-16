@@ -52,14 +52,44 @@ var LinkEmailTpCandidateKeyword = []string{
 	"lk:job",
 	"lk:candidate",
 	"lk:candidate_job_application",
-	"lk:interview",
 }
 var LinkEmailTpInterviewKeyword = []string{
-	"lk:team",
-	"lk:job",
-	"lk:candidate",
-	"lk:candidate_job_application",
 	"lk:interview",
+}
+
+var AllEmailTPKeyword = map[string]string{
+	"{{ gl:receiver_name }}":             "",
+	"{{ tm:name }}":                      "",
+	"{{ tm:manager_name }}":              "",
+	"{{ hrjb:name }}":                    "",
+	"{{ hrjb:skill_name }}":              "",
+	"{{ hrjb:location }}":                "",
+	"{{ hrjb:requester }}":               "",
+	"{{ hrjb:staff_required }}":          "",
+	"{{ hrjb:status }}":                  "",
+	"{{ hrjb:priority }}":                "",
+	"{{ hrjb:salary }}":                  "",
+	"{{ hrjb:description }}":             "",
+	"{{ cd:name }}":                      "",
+	"{{ cd:email }}":                     "",
+	"{{ cd:phone }}":                     "",
+	"{{ cd:recruiter }}":                 "",
+	"{{ cd:recruit_date }}":              "",
+	"{{ cd:dob }}":                       "",
+	"{{ cd:source }}":                    "",
+	"{{ cd:skill_name }}":                "",
+	"{{ cdjb:status }}":                  "",
+	"{{ cdjb:applied_date }}":            "",
+	"{{ intv:title }}":                   "",
+	"{{ intv:interviewer_name }}":        "",
+	"{{ intv:date }}":                    "",
+	"{{ intv:time }}":                    "",
+	"{{ intv:location }}":                "",
+	"{{ lk:team }}":                      "",
+	"{{ lk:job }}":                       "",
+	"{{ lk:candidate }}":                 "",
+	"{{ lk:candidate_job_application }}": "",
+	"{{ lk:interview }}":                 "",
 }
 
 var EmailTpApplicationSubjectKeyword = append(
@@ -72,7 +102,7 @@ var EmailTpApplicationSubjectKeyword = append(
 
 var EmailTpApplicationContentKeyword = append(EmailTpApplicationSubjectKeyword, LinkEmailTpCandidateKeyword...)
 
-var EmailTpInterviewSubjectKeyword = append(EmailTpApplicationSubjectKeyword, CandidateAppEmailTpKeyword...)
+var EmailTpInterviewSubjectKeyword = append(EmailTpApplicationSubjectKeyword, InterviewEmailTpKeyword...)
 
 var EmailTpInterviewContentKeyword = append(
 	append(
