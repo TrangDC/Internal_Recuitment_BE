@@ -10,8 +10,12 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/entitypermission"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/permission"
+	"trec/ent/skill"
+	"trec/ent/skilltype"
+	"trec/ent/team"
 	"trec/ent/user"
 	"trec/middleware"
 	"trec/models"
@@ -34,6 +38,7 @@ type CandidateInterviewRepository interface {
 	BuildCount(ctx context.Context, query *ent.CandidateInterviewQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateInterviewQuery) ([]*ent.CandidateInterview, error)
 	BuildGetOne(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error)
+	GetDataForKeyword(ctx context.Context, record *ent.CandidateInterview, candidateJobRecord *ent.CandidateJob) (models.GroupModule, error)
 
 	// common function
 	ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error)
@@ -360,6 +365,56 @@ func (rps *candidateInterviewRepoImpl) ValidCandidateInterviewStatus(record *ent
 		return fmt.Errorf("model.candidate_interviews.validation.invalid_input")
 	}
 	return nil
+}
+
+func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, record *ent.CandidateInterview, candidateJobRecord *ent.CandidateJob) (models.GroupModule, error) {
+	var result models.GroupModule
+	candidateQuery := rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil(), candidate.IDEQ(candidateJobRecord.CandidateID)).
+		WithReferenceUserEdge().WithCandidateSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
+		},
+	)
+	hiringjobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(candidateJobRecord.HiringJobID)).WithHiringJobSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
+		},
+	).WithOwnerEdge()
+	candidateRecord, err := candidateQuery.First(ctx)
+	if err != nil {
+		return result, err
+	}
+	hiringJobRecord, err := hiringjobQuery.First(ctx)
+	if err != nil {
+		return result, err
+	}
+	teamRecord, err := rps.client.Team.Query().Where(team.DeletedAtIsNil(), team.IDEQ(hiringJobRecord.TeamID)).WithUserEdges().First(ctx)
+	if err != nil {
+		return result, nil
+	}
+	return models.GroupModule{
+		Candidate:    candidateRecord,
+		HiringJob:    hiringJobRecord,
+		Team:         teamRecord,
+		CandidateJob: candidateJobRecord,
+		Interview:    record,
+	}, nil
 }
 
 // Path: repository/candidate_interviewer.repository.go

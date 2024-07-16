@@ -17,8 +17,6 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/predicate"
-	"trec/ent/skill"
-	"trec/ent/skilltype"
 	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/servicebus"
@@ -787,7 +785,7 @@ func (svc candidateJobSvcImpl) triggerEventSendEmail(ctx context.Context, oldRec
 	if len(emailTemplates) == 0 {
 		return nil
 	}
-	groupModule, err := svc.getDataForKeyword(ctx, newRecord)
+	groupModule, err := svc.repoRegistry.CandidateJob().GetDataForKeyword(ctx, newRecord)
 	if err != nil {
 		return err
 	}
@@ -848,55 +846,6 @@ func (svc candidateJobSvcImpl) validPermissionGet(payload *middleware.Payload, q
 			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
 		)))
 	}
-}
-
-func (svc candidateJobSvcImpl) getDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error) {
-	var result models.GroupModule
-	candidateQuery := svc.repoRegistry.Candidate().BuildBaseQuery().Where(candidate.IDEQ(record.CandidateID)).
-		WithReferenceUserEdge().WithCandidateSkillEdges(
-		func(query *ent.EntitySkillQuery) {
-			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
-				func(sq *ent.SkillQuery) {
-					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
-						func(stq *ent.SkillTypeQuery) {
-							stq.Where(skilltype.DeletedAtIsNil())
-						},
-					)
-				},
-			)
-		},
-	)
-	hiringjobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.HiringJobID)).WithHiringJobSkillEdges(
-		func(query *ent.EntitySkillQuery) {
-			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
-				func(sq *ent.SkillQuery) {
-					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
-						func(stq *ent.SkillTypeQuery) {
-							stq.Where(skilltype.DeletedAtIsNil())
-						},
-					)
-				},
-			)
-		},
-	).WithOwnerEdge()
-	candidateRecord, err := svc.repoRegistry.Candidate().BuildGet(ctx, candidateQuery)
-	if err != nil {
-		return result, err
-	}
-	hiringJobRecord, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringjobQuery)
-	if err != nil {
-		return result, err
-	}
-	teamRecord, err := svc.repoRegistry.Team().BuildGetOne(ctx, svc.repoRegistry.Team().BuildBaseQuery().Where(team.IDEQ(hiringJobRecord.TeamID)).WithUserEdges())
-	if err != nil {
-		return result, nil
-	}
-	return models.GroupModule{
-		Candidate:    candidateRecord,
-		HiringJob:    hiringJobRecord,
-		Team:         teamRecord,
-		CandidateJob: record,
-	}, nil
 }
 
 // Path: service/candidate_job.service.go

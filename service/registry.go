@@ -80,7 +80,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
 		candidateJobService:         NewCandidateJobService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		candidateJobFeedbackService: NewCandidateJobFeedbackService(repoRegistry, dtoRegistry, logger),
-		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, dtoRegistry, logger),
+		candidateInterviewService:   NewCandidateInterviewService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		attachmentService:           NewAttachmentService(repoRegistry, logger),
 		exportDataService:           NewExportDataService(repoRegistry, i18n, logger),
 		importDataService:           NewImportDataService(repoRegistry, logger),

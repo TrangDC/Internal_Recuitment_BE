@@ -60,7 +60,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 			ID:        template.ID,
 			To:        []string{user.WorkEmail},
 			Cc:        template.Cc,
-			Bcc:       template.Bcc,
+			// Bcc:       template.Bcc,
 			Subject:   subject,
 			Content:   content,
 			Signature: template.Signature,
@@ -120,7 +120,7 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 }
 
 func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[string]string {
-	keywords := make(map[string]string)
+	var keywords = models.AllEmailTPKeyword
 	if groupModule.Team != nil {
 		managerNames := lo.Map(groupModule.Team.Edges.UserEdges, func(entity *ent.User, index int) string {
 			return entity.Name
@@ -153,13 +153,17 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		if referenceUser != nil {
 			referenceUserName = referenceUser.Name
 		}
+		if !groupModule.Candidate.RecruitTime.IsZero() {
+			keywords["{{ cd:recruit_date }}"] = groupModule.Candidate.RecruitTime.Format("2006-01-02")
+		}
+		if !groupModule.Candidate.Dob.IsZero() {
+			keywords["{{ cd:dob }}"] = groupModule.Candidate.Dob.Format("2006-01-02")
+		}
 		source := svc.dtoRegistry.Candidate().MappingReferenceType(groupModule.Candidate.ReferenceType, groupModule.Candidate.ReferenceValue)
 		keywords["{{ cd:name }}"] = groupModule.Candidate.Name
 		keywords["{{ cd:email }}"] = groupModule.Candidate.Email
 		keywords["{{ cd:phone }}"] = groupModule.Candidate.Phone
 		keywords["{{ cd:recruiter }}"] = referenceUserName
-		keywords["{{ cd:recruit_date }}"] = groupModule.Candidate.RecruitTime.Format("2006-01-02")
-		keywords["{{ cd:dob }}"] = groupModule.Candidate.Dob.Format("2006-01-02")
 		keywords["{{ cd:source }}"] = source // enum
 		keywords["{{ cd:skill_name }}"] = strings.Join(skillNames, ", ")
 		keywords["{{ lk:candidate }}"] = fmt.Sprintf("%s/dashboard/candidate-detail/%s", svc.configs.App.AppUrl, groupModule.Candidate.ID)
@@ -168,7 +172,6 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ cdjb:status }}"] = svc.dtoRegistry.CandidateJob().MappingStatus(groupModule.CandidateJob.Status) // enum
 		keywords["{{ cdjb:applied_date }}"] = groupModule.CandidateJob.CreatedAt.Format("2006-01-02")
 		keywords["{{ lk:candidate_job_application }}"] = fmt.Sprintf("%s/dashboard/job-application-detail/%s", svc.configs.App.AppUrl, groupModule.CandidateJob.ID)
-		// keywords["{{ lk:interview }}"] = fmt.Sprintf("%s/dashboard/job-application-detail/%s", svc.configs.App.AppUrl, groupModule.CandidateJob.ID) // connect with FE
 	}
 	if groupModule.Interview != nil {
 		interviewers := lo.Map(groupModule.Interview.Edges.InterviewerEdges, func(entity *ent.User, index int) string {
@@ -180,6 +183,7 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ intv:interviewer_name }}"] = strings.Join(interviewers, ", ")
 		keywords["{{ intv:date }}"] = groupModule.Interview.InterviewDate.Format("2006-01-02")
 		keywords["{{ intv:time }}"] = fmt.Sprintf("%s - %s (UTC+0)", inteviewStartTime, inteviewEndTime)
+		keywords["{{ lk:interview }}"] = fmt.Sprintf("%sdashboard/calendars?interview_id=%s&is_open_detail=true", svc.configs.App.AppUrl, groupModule.Interview.ID) // connect with FE
 		// keywords["{{ intv:location }}"] = groupModule.Interview.Location // enum
 	}
 	return keywords
