@@ -192,8 +192,8 @@ func (r *queryResolver) GetAllEmailTemplates(ctx context.Context, pagination *en
 }
 
 // GetAllEmailTemplateKeywords is the resolver for the GetAllEmailTemplateKeywords field.
-func (r *queryResolver) GetAllEmailTemplateKeywords(ctx context.Context) (*ent.GetEmailTemplateKeywordResponse, error) {
-	return r.serviceRegistry.EmailTemplate().GetAllEmailTemplateKeyword()
+func (r *queryResolver) GetAllEmailTemplateKeywords(ctx context.Context, filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error) {
+	return r.serviceRegistry.EmailTemplate().GetAllEmailTemplateKeyword(filter)
 }
 
 // GetAllPermissionGroups is the resolver for the GetAllPermissionGroups field.

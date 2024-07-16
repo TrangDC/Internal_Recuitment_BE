@@ -553,7 +553,7 @@ type ComplexityRoot struct {
 		GetAllCandidateJobFeedbacks       func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
 		GetAllCandidateJobs               func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
 		GetAllCandidates                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		GetAllEmailTemplateKeywords       func(childComplexity int) int
+		GetAllEmailTemplateKeywords       func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
 		GetAllEmailTemplates              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
 		GetAllHiringJobs                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
 		GetAllPermissionGroups            func(childComplexity int) int
@@ -998,7 +998,7 @@ type QueryResolver interface {
 	GetAllRoles(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleResponseGetAll, error)
 	GetEmailTemplate(ctx context.Context, id string) (*ent.EmailTemplateResponse, error)
 	GetAllEmailTemplates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) (*ent.EmailTemplateResponseGetAll, error)
-	GetAllEmailTemplateKeywords(ctx context.Context) (*ent.GetEmailTemplateKeywordResponse, error)
+	GetAllEmailTemplateKeywords(ctx context.Context, filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error)
 	GetAllPermissionGroups(ctx context.Context) (*ent.PermissionGroupResponseGetAll, error)
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
@@ -3392,7 +3392,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetAllEmailTemplateKeywords(childComplexity), true
+		args, err := ec.field_Query_GetAllEmailTemplateKeywords_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllEmailTemplateKeywords(childComplexity, args["filter"].(ent.EmailTemplateKeywordFilter)), true
 
 	case "Query.GetAllEmailTemplates":
 		if e.complexity.Query.GetAllEmailTemplates == nil {
@@ -4525,6 +4530,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCandidateOrder,
 		ec.unmarshalInputEmailTemplateFilter,
 		ec.unmarshalInputEmailTemplateFreeWord,
+		ec.unmarshalInputEmailTemplateKeywordFilter,
 		ec.unmarshalInputEmailTemplateOrder,
 		ec.unmarshalInputEntitySkillRecordInput,
 		ec.unmarshalInputHiringJobFilter,
@@ -5442,6 +5448,10 @@ enum EmailTemplateApplicationSendToEnum {
   candidate
 }
 
+input EmailTemplateKeywordFilter {
+  event: EmailTemplateEvent!
+}
+
 input EmailTemplateOrder {
   direction: OrderDirection!
   field: EmailTemplateOrderField!
@@ -5868,7 +5878,7 @@ enum PermissionGroupType {
 	# EmailTemplate
 	GetEmailTemplate(id: ID!): EmailTemplateResponse!
 	GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
-	GetAllEmailTemplateKeywords: GetEmailTemplateKeywordResponse!
+	GetAllEmailTemplateKeywords(filter: EmailTemplateKeywordFilter!): GetEmailTemplateKeywordResponse!
 
 	# Permission
 	GetAllPermissionGroups: PermissionGroupResponseGetAll
@@ -7740,6 +7750,21 @@ func (ec *executionContext) field_Query_GetAllCandidates_args(ctx context.Contex
 		}
 	}
 	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllEmailTemplateKeywords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.EmailTemplateKeywordFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNEmailTemplateKeywordFilter2trecᚋentᚐEmailTemplateKeywordFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -25623,7 +25648,7 @@ func (ec *executionContext) _Query_GetAllEmailTemplateKeywords(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllEmailTemplateKeywords(rctx)
+		return ec.resolvers.Query().GetAllEmailTemplateKeywords(rctx, fc.Args["filter"].(ent.EmailTemplateKeywordFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25653,6 +25678,17 @@ func (ec *executionContext) fieldContext_Query_GetAllEmailTemplateKeywords(ctx c
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GetEmailTemplateKeywordResponse", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllEmailTemplateKeywords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -33939,6 +33975,34 @@ func (ec *executionContext) unmarshalInputEmailTemplateFreeWord(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			it.Subject, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputEmailTemplateKeywordFilter(ctx context.Context, obj interface{}) (ent.EmailTemplateKeywordFilter, error) {
+	var it ent.EmailTemplateKeywordFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"event"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "event":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
+			it.Event, err = ec.unmarshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44761,6 +44825,11 @@ func (ec *executionContext) marshalNEmailTemplateKeyword2ᚖtrecᚋentᚐEmailTe
 		return graphql.Null
 	}
 	return ec._EmailTemplateKeyword(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEmailTemplateKeywordFilter2trecᚋentᚐEmailTemplateKeywordFilter(ctx context.Context, v interface{}) (ent.EmailTemplateKeywordFilter, error) {
+	res, err := ec.unmarshalInputEmailTemplateKeywordFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNEmailTemplateOrderField2ᚖtrecᚋentᚐEmailTemplateOrderField(ctx context.Context, v interface{}) (*ent.EmailTemplateOrderField, error) {

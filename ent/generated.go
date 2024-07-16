@@ -302,6 +302,10 @@ type EmailTemplateKeyword struct {
 	Link         []*JSONFormat `json:"link"`
 }
 
+type EmailTemplateKeywordFilter struct {
+	Event EmailTemplateEvent `json:"event"`
+}
+
 type EmailTemplateResponse struct {
 	Data *EmailTemplate `json:"data"`
 }

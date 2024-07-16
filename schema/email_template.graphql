@@ -41,6 +41,10 @@ enum EmailTemplateApplicationSendToEnum {
   candidate
 }
 
+input EmailTemplateKeywordFilter {
+  event: EmailTemplateEvent!
+}
+
 input EmailTemplateOrder {
   direction: OrderDirection!
   field: EmailTemplateOrderField!

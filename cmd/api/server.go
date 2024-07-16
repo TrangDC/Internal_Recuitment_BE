@@ -195,7 +195,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 
 			messages := make(chan models.Messages, 10000) // Use buffered channel to avoid blocking
 			go serviceBusClient.ListenToSubscription(messages)
-			go serviceBusClient.ProcessMessages(ctx, db, messages)
+			go serviceBusClient.ProcessMessages(ctx, messages)
 
 			go func() {
 				c := make(chan os.Signal, 1)
