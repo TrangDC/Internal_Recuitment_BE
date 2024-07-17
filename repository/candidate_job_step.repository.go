@@ -13,6 +13,7 @@ import (
 type CandidateJobStepRepository interface {
 	// mutation
 	CreateCandidateJobStep(ctx context.Context, status candidatejob.Status, candidateJobId uuid.UUID) error
+	BuildQuery() *ent.CandidateJobStepQuery
 }
 
 type candidateJobStepRepoImpl struct {
@@ -28,6 +29,10 @@ func NewCandidateJobStepRepository(client *ent.Client) CandidateJobStepRepositor
 // Base function
 func (rps candidateJobStepRepoImpl) BuildCreate() *ent.CandidateJobStepCreate {
 	return rps.client.CandidateJobStep.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
+}
+
+func (rps candidateJobStepRepoImpl) BuildQuery() *ent.CandidateJobStepQuery {
+	return rps.client.CandidateJobStep.Query()
 }
 
 // mutation

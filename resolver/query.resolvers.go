@@ -216,6 +216,11 @@ func (r *queryResolver) GetCandidateConversionRateReport(ctx context.Context, fi
 	return r.serviceRegistry.Report().GetCandidateConversionRateReport(ctx, filter)
 }
 
+// ReportCandidateConversionRateChart is the resolver for the ReportCandidateConversionRateChart field.
+func (r *queryResolver) ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error) {
+	return r.serviceRegistry.Report().ReportCandidateConversionRateChart(ctx)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

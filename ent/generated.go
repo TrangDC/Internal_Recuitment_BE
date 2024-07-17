@@ -56,6 +56,13 @@ type Base64Response struct {
 	Data string `json:"data"`
 }
 
+type CandidateConversionRateReport struct {
+	Applied      int `json:"applied"`
+	Interviewing int `json:"interviewing"`
+	Offering     int `json:"offering"`
+	Hired        int `json:"hired"`
+}
+
 type CandidateConversionRateReportResponse struct {
 	Data []*ReportNumberByType `json:"data"`
 }
@@ -536,6 +543,10 @@ type PermissionGroupResponseGetAll struct {
 
 type RecruitmentReportResponse struct {
 	Data *ReportStatsByTime `json:"data"`
+}
+
+type ReportCandidateConversionRateChartResponse struct {
+	Data *CandidateConversionRateReport `json:"data"`
 }
 
 type ReportFilter struct {
