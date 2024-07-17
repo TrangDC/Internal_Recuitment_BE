@@ -3,6 +3,8 @@ package dto
 import (
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -145,4 +147,18 @@ func IsRecordEdited(createdAt, updatedAt time.Time) bool {
 		return false
 	}
 	return true
+}
+
+func FormatCurrency(number int) string {
+	numStr := strconv.Itoa(number)
+	length := len(numStr)
+	var result []string
+	for i := length; i > 0; i -= 3 {
+		start := i - 3
+		if start < 0 {
+			start = 0
+		}
+		result = append([]string{numStr[start:i]}, result...)
+	}
+	return strings.Join(result, ",")
 }

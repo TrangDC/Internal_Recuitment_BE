@@ -85,7 +85,7 @@ func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, i
 		create := rps.BuildCreate().
 			SetTo(v.To).
 			SetCc(v.Cc).
-			SetBcc(v.Cc).
+			SetBcc(v.Bcc).
 			SetSubject(v.Subject).
 			SetContent(v.Content).
 			SetSignature(v.Signature).

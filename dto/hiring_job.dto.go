@@ -367,13 +367,13 @@ func (d hiringJobDtoImpl) mappingCurrency(input hiringjob.Currency) string {
 func (d hiringJobDtoImpl) MappingSalary(input *ent.HiringJob) string {
 	switch input.SalaryType {
 	case hiringjob.SalaryTypeRange:
-		return fmt.Sprintf("Range: %d - %d %s", input.SalaryFrom, input.SalaryTo, d.mappingCurrency(input.Currency))
+		return fmt.Sprintf("Range: %s - %s %s", FormatCurrency(input.SalaryFrom), FormatCurrency(input.SalaryTo), d.mappingCurrency(input.Currency))
 	case hiringjob.SalaryTypeUpTo:
-		return fmt.Sprintf("Up To: %d %s", input.SalaryTo, d.mappingCurrency(input.Currency))
+		return fmt.Sprintf("Up To: %s %s", FormatCurrency(input.SalaryTo), d.mappingCurrency(input.Currency))
 	case hiringjob.SalaryTypeNegotiate:
 		return "Negotiate"
 	case hiringjob.SalaryTypeMinimum:
-		return fmt.Sprintf("Minimum: %d %s", input.SalaryFrom, d.mappingCurrency(input.Currency))
+		return fmt.Sprintf("Minimum: %s %s", FormatCurrency(input.SalaryFrom), d.mappingCurrency(input.Currency))
 	}
 	return ""
 }
