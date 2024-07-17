@@ -36,7 +36,7 @@ type CandidateJobRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
-	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) (error, error)
+	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status ent.CandidateJobStatus, onboardDate *time.Time, offerExpDate *time.Time) (error, error)
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
 	BuildBaseQuery() *ent.CandidateJobQuery
 	GetDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error)
@@ -134,17 +134,27 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 	}
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	createdById := payload.UserID
-	return rps.BuildCreate().
+	create := rps.BuildCreate().
 		SetHiringJobID(uuid.MustParse(input.HiringJobID)).
 		SetUpdatedAt(time.Now().UTC()).
 		SetCandidateID(uuid.MustParse(input.CandidateID)).
 		SetStatus(candidatejob.Status(input.Status)).
-		SetCreatedBy(createdById).
-		Save(ctx)
+		SetCreatedBy(createdById)
+	if input.Status == ent.CandidateJobStatusOffering {
+		create.
+			SetOnboardDate(*input.OnboardDate).
+			SetOfferExpirationDate(*input.OfferExpirationDate)
+	}
+	return create.Save(ctx)
 }
 
 func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error) {
 	update := rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(input.Status.String()))
+	if input.Status == ent.CandidateJobStatusOffering {
+		update.
+			SetOnboardDate(*input.OnboardDate).
+			SetOfferExpirationDate(*input.OfferExpirationDate)
+	}
 	if ent.CandidateJobStatusFailed.IsValid(ent.CandidateJobStatusFailed(input.Status)) {
 		if input.FailedReason == nil && len(input.FailedReason) == 0 {
 			return nil, fmt.Errorf("model.candidate_job.validation.failed_reason_required")
@@ -243,13 +253,32 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 }
 
 // common function
-func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status *ent.CandidateJobStatus) (error, error) {
+func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status ent.CandidateJobStatus, onboardDate *time.Time, offerExpDate *time.Time) (error, error) {
 	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
 		return candidatejob.Status(s)
 	})
 	openStatus = append(openStatus, candidatejob.StatusHired)
-	if !lo.Contains(openStatus, candidatejob.Status(*status)) {
+	if !lo.Contains(openStatus, candidatejob.Status(status)) {
 		return nil, nil
+	}
+	if status == ent.CandidateJobStatusOffering {
+		currentTime := time.Now().UTC()
+		currentTime = time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, currentTime.Location())
+		if onboardDate == nil {
+			return fmt.Errorf("model.candidate_job.validation.onboard_date_required"), nil
+		}
+		if offerExpDate == nil {
+			return fmt.Errorf("model.candidate_job.validation.offer_exp_date_required"), nil
+		}
+		if onboardDate.Before(currentTime) {
+			return fmt.Errorf("model.candidate_job.validation.invalid_onboard_date"), nil
+		}
+		if offerExpDate.Before(currentTime) {
+			return fmt.Errorf("model.candidate_job.validation.invalid_offer_exp_date"), nil
+		}
+		if onboardDate.Compare(*offerExpDate) <= 0 {
+			return fmt.Errorf("model.candidate_job.validation.onboard_before_offer_exp"), nil
+		}
 	}
 	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
 	if candidateJobId != uuid.Nil {

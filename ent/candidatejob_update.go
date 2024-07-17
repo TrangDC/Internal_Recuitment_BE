@@ -169,6 +169,46 @@ func (cju *CandidateJobUpdate) ClearFailedReason() *CandidateJobUpdate {
 	return cju
 }
 
+// SetOnboardDate sets the "onboard_date" field.
+func (cju *CandidateJobUpdate) SetOnboardDate(t time.Time) *CandidateJobUpdate {
+	cju.mutation.SetOnboardDate(t)
+	return cju
+}
+
+// SetNillableOnboardDate sets the "onboard_date" field if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableOnboardDate(t *time.Time) *CandidateJobUpdate {
+	if t != nil {
+		cju.SetOnboardDate(*t)
+	}
+	return cju
+}
+
+// ClearOnboardDate clears the value of the "onboard_date" field.
+func (cju *CandidateJobUpdate) ClearOnboardDate() *CandidateJobUpdate {
+	cju.mutation.ClearOnboardDate()
+	return cju
+}
+
+// SetOfferExpirationDate sets the "offer_expiration_date" field.
+func (cju *CandidateJobUpdate) SetOfferExpirationDate(t time.Time) *CandidateJobUpdate {
+	cju.mutation.SetOfferExpirationDate(t)
+	return cju
+}
+
+// SetNillableOfferExpirationDate sets the "offer_expiration_date" field if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableOfferExpirationDate(t *time.Time) *CandidateJobUpdate {
+	if t != nil {
+		cju.SetOfferExpirationDate(*t)
+	}
+	return cju
+}
+
+// ClearOfferExpirationDate clears the value of the "offer_expiration_date" field.
+func (cju *CandidateJobUpdate) ClearOfferExpirationDate() *CandidateJobUpdate {
+	cju.mutation.ClearOfferExpirationDate()
+	return cju
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cju *CandidateJobUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobUpdate {
 	cju.mutation.AddAttachmentEdgeIDs(ids...)
@@ -506,6 +546,18 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cju.mutation.FailedReasonCleared() {
 		_spec.ClearField(candidatejob.FieldFailedReason, field.TypeJSON)
+	}
+	if value, ok := cju.mutation.OnboardDate(); ok {
+		_spec.SetField(candidatejob.FieldOnboardDate, field.TypeTime, value)
+	}
+	if cju.mutation.OnboardDateCleared() {
+		_spec.ClearField(candidatejob.FieldOnboardDate, field.TypeTime)
+	}
+	if value, ok := cju.mutation.OfferExpirationDate(); ok {
+		_spec.SetField(candidatejob.FieldOfferExpirationDate, field.TypeTime, value)
+	}
+	if cju.mutation.OfferExpirationDateCleared() {
+		_spec.ClearField(candidatejob.FieldOfferExpirationDate, field.TypeTime)
 	}
 	if cju.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -979,6 +1031,46 @@ func (cjuo *CandidateJobUpdateOne) ClearFailedReason() *CandidateJobUpdateOne {
 	return cjuo
 }
 
+// SetOnboardDate sets the "onboard_date" field.
+func (cjuo *CandidateJobUpdateOne) SetOnboardDate(t time.Time) *CandidateJobUpdateOne {
+	cjuo.mutation.SetOnboardDate(t)
+	return cjuo
+}
+
+// SetNillableOnboardDate sets the "onboard_date" field if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableOnboardDate(t *time.Time) *CandidateJobUpdateOne {
+	if t != nil {
+		cjuo.SetOnboardDate(*t)
+	}
+	return cjuo
+}
+
+// ClearOnboardDate clears the value of the "onboard_date" field.
+func (cjuo *CandidateJobUpdateOne) ClearOnboardDate() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearOnboardDate()
+	return cjuo
+}
+
+// SetOfferExpirationDate sets the "offer_expiration_date" field.
+func (cjuo *CandidateJobUpdateOne) SetOfferExpirationDate(t time.Time) *CandidateJobUpdateOne {
+	cjuo.mutation.SetOfferExpirationDate(t)
+	return cjuo
+}
+
+// SetNillableOfferExpirationDate sets the "offer_expiration_date" field if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableOfferExpirationDate(t *time.Time) *CandidateJobUpdateOne {
+	if t != nil {
+		cjuo.SetOfferExpirationDate(*t)
+	}
+	return cjuo
+}
+
+// ClearOfferExpirationDate clears the value of the "offer_expiration_date" field.
+func (cjuo *CandidateJobUpdateOne) ClearOfferExpirationDate() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearOfferExpirationDate()
+	return cjuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cjuo *CandidateJobUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobUpdateOne {
 	cjuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -1346,6 +1438,18 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 	}
 	if cjuo.mutation.FailedReasonCleared() {
 		_spec.ClearField(candidatejob.FieldFailedReason, field.TypeJSON)
+	}
+	if value, ok := cjuo.mutation.OnboardDate(); ok {
+		_spec.SetField(candidatejob.FieldOnboardDate, field.TypeTime, value)
+	}
+	if cjuo.mutation.OnboardDateCleared() {
+		_spec.ClearField(candidatejob.FieldOnboardDate, field.TypeTime)
+	}
+	if value, ok := cjuo.mutation.OfferExpirationDate(); ok {
+		_spec.SetField(candidatejob.FieldOfferExpirationDate, field.TypeTime, value)
+	}
+	if cjuo.mutation.OfferExpirationDateCleared() {
+		_spec.ClearField(candidatejob.FieldOfferExpirationDate, field.TypeTime)
 	}
 	if cjuo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

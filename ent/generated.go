@@ -440,10 +440,12 @@ type NewCandidateJobFeedbackInput struct {
 }
 
 type NewCandidateJobInput struct {
-	CandidateID string                `json:"candidate_id"`
-	HiringJobID string                `json:"hiring_job_id"`
-	Status      CandidateJobStatus    `json:"status"`
-	Attachments []*NewAttachmentInput `json:"attachments"`
+	CandidateID         string                `json:"candidate_id"`
+	HiringJobID         string                `json:"hiring_job_id"`
+	Status              CandidateJobStatus    `json:"status"`
+	Attachments         []*NewAttachmentInput `json:"attachments"`
+	OnboardDate         *time.Time            `json:"onboard_date"`
+	OfferExpirationDate *time.Time            `json:"offer_expiration_date"`
 }
 
 type NewEmailTemplateInput struct {
@@ -743,8 +745,10 @@ type UpdateCandidateJobFeedbackInput struct {
 }
 
 type UpdateCandidateJobStatus struct {
-	Status       CandidateJobStatus         `json:"status"`
-	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
+	Status              CandidateJobStatus         `json:"status"`
+	OnboardDate         *time.Time                 `json:"onboard_date"`
+	OfferExpirationDate *time.Time                 `json:"offer_expiration_date"`
+	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
 }
 
 type UpdateEmailTemplateInput struct {

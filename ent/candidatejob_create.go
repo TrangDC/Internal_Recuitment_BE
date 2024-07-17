@@ -132,6 +132,34 @@ func (cjc *CandidateJobCreate) SetFailedReason(s []string) *CandidateJobCreate {
 	return cjc
 }
 
+// SetOnboardDate sets the "onboard_date" field.
+func (cjc *CandidateJobCreate) SetOnboardDate(t time.Time) *CandidateJobCreate {
+	cjc.mutation.SetOnboardDate(t)
+	return cjc
+}
+
+// SetNillableOnboardDate sets the "onboard_date" field if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableOnboardDate(t *time.Time) *CandidateJobCreate {
+	if t != nil {
+		cjc.SetOnboardDate(*t)
+	}
+	return cjc
+}
+
+// SetOfferExpirationDate sets the "offer_expiration_date" field.
+func (cjc *CandidateJobCreate) SetOfferExpirationDate(t time.Time) *CandidateJobCreate {
+	cjc.mutation.SetOfferExpirationDate(t)
+	return cjc
+}
+
+// SetNillableOfferExpirationDate sets the "offer_expiration_date" field if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableOfferExpirationDate(t *time.Time) *CandidateJobCreate {
+	if t != nil {
+		cjc.SetOfferExpirationDate(*t)
+	}
+	return cjc
+}
+
 // SetID sets the "id" field.
 func (cjc *CandidateJobCreate) SetID(u uuid.UUID) *CandidateJobCreate {
 	cjc.mutation.SetID(u)
@@ -410,6 +438,14 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 	if value, ok := cjc.mutation.FailedReason(); ok {
 		_spec.SetField(candidatejob.FieldFailedReason, field.TypeJSON, value)
 		_node.FailedReason = value
+	}
+	if value, ok := cjc.mutation.OnboardDate(); ok {
+		_spec.SetField(candidatejob.FieldOnboardDate, field.TypeTime, value)
+		_node.OnboardDate = value
+	}
+	if value, ok := cjc.mutation.OfferExpirationDate(); ok {
+		_spec.SetField(candidatejob.FieldOfferExpirationDate, field.TypeTime, value)
+		_node.OfferExpirationDate = value
 	}
 	if nodes := cjc.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

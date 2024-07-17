@@ -90,6 +90,8 @@ type CandidateJob {
   is_able_to_delete: Boolean!
   interview_feature: Int!
   steps: [CandidateJobStep!]
+  onboard_date: Time
+  offer_expiration_date: Time
   created_at: Time!
   updated_at: Time!
 }
@@ -124,6 +126,8 @@ input NewCandidateJobInput {
   hiring_job_id: ID!
   status: CandidateJobStatus!
   attachments: [NewAttachmentInput!]
+  onboard_date: Time
+  offer_expiration_date: Time
 }
 
 input UpdateCandidateAttachment {
@@ -132,6 +136,8 @@ input UpdateCandidateAttachment {
 
 input UpdateCandidateJobStatus {
   status: CandidateJobStatus!
+  onboard_date: Time
+  offer_expiration_date: Time
   failed_reason: [CandidateJobFailedReason!]
 }
 
