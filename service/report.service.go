@@ -16,6 +16,7 @@ type ReportService interface {
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
 	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
+	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -248,4 +249,57 @@ func (svc *reportSvcImpl) createReportStatsByFilter(filter ent.ReportFilter, cre
 	}
 
 	return result
+}
+func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error) {
+	var applied int
+	var interviewing int
+	var offering int
+	var hired int
+	queryString := `
+	select
+		cjs.candidate_job_status,
+		COUNT(*) as count
+	from
+		candidate_job_steps cjs
+	join candidate_jobs cj on
+		cjs.candidate_job_id = cj.id
+	where
+		cj.deleted_at is null and cjs.candidate_job_status in ('applied', 'interviewing', 'offering', 'hired')
+	group by
+		cjs.candidate_job_status ;`
+	rows, err := svc.repoRegistry.CandidateJobStep().BuildQuery().QueryContext(ctx, queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if rows != nil {
+		for rows.Next() {
+			var status string
+			var count int
+			if err := rows.Scan(&status, &count); err != nil {
+				return nil, err
+			}
+			switch status {
+			case "applied":
+				applied = count
+			case "interviewing":
+				interviewing = count
+			case "offering":
+				offering = count
+			case "hired":
+				hired = count
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+	return &ent.ReportCandidateConversionRateChartResponse{
+		Data: &ent.CandidateConversionRateReport{
+			Applied:      applied,
+			Interviewing: interviewing,
+			Offering:     offering,
+			Hired:        hired,
+		}}, nil
 }

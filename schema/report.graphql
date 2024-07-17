@@ -52,3 +52,14 @@ input ReportFilter {
  from_date: Time!
  to_date: Time!
 }
+
+type ReportCandidateConversionRateChartResponse {
+  data: CandidateConversionRateReport!
+}
+
+type CandidateConversionRateReport {
+  applied: Int!
+  interviewing: Int!
+  offering: Int!
+  hired: Int!
+}

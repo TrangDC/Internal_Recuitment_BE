@@ -141,6 +141,13 @@ type ComplexityRoot struct {
 		UpdatedAt        func(childComplexity int) int
 	}
 
+	CandidateConversionRateReport struct {
+		Applied      func(childComplexity int) int
+		Hired        func(childComplexity int) int
+		Interviewing func(childComplexity int) int
+		Offering     func(childComplexity int) int
+	}
+
 	CandidateConversionRateReportResponse struct {
 		Data func(childComplexity int) int
 	}
@@ -548,50 +555,55 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ExportSampleCandidate             func(childComplexity int, lang ent.I18nLanguage) int
-		GetAllAuditTrails                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
-		GetAllCandidateInterview4Calendar func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
-		GetAllCandidateInterviews         func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
-		GetAllCandidateJobFeedbacks       func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
-		GetAllCandidateJobs               func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
-		GetAllCandidates                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		GetAllEmailTemplateKeywords       func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
-		GetAllEmailTemplates              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
-		GetAllHiringJobs                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
-		GetAllPermissionGroups            func(childComplexity int) int
-		GetAllRoles                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
-		GetAllSkillTypes                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
-		GetAllSkills                      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		GetAllTeams                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
-		GetAllUsers                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
-		GetAuditTrail                     func(childComplexity int, id string) int
-		GetCandidate                      func(childComplexity int, id string) int
-		GetCandidateConversionRateReport  func(childComplexity int, filter ent.ReportFilter) int
-		GetCandidateInterview             func(childComplexity int, id string) int
-		GetCandidateJob                   func(childComplexity int, id string) int
-		GetCandidateJobFeedback           func(childComplexity int, id string) int
-		GetCandidateJobGroupByInterview   func(childComplexity int, id string) int
-		GetCandidateJobGroupByStatus      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
-		GetCandidateReport                func(childComplexity int, filter ent.ReportFilter) int
-		GetEmailTemplate                  func(childComplexity int, id string) int
-		GetHiringJob                      func(childComplexity int, id string) int
-		GetMe                             func(childComplexity int) int
-		GetRecruitmentReport              func(childComplexity int, filter ent.ReportFilter) int
-		GetRole                           func(childComplexity int, id string) int
-		GetSkill                          func(childComplexity int, id string) int
-		GetSkillType                      func(childComplexity int, id string) int
-		GetTeam                           func(childComplexity int, id string) int
-		GetUser                           func(childComplexity int, id string) int
-		SelectionCandidates               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		SelectionHiringJobs               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
-		SelectionRole                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
-		SelectionSkillTypes               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
-		SelectionSkills                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		SelectionTeams                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
-		SelectionUsers                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		ExportSampleCandidate              func(childComplexity int, lang ent.I18nLanguage) int
+		GetAllAuditTrails                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllCandidateInterview4Calendar  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateInterviews          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateJobFeedbacks        func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
+		GetAllCandidateJobs                func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
+		GetAllCandidates                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		GetAllEmailTemplateKeywords        func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
+		GetAllEmailTemplates               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
+		GetAllHiringJobs                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		GetAllPermissionGroups             func(childComplexity int) int
+		GetAllRoles                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
+		GetAllSkillTypes                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
+		GetAllSkills                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
+		GetAllTeams                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
+		GetAllUsers                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		GetAuditTrail                      func(childComplexity int, id string) int
+		GetCandidate                       func(childComplexity int, id string) int
+		GetCandidateConversionRateReport   func(childComplexity int, filter ent.ReportFilter) int
+		GetCandidateInterview              func(childComplexity int, id string) int
+		GetCandidateJob                    func(childComplexity int, id string) int
+		GetCandidateJobFeedback            func(childComplexity int, id string) int
+		GetCandidateJobGroupByInterview    func(childComplexity int, id string) int
+		GetCandidateJobGroupByStatus       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
+		GetCandidateReport                 func(childComplexity int, filter ent.ReportFilter) int
+		GetEmailTemplate                   func(childComplexity int, id string) int
+		GetHiringJob                       func(childComplexity int, id string) int
+		GetMe                              func(childComplexity int) int
+		GetRecruitmentReport               func(childComplexity int, filter ent.ReportFilter) int
+		GetRole                            func(childComplexity int, id string) int
+		GetSkill                           func(childComplexity int, id string) int
+		GetSkillType                       func(childComplexity int, id string) int
+		GetTeam                            func(childComplexity int, id string) int
+		GetUser                            func(childComplexity int, id string) int
+		ReportCandidateConversionRateChart func(childComplexity int) int
+		SelectionCandidates                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		SelectionHiringJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		SelectionRole                      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
+		SelectionSkillTypes                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
+		SelectionSkills                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
+		SelectionTeams                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
+		SelectionUsers                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
 	RecruitmentReportResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	ReportCandidateConversionRateChartResponse struct {
 		Data func(childComplexity int) int
 	}
 
@@ -1005,6 +1017,7 @@ type QueryResolver interface {
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
 	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
+	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *ent.Role) (string, error)
@@ -1400,6 +1413,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Candidate.UpdatedAt(childComplexity), true
+
+	case "CandidateConversionRateReport.applied":
+		if e.complexity.CandidateConversionRateReport.Applied == nil {
+			break
+		}
+
+		return e.complexity.CandidateConversionRateReport.Applied(childComplexity), true
+
+	case "CandidateConversionRateReport.hired":
+		if e.complexity.CandidateConversionRateReport.Hired == nil {
+			break
+		}
+
+		return e.complexity.CandidateConversionRateReport.Hired(childComplexity), true
+
+	case "CandidateConversionRateReport.interviewing":
+		if e.complexity.CandidateConversionRateReport.Interviewing == nil {
+			break
+		}
+
+		return e.complexity.CandidateConversionRateReport.Interviewing(childComplexity), true
+
+	case "CandidateConversionRateReport.offering":
+		if e.complexity.CandidateConversionRateReport.Offering == nil {
+			break
+		}
+
+		return e.complexity.CandidateConversionRateReport.Offering(childComplexity), true
 
 	case "CandidateConversionRateReportResponse.data":
 		if e.complexity.CandidateConversionRateReportResponse.Data == nil {
@@ -3717,6 +3758,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUser(childComplexity, args["id"].(string)), true
 
+	case "Query.ReportCandidateConversionRateChart":
+		if e.complexity.Query.ReportCandidateConversionRateChart == nil {
+			break
+		}
+
+		return e.complexity.Query.ReportCandidateConversionRateChart(childComplexity), true
+
 	case "Query.SelectionCandidates":
 		if e.complexity.Query.SelectionCandidates == nil {
 			break
@@ -3807,6 +3855,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RecruitmentReportResponse.Data(childComplexity), true
+
+	case "ReportCandidateConversionRateChartResponse.data":
+		if e.complexity.ReportCandidateConversionRateChartResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.ReportCandidateConversionRateChartResponse.Data(childComplexity), true
 
 	case "ReportNumberByType.number":
 		if e.complexity.ReportNumberByType.Number == nil {
@@ -5909,6 +5964,7 @@ enum PermissionGroupType {
 	GetCandidateReport(filter: ReportFilter!): CandidateReportResponse!
 	GetRecruitmentReport(filter: ReportFilter!): RecruitmentReportResponse!
 	GetCandidateConversionRateReport(filter: ReportFilter!): CandidateConversionRateReportResponse!
+	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
 }
 
 # Path: schema/query.graphql
@@ -5967,7 +6023,17 @@ input ReportFilter {
  from_date: Time!
  to_date: Time!
 }
-`, BuiltIn: false},
+
+type ReportCandidateConversionRateChartResponse {
+  data: CandidateConversionRateReport!
+}
+
+type CandidateConversionRateReport {
+  applied: Int!
+  interviewing: Int!
+  offering: Int!
+  hired: Int!
+}`, BuiltIn: false},
 	{Name: "../schema/role.graphql", Input: `enum RoleOrderField {
   name
 }
@@ -11055,6 +11121,182 @@ func (ec *executionContext) fieldContext_Candidate_deleted_at(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateConversionRateReport_applied(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateConversionRateReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateConversionRateReport_applied(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Applied, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateConversionRateReport_applied(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateConversionRateReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateConversionRateReport_interviewing(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateConversionRateReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateConversionRateReport_interviewing(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Interviewing, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateConversionRateReport_interviewing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateConversionRateReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateConversionRateReport_offering(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateConversionRateReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateConversionRateReport_offering(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Offering, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateConversionRateReport_offering(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateConversionRateReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateConversionRateReport_hired(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateConversionRateReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateConversionRateReport_hired(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hired, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateConversionRateReport_hired(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateConversionRateReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -26065,6 +26307,54 @@ func (ec *executionContext) fieldContext_Query_GetCandidateConversionRateReport(
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_ReportCandidateConversionRateChart(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ReportCandidateConversionRateChart(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ReportCandidateConversionRateChart(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ReportCandidateConversionRateChartResponse)
+	fc.Result = res
+	return ec.marshalNReportCandidateConversionRateChartResponse2ᚖtrecᚋentᚐReportCandidateConversionRateChartResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ReportCandidateConversionRateChart(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_ReportCandidateConversionRateChartResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ReportCandidateConversionRateChartResponse", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -26241,6 +26531,60 @@ func (ec *executionContext) fieldContext_RecruitmentReportResponse_data(ctx cont
 				return ec.fieldContext_ReportStatsByTime_stats_per_time_period(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ReportStatsByTime", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ReportCandidateConversionRateChartResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.ReportCandidateConversionRateChartResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ReportCandidateConversionRateChartResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateConversionRateReport)
+	fc.Result = res
+	return ec.marshalNCandidateConversionRateReport2ᚖtrecᚋentᚐCandidateConversionRateReport(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ReportCandidateConversionRateChartResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ReportCandidateConversionRateChartResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "applied":
+				return ec.fieldContext_CandidateConversionRateReport_applied(ctx, field)
+			case "interviewing":
+				return ec.fieldContext_CandidateConversionRateReport_interviewing(ctx, field)
+			case "offering":
+				return ec.fieldContext_CandidateConversionRateReport_offering(ctx, field)
+			case "hired":
+				return ec.fieldContext_CandidateConversionRateReport_hired(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateConversionRateReport", field.Name)
 		},
 	}
 	return fc, nil
@@ -37563,6 +37907,55 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var candidateConversionRateReportImplementors = []string{"CandidateConversionRateReport"}
+
+func (ec *executionContext) _CandidateConversionRateReport(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateConversionRateReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateConversionRateReportImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateConversionRateReport")
+		case "applied":
+
+			out.Values[i] = ec._CandidateConversionRateReport_applied(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "interviewing":
+
+			out.Values[i] = ec._CandidateConversionRateReport_interviewing(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "offering":
+
+			out.Values[i] = ec._CandidateConversionRateReport_offering(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "hired":
+
+			out.Values[i] = ec._CandidateConversionRateReport_hired(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var candidateConversionRateReportResponseImplementors = []string{"CandidateConversionRateReportResponse"}
 
 func (ec *executionContext) _CandidateConversionRateReportResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateConversionRateReportResponse) graphql.Marshaler {
@@ -41986,6 +42379,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "ReportCandidateConversionRateChart":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ReportCandidateConversionRateChart(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -42022,6 +42438,34 @@ func (ec *executionContext) _RecruitmentReportResponse(ctx context.Context, sel 
 		case "data":
 
 			out.Values[i] = ec._RecruitmentReportResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var reportCandidateConversionRateChartResponseImplementors = []string{"ReportCandidateConversionRateChartResponse"}
+
+func (ec *executionContext) _ReportCandidateConversionRateChartResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.ReportCandidateConversionRateChartResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, reportCandidateConversionRateChartResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReportCandidateConversionRateChartResponse")
+		case "data":
+
+			out.Values[i] = ec._ReportCandidateConversionRateChartResponse_data(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -44227,6 +44671,16 @@ func (ec *executionContext) marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx cont
 	return ec._Candidate(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCandidateConversionRateReport2ᚖtrecᚋentᚐCandidateConversionRateReport(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateConversionRateReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateConversionRateReport(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCandidateConversionRateReportResponse2trecᚋentᚐCandidateConversionRateReportResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateConversionRateReportResponse) graphql.Marshaler {
 	return ec._CandidateConversionRateReportResponse(ctx, sel, &v)
 }
@@ -45830,6 +46284,20 @@ func (ec *executionContext) marshalNRecruitmentReportResponse2ᚖtrecᚋentᚐRe
 		return graphql.Null
 	}
 	return ec._RecruitmentReportResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNReportCandidateConversionRateChartResponse2trecᚋentᚐReportCandidateConversionRateChartResponse(ctx context.Context, sel ast.SelectionSet, v ent.ReportCandidateConversionRateChartResponse) graphql.Marshaler {
+	return ec._ReportCandidateConversionRateChartResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNReportCandidateConversionRateChartResponse2ᚖtrecᚋentᚐReportCandidateConversionRateChartResponse(ctx context.Context, sel ast.SelectionSet, v *ent.ReportCandidateConversionRateChartResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ReportCandidateConversionRateChartResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNReportFilter2trecᚋentᚐReportFilter(ctx context.Context, v interface{}) (ent.ReportFilter, error) {

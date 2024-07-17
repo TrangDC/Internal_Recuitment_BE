@@ -43,4 +43,3 @@ func (r *emailTemplateResolver) Roles(ctx context.Context, obj *ent.EmailTemplat
 func (r *Resolver) EmailTemplate() graphql1.EmailTemplateResolver { return &emailTemplateResolver{r} }
 
 type emailTemplateResolver struct{ *Resolver }
-
