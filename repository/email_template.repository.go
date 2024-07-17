@@ -205,7 +205,6 @@ func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []strin
 		} else {
 			prefix := strings.Split(match[1], ":")
 			if models.EmailTpErrorString[prefix[0]] != "" {
-				fmt.Println("======>", prefix[0], prefix[1])
 				return fmt.Errorf(models.EmailTpErrorString[prefix[0]])
 			} else {
 				return fmt.Errorf("model.email_template.validation.keyword_not_found")
@@ -234,8 +233,7 @@ func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, 
 	if !isTrigger {
 		return result, nil
 	}
-	emailTemplateQuery := rps.BuildBaseQuery().Where(
-		emailtemplate.DeletedAtIsNil(),
+	emailTemplateQuery := rps.BuildQuery().Where(
 		emailtemplate.StatusEQ(emailtemplate.StatusActive),
 		emailtemplate.EventEQ(eventTrigger),
 	)
