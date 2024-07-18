@@ -2,12 +2,19 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 	"trec/ent"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
+	"trec/ent/hiringjob"
+	"trec/ent/team"
+	"trec/internal/util"
 	"trec/repository"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -17,6 +24,7 @@ type ReportService interface {
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
 	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
+	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -250,7 +258,18 @@ func (svc *reportSvcImpl) createReportStatsByFilter(filter ent.ReportFilter, cre
 
 	return result
 }
+
 func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error) {
+	result, err := svc.candidateJobConversion(ctx, nil, uuid.Nil, "")
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return &ent.ReportCandidateConversionRateChartResponse{
+		Data: result}, nil
+}
+
+func (svc reportSvcImpl) candidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, teamId uuid.UUID, teamName string) (*ent.CandidateConversionRateReport, error) {
 	var applied int
 	var interviewing int
 	var offering int
@@ -264,9 +283,14 @@ func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context)
 	join candidate_jobs cj on
 		cjs.candidate_job_id = cj.id
 	where
-		cj.deleted_at is null and cjs.candidate_job_status in ('applied', 'interviewing', 'offering', 'hired')
+		cj.deleted_at is null %s and cjs.candidate_job_status in ('applied', 'interviewing', 'offering', 'hired')
 	group by
 		cjs.candidate_job_status ;`
+	if len(candidateJobIds) > 0 {
+		queryString = fmt.Sprintf(queryString, fmt.Sprintf("and cj.id in ('%s')", strings.Join(lo.Map(candidateJobIds, func(id uuid.UUID, index int) string { return id.String() }), "','")))
+	} else {
+		queryString = fmt.Sprintf(queryString, "")
+	}
 	rows, err := svc.repoRegistry.CandidateJobStep().BuildQuery().QueryContext(ctx, queryString)
 	if err != nil {
 		return nil, err
@@ -295,11 +319,88 @@ func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context)
 			return nil, err
 		}
 	}
-	return &ent.ReportCandidateConversionRateChartResponse{
-		Data: &ent.CandidateConversionRateReport{
-			Applied:      applied,
-			Interviewing: interviewing,
-			Offering:     offering,
-			Hired:        hired,
+	resultId := ""
+	if teamId != uuid.Nil {
+		resultId = teamId.String()
+	}
+	return &ent.CandidateConversionRateReport{
+		ID:           resultId,
+		TeamName:     teamName,
+		Applied:      applied,
+		Interviewing: interviewing,
+		Offering:     offering,
+		Hired:        hired,
+	}, nil
+}
+
+func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
+	var page int
+	var perPage int
+	var results []*ent.CandidateConversionRateReportEdge
+	query := svc.repoRegistry.Team().BuildBaseQuery().Where().WithTeamJobEdges(
+		func(hrjQ *ent.HiringJobQuery) {
+			hrjQ.Where(hiringjob.DeletedAtIsNil()).WithCandidateJobEdges(
+				func(cjQ *ent.CandidateJobQuery) {
+					cjQ.Where(candidatejob.DeletedAtIsNil())
+				},
+			)
+		},
+	)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+	}
+	count, err := svc.repoRegistry.Team().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	if orderBy == nil {
+		query = query.Order(ent.Desc(team.FieldCreatedAt))
+	} else {
+		fieldName := "created_at"
+		switch orderBy.Field {
+		case ent.ReportOrderByFieldTeamCreatedAt:
+			fieldName = "created_at"
+		case ent.ReportOrderByFieldTeamName:
+			fieldName = "name"
+		}
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			query = query.Order(ent.Asc(fieldName))
+		} else {
+			query = query.Order(ent.Desc(fieldName))
+		}
+	}
+	if perPage != 0 && page != 0 {
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	teams, err := svc.repoRegistry.Team().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	for _, team := range teams {
+		candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.TeamJobEdges, func(hrj *ent.HiringJob, index int) *ent.HiringJob {
+			return hrj
+		}), func(hrj *ent.HiringJob, index int) []uuid.UUID {
+			return lo.Map(hrj.Edges.CandidateJobEdges, func(cj *ent.CandidateJob, index int) uuid.UUID {
+				return cj.ID
+			})
+		}))
+		result, err := svc.candidateJobConversion(ctx, candidateJobIds, team.ID, team.Name)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+		results = append(results, &ent.CandidateConversionRateReportEdge{
+			Node: result,
+		})
+	}
+	return &ent.ReportCandidateConversionRateTableResponse{
+		Edges: results,
+		Pagination: &ent.Pagination{
+			Page:    page,
+			PerPage: perPage,
+			Total:   count,
 		}}, nil
 }
