@@ -202,6 +202,8 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		InterviewDate  func(childComplexity int) int
 		Interviewer    func(childComplexity int) int
+		Location       func(childComplexity int) int
+		MeetingLink    func(childComplexity int) int
 		Owner          func(childComplexity int) int
 		StartFrom      func(childComplexity int) int
 		Status         func(childComplexity int) int
@@ -1770,6 +1772,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateInterview.Interviewer(childComplexity), true
+
+	case "CandidateInterview.location":
+		if e.complexity.CandidateInterview.Location == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.Location(childComplexity), true
+
+	case "CandidateInterview.meeting_link":
+		if e.complexity.CandidateInterview.MeetingLink == nil {
+			break
+		}
+
+		return e.complexity.CandidateInterview.MeetingLink(childComplexity), true
 
 	case "CandidateInterview.owner":
 		if e.complexity.CandidateInterview.Owner == nil {
@@ -5231,6 +5247,8 @@ type CandidateInterview {
   owner: User
   status: CandidateInterviewStatus!
   edited: Boolean!
+  location: String!
+  meeting_link: String
   created_at: Time!
   updated_at: Time!
 }
@@ -5248,6 +5266,8 @@ input NewCandidateInterviewInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]!
+  location: String!
+  meeting_link: String!
 }
 
 input NewCandidateInterview4CalendarInput {
@@ -5259,6 +5279,8 @@ input NewCandidateInterview4CalendarInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]!
+  location: String!
+  meeting_link: String!
 }
 
 input UpdateCandidateInterviewInput {
@@ -5269,6 +5291,8 @@ input UpdateCandidateInterviewInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]
+  location: String!
+  meeting_link: String!
 }
 
 input UpdateCandidateInterviewScheduleInput {
@@ -13725,6 +13749,91 @@ func (ec *executionContext) fieldContext_CandidateInterview_edited(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateInterview_location(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_location(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Location, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateInterview_location(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateInterview_meeting_link(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateInterview_meeting_link(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MeetingLink, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateInterview_meeting_link(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateInterview_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateInterview) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateInterview_created_at(ctx, field)
 	if err != nil {
@@ -13878,6 +13987,10 @@ func (ec *executionContext) fieldContext_CandidateInterviewEdge_node(ctx context
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "edited":
 				return ec.fieldContext_CandidateInterview_edited(ctx, field)
+			case "location":
+				return ec.fieldContext_CandidateInterview_location(ctx, field)
+			case "meeting_link":
+				return ec.fieldContext_CandidateInterview_meeting_link(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -13995,6 +14108,10 @@ func (ec *executionContext) fieldContext_CandidateInterviewResponse_data(ctx con
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "edited":
 				return ec.fieldContext_CandidateInterview_edited(ctx, field)
+			case "location":
+				return ec.fieldContext_CandidateInterview_location(ctx, field)
+			case "meeting_link":
+				return ec.fieldContext_CandidateInterview_meeting_link(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -17116,6 +17233,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupInterviewFeedback_inte
 				return ec.fieldContext_CandidateInterview_status(ctx, field)
 			case "edited":
 				return ec.fieldContext_CandidateInterview_edited(ctx, field)
+			case "location":
+				return ec.fieldContext_CandidateInterview_location(ctx, field)
+			case "meeting_link":
+				return ec.fieldContext_CandidateInterview_meeting_link(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateInterview_created_at(ctx, field)
 			case "updated_at":
@@ -37594,7 +37715,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInterview4CalendarInput(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "candidate_id", "job_id", "interview_date", "start_from", "end_at", "interviewer"}
+	fieldsInOrder := [...]string{"title", "description", "candidate_id", "job_id", "interview_date", "start_from", "end_at", "interviewer", "location", "meeting_link"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37665,6 +37786,22 @@ func (ec *executionContext) unmarshalInputNewCandidateInterview4CalendarInput(ct
 			if err != nil {
 				return it, err
 			}
+		case "location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			it.Location, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "meeting_link":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meeting_link"))
+			it.MeetingLink, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -37678,7 +37815,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInterviewInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "candidate_job_id", "interview_date", "start_from", "end_at", "interviewer"}
+	fieldsInOrder := [...]string{"title", "description", "candidate_job_id", "interview_date", "start_from", "end_at", "interviewer", "location", "meeting_link"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37738,6 +37875,22 @@ func (ec *executionContext) unmarshalInputNewCandidateInterviewInput(ctx context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interviewer"))
 			it.Interviewer, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			it.Location, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "meeting_link":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meeting_link"))
+			it.MeetingLink, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39006,7 +39159,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "candidate_job_id", "interview_date", "start_from", "end_at", "interviewer"}
+	fieldsInOrder := [...]string{"title", "description", "candidate_job_id", "interview_date", "start_from", "end_at", "interviewer", "location", "meeting_link"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39066,6 +39219,22 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInterviewInput(ctx cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interviewer"))
 			it.Interviewer, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
+			it.Location, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "meeting_link":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meeting_link"))
+			it.MeetingLink, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41179,6 +41348,17 @@ func (ec *executionContext) _CandidateInterview(ctx context.Context, sel ast.Sel
 				return innerFunc(ctx)
 
 			})
+		case "location":
+
+			out.Values[i] = ec._CandidateInterview_location(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "meeting_link":
+
+			out.Values[i] = ec._CandidateInterview_meeting_link(ctx, field, obj)
+
 		case "created_at":
 
 			out.Values[i] = ec._CandidateInterview_created_at(ctx, field, obj)

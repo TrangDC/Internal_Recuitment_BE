@@ -3528,6 +3528,8 @@ type CandidateInterviewMutation struct {
 	end_at                    *time.Time
 	description               *string
 	status                    *candidateinterview.Status
+	location                  *string
+	meeting_link              *string
 	clearedFields             map[string]struct{}
 	candidate_job_edge        *uuid.UUID
 	clearedcandidate_job_edge bool
@@ -4174,6 +4176,78 @@ func (m *CandidateInterviewMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetLocation sets the "location" field.
+func (m *CandidateInterviewMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *CandidateInterviewMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *CandidateInterviewMutation) ResetLocation() {
+	m.location = nil
+}
+
+// SetMeetingLink sets the "meeting_link" field.
+func (m *CandidateInterviewMutation) SetMeetingLink(s string) {
+	m.meeting_link = &s
+}
+
+// MeetingLink returns the value of the "meeting_link" field in the mutation.
+func (m *CandidateInterviewMutation) MeetingLink() (r string, exists bool) {
+	v := m.meeting_link
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMeetingLink returns the old "meeting_link" field's value of the CandidateInterview entity.
+// If the CandidateInterview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateInterviewMutation) OldMeetingLink(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMeetingLink is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMeetingLink requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMeetingLink: %w", err)
+	}
+	return oldValue.MeetingLink, nil
+}
+
+// ResetMeetingLink resets all changes to the "meeting_link" field.
+func (m *CandidateInterviewMutation) ResetMeetingLink() {
+	m.meeting_link = nil
+}
+
 // SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by id.
 func (m *CandidateInterviewMutation) SetCandidateJobEdgeID(id uuid.UUID) {
 	m.candidate_job_edge = &id
@@ -4433,7 +4507,7 @@ func (m *CandidateInterviewMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateInterviewMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, candidateinterview.FieldCreatedAt)
 	}
@@ -4470,6 +4544,12 @@ func (m *CandidateInterviewMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, candidateinterview.FieldStatus)
 	}
+	if m.location != nil {
+		fields = append(fields, candidateinterview.FieldLocation)
+	}
+	if m.meeting_link != nil {
+		fields = append(fields, candidateinterview.FieldMeetingLink)
+	}
 	return fields
 }
 
@@ -4502,6 +4582,10 @@ func (m *CandidateInterviewMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case candidateinterview.FieldStatus:
 		return m.Status()
+	case candidateinterview.FieldLocation:
+		return m.Location()
+	case candidateinterview.FieldMeetingLink:
+		return m.MeetingLink()
 	}
 	return nil, false
 }
@@ -4535,6 +4619,10 @@ func (m *CandidateInterviewMutation) OldField(ctx context.Context, name string) 
 		return m.OldDescription(ctx)
 	case candidateinterview.FieldStatus:
 		return m.OldStatus(ctx)
+	case candidateinterview.FieldLocation:
+		return m.OldLocation(ctx)
+	case candidateinterview.FieldMeetingLink:
+		return m.OldMeetingLink(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateInterview field %s", name)
 }
@@ -4627,6 +4715,20 @@ func (m *CandidateInterviewMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case candidateinterview.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case candidateinterview.FieldMeetingLink:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMeetingLink(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateInterview field %s", name)
@@ -4757,6 +4859,12 @@ func (m *CandidateInterviewMutation) ResetField(name string) error {
 		return nil
 	case candidateinterview.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case candidateinterview.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case candidateinterview.FieldMeetingLink:
+		m.ResetMeetingLink()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateInterview field %s", name)

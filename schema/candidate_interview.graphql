@@ -30,6 +30,8 @@ type CandidateInterview {
   owner: User
   status: CandidateInterviewStatus!
   edited: Boolean!
+  location: String!
+  meeting_link: String
   created_at: Time!
   updated_at: Time!
 }
@@ -47,6 +49,8 @@ input NewCandidateInterviewInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]!
+  location: String!
+  meeting_link: String!
 }
 
 input NewCandidateInterview4CalendarInput {
@@ -58,6 +62,8 @@ input NewCandidateInterview4CalendarInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]!
+  location: String!
+  meeting_link: String!
 }
 
 input UpdateCandidateInterviewInput {
@@ -68,6 +74,8 @@ input UpdateCandidateInterviewInput {
   start_from: Time!
   end_at: Time!
   interviewer: [ID!]
+  location: String!
+  meeting_link: String!
 }
 
 input UpdateCandidateInterviewScheduleInput {

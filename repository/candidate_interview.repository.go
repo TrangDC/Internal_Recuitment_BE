@@ -130,7 +130,9 @@ func (rps *candidateInterviewRepoImpl) CreateCandidateInterview(ctx context.Cont
 		SetStartFrom(input.StartFrom).
 		SetEndAt(input.EndAt).
 		SetCreatedBy(createdById).
-		SetCandidateJobStatus(candidateinterview.CandidateJobStatus(status))
+		SetCandidateJobStatus(candidateinterview.CandidateJobStatus(status)).
+		SetLocation(input.Location).
+		SetMeetingLink(input.MeetingLink)
 	return create.Save(ctx)
 }
 
@@ -140,7 +142,9 @@ func (rps *candidateInterviewRepoImpl) UpdateCandidateInterview(ctx context.Cont
 		SetInterviewDate(input.InterviewDate).
 		SetStartFrom(input.StartFrom).
 		SetEndAt(input.EndAt).
-		AddInterviewerEdgeIDs(newMemberIds...).RemoveInterviewerEdgeIDs(removeMemberIds...)
+		AddInterviewerEdgeIDs(newMemberIds...).RemoveInterviewerEdgeIDs(removeMemberIds...).
+		SetLocation(input.Location).
+		SetMeetingLink(input.MeetingLink)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -174,7 +178,9 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 			SetCandidateJobID(record.ID).
 			SetCreatedBy(createdById).
 			SetID(uuid.New()).
-			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())))
+			SetCandidateJobStatus(candidateinterview.CandidateJobStatus(record.Status.String())).
+			SetLocation(input.Location).
+			SetMeetingLink(input.MeetingLink))
 	}
 	candidateInterviews, err := rps.client.CandidateInterview.CreateBulk(createBulk...).Save(ctx)
 	if err != nil {

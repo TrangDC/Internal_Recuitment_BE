@@ -25,6 +25,8 @@ func (CandidateInterview) Fields() []ent.Field {
 		field.UUID("created_by", uuid.UUID{}).Optional(),
 		field.Text("description"),
 		field.Enum("status").Values("invited_to_interview", "interviewing", "done", "cancelled").Default("invited_to_interview"),
+		field.String("location").MaxLen(512),
+		field.Text("meeting_link"),
 	}
 }
 

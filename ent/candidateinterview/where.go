@@ -152,6 +152,20 @@ func Description(v string) predicate.CandidateInterview {
 	})
 }
 
+// Location applies equality check predicate on the "location" field. It's identical to LocationEQ.
+func Location(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLocation), v))
+	})
+}
+
+// MeetingLink applies equality check predicate on the "meeting_link" field. It's identical to MeetingLinkEQ.
+func MeetingLink(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldMeetingLink), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CandidateInterview {
 	return predicate.CandidateInterview(func(s *sql.Selector) {
@@ -973,6 +987,204 @@ func StatusNotIn(vs ...Status) predicate.CandidateInterview {
 	}
 	return predicate.CandidateInterview(func(s *sql.Selector) {
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
+	})
+}
+
+// LocationEQ applies the EQ predicate on the "location" field.
+func LocationEQ(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLocation), v))
+	})
+}
+
+// LocationNEQ applies the NEQ predicate on the "location" field.
+func LocationNEQ(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLocation), v))
+	})
+}
+
+// LocationIn applies the In predicate on the "location" field.
+func LocationIn(vs ...string) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLocation), v...))
+	})
+}
+
+// LocationNotIn applies the NotIn predicate on the "location" field.
+func LocationNotIn(vs ...string) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLocation), v...))
+	})
+}
+
+// LocationGT applies the GT predicate on the "location" field.
+func LocationGT(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLocation), v))
+	})
+}
+
+// LocationGTE applies the GTE predicate on the "location" field.
+func LocationGTE(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLocation), v))
+	})
+}
+
+// LocationLT applies the LT predicate on the "location" field.
+func LocationLT(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLocation), v))
+	})
+}
+
+// LocationLTE applies the LTE predicate on the "location" field.
+func LocationLTE(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLocation), v))
+	})
+}
+
+// LocationContains applies the Contains predicate on the "location" field.
+func LocationContains(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldLocation), v))
+	})
+}
+
+// LocationHasPrefix applies the HasPrefix predicate on the "location" field.
+func LocationHasPrefix(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldLocation), v))
+	})
+}
+
+// LocationHasSuffix applies the HasSuffix predicate on the "location" field.
+func LocationHasSuffix(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldLocation), v))
+	})
+}
+
+// LocationEqualFold applies the EqualFold predicate on the "location" field.
+func LocationEqualFold(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldLocation), v))
+	})
+}
+
+// LocationContainsFold applies the ContainsFold predicate on the "location" field.
+func LocationContainsFold(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldLocation), v))
+	})
+}
+
+// MeetingLinkEQ applies the EQ predicate on the "meeting_link" field.
+func MeetingLinkEQ(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkNEQ applies the NEQ predicate on the "meeting_link" field.
+func MeetingLinkNEQ(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkIn applies the In predicate on the "meeting_link" field.
+func MeetingLinkIn(vs ...string) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldMeetingLink), v...))
+	})
+}
+
+// MeetingLinkNotIn applies the NotIn predicate on the "meeting_link" field.
+func MeetingLinkNotIn(vs ...string) predicate.CandidateInterview {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldMeetingLink), v...))
+	})
+}
+
+// MeetingLinkGT applies the GT predicate on the "meeting_link" field.
+func MeetingLinkGT(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkGTE applies the GTE predicate on the "meeting_link" field.
+func MeetingLinkGTE(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkLT applies the LT predicate on the "meeting_link" field.
+func MeetingLinkLT(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkLTE applies the LTE predicate on the "meeting_link" field.
+func MeetingLinkLTE(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkContains applies the Contains predicate on the "meeting_link" field.
+func MeetingLinkContains(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkHasPrefix applies the HasPrefix predicate on the "meeting_link" field.
+func MeetingLinkHasPrefix(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkHasSuffix applies the HasSuffix predicate on the "meeting_link" field.
+func MeetingLinkHasSuffix(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkEqualFold applies the EqualFold predicate on the "meeting_link" field.
+func MeetingLinkEqualFold(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldMeetingLink), v))
+	})
+}
+
+// MeetingLinkContainsFold applies the ContainsFold predicate on the "meeting_link" field.
+func MeetingLinkContainsFold(v string) predicate.CandidateInterview {
+	return predicate.CandidateInterview(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldMeetingLink), v))
 	})
 }
 

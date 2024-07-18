@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS candidate_interviews
+ADD COLUMN IF NOT EXISTS location VARCHAR(512),
+ADD COLUMN IF NOT EXISTS meeting_link TEXT;
