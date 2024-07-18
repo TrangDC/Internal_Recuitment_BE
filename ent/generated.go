@@ -9,6 +9,33 @@ import (
 	"time"
 )
 
+type ApplicationReportFailReason struct {
+	PoorProfessionalism      int `json:"poor_professionalism"`
+	PoorFitAndEngagement     int `json:"poor_fit_and_engagement"`
+	OverExpectations         int `json:"over_expectations"`
+	OverQualification        int `json:"over_qualification"`
+	LanguageDeficiency       int `json:"language_deficiency"`
+	WeakTechnicalSkills      int `json:"weak_technical_skills"`
+	PoorInterpersonalSkills  int `json:"poor_interpersonal_skills"`
+	PoorProblemSolvingSkills int `json:"poor_problem_solving_skills"`
+	PoorManagementSkills     int `json:"poor_management_skills"`
+	CandidateWithdrawal      int `json:"candidate_withdrawal"`
+	Others                   int `json:"others"`
+}
+
+type ApplicationReportProcessing struct {
+	InviteToInterview int `json:"invite_to_interview"`
+	Interviewing      int `json:"interviewing"`
+	Done              int `json:"done"`
+	Cancelled         int `json:"cancelled"`
+}
+
+type ApplicationReportTable struct {
+	Processing  *ApplicationReportProcessing `json:"processing"`
+	Kiv         *ApplicationReportFailReason `json:"kiv"`
+	OfferedLost *ApplicationReportFailReason `json:"offered_lost"`
+}
+
 type AttachmentInput struct {
 	ID       string           `json:"id"`
 	Folder   AttachmentFolder `json:"folder"`
@@ -550,6 +577,10 @@ type PermissionGroupResponseGetAll struct {
 
 type RecruitmentReportResponse struct {
 	Data *ReportStatsByTime `json:"data"`
+}
+
+type ReportApplicationReportTableResponse struct {
+	Data *ApplicationReportTable `json:"data"`
 }
 
 type ReportCandidateConversionRateChartResponse struct {

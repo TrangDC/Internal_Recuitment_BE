@@ -73,6 +73,7 @@ type Query {
 	GetCandidateConversionRateReport(filter: ReportFilter!): CandidateConversionRateReportResponse!
 	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
 	ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
+	ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
 }
 
 # Path: schema/query.graphql
