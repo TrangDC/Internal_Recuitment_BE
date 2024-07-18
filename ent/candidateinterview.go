@@ -43,6 +43,10 @@ type CandidateInterview struct {
 	Description string `json:"description,omitempty"`
 	// Status holds the value of the "status" field.
 	Status candidateinterview.Status `json:"status,omitempty"`
+	// Location holds the value of the "location" field.
+	Location string `json:"location,omitempty"`
+	// MeetingLink holds the value of the "meeting_link" field.
+	MeetingLink string `json:"meeting_link,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateInterviewQuery when eager-loading is set.
 	Edges CandidateInterviewEdges `json:"edges"`
@@ -129,7 +133,7 @@ func (*CandidateInterview) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case candidateinterview.FieldTitle, candidateinterview.FieldCandidateJobStatus, candidateinterview.FieldDescription, candidateinterview.FieldStatus:
+		case candidateinterview.FieldTitle, candidateinterview.FieldCandidateJobStatus, candidateinterview.FieldDescription, candidateinterview.FieldStatus, candidateinterview.FieldLocation, candidateinterview.FieldMeetingLink:
 			values[i] = new(sql.NullString)
 		case candidateinterview.FieldCreatedAt, candidateinterview.FieldUpdatedAt, candidateinterview.FieldDeletedAt, candidateinterview.FieldInterviewDate, candidateinterview.FieldStartFrom, candidateinterview.FieldEndAt:
 			values[i] = new(sql.NullTime)
@@ -228,6 +232,18 @@ func (ci *CandidateInterview) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				ci.Status = candidateinterview.Status(value.String)
 			}
+		case candidateinterview.FieldLocation:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field location", values[i])
+			} else if value.Valid {
+				ci.Location = value.String
+			}
+		case candidateinterview.FieldMeetingLink:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field meeting_link", values[i])
+			} else if value.Valid {
+				ci.MeetingLink = value.String
+			}
 		}
 	}
 	return nil
@@ -316,6 +332,12 @@ func (ci *CandidateInterview) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", ci.Status))
+	builder.WriteString(", ")
+	builder.WriteString("location=")
+	builder.WriteString(ci.Location)
+	builder.WriteString(", ")
+	builder.WriteString("meeting_link=")
+	builder.WriteString(ci.MeetingLink)
 	builder.WriteByte(')')
 	return builder.String()
 }

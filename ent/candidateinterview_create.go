@@ -177,6 +177,18 @@ func (cic *CandidateInterviewCreate) SetNillableStatus(c *candidateinterview.Sta
 	return cic
 }
 
+// SetLocation sets the "location" field.
+func (cic *CandidateInterviewCreate) SetLocation(s string) *CandidateInterviewCreate {
+	cic.mutation.SetLocation(s)
+	return cic
+}
+
+// SetMeetingLink sets the "meeting_link" field.
+func (cic *CandidateInterviewCreate) SetMeetingLink(s string) *CandidateInterviewCreate {
+	cic.mutation.SetMeetingLink(s)
+	return cic
+}
+
 // SetID sets the "id" field.
 func (cic *CandidateInterviewCreate) SetID(u uuid.UUID) *CandidateInterviewCreate {
 	cic.mutation.SetID(u)
@@ -389,6 +401,17 @@ func (cic *CandidateInterviewCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
+	if _, ok := cic.mutation.Location(); !ok {
+		return &ValidationError{Name: "location", err: errors.New(`ent: missing required field "CandidateInterview.location"`)}
+	}
+	if v, ok := cic.mutation.Location(); ok {
+		if err := candidateinterview.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.location": %w`, err)}
+		}
+	}
+	if _, ok := cic.mutation.MeetingLink(); !ok {
+		return &ValidationError{Name: "meeting_link", err: errors.New(`ent: missing required field "CandidateInterview.meeting_link"`)}
+	}
 	return nil
 }
 
@@ -464,6 +487,14 @@ func (cic *CandidateInterviewCreate) createSpec() (*CandidateInterview, *sqlgrap
 	if value, ok := cic.mutation.Status(); ok {
 		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := cic.mutation.Location(); ok {
+		_spec.SetField(candidateinterview.FieldLocation, field.TypeString, value)
+		_node.Location = value
+	}
+	if value, ok := cic.mutation.MeetingLink(); ok {
+		_spec.SetField(candidateinterview.FieldMeetingLink, field.TypeString, value)
+		_node.MeetingLink = value
 	}
 	if nodes := cic.mutation.CandidateJobEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

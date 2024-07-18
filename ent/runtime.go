@@ -152,6 +152,10 @@ func init() {
 	candidateinterviewDescTitle := candidateinterviewFields[0].Descriptor()
 	// candidateinterview.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	candidateinterview.TitleValidator = candidateinterviewDescTitle.Validators[0].(func(string) error)
+	// candidateinterviewDescLocation is the schema descriptor for location field.
+	candidateinterviewDescLocation := candidateinterviewFields[9].Descriptor()
+	// candidateinterview.LocationValidator is a validator for the "location" field. It is called by the builders before save.
+	candidateinterview.LocationValidator = candidateinterviewDescLocation.Validators[0].(func(string) error)
 	candidateinterviewerMixin := schema.CandidateInterviewer{}.Mixin()
 	candidateinterviewerMixinFields0 := candidateinterviewerMixin[0].Fields()
 	_ = candidateinterviewerMixinFields0

@@ -38,6 +38,10 @@ const (
 	FieldDescription = "description"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldLocation holds the string denoting the location field in the database.
+	FieldLocation = "location"
+	// FieldMeetingLink holds the string denoting the meeting_link field in the database.
+	FieldMeetingLink = "meeting_link"
 	// EdgeCandidateJobEdge holds the string denoting the candidate_job_edge edge name in mutations.
 	EdgeCandidateJobEdge = "candidate_job_edge"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
@@ -100,6 +104,8 @@ var Columns = []string{
 	FieldCreatedBy,
 	FieldDescription,
 	FieldStatus,
+	FieldLocation,
+	FieldMeetingLink,
 }
 
 var (
@@ -123,6 +129,8 @@ var (
 	DefaultCreatedAt func() time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
+	// LocationValidator is a validator for the "location" field. It is called by the builders before save.
+	LocationValidator func(string) error
 )
 
 // CandidateJobStatus defines the type for the "candidate_job_status" enum field.

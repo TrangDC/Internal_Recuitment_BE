@@ -213,6 +213,18 @@ func (ciu *CandidateInterviewUpdate) SetNillableStatus(c *candidateinterview.Sta
 	return ciu
 }
 
+// SetLocation sets the "location" field.
+func (ciu *CandidateInterviewUpdate) SetLocation(s string) *CandidateInterviewUpdate {
+	ciu.mutation.SetLocation(s)
+	return ciu
+}
+
+// SetMeetingLink sets the "meeting_link" field.
+func (ciu *CandidateInterviewUpdate) SetMeetingLink(s string) *CandidateInterviewUpdate {
+	ciu.mutation.SetMeetingLink(s)
+	return ciu
+}
+
 // SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
 func (ciu *CandidateInterviewUpdate) SetCandidateJobEdgeID(id uuid.UUID) *CandidateInterviewUpdate {
 	ciu.mutation.SetCandidateJobEdgeID(id)
@@ -453,6 +465,11 @@ func (ciu *CandidateInterviewUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
+	if v, ok := ciu.mutation.Location(); ok {
+		if err := candidateinterview.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.location": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -515,6 +532,12 @@ func (ciu *CandidateInterviewUpdate) sqlSave(ctx context.Context) (n int, err er
 	}
 	if value, ok := ciu.mutation.Status(); ok {
 		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := ciu.mutation.Location(); ok {
+		_spec.SetField(candidateinterview.FieldLocation, field.TypeString, value)
+	}
+	if value, ok := ciu.mutation.MeetingLink(); ok {
+		_spec.SetField(candidateinterview.FieldMeetingLink, field.TypeString, value)
 	}
 	if ciu.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -959,6 +982,18 @@ func (ciuo *CandidateInterviewUpdateOne) SetNillableStatus(c *candidateinterview
 	return ciuo
 }
 
+// SetLocation sets the "location" field.
+func (ciuo *CandidateInterviewUpdateOne) SetLocation(s string) *CandidateInterviewUpdateOne {
+	ciuo.mutation.SetLocation(s)
+	return ciuo
+}
+
+// SetMeetingLink sets the "meeting_link" field.
+func (ciuo *CandidateInterviewUpdateOne) SetMeetingLink(s string) *CandidateInterviewUpdateOne {
+	ciuo.mutation.SetMeetingLink(s)
+	return ciuo
+}
+
 // SetCandidateJobEdgeID sets the "candidate_job_edge" edge to the CandidateJob entity by ID.
 func (ciuo *CandidateInterviewUpdateOne) SetCandidateJobEdgeID(id uuid.UUID) *CandidateInterviewUpdateOne {
 	ciuo.mutation.SetCandidateJobEdgeID(id)
@@ -1212,6 +1247,11 @@ func (ciuo *CandidateInterviewUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.status": %w`, err)}
 		}
 	}
+	if v, ok := ciuo.mutation.Location(); ok {
+		if err := candidateinterview.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateInterview.location": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1291,6 +1331,12 @@ func (ciuo *CandidateInterviewUpdateOne) sqlSave(ctx context.Context) (_node *Ca
 	}
 	if value, ok := ciuo.mutation.Status(); ok {
 		_spec.SetField(candidateinterview.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := ciuo.mutation.Location(); ok {
+		_spec.SetField(candidateinterview.FieldLocation, field.TypeString, value)
+	}
+	if value, ok := ciuo.mutation.MeetingLink(); ok {
+		_spec.SetField(candidateinterview.FieldMeetingLink, field.TypeString, value)
 	}
 	if ciuo.mutation.CandidateJobEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

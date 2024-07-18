@@ -462,6 +462,8 @@ type NewCandidateInterview4CalendarInput struct {
 	StartFrom     time.Time `json:"start_from"`
 	EndAt         time.Time `json:"end_at"`
 	Interviewer   []string  `json:"interviewer"`
+	Location      string    `json:"location"`
+	MeetingLink   string    `json:"meeting_link"`
 }
 
 type NewCandidateInterviewInput struct {
@@ -472,6 +474,8 @@ type NewCandidateInterviewInput struct {
 	StartFrom      time.Time `json:"start_from"`
 	EndAt          time.Time `json:"end_at"`
 	Interviewer    []string  `json:"interviewer"`
+	Location       string    `json:"location"`
+	MeetingLink    string    `json:"meeting_link"`
 }
 
 type NewCandidateJobFeedbackInput struct {
@@ -818,6 +822,8 @@ type UpdateCandidateInterviewInput struct {
 	StartFrom      time.Time `json:"start_from"`
 	EndAt          time.Time `json:"end_at"`
 	Interviewer    []string  `json:"interviewer"`
+	Location       string    `json:"location"`
+	MeetingLink    string    `json:"meeting_link"`
 }
 
 type UpdateCandidateInterviewScheduleInput struct {
