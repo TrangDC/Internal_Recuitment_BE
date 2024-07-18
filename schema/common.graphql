@@ -82,3 +82,12 @@ type JsonFormat {
   key: String!
   value: String!
 }
+
+enum Period{
+  all
+  day
+  week
+  month
+  quarter
+  year
+}

@@ -24,9 +24,11 @@ type ReportService interface {
 	GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error)
 	GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error)
 	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
+	// new api
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
 	ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error)
+	ReportCandidateLCC(ctx context.Context) (*ent.ReportCandidateLCCResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -527,4 +529,83 @@ func (svc reportSvcImpl) getApplicationFail(ctx context.Context, filter ent.Repo
 		}
 	}
 	return result, nil
+}
+
+func (svc reportSvcImpl) ReportCandidateLCC(ctx context.Context) (*ent.ReportCandidateLCCResponse, error) {
+	result := &ent.ReportCandidateLCCResponse{}
+	var totalCandidate int
+	var totalBlackListCandidate int
+	var totalNonBlackListCandidate int
+	var recruitment ent.ReportRecruitment
+	queryString := `
+	select
+		COUNT(*) as total_records,
+		SUM(
+			case
+				when is_blacklist = true then 1
+				else 0
+			end
+		) as blacklist_true_count
+	from
+		candidates
+	where
+		deleted_at is null;`
+	rows, err := svc.repoRegistry.Candidate().BuildBaseQuery().QueryContext(ctx, queryString)
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+	if rows != nil {
+		rows.Next()
+		if err := rows.Scan(&totalCandidate, &totalBlackListCandidate); err != nil {
+			return result, err
+		}
+		totalNonBlackListCandidate = totalCandidate - totalBlackListCandidate
+	}
+	queryStringReferenceType := `
+	SELECT
+		reference_type,
+		COUNT(*) AS count
+	FROM
+		candidates
+	WHERE
+		deleted_at IS NULL
+	GROUP BY
+		reference_type
+	ORDER BY
+		reference_type;
+	`
+	referenceTypeRows, err := svc.repoRegistry.Candidate().BuildBaseQuery().QueryContext(ctx, queryStringReferenceType)
+	if err != nil {
+		return result, err
+	}
+	defer referenceTypeRows.Close()
+	if referenceTypeRows != nil {
+		for referenceTypeRows.Next() {
+			var typeName any
+			var count int
+			if err := referenceTypeRows.Scan(&typeName, &count); err != nil {
+				return result, err
+			}
+			switch typeName {
+			case candidate.ReferenceTypeEb.String():
+				recruitment.Eb = count
+			case candidate.ReferenceTypeRec.String():
+				recruitment.Rec = count
+			case candidate.ReferenceTypeHiringPlatform.String():
+				recruitment.HiringPlatform = count
+			case candidate.ReferenceTypeReference.String():
+				recruitment.Reference = count
+			case candidate.ReferenceTypeHeadhunt.String():
+				recruitment.Headhunt = count
+			}
+		}
+	}
+	return &ent.ReportCandidateLCCResponse{
+		Data: &ent.ReportCandidateLcc{
+			Total:        totalCandidate,
+			BlackList:    totalBlackListCandidate,
+			NonBlackList: totalNonBlackListCandidate,
+			Recruitment:  &recruitment,
+		}}, nil
 }

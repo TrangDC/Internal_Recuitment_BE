@@ -74,6 +74,9 @@ type Query {
 	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
 	ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 	ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
+	# LCC = line circle chart
+	ReportCandidateLCC: ReportCandidateLCCResponse!
+	ReportCandidateColumnChart(filter: ReportFilter!): ReportCandidateColumnChartResponse!
 }
 
 # Path: schema/query.graphql
