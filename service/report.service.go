@@ -8,6 +8,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidate"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
@@ -25,6 +26,7 @@ type ReportService interface {
 	GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error)
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
+	ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -45,7 +47,6 @@ func (svc *reportSvcImpl) GetCandidateReport(ctx context.Context, filter ent.Rep
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, err
 	}
-
 	initCandidateNumByRef := func() []*ent.ReportNumberByType {
 		return []*ent.ReportNumberByType{
 			{Type: candidate.ReferenceTypeEb.String(), Number: 0},
@@ -55,6 +56,7 @@ func (svc *reportSvcImpl) GetCandidateReport(ctx context.Context, filter ent.Rep
 			{Type: candidate.ReferenceTypeHeadhunt.String(), Number: 0},
 		}
 	}
+
 	candidateNumByRef := lo.SliceToMap(
 		initCandidateNumByRef(),
 		func(input *ent.ReportNumberByType) (candidate.ReferenceType, *ent.ReportNumberByType) {
@@ -403,4 +405,126 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 			PerPage: perPage,
 			Total:   count,
 		}}, nil
+}
+
+func (svc reportSvcImpl) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
+	processingResult, err := svc.getApplicationProcessing(ctx, filter)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	failKivResult, err := svc.getApplicationFail(ctx, filter, candidatejob.StatusKiv)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	failOfferLostResult, err := svc.getApplicationFail(ctx, filter, candidatejob.StatusOfferLost)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return &ent.ReportApplicationReportTableResponse{
+		Data: &ent.ApplicationReportTable{
+			Processing:  &processingResult,
+			Kiv:         &failKivResult,
+			OfferedLost: &failOfferLostResult,
+		}}, nil
+}
+
+func (svc reportSvcImpl) getApplicationProcessing(ctx context.Context, filter ent.ReportFilter) (ent.ApplicationReportProcessing, error) {
+	result := ent.ApplicationReportProcessing{}
+	queryString := "select cdi.status as status, count(*) as count from candidate_interviews as cdi " +
+		"WHERE cdi.candidate_job_status IN ('%s', '%s') and cdi.deleted_at is null" +
+		" and cdi.created_at between '%s' and '%s' group by cdi.status;"
+	queryString = fmt.Sprintf(queryString, candidateinterview.CandidateJobStatusApplied, candidateinterview.CandidateJobStatusInterviewing, filter.FromDate.Format("2006-01-02 15:04:05"), filter.ToDate.Format("2006-01-02 15:04:05"))
+	rows, err := svc.repoRegistry.CandidateInterview().BuildBaseQuery().QueryContext(ctx, queryString)
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+	if rows != nil {
+		for rows.Next() {
+			var status string
+			var count int
+			if err := rows.Scan(&status, &count); err != nil {
+				return result, err
+			}
+			fmt.Println(status, count)
+			switch status {
+			case candidateinterview.StatusInvitedToInterview.String():
+				result.InviteToInterview = count
+			case candidateinterview.StatusInterviewing.String():
+				result.Interviewing = count
+			case candidateinterview.StatusDone.String():
+				result.Done = count
+			case candidateinterview.StatusCancelled.String():
+				result.Cancelled = count
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return result, err
+		}
+	}
+	return result, nil
+}
+
+func (svc reportSvcImpl) getApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (ent.ApplicationReportFailReason, error) {
+	result := ent.ApplicationReportFailReason{}
+	queryString := `
+	select
+		value as failed_reason,
+		COUNT(*) as count
+	from
+		candidate_jobs as cdj,
+		jsonb_array_elements_text(failed_reason) as value
+	where
+		cdj.status = '%s'
+		and cdj.deleted_at is null
+		and cdj.created_at between '%s' and '%s'
+	group by
+		value
+	order by
+		count desc;`
+	queryString = fmt.Sprintf(
+		queryString, status, filter.FromDate.Format("2006-01-02 15:04:05"), filter.ToDate.Format("2006-01-02 15:04:05"))
+	rows, err := svc.repoRegistry.CandidateJob().BuildBaseQuery().QueryContext(ctx, queryString)
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+	if rows != nil {
+		for rows.Next() {
+			var status string
+			var count int
+			if err := rows.Scan(&status, &count); err != nil {
+				return result, err
+			}
+			switch status {
+			case ent.CandidateJobFailedReasonPoorProfessionalism.String():
+				result.PoorProfessionalism = count
+			case ent.CandidateJobFailedReasonPoorFitAndEngagement.String():
+				result.PoorFitAndEngagement = count
+			case ent.CandidateJobFailedReasonOverExpectations.String():
+				result.OverExpectations = count
+			case ent.CandidateJobFailedReasonOverQualification.String():
+				result.OverQualification = count
+			case ent.CandidateJobFailedReasonLanguageDeficiency.String():
+				result.LanguageDeficiency = count
+			case ent.CandidateJobFailedReasonWeakTechnicalSkills.String():
+				result.WeakTechnicalSkills = count
+			case ent.CandidateJobFailedReasonPoorInterpersonalSkills.String():
+				result.PoorInterpersonalSkills = count
+			case ent.CandidateJobFailedReasonPoorProblemSolvingSkills.String():
+				result.PoorProblemSolvingSkills = count
+			case ent.CandidateJobFailedReasonPoorManagementSkills.String():
+				result.CandidateWithdrawal = count
+			case ent.CandidateJobFailedReasonCandidateWithdrawal.String():
+				result.Others = count
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return result, err
+		}
+	}
+	return result, nil
 }

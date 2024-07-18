@@ -226,6 +226,11 @@ func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, 
 	return r.serviceRegistry.Report().ReportCandidateConversionRateTable(ctx, pagination, orderBy)
 }
 
+// ReportApplicationReportTable is the resolver for the ReportApplicationReportTable field.
+func (r *queryResolver) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
+	return r.serviceRegistry.Report().ReportApplicationReportTable(ctx, filter)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

@@ -86,3 +86,34 @@ type ReportCandidateConversionRateTableResponse {
   edges: [CandidateConversionRateReportEdge!]!
   pagination: Pagination!
 }
+
+type ApplicationReportTable {
+  processing: ApplicationReportProcessing!
+  kiv: ApplicationReportFailReason!
+  offered_lost: ApplicationReportFailReason!
+}
+
+type ApplicationReportFailReason {
+  poor_professionalism: Int!
+  poor_fit_and_engagement: Int!
+  over_expectations: Int!
+  over_qualification: Int!
+  language_deficiency: Int!
+  weak_technical_skills: Int!
+  poor_interpersonal_skills: Int!
+  poor_problem_solving_skills: Int!
+  poor_management_skills: Int!
+  candidate_withdrawal: Int!
+  others: Int!
+}
+
+type ApplicationReportProcessing {
+  invite_to_interview: Int!
+  interviewing: Int!
+  done: Int!
+  cancelled: Int!
+}
+
+type ReportApplicationReportTableResponse {
+  data: ApplicationReportTable
+}
