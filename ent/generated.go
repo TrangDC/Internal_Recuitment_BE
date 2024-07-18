@@ -583,6 +583,20 @@ type ReportApplicationReportTableResponse struct {
 	Data *ApplicationReportTable `json:"data"`
 }
 
+type ReportCandidateColumnChart struct {
+	Period Period `json:"period"`
+}
+
+type ReportCandidateColumnChartEdge struct {
+	Node   *ReportCandidateColumnChart `json:"node"`
+	Cursor Cursor                      `json:"cursor"`
+}
+
+type ReportCandidateColumnChartResponse struct {
+	Edges      []*ReportCandidateColumnChartEdge `json:"edges"`
+	Pagination *Pagination                       `json:"pagination"`
+}
+
 type ReportCandidateConversionRateChartResponse struct {
 	Data *CandidateConversionRateReport `json:"data"`
 }
@@ -590,6 +604,17 @@ type ReportCandidateConversionRateChartResponse struct {
 type ReportCandidateConversionRateTableResponse struct {
 	Edges      []*CandidateConversionRateReportEdge `json:"edges"`
 	Pagination *Pagination                          `json:"pagination"`
+}
+
+type ReportCandidateLcc struct {
+	Total        int                `json:"total"`
+	NonBlackList int                `json:"non_black_list"`
+	BlackList    int                `json:"black_list"`
+	Recruitment  *ReportRecruitment `json:"recruitment"`
+}
+
+type ReportCandidateLCCResponse struct {
+	Data *ReportCandidateLcc `json:"data"`
 }
 
 type ReportFilter struct {
@@ -606,6 +631,14 @@ type ReportNumberByType struct {
 type ReportOrderBy struct {
 	Direction OrderDirection     `json:"direction"`
 	Field     ReportOrderByField `json:"field"`
+}
+
+type ReportRecruitment struct {
+	Eb             int `json:"eb"`
+	Rec            int `json:"rec"`
+	HiringPlatform int `json:"hiring_platform"`
+	Reference      int `json:"reference"`
+	Headhunt       int `json:"headhunt"`
 }
 
 type ReportStatsByTime struct {
@@ -2322,6 +2355,55 @@ func (e *LocationEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Period string
+
+const (
+	PeriodAll     Period = "all"
+	PeriodDay     Period = "day"
+	PeriodWeek    Period = "week"
+	PeriodMonth   Period = "month"
+	PeriodQuarter Period = "quarter"
+	PeriodYear    Period = "year"
+)
+
+var AllPeriod = []Period{
+	PeriodAll,
+	PeriodDay,
+	PeriodWeek,
+	PeriodMonth,
+	PeriodQuarter,
+	PeriodYear,
+}
+
+func (e Period) IsValid() bool {
+	switch e {
+	case PeriodAll, PeriodDay, PeriodWeek, PeriodMonth, PeriodQuarter, PeriodYear:
+		return true
+	}
+	return false
+}
+
+func (e Period) String() string {
+	return string(e)
+}
+
+func (e *Period) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Period(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Period", str)
+	}
+	return nil
+}
+
+func (e Period) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

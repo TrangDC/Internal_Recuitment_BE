@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -229,6 +230,16 @@ func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, 
 // ReportApplicationReportTable is the resolver for the ReportApplicationReportTable field.
 func (r *queryResolver) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
 	return r.serviceRegistry.Report().ReportApplicationReportTable(ctx, filter)
+}
+
+// ReportCandidateLcc is the resolver for the ReportCandidateLCC field.
+func (r *queryResolver) ReportCandidateLcc(ctx context.Context) (*ent.ReportCandidateLCCResponse, error) {
+	return r.serviceRegistry.Report().ReportCandidateLCC(ctx)
+}
+
+// ReportCandidateColumnChart is the resolver for the ReportCandidateColumnChart field.
+func (r *queryResolver) ReportCandidateColumnChart(ctx context.Context, filter ent.ReportFilter) (*ent.ReportCandidateColumnChartResponse, error) {
+	panic(fmt.Errorf("not implemented: ReportCandidateColumnChart - ReportCandidateColumnChart"))
 }
 
 // Query returns graphql1.QueryResolver implementation.

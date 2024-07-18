@@ -63,6 +63,7 @@ input ReportFilter {
  to_date: Time!
 }
 
+# new schema
 type ReportCandidateConversionRateChartResponse {
   data: CandidateConversionRateReport!
 }
@@ -116,4 +117,37 @@ type ApplicationReportProcessing {
 
 type ReportApplicationReportTableResponse {
   data: ApplicationReportTable
+}
+# LCC = line circle chart
+type ReportCandidateLCCResponse {
+  data: ReportCandidateLCC!
+}
+
+type ReportCandidateColumnChartResponse {
+  edges: [ReportCandidateColumnChartEdge!]!
+  pagination: Pagination!
+}
+
+type ReportCandidateLCC {
+  total: Int!
+  non_black_list: Int!
+  black_list: Int!
+  recruitment: ReportRecruitment!
+}
+
+type ReportRecruitment {
+  eb: Int!
+  rec: Int!
+  hiring_platform: Int!
+  reference: Int!
+  headhunt: Int!
+}
+
+type ReportCandidateColumnChartEdge {
+  node: ReportCandidateColumnChart!
+  cursor: Cursor!
+}
+
+type ReportCandidateColumnChart {
+  period: Period!
 }
