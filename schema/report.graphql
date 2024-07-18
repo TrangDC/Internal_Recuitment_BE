@@ -6,6 +6,16 @@ enum ReportFilterPeriod {
   week
 }
 
+enum ReportOrderByField {
+  team_name
+  team_created_at
+}
+
+input ReportOrderBy {
+  direction: OrderDirection!
+  field: ReportOrderByField!
+}
+
 type ReportNumberByType {
   type: String!
   number: Int!
@@ -58,8 +68,21 @@ type ReportCandidateConversionRateChartResponse {
 }
 
 type CandidateConversionRateReport {
+  id: ID!
+  team_name: String!
   applied: Int!
   interviewing: Int!
   offering: Int!
   hired: Int!
+}
+
+type CandidateConversionRateReportEdge {
+  node: CandidateConversionRateReport!
+  cursor: Cursor!
+
+}
+
+type ReportCandidateConversionRateTableResponse {
+  edges: [CandidateConversionRateReportEdge!]!
+  pagination: Pagination!
 }

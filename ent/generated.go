@@ -57,10 +57,17 @@ type Base64Response struct {
 }
 
 type CandidateConversionRateReport struct {
-	Applied      int `json:"applied"`
-	Interviewing int `json:"interviewing"`
-	Offering     int `json:"offering"`
-	Hired        int `json:"hired"`
+	ID           string `json:"id"`
+	TeamName     string `json:"team_name"`
+	Applied      int    `json:"applied"`
+	Interviewing int    `json:"interviewing"`
+	Offering     int    `json:"offering"`
+	Hired        int    `json:"hired"`
+}
+
+type CandidateConversionRateReportEdge struct {
+	Node   *CandidateConversionRateReport `json:"node"`
+	Cursor Cursor                         `json:"cursor"`
 }
 
 type CandidateConversionRateReportResponse struct {
@@ -549,6 +556,11 @@ type ReportCandidateConversionRateChartResponse struct {
 	Data *CandidateConversionRateReport `json:"data"`
 }
 
+type ReportCandidateConversionRateTableResponse struct {
+	Edges      []*CandidateConversionRateReportEdge `json:"edges"`
+	Pagination *Pagination                          `json:"pagination"`
+}
+
 type ReportFilter struct {
 	FilterPeriod ReportFilterPeriod `json:"filter_period"`
 	FromDate     time.Time          `json:"from_date"`
@@ -558,6 +570,11 @@ type ReportFilter struct {
 type ReportNumberByType struct {
 	Type   string `json:"type"`
 	Number int    `json:"number"`
+}
+
+type ReportOrderBy struct {
+	Direction OrderDirection     `json:"direction"`
+	Field     ReportOrderByField `json:"field"`
 }
 
 type ReportStatsByTime struct {
@@ -2362,6 +2379,47 @@ func (e *ReportFilterPeriod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReportFilterPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReportOrderByField string
+
+const (
+	ReportOrderByFieldTeamName      ReportOrderByField = "team_name"
+	ReportOrderByFieldTeamCreatedAt ReportOrderByField = "team_created_at"
+)
+
+var AllReportOrderByField = []ReportOrderByField{
+	ReportOrderByFieldTeamName,
+	ReportOrderByFieldTeamCreatedAt,
+}
+
+func (e ReportOrderByField) IsValid() bool {
+	switch e {
+	case ReportOrderByFieldTeamName, ReportOrderByFieldTeamCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e ReportOrderByField) String() string {
+	return string(e)
+}
+
+func (e *ReportOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReportOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReportOrderByField", str)
+	}
+	return nil
+}
+
+func (e ReportOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
