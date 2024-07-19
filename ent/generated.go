@@ -583,22 +583,38 @@ type RecruitmentReportResponse struct {
 	Data *ReportStatsByTime `json:"data"`
 }
 
+type ReportApplication struct {
+	FromDate     time.Time `json:"from_date"`
+	ToDate       time.Time `json:"to_date"`
+	Applied      int       `json:"applied"`
+	Interviewing int       `json:"interviewing"`
+	Offering     int       `json:"offering"`
+	Hired        int       `json:"hired"`
+	Kiv          int       `json:"kiv"`
+	OfferLost    int       `json:"offer_lost"`
+	ExStaff      int       `json:"ex_staff"`
+}
+
+type ReportApplicationEdge struct {
+	Node   []*ReportApplication `json:"node"`
+	Cursor Cursor               `json:"cursor"`
+}
+
 type ReportApplicationReportTableResponse struct {
 	Data *ApplicationReportTable `json:"data"`
 }
 
-type ReportCandidateColumnChart struct {
-	Period Period `json:"period"`
+type ReportApplicationResponse struct {
+	Edges *ReportApplicationEdge `json:"edges"`
 }
 
 type ReportCandidateColumnChartEdge struct {
-	Node   *ReportCandidateColumnChart `json:"node"`
-	Cursor Cursor                      `json:"cursor"`
+	Node   []*ReportRecruitment `json:"node"`
+	Cursor Cursor               `json:"cursor"`
 }
 
 type ReportCandidateColumnChartResponse struct {
-	Edges      []*ReportCandidateColumnChartEdge `json:"edges"`
-	Pagination *Pagination                       `json:"pagination"`
+	Edges *ReportCandidateColumnChartEdge `json:"edges"`
 }
 
 type ReportCandidateConversionRateChartResponse struct {
@@ -638,11 +654,13 @@ type ReportOrderBy struct {
 }
 
 type ReportRecruitment struct {
-	Eb             int `json:"eb"`
-	Rec            int `json:"rec"`
-	HiringPlatform int `json:"hiring_platform"`
-	Reference      int `json:"reference"`
-	Headhunt       int `json:"headhunt"`
+	Eb             int        `json:"eb"`
+	Rec            int        `json:"rec"`
+	HiringPlatform int        `json:"hiring_platform"`
+	Reference      int        `json:"reference"`
+	Headhunt       int        `json:"headhunt"`
+	FromDate       *time.Time `json:"from_date"`
+	ToDate         *time.Time `json:"to_date"`
 }
 
 type ReportStatsByTime struct {

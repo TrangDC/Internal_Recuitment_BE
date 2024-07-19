@@ -125,7 +125,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 		if err != nil {
 			return err
 		}
-		err = svc.repoRegistry.EntitySkill().DeleteAllEntitySkill(ctx, record.ID)
+		err = repoRegistry.HiringJob().DeleteRelationHiringJob(ctx, record.ID)
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailDelete(record)

@@ -30,6 +30,7 @@ type Repository interface {
 	PermissionGroup() PermissionGroupRepository
 	EmailTemplate() EmailTemplateRepository
 	OutgoingEmail() OutgoingEmailRepository
+	Report() ReportRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -59,6 +60,7 @@ type RepoImpl struct {
 	permissionGroup      PermissionGroupRepository
 	emailTemplate        EmailTemplateRepository
 	outgoingEmail        OutgoingEmailRepository
+	report               ReportRepository
 }
 
 // NewRepository creates new repository registry
@@ -85,6 +87,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		permissionGroup:      NewPermissionGroupRepository(entClient),
 		emailTemplate:        NewEmailTemplateRepository(entClient),
 		outgoingEmail:        NewOutgoingEmailRepository(entClient),
+		report:               NewReportRepository(entClient),
 	}
 }
 
@@ -166,6 +169,10 @@ func (r *RepoImpl) EmailTemplate() EmailTemplateRepository {
 
 func (r *RepoImpl) OutgoingEmail() OutgoingEmailRepository {
 	return r.outgoingEmail
+}
+
+func (r *RepoImpl) Report() ReportRepository {
+	return r.report
 }
 
 // DoInTx executes the given function in a transaction.

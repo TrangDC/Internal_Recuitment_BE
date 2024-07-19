@@ -118,14 +118,14 @@ type ApplicationReportProcessing {
 type ReportApplicationReportTableResponse {
   data: ApplicationReportTable
 }
+
 # LCC = line circle chart
 type ReportCandidateLCCResponse {
   data: ReportCandidateLCC!
 }
 
 type ReportCandidateColumnChartResponse {
-  edges: [ReportCandidateColumnChartEdge!]!
-  pagination: Pagination!
+  edges: ReportCandidateColumnChartEdge!
 }
 
 type ReportCandidateLCC {
@@ -141,13 +141,32 @@ type ReportRecruitment {
   hiring_platform: Int!
   reference: Int!
   headhunt: Int!
+  from_date: Time
+  to_date: Time
 }
 
 type ReportCandidateColumnChartEdge {
-  node: ReportCandidateColumnChart!
+  node: [ReportRecruitment]!
   cursor: Cursor!
 }
 
-type ReportCandidateColumnChart {
-  period: Period!
+type ReportApplicationResponse {
+  edges: ReportApplicationEdge!
+}
+
+type ReportApplicationEdge {
+  node: [ReportApplication]!
+  cursor: Cursor!
+}
+
+type ReportApplication {
+  from_date: Time!
+  to_date: Time!
+  applied: Int!
+  interviewing: Int!
+  offering: Int!
+  hired: Int!
+  kiv: Int!
+  offer_lost: Int!
+  ex_staff: Int!
 }
