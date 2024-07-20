@@ -29,6 +29,7 @@ type CandidateJobRepository interface {
 	DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error
 	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error)
 	UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error)
+	DeleteRelationCandidateJob(ctx context.Context, recordId uuid.UUID) error
 	// query
 	GetCandidateJob(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJob, error)
 	BuildQuery() *ent.CandidateJobQuery
@@ -176,25 +177,23 @@ func (rps candidateJobRepoImpl) UpsetCandidateAttachment(ctx context.Context, re
 
 func (rps candidateJobRepoImpl) DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error {
 	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	return err
+}
+
+func (rps candidateJobRepoImpl) DeleteRelationCandidateJob(ctx context.Context, recordId uuid.UUID) error {
+	_, err := rps.client.CandidateJobStep.Delete().Where(candidatejobstep.CandidateJobID(recordId)).Exec(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = rps.client.CandidateJobStep.Update().Where(candidatejobstep.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobID(recordId)).SetDeletedAt(time.Now().UTC()).Save(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	_, err = rps.client.Attachment.Update().Where(attachment.RelationID(recordId)).SetDeletedAt(time.Now().UTC()).Save(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = rps.client.Attachment.Update().Where(attachment.RelationID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.CandidateJobID(record.ID)).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
+	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.CandidateJobID(recordId)).SetDeletedAt(time.Now().UTC()).Save(ctx)
 	return err
 }
 

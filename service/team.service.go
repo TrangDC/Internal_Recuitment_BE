@@ -181,6 +181,10 @@ func (svc *teamSvcImpl) DeleteTeam(ctx context.Context, teamId uuid.UUID, note s
 		if err != nil {
 			return err
 		}
+		err = repoRegistry.Team().DeleteRelationTeam(ctx, teamId)
+		if err != nil {
+			return err
+		}
 		err = svc.userSvcImpl.RemoveTeam(ctx, team.ID, memberIds, note)
 		return err
 	})

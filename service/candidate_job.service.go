@@ -325,6 +325,10 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.CandidateJob().DeleteCandidateJob(ctx, candidateJob)
+		if err != nil {
+			return err
+		}
+		err = repoRegistry.CandidateJob().DeleteRelationCandidateJob(ctx, candidateJob.ID)
 		return err
 	})
 	if err != nil {

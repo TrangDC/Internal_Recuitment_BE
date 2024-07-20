@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobstep"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/skill"
@@ -23,6 +25,7 @@ type HiringJobRepository interface {
 	UpdateHiringJob(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput) (*ent.HiringJob, error)
 	UpdateHiringJobStatus(ctx context.Context, record *ent.HiringJob, status ent.HiringJobStatus) (*ent.HiringJob, error)
 	DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error
+	DeleteRelationHiringJob(ctx context.Context, recordId uuid.UUID) error
 	// query
 	GetHiringJob(ctx context.Context, hiringJobId uuid.UUID) (*ent.HiringJob, error)
 	BuildQuery() *ent.HiringJobQuery
@@ -164,14 +167,23 @@ func (rps *hiringJobRepoImpl) UpdateHiringJobStatus(ctx context.Context, record 
 
 func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error {
 	_, err := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).Save(ctx)
+	return err
+}
+
+func (rps *hiringJobRepoImpl) DeleteRelationHiringJob(ctx context.Context, recordId uuid.UUID) error {
+	_, err := rps.client.EntitySkill.Delete().Where(entityskill.EntityIDEQ(recordId)).Exec(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = rps.client.EntitySkill.Update().Where(entityskill.EntityIDEQ(record.ID)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	_, err = rps.client.CandidateJob.Update().Where(candidatejob.HiringJobID(recordId)).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).ClearCandidateJobStep().Save(ctx)
 	if err != nil {
 		return err
 	}
+	_, err = rps.client.CandidateJobStep.Delete().Where(candidatejobstep.HasCandidateJobEdgeWith(candidatejob.HiringJobID(recordId))).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HiringJobID(recordId))).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
 	return err
 }
 

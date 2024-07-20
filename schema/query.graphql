@@ -68,15 +68,13 @@ type Query {
 	GetAllPermissionGroups: PermissionGroupResponseGetAll
 
 	# Report
-	GetCandidateReport(filter: ReportFilter!): CandidateReportResponse!
-	GetRecruitmentReport(filter: ReportFilter!): RecruitmentReportResponse!
-	GetCandidateConversionRateReport(filter: ReportFilter!): CandidateConversionRateReportResponse!
-	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
-	ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
-	ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
 	# LCC = line circle chart
 	ReportCandidateLCC: ReportCandidateLCCResponse!
 	ReportCandidateColumnChart(filter: ReportFilter!): ReportCandidateColumnChartResponse!
+	ReportApplication(filter: ReportFilter!): ReportApplicationResponse!
+	ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
+	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
+	ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 }
 
 # Path: schema/query.graphql

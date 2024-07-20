@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/candidateinterview"
+	"trec/ent/candidatejob"
+	"trec/ent/candidatejobstep"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -27,6 +31,7 @@ type TeamRepository interface {
 	BuildCount(ctx context.Context, query *ent.TeamQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.TeamQuery) ([]*ent.Team, error)
 	BuildGetOne(ctx context.Context, query *ent.TeamQuery) (*ent.Team, error)
+	DeleteRelationTeam(ctx context.Context, teamId uuid.UUID) error
 
 	// common function
 	ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error)
@@ -49,11 +54,11 @@ func (rps *teamRepoImpl) BuildCreate() *ent.TeamCreate {
 }
 
 func (rps *teamRepoImpl) BuildUpdate() *ent.TeamUpdate {
-	return rps.client.Team.Update().SetUpdatedAt(time.Now())
+	return rps.client.Team.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps *teamRepoImpl) BuildDelete() *ent.TeamUpdate {
-	return rps.client.Team.Update().SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+	return rps.client.Team.Update().SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps *teamRepoImpl) BuildQuery() *ent.TeamQuery {
@@ -97,7 +102,7 @@ func (rps *teamRepoImpl) BuildExist(ctx context.Context, query *ent.TeamQuery) (
 }
 
 func (rps *teamRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Team) *ent.TeamUpdateOne {
-	return record.Update().SetUpdatedAt(time.Now())
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 func (rps *teamRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.TeamUpdateOne) (*ent.Team, error) {
@@ -117,8 +122,29 @@ func (rps *teamRepoImpl) UpdateTeam(ctx context.Context, record *ent.Team, input
 }
 
 func (rps *teamRepoImpl) DeleteTeam(ctx context.Context, record *ent.Team, memberIds []uuid.UUID) (*ent.Team, error) {
-	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now()).RemoveUserEdgeIDs(memberIds...)
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).RemoveUserEdgeIDs(memberIds...)
 	return update.Save(ctx)
+}
+
+func (rps *teamRepoImpl) DeleteRelationTeam(ctx context.Context, teamId uuid.UUID) error {
+	_, err := rps.client.HiringJob.Update().Where(hiringjob.TeamIDEQ(teamId)).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.EntitySkill.Delete().Where(entityskill.HasHiringJobEdgeWith(hiringjob.TeamIDEQ(teamId))).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJob.Update().Where(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDEQ(teamId))).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).ClearCandidateJobStep().Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobStep.Delete().Where(candidatejobstep.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDEQ(teamId)))).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.TeamIDEQ(teamId)))).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	return err
 }
 
 // query

@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -202,19 +201,24 @@ func (r *queryResolver) GetAllPermissionGroups(ctx context.Context) (*ent.Permis
 	return r.serviceRegistry.PermissionGroup().GetAllPermissionGroups(ctx)
 }
 
-// GetCandidateReport is the resolver for the GetCandidateReport field.
-func (r *queryResolver) GetCandidateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateReportResponse, error) {
-	return r.serviceRegistry.Report().GetCandidateReport(ctx, filter)
+// ReportCandidateLcc is the resolver for the ReportCandidateLCC field.
+func (r *queryResolver) ReportCandidateLcc(ctx context.Context) (*ent.ReportCandidateLCCResponse, error) {
+	return r.serviceRegistry.Report().ReportCandidateLCC(ctx)
 }
 
-// GetRecruitmentReport is the resolver for the GetRecruitmentReport field.
-func (r *queryResolver) GetRecruitmentReport(ctx context.Context, filter ent.ReportFilter) (*ent.RecruitmentReportResponse, error) {
-	return r.serviceRegistry.Report().GetRecruitmentReport(ctx, filter)
+// ReportCandidateColumnChart is the resolver for the ReportCandidateColumnChart field.
+func (r *queryResolver) ReportCandidateColumnChart(ctx context.Context, filter ent.ReportFilter) (*ent.ReportCandidateColumnChartResponse, error) {
+	return r.serviceRegistry.Report().ReportCandidateColumnChart(ctx, filter)
 }
 
-// GetCandidateConversionRateReport is the resolver for the GetCandidateConversionRateReport field.
-func (r *queryResolver) GetCandidateConversionRateReport(ctx context.Context, filter ent.ReportFilter) (*ent.CandidateConversionRateReportResponse, error) {
-	return r.serviceRegistry.Report().GetCandidateConversionRateReport(ctx, filter)
+// ReportApplication is the resolver for the ReportApplication field.
+func (r *queryResolver) ReportApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationResponse, error) {
+	return r.serviceRegistry.Report().ReportApplication(ctx, filter)
+}
+
+// ReportApplicationReportTable is the resolver for the ReportApplicationReportTable field.
+func (r *queryResolver) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
+	return r.serviceRegistry.Report().ReportApplicationReportTable(ctx, filter)
 }
 
 // ReportCandidateConversionRateChart is the resolver for the ReportCandidateConversionRateChart field.
@@ -225,21 +229,6 @@ func (r *queryResolver) ReportCandidateConversionRateChart(ctx context.Context) 
 // ReportCandidateConversionRateTable is the resolver for the ReportCandidateConversionRateTable field.
 func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
 	return r.serviceRegistry.Report().ReportCandidateConversionRateTable(ctx, pagination, orderBy)
-}
-
-// ReportApplicationReportTable is the resolver for the ReportApplicationReportTable field.
-func (r *queryResolver) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
-	return r.serviceRegistry.Report().ReportApplicationReportTable(ctx, filter)
-}
-
-// ReportCandidateLcc is the resolver for the ReportCandidateLCC field.
-func (r *queryResolver) ReportCandidateLcc(ctx context.Context) (*ent.ReportCandidateLCCResponse, error) {
-	return r.serviceRegistry.Report().ReportCandidateLCC(ctx)
-}
-
-// ReportCandidateColumnChart is the resolver for the ReportCandidateColumnChart field.
-func (r *queryResolver) ReportCandidateColumnChart(ctx context.Context, filter ent.ReportFilter) (*ent.ReportCandidateColumnChartResponse, error) {
-	panic(fmt.Errorf("not implemented: ReportCandidateColumnChart - ReportCandidateColumnChart"))
 }
 
 // Query returns graphql1.QueryResolver implementation.

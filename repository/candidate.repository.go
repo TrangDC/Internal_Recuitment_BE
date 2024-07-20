@@ -27,6 +27,7 @@ type CandidateRepository interface {
 	DeleteCandidate(ctx context.Context, record *ent.Candidate) error
 	BuildBulkCreate(ctx context.Context, input []*ent.NewCandidateInput) ([]*ent.Candidate, error)
 	SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error)
+	DeleteRelationCandidate(ctx context.Context, candidateId uuid.UUID) error
 	// query
 	GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error)
 	BuildQuery() *ent.CandidateQuery
@@ -225,6 +226,41 @@ func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Ca
 
 func (rps candidateRepoImpl) SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error) {
 	return rps.BuildUpdateOne(ctx, record).SetIsBlacklist(isBlackList).Save(ctx)
+}
+
+func (rps candidateRepoImpl) DeleteRelationCandidate(ctx context.Context, candidateId uuid.UUID) error {
+	_, err := rps.client.CandidateJob.Update().Where(candidatejob.CandidateID(candidateId)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.HasCandidateJobEdgeWith(
+		candidatejob.CandidateID(candidateId),
+	)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateJobStep.Delete().Where(candidatejobstep.HasCandidateJobEdgeWith(
+		candidatejob.CandidateID(candidateId),
+	)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.Attachment.Update().Where(attachment.RelationID(candidateId)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.HasCandidateJobEdgeWith(
+		candidatejob.CandidateID(candidateId),
+	)).
+		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.EntitySkill.Delete().Where(entityskill.EntityIDEQ(candidateId)).Exec(ctx)
+	return err
 }
 
 // query

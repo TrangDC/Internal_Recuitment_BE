@@ -117,11 +117,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 		if err != nil {
 			return err
 		}
-		err = svc.attachmentSvc.RemoveAttachment(ctx, record.ID, repoRegistry)
-		if err != nil {
-			return err
-		}
-		err = svc.repoRegistry.EntitySkill().DeleteAllEntitySkill(ctx, record.ID)
+		err = repoRegistry.Candidate().DeleteRelationCandidate(ctx, record.ID)
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
