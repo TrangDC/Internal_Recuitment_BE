@@ -51,6 +51,7 @@ type candidateInterviewSvcImpl struct {
 	candidateInterviewerSvc CandidateInterviewerService
 	emailSvc                EmailService
 	outgoingEmailSvc        OutgoingEmailService
+	serviceBusClient        servicebus.ServiceBus
 	repoRegistry            repository.Repository
 	dtoRegistry             dto.Dto
 	logger                  *zap.Logger
@@ -61,6 +62,7 @@ func NewCandidateInterviewService(repoRegistry repository.Repository, serviceBus
 		candidateInterviewerSvc: NewCandidateInterviewerService(repoRegistry, logger),
 		emailSvc:                NewEmailService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		outgoingEmailSvc:        NewOutgoingEmailService(repoRegistry, logger),
+		serviceBusClient:        serviceBusClient,
 		repoRegistry:            repoRegistry,
 		dtoRegistry:             dtoRegistry,
 		logger:                  logger,
@@ -120,11 +122,17 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	err = svc.triggerEventSendEmail(ctx, candidateInterview, candidateJob, emailtemplate.EventCreatedInterview)
+	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
+	err = svc.triggerEventSendEmail(ctx, result, candidateJob, emailtemplate.EventCreatedInterview)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
+	if result.Status == candidateinterview.StatusInvitedToInterview {
+		err = svc.scheduleUpdateStatus(ctx, result)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+		}
+	}
 	atJsonString, err := svc.dtoRegistry.CandidateInterview().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -643,6 +651,15 @@ func (svc candidateInterviewSvcImpl) triggerEventSendEmail(ctx context.Context, 
 	if err != nil {
 		return err
 	}
+	return err
+}
+
+func (svc candidateInterviewSvcImpl) scheduleUpdateStatus(ctx context.Context, record *ent.CandidateInterview) error {
+	err := svc.serviceBusClient.SendInterviewScheduleMessage(ctx, models.MessageOutput{
+		ID:        record.ID.String(),
+		IsSuccess: true,
+		QueueName: servicebus.InterviewScheduleQueue,
+	}, record.StartFrom)
 	return err
 }
 

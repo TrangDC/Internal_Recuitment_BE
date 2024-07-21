@@ -401,7 +401,7 @@ var (
 				Symbol:     "entity_skills_hiring_jobs_hiring_job_skill_edges",
 				Columns:    []*schema.Column{EntitySkillsColumns[6]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "entity_skills_skills_entity_skill_edges",

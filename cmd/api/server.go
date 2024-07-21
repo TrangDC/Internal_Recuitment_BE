@@ -194,7 +194,8 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 			idleConnectionsClosed := make(chan struct{})
 
 			messages := make(chan models.Messages, 10000) // Use buffered channel to avoid blocking
-			go serviceBusClient.ListenToSubscription(messages)
+			go serviceBusClient.ListenToEmailSubscription(messages)
+			go serviceBusClient.ListenToInterviewScheduleSubscription(messages)
 			go serviceBusClient.ProcessMessages(ctx, messages)
 
 			go func() {

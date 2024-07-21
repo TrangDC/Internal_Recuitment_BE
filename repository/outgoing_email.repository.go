@@ -93,7 +93,10 @@ func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, i
 		createBulk = append(createBulk, create)
 	}
 	for _, v := range createBulk {
-		record, _ := v.Save(ctx)
+		record, err := v.Save(ctx)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, record)
 	}
 	return results, nil

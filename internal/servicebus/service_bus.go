@@ -17,13 +17,13 @@ const (
 	EmailEventTriggerQueue         = "trec-email-event-trigger"
 	EmailEventTriggerCallbackQueue = "trec-email-event-trigger-callback"
 	InterviewScheduleQueue         = "trec-interview-schedule"
-	InterviewScheduleCallbackQueue = "trec-interview-schedule-callback"
 )
 
 type ServiceBus interface {
-	ListenToSubscription(messages chan<- models.Messages)
+	ListenToEmailSubscription(messages chan<- models.Messages)
+	ListenToInterviewScheduleSubscription(messages chan<- models.Messages)
 	SendEmailTriggerMessage(ctx context.Context, input models.MessageInput) error
-	SendInterviewScheduleMessage(ctx context.Context, input models.MessageInput, schedule time.Time) error
+	SendInterviewScheduleMessage(ctx context.Context, input models.MessageOutput, schedule time.Time) error
 	ProcessMessages(ctx context.Context, messages <-chan models.Messages)
 }
 
@@ -32,7 +32,6 @@ type serviceBusImpl struct {
 	emailEventTrigger         *servicebus.Queue
 	emailEventTriggerCallback *servicebus.Queue
 	interviewSchedule         *servicebus.Queue
-	interviewScheduleCallback *servicebus.Queue
 }
 
 func NewServiceBus(config config.ServiceBusConfig, entClient *ent.Client) (ServiceBus, error) {
@@ -53,23 +52,18 @@ func NewServiceBus(config config.ServiceBusConfig, entClient *ent.Client) (Servi
 	if err != nil {
 		log.Printf("failed to create interview schedule queue client: %s \n", err)
 	}
-	interviewScheduleCallback, err := ns.NewQueue(InterviewScheduleCallbackQueue)
-	if err != nil {
-		log.Printf("failed to create interview schedule callback queue client: %s \n", err)
-	}
 	return &serviceBusImpl{
 		repository:                repoRegistry,
 		emailEventTrigger:         emailEventTrigger,
 		emailEventTriggerCallback: emailEventTriggerCallback,
 		interviewSchedule:         interviewSchedule,
-		interviewScheduleCallback: interviewScheduleCallback,
 	}, nil
 }
 
-func (s *serviceBusImpl) ListenToSubscription(messages chan<- models.Messages) {
+func (s *serviceBusImpl) ListenToEmailSubscription(messages chan<- models.Messages) {
 	for {
-		emailEventTriggerCtx := context.Background()
-		err := s.emailEventTriggerCallback.Receive(emailEventTriggerCtx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
+		ctx := context.Background()
+		err := s.emailEventTriggerCallback.Receive(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
 			messages <- models.Messages{
 				Message:   *msg,
 				QueueName: EmailEventTriggerCallbackQueue,
@@ -80,11 +74,16 @@ func (s *serviceBusImpl) ListenToSubscription(messages chan<- models.Messages) {
 			log.Printf("failed to receive email trigger callback messages: %s", err)
 			time.Sleep(1 * time.Second)
 		}
-		interviewScheduleQueueCtx := context.Background()
-		err = s.interviewScheduleCallback.Receive(interviewScheduleQueueCtx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
+	}
+}
+
+func (s *serviceBusImpl) ListenToInterviewScheduleSubscription(messages chan<- models.Messages) {
+	for {
+		ctx := context.Background()
+		err := s.interviewSchedule.Receive(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
 			messages <- models.Messages{
 				Message:   *msg,
-				QueueName: InterviewScheduleCallbackQueue,
+				QueueName: InterviewScheduleQueue,
 			}
 			return msg.Complete(ctx)
 		}))
@@ -104,9 +103,8 @@ func (s *serviceBusImpl) ProcessMessages(ctx context.Context, messages <-chan mo
 			switch msg.QueueName {
 			case EmailEventTriggerCallbackQueue:
 				s.repository.OutgoingEmail().CallbackOutgoingEmail(ctx, input)
-			case InterviewScheduleCallbackQueue:
-				// Do something with interview schedule callback
-				log.Printf("Interview schedule callback: %v", input)
+			case InterviewScheduleQueue:
+				s.repository.CandidateInterview().CallbackInterviewSchedule(ctx, input)
 			}
 		}
 	}
@@ -126,7 +124,7 @@ func (s *serviceBusImpl) SendEmailTriggerMessage(ctx context.Context, input mode
 	return err
 }
 
-func (s *serviceBusImpl) SendInterviewScheduleMessage(ctx context.Context, input models.MessageInput, schedule time.Time) error {
+func (s *serviceBusImpl) SendInterviewScheduleMessage(ctx context.Context, input models.MessageOutput, schedule time.Time) error {
 	jsonBytes, err := json.Marshal(input)
 	if err != nil {
 		return err
