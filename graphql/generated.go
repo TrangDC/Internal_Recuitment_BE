@@ -5457,17 +5457,17 @@ input UpdateCandidateInterviewStatusInput {
   ex_staff
 }
 
-enum CandidateJobStatusOpen{
+enum CandidateJobStatusOpen {
   applied
   interviewing
   offering
 }
-enum CandidateJobStatusAbleToClose{
+enum CandidateJobStatusAbleToClose {
   interviewing
   offering
 }
 
-enum CandidateJobStatusFailed{
+enum CandidateJobStatusFailed {
   offer_lost
   kiv
 }
@@ -5514,7 +5514,7 @@ enum CandidateJobOrderByAdditionalField {
   hiring_job_created_at
 }
 
-input CandidateJobGroupByStatusFilter{
+input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
   team_id: [ID!]
   priority: [Int!]
@@ -5525,7 +5525,7 @@ input CandidateJobGroupByStatusFilter{
   created_by_ids: [ID!]
 }
 
-input CandidateJobGroupByStatusFreeWord{
+input CandidateJobGroupByStatusFreeWord {
   job_title: String
 }
 
@@ -5576,10 +5576,11 @@ type CandidateJobGroupByStatus {
 input NewCandidateJobInput {
   candidate_id: ID!
   hiring_job_id: ID!
-  status: CandidateJobStatus!
+  status: CandidateJobStatusOpen!
   attachments: [NewAttachmentInput!]
   onboard_date: Time
   offer_expiration_date: Time
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input UpdateCandidateAttachment {
@@ -38449,7 +38450,7 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "status", "attachments", "onboard_date", "offer_expiration_date"}
+	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "status", "attachments", "onboard_date", "offer_expiration_date", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38476,7 +38477,7 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalNCandidateJobStatus2trecᚋentᚐCandidateJobStatus(ctx, v)
+			it.Status, err = ec.unmarshalNCandidateJobStatusOpen2trecᚋentᚐCandidateJobStatusOpen(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38501,6 +38502,14 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offer_expiration_date"))
 			it.OfferExpirationDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "failed_reason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
+			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49342,6 +49351,16 @@ func (ec *executionContext) unmarshalNCandidateJobStatus2trecᚋentᚐCandidateJ
 }
 
 func (ec *executionContext) marshalNCandidateJobStatus2trecᚋentᚐCandidateJobStatus(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNCandidateJobStatusOpen2trecᚋentᚐCandidateJobStatusOpen(ctx context.Context, v interface{}) (ent.CandidateJobStatusOpen, error) {
+	var res ent.CandidateJobStatusOpen
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateJobStatusOpen2trecᚋentᚐCandidateJobStatusOpen(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobStatusOpen) graphql.Marshaler {
 	return v
 }
 

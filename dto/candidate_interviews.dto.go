@@ -113,6 +113,9 @@ func (d *candidateInterviewDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateInt
 			case "model.candidate_interviews.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
+			case "model.candidate_interviews.location":
+				oldValueField = d.mappingLocation(oldRecord.Location)
+				newValueField = d.mappingLocation(newRecord.Location)
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -161,6 +164,8 @@ func (d *candidateInterviewDtoImpl) recordAudit(record *ent.CandidateInterview) 
 			}
 		case "model.candidate_interviews.status":
 			valueField = d.statusI18n(record.Status)
+		case "model.candidate_interviews.location":
+			valueField = d.mappingLocation(record.Location)
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -223,6 +228,10 @@ func (d candidateInterviewDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidate_interviews.created_by"
 	case "Status":
 		return "model.candidate_interviews.status"
+	case "Location":
+		return "model.candidate_interviews.location"
+	case "MeetingLink":
+		return "model.candidate_interviews.meeting_link"
 	}
 	return ""
 }
@@ -239,4 +248,21 @@ func (d candidateInterviewDtoImpl) statusI18n(input candidateinterview.Status) s
 		return "model.candidate_interviews.status_enum.cancelled"
 	}
 	return ""
+}
+
+func (d candidateInterviewDtoImpl) mappingLocation(input string) string {
+	switch input {
+	case "Hanoi":
+		return "[Hanoi] TECHVIFY Office_Thanh Dong Bld 19 To Huu, Trung Van, Nam Tu Liem"
+	case "HCM":
+		return "[HCM] TECHVIFY Office_ H3 Building, 384 Hoang Dieu str, 6 Ward, 4 Dist, Ho Chi Minh City"
+	case "ĐN":
+		return "[ĐN] F3 Ricco Building, 363 Nguyen Huu Tho Str, Cam Le Dist, Da Nang City, Vietnam"
+	case "Japan":
+		return "[Japan] Hakata Ekimae City Building 10F, 1-9-3 Hakata Ekimae, Hakata-ku, Fukuoka-shi, Fukuoka 812-0011 Japan"
+	case "Online Interview":
+		return "Online interview"
+	default:
+		return input
+	}
 }

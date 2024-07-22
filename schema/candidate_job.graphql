@@ -5,17 +5,17 @@ enum CandidateJobStatusEnded {
   ex_staff
 }
 
-enum CandidateJobStatusOpen{
+enum CandidateJobStatusOpen {
   applied
   interviewing
   offering
 }
-enum CandidateJobStatusAbleToClose{
+enum CandidateJobStatusAbleToClose {
   interviewing
   offering
 }
 
-enum CandidateJobStatusFailed{
+enum CandidateJobStatusFailed {
   offer_lost
   kiv
 }
@@ -62,7 +62,7 @@ enum CandidateJobOrderByAdditionalField {
   hiring_job_created_at
 }
 
-input CandidateJobGroupByStatusFilter{
+input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
   team_id: [ID!]
   priority: [Int!]
@@ -73,7 +73,7 @@ input CandidateJobGroupByStatusFilter{
   created_by_ids: [ID!]
 }
 
-input CandidateJobGroupByStatusFreeWord{
+input CandidateJobGroupByStatusFreeWord {
   job_title: String
 }
 
@@ -124,10 +124,11 @@ type CandidateJobGroupByStatus {
 input NewCandidateJobInput {
   candidate_id: ID!
   hiring_job_id: ID!
-  status: CandidateJobStatus!
+  status: CandidateJobStatusOpen!
   attachments: [NewAttachmentInput!]
   onboard_date: Time
   offer_expiration_date: Time
+  failed_reason: [CandidateJobFailedReason!]
 }
 
 input UpdateCandidateAttachment {

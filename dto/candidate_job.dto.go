@@ -14,7 +14,7 @@ type CandidateJobDto interface {
 	AuditTrailCreate(record *ent.CandidateJob) (string, error)
 	AuditTrailDelete(record *ent.CandidateJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.CandidateJob, newRecord *ent.CandidateJob) (string, error)
-	AuditTrailUpdateStatus(oldStatus, newStatus candidatejob.Status) (string, error)
+	AuditTrailUpdateStatus(oldRecord *ent.CandidateJob, newRecord *ent.CandidateJob) (string, error)
 
 	MappingEdge(records []*ent.CandidateJob, candidates []*ent.Candidate, interviews []*ent.CandidateInterview, hiringJobs []*ent.HiringJob)
 	MappingStatus(input candidatejob.Status) string
@@ -124,7 +124,7 @@ func (d *candidateJobDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateJob, newR
 	return string(jsonObj), err
 }
 
-func (d *candidateJobDtoImpl) AuditTrailUpdateStatus(oldStatus, newStatus candidatejob.Status) (string, error) {
+func (d *candidateJobDtoImpl) AuditTrailUpdateStatus(oldRecord *ent.CandidateJob, newRecord *ent.CandidateJob) (string, error) {
 	result := models.AuditTrailData{
 		Module:    CandidateI18n,
 		Create:    []interface{}{},
@@ -139,13 +139,40 @@ func (d *candidateJobDtoImpl) AuditTrailUpdateStatus(oldStatus, newStatus candid
 		Delete: []interface{}{},
 	}
 	entity := []interface{}{}
-	entity = append(entity, models.AuditTrailUpdate{
-		Field: "model.candidate_jobs.status",
-		Value: models.ValueChange{
-			OldValue: d.statusI18n(oldStatus),
-			NewValue: d.statusI18n(newStatus),
-		},
-	})
+	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
+	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
+	recordType := reflect.TypeOf(oldRecord).Elem()
+	for i := 1; i < oldValue.NumField(); i++ {
+		field := recordType.Field(i)
+		oldValueField := oldValue.Field(i).Interface()
+		newValueField := newValue.Field(i).Interface()
+		fieldName := d.formatFieldI18n(field.Name)
+		if field.PkgPath == "" && !reflect.DeepEqual(oldValueField, newValueField) {
+			switch fieldName {
+			case "":
+				continue
+			case "model.candidate_job.status":
+				oldValueField = d.statusI18n(oldRecord.Status)
+				newValueField = d.statusI18n(newRecord.Status)
+			case "model.candidate_job.onboard_date":
+				if oldRecord.OnboardDate.IsZero() {
+					oldValueField = ""
+				}
+			case "model.candidate_job.offer_expiration_date":
+				if oldRecord.OfferExpirationDate.IsZero() {
+					oldValueField = ""
+				}
+			}
+			entity = append(entity, models.AuditTrailUpdate{
+				Field: fieldName,
+				Value: models.ValueChange{
+					OldValue: oldValueField,
+					NewValue: newValueField,
+				},
+			})
+		}
+	}
+	entity = d.reasonFailAuditTrailUpdate(oldRecord, newRecord, entity)
 	candidateJobAt.Update = append(candidateJobAt.Update, entity...)
 	result.SubModule = append(result.SubModule, candidateJobAt)
 	jsonObj, err := json.Marshal(result)
@@ -169,6 +196,14 @@ func (d *candidateJobDtoImpl) recordAudit(record *ent.CandidateJob) []interface{
 			if record.Edges.HiringJobEdge != nil {
 				valueField = record.Edges.HiringJobEdge.Name
 			} else {
+				valueField = ""
+			}
+		case "model.candidate_jobs.onboard_date":
+			if record.OnboardDate.IsZero() {
+				valueField = ""
+			}
+		case "model.candidate_jobs.offer_expiration_date":
+			if record.OfferExpirationDate.IsZero() {
 				valueField = ""
 			}
 		}
@@ -260,6 +295,10 @@ func (d candidateJobDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidate_jobs.hiring_job"
 	case "Status":
 		return "model.candidate_jobs.status"
+	case "OnboardDate":
+		return "model.candidate_jobs.onboard_date"
+	case "OfferExpirationDate":
+		return "model.candidate_jobs.offer_expiration_date"
 	}
 	return ""
 }
