@@ -19,15 +19,16 @@ import (
 	"trec/middleware"
 	"trec/models"
 
+	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
 
 type CandidateJobRepository interface {
 	// mutation
-	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJob, error)
+	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, failedReason []string) (*ent.CandidateJob, error)
 	DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error
-	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error)
+	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus, failedReason []string) (*ent.CandidateJob, error)
 	UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error)
 	DeleteRelationCandidateJob(ctx context.Context, recordId uuid.UUID) error
 	// query
@@ -37,8 +38,8 @@ type CandidateJobRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
-	ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status ent.CandidateJobStatus, onboardDate *time.Time, offerExpDate *time.Time) (error, error)
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
+	ValidInput(ctx context.Context, input models.CandidateJobValidInput) ([]string, error, error)
 	BuildBaseQuery() *ent.CandidateJobQuery
 	GetDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error)
 }
@@ -124,15 +125,7 @@ func (rps candidateJobRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *
 }
 
 // mutation
-func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput) (*ent.CandidateJob, error) {
-	_, err := rps.client.Candidate.Update().Where(candidate.IDEQ(uuid.MustParse(input.CandidateID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-	_, err = rps.client.HiringJob.Update().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, failedReason []string) (*ent.CandidateJob, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	createdById := payload.UserID
 	create := rps.BuildCreate().
@@ -141,31 +134,31 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 		SetCandidateID(uuid.MustParse(input.CandidateID)).
 		SetStatus(candidatejob.Status(input.Status)).
 		SetCreatedBy(createdById)
-	if input.Status == ent.CandidateJobStatusOffering {
+	if input.Status == ent.CandidateJobStatusOpenOffering {
 		create.
 			SetOnboardDate(*input.OnboardDate).
 			SetOfferExpirationDate(*input.OfferExpirationDate)
 	}
+	_, err := rps.client.Candidate.Update().Where(candidate.IDEQ(uuid.MustParse(input.CandidateID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = rps.client.HiringJob.Update().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return create.Save(ctx)
 }
 
-func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus) (*ent.CandidateJob, error) {
+func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus, failedReason []string) (*ent.CandidateJob, error) {
 	update := rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(input.Status.String()))
-	if input.Status == ent.CandidateJobStatusOffering {
+	switch input.Status {
+	case ent.CandidateJobStatusKiv, ent.CandidateJobStatusOfferLost:
+		update.SetFailedReason(failedReason)
+	case ent.CandidateJobStatusOffering:
 		update.
 			SetOnboardDate(*input.OnboardDate).
 			SetOfferExpirationDate(*input.OfferExpirationDate)
-	}
-	if ent.CandidateJobStatusFailed.IsValid(ent.CandidateJobStatusFailed(input.Status)) {
-		if input.FailedReason == nil && len(input.FailedReason) == 0 {
-			return nil, fmt.Errorf("model.candidate_job.validation.failed_reason_required")
-		}
-		reason := lo.Map(input.FailedReason, func(s ent.CandidateJobFailedReason, index int) string {
-			return s.String()
-		})
-		update.SetFailedReason(reason)
-	} else {
-		update.ClearFailedReason()
 	}
 	return update.Save(ctx)
 }
@@ -252,45 +245,6 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 }
 
 // common function
-func (rps candidateJobRepoImpl) ValidStatus(ctx context.Context, candidateId uuid.UUID, candidateJobId uuid.UUID, status ent.CandidateJobStatus, onboardDate *time.Time, offerExpDate *time.Time) (error, error) {
-	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
-		return candidatejob.Status(s)
-	})
-	openStatus = append(openStatus, candidatejob.StatusHired)
-	if !lo.Contains(openStatus, candidatejob.Status(status)) {
-		return nil, nil
-	}
-	if status == ent.CandidateJobStatusOffering {
-		currentTime := time.Now().UTC()
-		currentTime = time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, currentTime.Location())
-		if onboardDate == nil {
-			return fmt.Errorf("model.candidate_job.validation.onboard_date_required"), nil
-		}
-		if offerExpDate == nil {
-			return fmt.Errorf("model.candidate_job.validation.offer_exp_date_required"), nil
-		}
-		if onboardDate.Before(currentTime) {
-			return fmt.Errorf("model.candidate_job.validation.invalid_onboard_date"), nil
-		}
-		if offerExpDate.Before(currentTime) {
-			return fmt.Errorf("model.candidate_job.validation.invalid_offer_exp_date"), nil
-		}
-		if onboardDate.Compare(*offerExpDate) <= 0 {
-			return fmt.Errorf("model.candidate_job.validation.onboard_before_offer_exp"), nil
-		}
-	}
-	query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(candidateId))
-	if candidateJobId != uuid.Nil {
-		query.Where(candidatejob.IDNEQ(candidateJobId))
-	}
-	query = query.Where(candidatejob.StatusIn(openStatus...))
-	isExist, _ := rps.BuildExist(ctx, query)
-	if isExist {
-		return fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist"), nil
-	}
-	return nil, nil
-}
-
 func (rps candidateJobRepoImpl) ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error) {
 	candidateRecord, err := rps.client.Candidate.Query().Where(candidate.IDEQ(candidateId)).First(ctx)
 	if err != nil {
@@ -300,4 +254,60 @@ func (rps candidateJobRepoImpl) ValidUpsetByCandidateIsBlacklist(ctx context.Con
 		return fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist"), nil
 	}
 	return nil, nil
+}
+
+func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.CandidateJobValidInput) ([]string, error, error) {
+	var failedReason []string
+	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
+		return candidatejob.Status(s)
+	})
+	openStatus = append(openStatus, candidatejob.StatusHired)
+	candidateRecord, err := rps.client.Candidate.Query().Where(candidate.IDEQ(input.CandidateId)).First(ctx)
+	if err != nil {
+		return failedReason, nil, err
+	}
+	if candidateRecord.IsBlacklist {
+		return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist"), nil
+	}
+	switch input.Status {
+	case ent.CandidateJobStatusApplied, ent.CandidateJobStatusInterviewing, ent.CandidateJobStatusOffering:
+		if input.Status == ent.CandidateJobStatusOffering {
+			utc, _ := time.LoadLocation(carbon.UTC)
+			currentTime := carbon.Now().StartOfDay().SetLocation(utc)
+			if input.OnboardDate == nil {
+				return failedReason, fmt.Errorf("model.candidate_job.validation.onboard_date_required"), nil
+			}
+			if input.OfferExpDate == nil {
+				return failedReason, fmt.Errorf("model.candidate_job.validation.offer_exp_date_required"), nil
+			}
+			onboardDate := carbon.Parse(input.OnboardDate.String())
+			offerExpDate := carbon.Parse(input.OfferExpDate.String())
+			if currentTime.Gte(onboardDate) {
+				return failedReason, fmt.Errorf("model.candidate_job.validation.invalid_onboard_date"), nil
+			}
+			if currentTime.Gte(offerExpDate) {
+				return failedReason, fmt.Errorf("model.candidate_job.validation.invalid_offer_exp_date"), nil
+			}
+			if onboardDate.Lte(offerExpDate) {
+				return failedReason, fmt.Errorf("model.candidate_job.validation.onboard_before_offer_exp"), nil
+			}
+		}
+		query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(input.CandidateId))
+		if input.CandidateJobId != uuid.Nil {
+			query.Where(candidatejob.IDNEQ(input.CandidateJobId))
+		}
+		query = query.Where(candidatejob.StatusIn(openStatus...))
+		isExist, _ := rps.BuildExist(ctx, query)
+		if isExist {
+			return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist"), nil
+		}
+	case ent.CandidateJobStatusOfferLost, ent.CandidateJobStatusKiv:
+		if len(input.FailedReason) == 0 {
+			return failedReason, fmt.Errorf("model.candidate_job.validation.failed_reason_required"), nil
+		}
+		failedReason = lo.Map(input.FailedReason, func(s ent.CandidateJobFailedReason, index int) string {
+			return s.String()
+		})
+	}
+	return failedReason, nil, nil
 }

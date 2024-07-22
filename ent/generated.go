@@ -485,12 +485,13 @@ type NewCandidateJobFeedbackInput struct {
 }
 
 type NewCandidateJobInput struct {
-	CandidateID         string                `json:"candidate_id"`
-	HiringJobID         string                `json:"hiring_job_id"`
-	Status              CandidateJobStatus    `json:"status"`
-	Attachments         []*NewAttachmentInput `json:"attachments"`
-	OnboardDate         *time.Time            `json:"onboard_date"`
-	OfferExpirationDate *time.Time            `json:"offer_expiration_date"`
+	CandidateID         string                     `json:"candidate_id"`
+	HiringJobID         string                     `json:"hiring_job_id"`
+	Status              CandidateJobStatusOpen     `json:"status"`
+	Attachments         []*NewAttachmentInput      `json:"attachments"`
+	OnboardDate         *time.Time                 `json:"onboard_date"`
+	OfferExpirationDate *time.Time                 `json:"offer_expiration_date"`
+	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
 }
 
 type NewEmailTemplateInput struct {

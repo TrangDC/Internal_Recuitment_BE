@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sort"
 	"strings"
@@ -75,6 +76,7 @@ func NewCandidateJobService(repoRegistry repository.Repository, serviceBusClient
 func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, note string) (*ent.CandidateJobResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateJob *ent.CandidateJob
+	var inputValidate models.CandidateJobValidInput
 	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).WithTeamEdge(
 		func(query *ent.TeamQuery) {
 			query.WithUserEdges(
@@ -92,15 +94,9 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	errString, err := svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, uuid.MustParse(input.CandidateID))
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
-	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	errString, err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, uuid.MustParse(input.CandidateID), uuid.Nil, input.Status, input.OnboardDate, input.OfferExpirationDate)
+	jsonValidate, _ := json.Marshal(input)
+	json.Unmarshal(jsonValidate, &inputValidate)
+	failedReason, errString, err := svc.repoRegistry.CandidateJob().ValidInput(ctx, inputValidate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -109,7 +105,7 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		candidateJob, err = repoRegistry.CandidateJob().CreateCandidateJob(ctx, input)
+		candidateJob, err = repoRegistry.CandidateJob().CreateCandidateJob(ctx, input, failedReason)
 		if err != nil {
 			return err
 		}
@@ -144,6 +140,7 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 
 func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) error {
 	var result *ent.CandidateJob
+	var inputValidate models.CandidateJobValidInput
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx,
 		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.IDEQ(id)).WithHiringJobEdge())
@@ -171,15 +168,11 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	if record.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
 		return util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err := svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, record.CandidateID)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
-	}
-	if errString != nil {
-		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	errString, err = svc.repoRegistry.CandidateJob().ValidStatus(ctx, record.CandidateID, id, input.Status, input.OnboardDate, input.OfferExpirationDate)
+	jsonValidate, _ := json.Marshal(input)
+	json.Unmarshal(jsonValidate, &inputValidate)
+	inputValidate.CandidateId = record.CandidateID
+	inputValidate.CandidateJobId = record.ID
+	failedReason, errString, err := svc.repoRegistry.CandidateJob().ValidInput(ctx, inputValidate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -188,12 +181,12 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input)
+		result, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input, failedReason)
 		if err != nil {
 			return err
 		}
 		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
-		return err
+		return nil
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -203,7 +196,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdateStatus(record.Status, candidatejob.Status(input.Status))
+	jsonString, err := svc.dtoRegistry.CandidateJob().AuditTrailUpdateStatus(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
