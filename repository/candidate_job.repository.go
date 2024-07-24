@@ -34,13 +34,14 @@ type CandidateJobRepository interface {
 	// query
 	GetCandidateJob(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJob, error)
 	BuildQuery() *ent.CandidateJobQuery
+	BuildBaseQuery() *ent.CandidateJobQuery
 	BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
 	ValidInput(ctx context.Context, input models.CandidateJobValidInput) ([]string, error, error)
-	BuildBaseQuery() *ent.CandidateJobQuery
+	ValidStatus(oldStatus candidatejob.Status, newStatus ent.CandidateJobStatus) (error)
 	GetDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error)
 }
 
@@ -310,4 +311,34 @@ func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.Can
 		})
 	}
 	return failedReason, nil, nil
+}
+
+func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newStatus ent.CandidateJobStatus) error {
+	isErrorStatus := false
+	entOldStatus := ent.CandidateJobStatus(oldStatus)
+	switch newStatus {
+	case ent.CandidateJobStatusInterviewing:
+		if entOldStatus != ent.CandidateJobStatusInterviewing {
+			isErrorStatus = true
+		}
+	case ent.CandidateJobStatusOffering, ent.CandidateJobStatusKiv:
+		switch entOldStatus {
+		case ent.CandidateJobStatusApplied, ent.CandidateJobStatusInterviewing:
+			isErrorStatus = false
+		default:
+			isErrorStatus = true
+		}
+	case ent.CandidateJobStatusHired, ent.CandidateJobStatusOfferLost:
+		if entOldStatus != ent.CandidateJobStatusOffering {
+			isErrorStatus = true
+		}
+	case ent.CandidateJobStatusExStaff:
+		if entOldStatus != ent.CandidateJobStatusHired {
+			isErrorStatus = true
+		}
+	}
+	if isErrorStatus {
+		return fmt.Errorf("model.candidate_jobs.validation.invalid_status")
+	}
+	return nil
 }

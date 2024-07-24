@@ -180,6 +180,10 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	if errString != nil {
 		return util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	err = svc.repoRegistry.CandidateJob().ValidStatus(record.Status, input.Status)
+	if err != nil {
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.CandidateJob().UpdateCandidateJobStatus(ctx, record, input, failedReason)
 		if err != nil {
