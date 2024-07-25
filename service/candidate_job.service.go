@@ -204,7 +204,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		if err != nil {
 			return err
 		}
-		if record.Status == candidatejob.StatusApplied || result.Status == candidatejob.StatusOffering {
+		if record.Status == candidatejob.StatusApplied && result.Status == candidatejob.StatusOffering {
 			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusInterviewing, result.ID, repoRegistry)
 			if err != nil {
 				return err
