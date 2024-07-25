@@ -1,5 +1,6 @@
 enum RoleOrderField {
   name
+  created_at
 }
 
 input RoleFreeWord {

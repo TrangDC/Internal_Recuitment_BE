@@ -6662,6 +6662,7 @@ type ReportApplication {
 `, BuiltIn: false},
 	{Name: "../schema/role.graphql", Input: `enum RoleOrderField {
   name
+  created_at
 }
 
 input RoleFreeWord {
@@ -6726,7 +6727,8 @@ type RoleSelectionResponseGetAll {
   pagination: Pagination!
 }
 
-# Path: schema/role.graphql`, BuiltIn: false},
+# Path: schema/role.graphql
+`, BuiltIn: false},
 	{Name: "../schema/skill_type.graphql", Input: `enum SkillTypeOrderField {
   name
   description
