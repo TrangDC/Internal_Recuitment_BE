@@ -21,6 +21,7 @@ func (User) Fields() []ent.Field {
 		field.Enum("status").Values("active", "inactive").Default("active"),
 		field.String("oid").Unique().MaxLen(255),
 		field.UUID("team_id", uuid.UUID{}).Unique().Optional(),
+		field.String("location").MaxLen(255).Optional(),
 	}
 }
 

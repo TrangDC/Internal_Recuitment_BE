@@ -5971,6 +5971,10 @@ enum projectModule {
   hiring_jobs
   candidates
   skills
+  email_templates
+  users
+  skill_types
+  roles
 }
 
 enum auditTrailAction {

@@ -2779,10 +2779,14 @@ func (e AuditTrailAction) MarshalGQL(w io.Writer) {
 type ProjectModule string
 
 const (
-	ProjectModuleTeams      ProjectModule = "teams"
-	ProjectModuleHiringJobs ProjectModule = "hiring_jobs"
-	ProjectModuleCandidates ProjectModule = "candidates"
-	ProjectModuleSkills     ProjectModule = "skills"
+	ProjectModuleTeams          ProjectModule = "teams"
+	ProjectModuleHiringJobs     ProjectModule = "hiring_jobs"
+	ProjectModuleCandidates     ProjectModule = "candidates"
+	ProjectModuleSkills         ProjectModule = "skills"
+	ProjectModuleEmailTemplates ProjectModule = "email_templates"
+	ProjectModuleUsers          ProjectModule = "users"
+	ProjectModuleSkillTypes     ProjectModule = "skill_types"
+	ProjectModuleRoles          ProjectModule = "roles"
 )
 
 var AllProjectModule = []ProjectModule{
@@ -2790,11 +2794,15 @@ var AllProjectModule = []ProjectModule{
 	ProjectModuleHiringJobs,
 	ProjectModuleCandidates,
 	ProjectModuleSkills,
+	ProjectModuleEmailTemplates,
+	ProjectModuleUsers,
+	ProjectModuleSkillTypes,
+	ProjectModuleRoles,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleTeams, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills:
+	case ProjectModuleTeams, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills, ProjectModuleEmailTemplates, ProjectModuleUsers, ProjectModuleSkillTypes, ProjectModuleRoles:
 		return true
 	}
 	return false

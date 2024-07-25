@@ -642,6 +642,7 @@ var (
 		{Name: "work_email", Type: field.TypeString, Size: 255},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -652,7 +653,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_teams_member_edges",
-				Columns:    []*schema.Column{UsersColumns[8]},
+				Columns:    []*schema.Column{UsersColumns[9]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

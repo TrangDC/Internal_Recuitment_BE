@@ -53,6 +53,19 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 		})
 		subject := strings.ReplaceAll(template.Subject, "{{ gl:receiver_name }}", user.Name)
 		content := strings.ReplaceAll(template.Content, "{{ gl:receiver_name }}", user.Name)
+		if groupModule.Interview != nil {
+			interviewDate, timeZone := dto.ConvertTimeZone(groupModule.Interview.InterviewDate, user.Location)
+			inteviewStartTime, _ := dto.ConvertTimeZone(groupModule.Interview.StartFrom, user.Location)
+			inteviewEndTime, _ := dto.ConvertTimeZone(groupModule.Interview.EndAt, user.Location)
+			keywords["{{ intv:date }}"] = interviewDate.Format("02-01-2006")
+			keywords["{{ intv:time }}"] = fmt.Sprintf("%s - %s (UTC%s)", inteviewStartTime.Format("15:04"), inteviewEndTime.Format("15:04"), timeZone)
+		}
+		if !groupModule.CandidateJob.OnboardDate.IsZero() && !groupModule.CandidateJob.OfferExpirationDate.IsZero() {
+			offerEpxDate, _ := dto.ConvertTimeZone(groupModule.CandidateJob.OfferExpirationDate, user.Location)
+			onboardDate, _ := dto.ConvertTimeZone(groupModule.CandidateJob.OnboardDate, user.Location)
+			keywords["{{ cdjb:onboard_date }}"] = onboardDate.Format("02-01-2006")
+			keywords["{{ cdjb:offer_expiration_date }}"] = offerEpxDate.Format("02-01-2006")
+		}
 		for key, value := range keywords {
 			subject = strings.ReplaceAll(subject, key, value)
 			content = strings.ReplaceAll(content, key, value)
@@ -114,6 +127,7 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 				ID:        groupModule.Candidate.ID,
 				Name:      groupModule.Candidate.Name,
 				WorkEmail: groupModule.Candidate.Email,
+				Location:  groupModule.Candidate.Country,
 			})
 		}
 	}
@@ -178,14 +192,10 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		interviewers := lo.Map(groupModule.Interview.Edges.InterviewerEdges, func(entity *ent.User, index int) string {
 			return entity.Name
 		})
-		inteviewStartTime := groupModule.Interview.StartFrom.Format("15:04")
-		inteviewEndTime := groupModule.Interview.EndAt.Format("15:04")
 		keywords["{{ intv:title }}"] = groupModule.Interview.Title
 		keywords["{{ intv:interviewer_name }}"] = strings.Join(interviewers, ", ")
-		keywords["{{ intv:date }}"] = groupModule.Interview.InterviewDate.Format("02-01-2006")
-		keywords["{{ intv:time }}"] = fmt.Sprintf("%s - %s (UTC+0)", inteviewStartTime, inteviewEndTime)
 		keywords["{{ lk:interview }}"] = fmt.Sprintf("%sdashboard/calendars?interview_id=%s&is_open_detail=true", svc.configs.App.AppUrl, groupModule.Interview.ID) // connect with FE
-		// keywords["{{ intv:location }}"] = groupModule.Interview.Location // enum
+		keywords["{{ intv:location }}"] = svc.dtoRegistry.CandidateInterview().MappingLocation(groupModule.Interview.Location)                                      // enum
 	}
 	return keywords
 }

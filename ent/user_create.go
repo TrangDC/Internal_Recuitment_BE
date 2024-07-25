@@ -121,6 +121,20 @@ func (uc *UserCreate) SetNillableTeamID(u *uuid.UUID) *UserCreate {
 	return uc
 }
 
+// SetLocation sets the "location" field.
+func (uc *UserCreate) SetLocation(s string) *UserCreate {
+	uc.mutation.SetLocation(s)
+	return uc
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLocation(s *string) *UserCreate {
+	if s != nil {
+		uc.SetLocation(*s)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
@@ -465,6 +479,11 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
 		}
 	}
+	if v, ok := uc.mutation.Location(); ok {
+		if err := user.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "User.location": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -528,6 +547,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)
 		_node.Oid = value
+	}
+	if value, ok := uc.mutation.Location(); ok {
+		_spec.SetField(user.FieldLocation, field.TypeString, value)
+		_node.Location = value
 	}
 	if nodes := uc.mutation.AuditEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
