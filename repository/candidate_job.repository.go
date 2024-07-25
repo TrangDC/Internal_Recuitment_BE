@@ -318,7 +318,7 @@ func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newSt
 	entOldStatus := ent.CandidateJobStatus(oldStatus)
 	switch newStatus {
 	case ent.CandidateJobStatusInterviewing:
-		if entOldStatus != ent.CandidateJobStatusInterviewing {
+		if entOldStatus != ent.CandidateJobStatusApplied {
 			isErrorStatus = true
 		}
 	case ent.CandidateJobStatusOffering, ent.CandidateJobStatusKiv:
