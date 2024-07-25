@@ -15,6 +15,7 @@ type CandidateInterviewDto interface {
 	AuditTrailCreate(record *ent.CandidateInterview) (string, error)
 	AuditTrailDelete(record *ent.CandidateInterview) (string, error)
 	AuditTrailUpdate(oldRecord *ent.CandidateInterview, newRecord *ent.CandidateInterview) (string, error)
+	MappingLocation(input string) string
 }
 
 type candidateInterviewDtoImpl struct {
@@ -114,8 +115,8 @@ func (d *candidateInterviewDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateInt
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
 			case "model.candidate_interviews.location":
-				oldValueField = d.mappingLocation(oldRecord.Location)
-				newValueField = d.mappingLocation(newRecord.Location)
+				oldValueField = d.MappingLocation(oldRecord.Location)
+				newValueField = d.MappingLocation(newRecord.Location)
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -165,7 +166,7 @@ func (d *candidateInterviewDtoImpl) recordAudit(record *ent.CandidateInterview) 
 		case "model.candidate_interviews.status":
 			valueField = d.statusI18n(record.Status)
 		case "model.candidate_interviews.location":
-			valueField = d.mappingLocation(record.Location)
+			valueField = d.MappingLocation(record.Location)
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -250,7 +251,7 @@ func (d candidateInterviewDtoImpl) statusI18n(input candidateinterview.Status) s
 	return ""
 }
 
-func (d candidateInterviewDtoImpl) mappingLocation(input string) string {
+func (d candidateInterviewDtoImpl) MappingLocation(input string) string {
 	switch input {
 	case "Hanoi":
 		return "[Hanoi] TECHVIFY Office_Thanh Dong Bld 19 To Huu, Trung Van, Nam Tu Liem"

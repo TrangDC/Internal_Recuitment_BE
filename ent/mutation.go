@@ -21487,6 +21487,7 @@ type UserMutation struct {
 	work_email                       *string
 	status                           *user.Status
 	oid                              *string
+	location                         *string
 	clearedFields                    map[string]struct{}
 	audit_edge                       map[uuid.UUID]struct{}
 	removedaudit_edge                map[uuid.UUID]struct{}
@@ -21963,6 +21964,55 @@ func (m *UserMutation) TeamIDCleared() bool {
 func (m *UserMutation) ResetTeamID() {
 	m.member_of_team_edges = nil
 	delete(m.clearedFields, user.FieldTeamID)
+}
+
+// SetLocation sets the "location" field.
+func (m *UserMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *UserMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ClearLocation clears the value of the "location" field.
+func (m *UserMutation) ClearLocation() {
+	m.location = nil
+	m.clearedFields[user.FieldLocation] = struct{}{}
+}
+
+// LocationCleared returns if the "location" field was cleared in this mutation.
+func (m *UserMutation) LocationCleared() bool {
+	_, ok := m.clearedFields[user.FieldLocation]
+	return ok
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *UserMutation) ResetLocation() {
+	m.location = nil
+	delete(m.clearedFields, user.FieldLocation)
 }
 
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by ids.
@@ -22725,7 +22775,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -22749,6 +22799,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.member_of_team_edges != nil {
 		fields = append(fields, user.FieldTeamID)
+	}
+	if m.location != nil {
+		fields = append(fields, user.FieldLocation)
 	}
 	return fields
 }
@@ -22774,6 +22827,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Oid()
 	case user.FieldTeamID:
 		return m.TeamID()
+	case user.FieldLocation:
+		return m.Location()
 	}
 	return nil, false
 }
@@ -22799,6 +22854,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOid(ctx)
 	case user.FieldTeamID:
 		return m.OldTeamID(ctx)
+	case user.FieldLocation:
+		return m.OldLocation(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -22864,6 +22921,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTeamID(v)
 		return nil
+	case user.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -22903,6 +22967,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldTeamID) {
 		fields = append(fields, user.FieldTeamID)
 	}
+	if m.FieldCleared(user.FieldLocation) {
+		fields = append(fields, user.FieldLocation)
+	}
 	return fields
 }
 
@@ -22925,6 +22992,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldTeamID:
 		m.ClearTeamID()
+		return nil
+	case user.FieldLocation:
+		m.ClearLocation()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -22957,6 +23027,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldTeamID:
 		m.ResetTeamID()
+		return nil
+	case user.FieldLocation:
+		m.ResetLocation()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

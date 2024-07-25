@@ -30,6 +30,8 @@ const (
 	FieldOid = "oid"
 	// FieldTeamID holds the string denoting the team_id field in the database.
 	FieldTeamID = "team_id"
+	// FieldLocation holds the string denoting the location field in the database.
+	FieldLocation = "location"
 	// EdgeAuditEdge holds the string denoting the audit_edge edge name in mutations.
 	EdgeAuditEdge = "audit_edge"
 	// EdgeHiringOwner holds the string denoting the hiring_owner edge name in mutations.
@@ -165,6 +167,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldOid,
 	FieldTeamID,
+	FieldLocation,
 }
 
 var (
@@ -198,6 +201,8 @@ var (
 	WorkEmailValidator func(string) error
 	// OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	OidValidator func(string) error
+	// LocationValidator is a validator for the "location" field. It is called by the builders before save.
+	LocationValidator func(string) error
 )
 
 // Status defines the type for the "status" enum field.

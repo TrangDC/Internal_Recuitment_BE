@@ -133,6 +133,26 @@ func (uu *UserUpdate) ClearTeamID() *UserUpdate {
 	return uu
 }
 
+// SetLocation sets the "location" field.
+func (uu *UserUpdate) SetLocation(s string) *UserUpdate {
+	uu.mutation.SetLocation(s)
+	return uu
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLocation(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetLocation(*s)
+	}
+	return uu
+}
+
+// ClearLocation clears the value of the "location" field.
+func (uu *UserUpdate) ClearLocation() *UserUpdate {
+	uu.mutation.ClearLocation()
+	return uu
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uu *UserUpdate) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddAuditEdgeIDs(ids...)
@@ -713,6 +733,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.Location(); ok {
+		if err := user.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "User.location": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -757,6 +782,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Location(); ok {
+		_spec.SetField(user.FieldLocation, field.TypeString, value)
+	}
+	if uu.mutation.LocationCleared() {
+		_spec.ClearField(user.FieldLocation, field.TypeString)
 	}
 	if uu.mutation.AuditEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1642,6 +1673,26 @@ func (uuo *UserUpdateOne) ClearTeamID() *UserUpdateOne {
 	return uuo
 }
 
+// SetLocation sets the "location" field.
+func (uuo *UserUpdateOne) SetLocation(s string) *UserUpdateOne {
+	uuo.mutation.SetLocation(s)
+	return uuo
+}
+
+// SetNillableLocation sets the "location" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLocation(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetLocation(*s)
+	}
+	return uuo
+}
+
+// ClearLocation clears the value of the "location" field.
+func (uuo *UserUpdateOne) ClearLocation() *UserUpdateOne {
+	uuo.mutation.ClearLocation()
+	return uuo
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uuo *UserUpdateOne) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddAuditEdgeIDs(ids...)
@@ -2235,6 +2286,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "oid", err: fmt.Errorf(`ent: validator failed for field "User.oid": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.Location(); ok {
+		if err := user.LocationValidator(v); err != nil {
+			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "User.location": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2296,6 +2352,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Oid(); ok {
 		_spec.SetField(user.FieldOid, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Location(); ok {
+		_spec.SetField(user.FieldLocation, field.TypeString, value)
+	}
+	if uuo.mutation.LocationCleared() {
+		_spec.ClearField(user.FieldLocation, field.TypeString)
 	}
 	if uuo.mutation.AuditEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

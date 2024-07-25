@@ -37,6 +37,8 @@ var CandidateEmailTpKeyword = []string{
 var CandidateAppEmailTpKeyword = []string{
 	"cdjb:status",
 	"cdjb:applied_date",
+	"cdjb:onboard_date",
+	"cdjb:offer_expiration_date",
 }
 
 var InterviewEmailTpKeyword = []string{
@@ -80,6 +82,8 @@ var AllEmailTPKeyword = map[string]string{
 	"{{ cd:skill_name }}":                "",
 	"{{ cdjb:status }}":                  "",
 	"{{ cdjb:applied_date }}":            "",
+	"{{ cdjb:onboard_date }}":            "",
+	"{{ cdjb:offer_expiration_date }}":   "",
 	"{{ intv:title }}":                   "",
 	"{{ intv:interviewer_name }}":        "",
 	"{{ intv:date }}":                    "",
@@ -144,6 +148,8 @@ var CandidateEmailTpKeywordJson = []*ent.JSONFormat{
 var CandidateAppEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "cdjb:status", Value: "Application Status"},
 	{Key: "cdjb:applied_date", Value: "Application Applied date"},
+	{Key: "cdjb:onboard_date", Value: "Candidate planned onboard date"},
+	{Key: "cdjb:offer_expiration_date", Value: "Offer expiration date"},
 }
 
 var InterviewEmailTpKeywordJson = []*ent.JSONFormat{

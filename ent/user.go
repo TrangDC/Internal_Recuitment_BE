@@ -34,6 +34,8 @@ type User struct {
 	Oid string `json:"oid,omitempty"`
 	// TeamID holds the value of the "team_id" field.
 	TeamID uuid.UUID `json:"team_id,omitempty"`
+	// Location holds the value of the "location" field.
+	Location string `json:"location,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -225,7 +227,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldName, user.FieldWorkEmail, user.FieldStatus, user.FieldOid:
+		case user.FieldName, user.FieldWorkEmail, user.FieldStatus, user.FieldOid, user.FieldLocation:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -299,6 +301,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field team_id", values[i])
 			} else if value != nil {
 				u.TeamID = *value
+			}
+		case user.FieldLocation:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field location", values[i])
+			} else if value.Valid {
+				u.Location = value.String
 			}
 		}
 	}
@@ -421,6 +429,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("team_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.TeamID))
+	builder.WriteString(", ")
+	builder.WriteString("location=")
+	builder.WriteString(u.Location)
 	builder.WriteByte(')')
 	return builder.String()
 }

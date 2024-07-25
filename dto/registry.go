@@ -1,11 +1,14 @@
 package dto
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/golang-module/carbon/v2"
 )
 
 // Dto is the interface for all dto.
@@ -161,4 +164,43 @@ func FormatCurrency(number int) string {
 		result = append([]string{numStr[start:i]}, result...)
 	}
 	return strings.Join(result, ",")
+}
+
+func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
+	carbonTime := carbon.Parse(input.String())
+	var result carbon.Carbon
+	timeZone := ""
+	switch location {
+	case "Vietnam":
+		result = carbonTime.SetTimezone(carbon.HoChiMinh)
+	case "Singapore":
+		result = carbonTime.SetTimezone(carbon.Singapore)
+	case "Thailand":
+		result = carbonTime.SetTimezone(carbon.Bangkok)
+	case "India":
+		result = carbonTime.SetTimezone(carbon.Kolkata)
+	case "Japan":
+		result = carbonTime.SetTimezone(carbon.Tokyo)
+	case "China":
+		result = carbonTime.SetTimezone(carbon.Shanghai)
+	case "Australia":
+		result = carbonTime.SetTimezone(carbon.Sydney)
+	case "United States":
+		result = carbonTime.SetTimezone(carbon.NewYork)
+	case "United Kingdom":
+		result = carbonTime.SetTimezone(carbon.London)
+	case "Germany":
+		result = carbonTime.SetTimezone(carbon.Berlin)
+	case "France":
+		result = carbonTime.SetTimezone(carbon.Paris)
+	default:
+		result = carbonTime
+	}
+	numebrOfTz := carbon.Parse(input.Format("2006-01-02 15:04:05")).DiffInHours(carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")))
+	if numebrOfTz < 0 {
+		timeZone = fmt.Sprint(numebrOfTz)
+	} else {
+		timeZone = "+" + fmt.Sprint(numebrOfTz)
+	}
+	return result.StdTime(), timeZone
 }

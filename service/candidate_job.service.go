@@ -113,7 +113,22 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 		if err != nil {
 			return err
 		}
-		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidateJob.Status, candidateJob.ID, repoRegistry)
+		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusApplied, candidateJob.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
+		if candidateJob.Status == candidatejob.StatusInterviewing || candidateJob.Status == candidatejob.StatusOffering {
+			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusInterviewing, candidateJob.ID, repoRegistry)
+			if err != nil {
+				return err
+			}
+		}
+		if candidateJob.Status == candidatejob.StatusOffering {
+			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusOffering, candidateJob.ID, repoRegistry)
+			if err != nil {
+				return err
+			}
+		}
 		return err
 	})
 	if err != nil {
@@ -189,7 +204,21 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		if err != nil {
 			return err
 		}
-		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
+		if record.Status == candidatejob.StatusApplied || result.Status == candidatejob.StatusOffering {
+			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusInterviewing, result.ID, repoRegistry)
+			if err != nil {
+				return err
+			}
+			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusOffering, result.ID, repoRegistry)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 	if err != nil {
