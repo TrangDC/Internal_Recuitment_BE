@@ -28,8 +28,6 @@ import (
 	"trec/ent/schema"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
-	"trec/ent/team"
-	"trec/ent/teammanager"
 	"trec/ent/user"
 	"trec/ent/userrole"
 )
@@ -542,48 +540,6 @@ func init() {
 	skilltypeDescDescription := skilltypeFields[1].Descriptor()
 	// skilltype.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	skilltype.DescriptionValidator = skilltypeDescDescription.Validators[0].(func(string) error)
-	teamMixin := schema.Team{}.Mixin()
-	teamMixinFields0 := teamMixin[0].Fields()
-	_ = teamMixinFields0
-	teamMixinFields1 := teamMixin[1].Fields()
-	_ = teamMixinFields1
-	teamFields := schema.Team{}.Fields()
-	_ = teamFields
-	// teamDescCreatedAt is the schema descriptor for created_at field.
-	teamDescCreatedAt := teamMixinFields0[1].Descriptor()
-	// team.DefaultCreatedAt holds the default value on creation for the created_at field.
-	team.DefaultCreatedAt = teamDescCreatedAt.Default.(func() time.Time)
-	// teamDescSlug is the schema descriptor for slug field.
-	teamDescSlug := teamMixinFields1[0].Descriptor()
-	// team.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
-	team.SlugValidator = teamDescSlug.Validators[0].(func(string) error)
-	// teamDescName is the schema descriptor for name field.
-	teamDescName := teamFields[0].Descriptor()
-	// team.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	team.NameValidator = func() func(string) error {
-		validators := teamDescName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name string) error {
-			for _, fn := range fns {
-				if err := fn(name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	teammanagerMixin := schema.TeamManager{}.Mixin()
-	teammanagerMixinFields0 := teammanagerMixin[0].Fields()
-	_ = teammanagerMixinFields0
-	teammanagerFields := schema.TeamManager{}.Fields()
-	_ = teammanagerFields
-	// teammanagerDescCreatedAt is the schema descriptor for created_at field.
-	teammanagerDescCreatedAt := teammanagerMixinFields0[1].Descriptor()
-	// teammanager.DefaultCreatedAt holds the default value on creation for the created_at field.
-	teammanager.DefaultCreatedAt = teammanagerDescCreatedAt.Default.(func() time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

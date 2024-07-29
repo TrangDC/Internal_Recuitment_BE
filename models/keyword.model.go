@@ -117,7 +117,7 @@ var GeneralEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "gl:receiver_name", Value: "Receiver name"},
 }
 
-var TeamEmailTpKeywordJson = []*ent.JSONFormat{
+var HiringTeamEmailTpKeywordJson = []*ent.JSONFormat{
 	{Key: "hrtm:name", Value: "Hiring Team name"},
 	{Key: "hrtm:manager_name", Value: "Hiring Team Manager"},
 }

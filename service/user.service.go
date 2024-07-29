@@ -8,10 +8,10 @@ import (
 	"trec/ent"
 	"trec/ent/audittrail"
 	"trec/ent/entitypermission"
+	"trec/ent/hiringteam"
 	"trec/ent/permission"
 	"trec/ent/predicate"
 	"trec/ent/role"
-	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
@@ -165,8 +165,8 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 			return uuid.MustParse(member)
 		})
 	}
-	if len(record.Edges.TeamEdges) != 0 {
-		currentTeamId := record.Edges.TeamEdges[0].ID.String()
+	if len(record.Edges.HiringTeamEdges) != 0 {
+		currentTeamId := record.Edges.HiringTeamEdges[0].ID.String()
 		input.HiringTeamID = &currentTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
@@ -450,7 +450,7 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			teamIds := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.Or(user.HiringTeamIDIn(teamIds...), user.HasTeamEdgesWith(team.IDIn(teamIds...))))
+			userQuery.Where(user.Or(user.HiringTeamIDIn(teamIds...), user.HasHiringTeamEdgesWith(hiringteam.IDIn(teamIds...))))
 		}
 	}
 }

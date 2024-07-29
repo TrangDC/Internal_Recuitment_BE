@@ -64,7 +64,7 @@ enum CandidateJobOrderByAdditionalField {
 
 input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
-  team_id: [ID!]
+  hiring_team_id: [ID!]
   priority: [Int!]
   skill_id: [ID!]
   from_date: Time
@@ -169,7 +169,7 @@ input CandidateJobFilter {
   status: CandidateJobStatus
   from_date: Time
   to_date: Time
-  team_id: ID
+  hiring_team_id: ID
   hiring_job_id: ID
   candidate_id: ID!
   failed_reason: [CandidateJobFailedReason!]

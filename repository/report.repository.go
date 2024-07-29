@@ -17,7 +17,7 @@ import (
 )
 
 type ReportRepository interface {
-	CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, teamId uuid.UUID, teamName string) (*ent.CandidateConversionRateReport, error)
+	CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, hiringTeamID uuid.UUID, hiringTeamName string) (*ent.CandidateConversionRateReport, error)
 	GetApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (ent.ApplicationReportFailReason, error)
 	ReportRecruitment(ctx context.Context, fromDate, toDate carbon.Carbon) (ent.ReportRecruitment, error)
 	ReportApplication(ctx context.Context, fromDate, toDate carbon.Carbon) (ent.ReportApplication, error)
@@ -34,7 +34,7 @@ func NewReportRepository(client *ent.Client) ReportRepository {
 	}
 }
 
-func (rps reportRepoImpl) CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, teamId uuid.UUID, teamName string) (*ent.CandidateConversionRateReport, error) {
+func (rps reportRepoImpl) CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, hiringTeamID uuid.UUID, hiringTeamName string) (*ent.CandidateConversionRateReport, error) {
 	var applied int
 	var interviewing int
 	var offering int
@@ -74,16 +74,16 @@ func (rps reportRepoImpl) CandidateJobConversion(ctx context.Context, candidateJ
 		}
 	}
 	resultId := ""
-	if teamId != uuid.Nil {
-		resultId = teamId.String()
+	if hiringTeamID != uuid.Nil {
+		resultId = hiringTeamID.String()
 	}
 	return &ent.CandidateConversionRateReport{
-		ID:           resultId,
-		TeamName:     teamName,
-		Applied:      applied,
-		Interviewing: interviewing,
-		Offering:     offering,
-		Hired:        hired,
+		ID:             resultId,
+		HiringTeamName: hiringTeamName,
+		Applied:        applied,
+		Interviewing:   interviewing,
+		Offering:       offering,
+		Hired:          hired,
 	}, nil
 }
 

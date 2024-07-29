@@ -671,57 +671,6 @@ var (
 		Columns:    SkillTypesColumns,
 		PrimaryKey: []*schema.Column{SkillTypesColumns[0]},
 	}
-	// TeamsColumns holds the columns for the "teams" table.
-	TeamsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "name", Type: field.TypeString, Size: 255},
-	}
-	// TeamsTable holds the schema information for the "teams" table.
-	TeamsTable = &schema.Table{
-		Name:       "teams",
-		Columns:    TeamsColumns,
-		PrimaryKey: []*schema.Column{TeamsColumns[0]},
-	}
-	// TeamManagersColumns holds the columns for the "team_managers" table.
-	TeamManagersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "user_id", Type: field.TypeUUID},
-		{Name: "team_id", Type: field.TypeUUID},
-	}
-	// TeamManagersTable holds the schema information for the "team_managers" table.
-	TeamManagersTable = &schema.Table{
-		Name:       "team_managers",
-		Columns:    TeamManagersColumns,
-		PrimaryKey: []*schema.Column{TeamManagersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "team_managers_users_user_edge",
-				Columns:    []*schema.Column{TeamManagersColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "team_managers_teams_team_edge",
-				Columns:    []*schema.Column{TeamManagersColumns[5]},
-				RefColumns: []*schema.Column{TeamsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "teammanager_user_id_team_id",
-				Unique:  true,
-				Columns: []*schema.Column{TeamManagersColumns[4], TeamManagersColumns[5]},
-			},
-		},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -817,8 +766,6 @@ var (
 		RolesTable,
 		SkillsTable,
 		SkillTypesTable,
-		TeamsTable,
-		TeamManagersTable,
 		UsersTable,
 		UserRolesTable,
 	}
@@ -857,8 +804,6 @@ func init() {
 	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	RecTeamsTable.ForeignKeys[0].RefTable = UsersTable
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable
-	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
-	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
 	UsersTable.ForeignKeys[0].RefTable = HiringTeamsTable
 	UsersTable.ForeignKeys[1].RefTable = RecTeamsTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable

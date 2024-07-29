@@ -624,46 +624,6 @@ func (st *SkillType) SkillEdges(ctx context.Context) (result []*Skill, err error
 	return result, err
 }
 
-func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedUserEdges(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = t.Edges.UserEdgesOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = t.QueryUserEdges().All(ctx)
-	}
-	return result, err
-}
-
-func (t *Team) UserTeams(ctx context.Context) (result []*TeamManager, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedUserTeams(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = t.Edges.UserTeamsOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = t.QueryUserTeams().All(ctx)
-	}
-	return result, err
-}
-
-func (tm *TeamManager) UserEdge(ctx context.Context) (*User, error) {
-	result, err := tm.Edges.UserEdgeOrErr()
-	if IsNotLoaded(err) {
-		result, err = tm.QueryUserEdge().Only(ctx)
-	}
-	return result, err
-}
-
-func (tm *TeamManager) TeamEdge(ctx context.Context) (*Team, error) {
-	result, err := tm.Edges.TeamEdgeOrErr()
-	if IsNotLoaded(err) {
-		result, err = tm.QueryTeamEdge().Only(ctx)
-	}
-	return result, err
-}
-
 func (u *User) AuditEdge(ctx context.Context) (result []*AuditTrail, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedAuditEdge(graphql.GetFieldContext(ctx).Field.Alias)
@@ -684,18 +644,6 @@ func (u *User) HiringOwner(ctx context.Context) (result []*HiringJob, err error)
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryHiringOwner().All(ctx)
-	}
-	return result, err
-}
-
-func (u *User) TeamEdges(ctx context.Context) (result []*Team, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedTeamEdges(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = u.Edges.TeamEdgesOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = u.QueryTeamEdges().All(ctx)
 	}
 	return result, err
 }
@@ -822,18 +770,6 @@ func (u *User) MemberOfHiringTeamEdges(ctx context.Context) (*HiringTeam, error)
 		result, err = u.QueryMemberOfHiringTeamEdges().Only(ctx)
 	}
 	return result, MaskNotFound(err)
-}
-
-func (u *User) TeamUsers(ctx context.Context) (result []*TeamManager, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedTeamUsers(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = u.Edges.TeamUsersOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = u.QueryTeamUsers().All(ctx)
-	}
-	return result, err
 }
 
 func (u *User) InterviewUsers(ctx context.Context) (result []*CandidateInterviewer, err error) {

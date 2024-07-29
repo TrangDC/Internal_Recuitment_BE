@@ -51,8 +51,6 @@ type hooks struct {
 	Role                 []ent.Hook
 	Skill                []ent.Hook
 	SkillType            []ent.Hook
-	Team                 []ent.Hook
-	TeamManager          []ent.Hook
 	User                 []ent.Hook
 	UserRole             []ent.Hook
 }

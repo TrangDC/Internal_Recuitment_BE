@@ -75,12 +75,6 @@ type Skill func(*sql.Selector)
 // SkillType is the predicate function for skilltype builders.
 type SkillType func(*sql.Selector)
 
-// Team is the predicate function for team builders.
-type Team func(*sql.Selector)
-
-// TeamManager is the predicate function for teammanager builders.
-type TeamManager func(*sql.Selector)
-
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
