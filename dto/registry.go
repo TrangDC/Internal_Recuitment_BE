@@ -22,7 +22,7 @@ type Dto interface {
 	Skill() SkillDto
 	EntitySkill() EntitySkillDto
 	SkillType() SkillTypeDto
-	Team() TeamDto
+	HiringTeam() HiringTeamDto
 	User() UserDto
 	Role() RoleDto
 	EmailTemplate() EmailTemplateDto
@@ -39,7 +39,7 @@ type dtoImpl struct {
 	skillDto                SkillDto
 	entitySkillDto          EntitySkillDto
 	skillTypeDto            SkillTypeDto
-	teamDto                 TeamDto
+	hiringTeamDto           HiringTeamDto
 	userDto                 UserDto
 	roleDto                 RoleDto
 	emailTemplateDto        EmailTemplateDto
@@ -57,14 +57,14 @@ func NewDto() Dto {
 		skillDto:                NewSkillDto(),
 		entitySkillDto:          NewEntitySkillDto(),
 		skillTypeDto:            NewSkillTypeDto(),
-		teamDto:                 NewTeamDto(),
+		hiringTeamDto:           NewHiringTeamDto(),
 		userDto:                 NewUserDto(),
 		roleDto:                 NewRoleDto(),
 		emailTemplateDto:        NewEmailTemplateDto(),
 	}
 }
 
-var (
+const (
 	CandidateI18n            = "model.candidates.model_name"
 	CandidateJobI18n         = "model.candidate_jobs.model_name"
 	CandidateInterviewI18n   = "model.candidate_interviews.model_name"
@@ -72,7 +72,7 @@ var (
 	HiringJobI18n            = "model.hiring_jobs.model_name"
 	SkillI18n                = "model.skills.model_name"
 	SkillTypeI18n            = "model.skill_types.model_name"
-	TeamI18n                 = "model.teams.model_name"
+	HiringTeamI18n           = "model.hiring_teams.model_name"
 	UserI18n                 = "model.users.model_name"
 	RoleI18n                 = "model.roles.model_name"
 	EmailTemplateI18n        = "model.email_templates.model_name"
@@ -106,8 +106,8 @@ func (i dtoImpl) Skill() SkillDto {
 	return i.skillDto
 }
 
-func (i dtoImpl) Team() TeamDto {
-	return i.teamDto
+func (i dtoImpl) HiringTeam() HiringTeamDto {
+	return i.hiringTeamDto
 }
 
 func (i dtoImpl) User() UserDto {

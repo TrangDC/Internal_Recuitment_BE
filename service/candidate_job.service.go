@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/user"
@@ -495,16 +496,16 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	teamIds := lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) uuid.UUID {
+	hiringTeamIds := lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) uuid.UUID {
 		return hiringJob.TeamID
 	})
-	teams, err := svc.repoRegistry.Team().BuildList(ctx,
-		svc.repoRegistry.Team().BuildBaseQuery().Where(team.IDIn(teamIds...)))
+	hiringTeams, err := svc.repoRegistry.HiringTeam().BuildList(ctx,
+		svc.repoRegistry.HiringTeam().BuildBaseQuery().Where(hiringteam.IDIn(hiringTeamIds...)))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	svc.dtoRegistry.HiringJob().MappingEdge(hiringJobs, teams)
+	svc.dtoRegistry.HiringJob().MappingEdge(hiringJobs, hiringTeams)
 	svc.dtoRegistry.CandidateJob().MappingEdge(candidateJobs, candidates, interviews, hiringJobs)
 	if orderBy != nil {
 		if ent.CandidateJobOrderByAdditionalField.IsValid(ent.CandidateJobOrderByAdditionalField(orderBy.Field.String())) {
@@ -746,12 +747,12 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
 	}
 	if input.TeamID != nil {
-		teamIds := lo.Map(input.TeamID, func(id string, index int) uuid.UUID {
+		hiringTeamIds := lo.Map(input.TeamID, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
-			hiringjob.HasTeamEdgeWith(
-				team.IDIn(teamIds...),
+			hiringjob.HasHiringTeamEdgeWith(
+				hiringteam.IDIn(hiringTeamIds...),
 			),
 		))
 	}

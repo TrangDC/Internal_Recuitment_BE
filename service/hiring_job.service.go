@@ -54,7 +54,7 @@ func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto
 func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
 	var record *ent.HiringJob
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	teamRecord, err := svc.repoRegistry.Team().GetTeam(ctx, uuid.MustParse(input.TeamID))
+	teamRecord, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, uuid.MustParse(input.TeamID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
@@ -114,7 +114,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, record.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if len(record.Edges.CandidateJobEdges) > 0 {
@@ -147,7 +147,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, record.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if input.Amount == 0 && record.Status == hiringjob.StatusOpened {
@@ -203,7 +203,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, record.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
@@ -478,12 +478,12 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 }
 
 // permission
-func (svc hiringJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.Team) bool {
+func (svc hiringJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.HiringTeam) bool {
 	if payload.ForAll {
 		return true
 	}
 	if payload.ForTeam {
-		memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+		memberIds := lo.Map(teamRecord.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
 			return item.ID
 		})
 		managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {

@@ -11,7 +11,6 @@ import (
 // Repository is a registry of all repositories
 type Repository interface {
 	User() UserRepository
-	Team() TeamRepository
 	JobPosition() JobPositionRepository
 	HiringJob() HiringJobRepository
 	AuditTrail() AuditTrailRepository
@@ -32,6 +31,7 @@ type Repository interface {
 	EmailTemplate() EmailTemplateRepository
 	OutgoingEmail() OutgoingEmailRepository
 	Report() ReportRepository
+	HiringTeam() HiringTeamRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -42,7 +42,6 @@ type RepoImpl struct {
 	entClient            *ent.Client
 	entTx                *ent.Tx
 	user                 UserRepository
-	team                 TeamRepository
 	jobPosition          JobPositionRepository
 	hiringJob            HiringJobRepository
 	auditTrail           AuditTrailRepository
@@ -63,6 +62,7 @@ type RepoImpl struct {
 	emailTemplate        EmailTemplateRepository
 	outgoingEmail        OutgoingEmailRepository
 	report               ReportRepository
+	hiringTeam           HiringTeamRepository
 }
 
 // NewRepository creates new repository registry
@@ -70,7 +70,6 @@ func NewRepository(entClient *ent.Client) Repository {
 	return &RepoImpl{
 		entClient:            entClient,
 		user:                 NewUserRepository(entClient),
-		team:                 NewTeamRepository(entClient),
 		jobPosition:          NewJobPositionRepository(entClient),
 		hiringJob:            NewHiringJobRepository(entClient),
 		auditTrail:           NewAuditTrailRepository(entClient),
@@ -91,15 +90,12 @@ func NewRepository(entClient *ent.Client) Repository {
 		emailTemplate:        NewEmailTemplateRepository(entClient),
 		outgoingEmail:        NewOutgoingEmailRepository(entClient),
 		report:               NewReportRepository(entClient),
+		hiringTeam:           NewHiringTeamRepository(entClient),
 	}
 }
 
 func (r *RepoImpl) User() UserRepository {
 	return r.user
-}
-
-func (r *RepoImpl) Team() TeamRepository {
-	return r.team
 }
 
 func (r *RepoImpl) JobPosition() JobPositionRepository {
@@ -182,6 +178,10 @@ func (r *RepoImpl) Report() ReportRepository {
 	return r.report
 }
 
+func (r *RepoImpl) HiringTeam() HiringTeamRepository {
+	return r.hiringTeam
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -206,7 +206,6 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 	impl := &RepoImpl{
 		entTx:                tx,
 		user:                 NewUserRepository(tx.Client()),
-		team:                 NewTeamRepository(tx.Client()),
 		jobPosition:          NewJobPositionRepository(tx.Client()),
 		hiringJob:            NewHiringJobRepository(tx.Client()),
 		auditTrail:           NewAuditTrailRepository(tx.Client()),
@@ -224,6 +223,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		entityPermission:     NewEntityPermissionRepository(tx.Client()),
 		emailTemplate:        NewEmailTemplateRepository(tx.Client()),
 		outgoingEmail:        NewOutgoingEmailRepository(tx.Client()),
+		hiringTeam:           NewHiringTeamRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

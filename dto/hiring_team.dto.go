@@ -9,22 +9,22 @@ import (
 	"github.com/samber/lo"
 )
 
-type TeamDto interface {
-	AuditTrailCreate(record *ent.Team) (string, error)
-	AuditTrailDelete(record *ent.Team) (string, error)
-	AuditTrailUpdate(oldRecord *ent.Team, newRecord *ent.Team) (string, error)
+type HiringTeamDto interface {
+	AuditTrailCreate(record *ent.HiringTeam) (string, error)
+	AuditTrailDelete(record *ent.HiringTeam) (string, error)
+	AuditTrailUpdate(oldRecord *ent.HiringTeam, newRecord *ent.HiringTeam) (string, error)
 }
 
-type teamDtoImpl struct {
+type hiringTeamDtoImpl struct {
 }
 
-func NewTeamDto() TeamDto {
-	return &teamDtoImpl{}
+func NewHiringTeamDto() HiringTeamDto {
+	return &hiringTeamDtoImpl{}
 }
 
-func (d teamDtoImpl) AuditTrailCreate(record *ent.Team) (string, error) {
+func (d hiringTeamDtoImpl) AuditTrailCreate(record *ent.HiringTeam) (string, error) {
 	result := models.AuditTrailData{
-		Module: TeamI18n,
+		Module: HiringTeamI18n,
 		Create: d.recordAudit(record),
 		Update: []interface{}{},
 		Delete: []interface{}{},
@@ -33,9 +33,9 @@ func (d teamDtoImpl) AuditTrailCreate(record *ent.Team) (string, error) {
 	return string(jsonObj), err
 }
 
-func (d teamDtoImpl) AuditTrailDelete(record *ent.Team) (string, error) {
+func (d hiringTeamDtoImpl) AuditTrailDelete(record *ent.HiringTeam) (string, error) {
 	result := models.AuditTrailData{
-		Module: TeamI18n,
+		Module: HiringTeamI18n,
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: d.recordAudit(record),
@@ -44,9 +44,9 @@ func (d teamDtoImpl) AuditTrailDelete(record *ent.Team) (string, error) {
 	return string(jsonObj), err
 }
 
-func (d teamDtoImpl) AuditTrailUpdate(oldRecord *ent.Team, newRecord *ent.Team) (string, error) {
+func (d hiringTeamDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringTeam, newRecord *ent.HiringTeam) (string, error) {
 	result := models.AuditTrailData{
-		Module: TeamI18n,
+		Module: HiringTeamI18n,
 		Create: []interface{}{},
 		Update: []interface{}{},
 		Delete: []interface{}{},
@@ -80,7 +80,7 @@ func (d teamDtoImpl) AuditTrailUpdate(oldRecord *ent.Team, newRecord *ent.Team) 
 	return string(jsonObj), err
 }
 
-func (d teamDtoImpl) recordAudit(record *ent.Team) []interface{} {
+func (d hiringTeamDtoImpl) recordAudit(record *ent.HiringTeam) []interface{} {
 	entity := []interface{}{}
 	value := reflect.ValueOf(interface{}(record)).Elem()
 	recordType := reflect.TypeOf(record).Elem()
@@ -101,21 +101,21 @@ func (d teamDtoImpl) recordAudit(record *ent.Team) []interface{} {
 	return entity
 }
 
-func (d teamDtoImpl) teamMemberAuditTrail(record *ent.Team, atInterface []interface{}) []interface{} {
+func (d hiringTeamDtoImpl) teamMemberAuditTrail(record *ent.HiringTeam, atInterface []interface{}) []interface{} {
 	if len(record.Edges.UserEdges) == 0 {
 		return atInterface
 	}
-	attachmentNames := lo.Map(record.Edges.UserEdges, func(document *ent.User, index int) string {
+	teamMembers := lo.Map(record.Edges.UserEdges, func(document *ent.User, index int) string {
 		return document.Name
 	})
 	atInterface = append(atInterface, models.AuditTrailCreateDelete{
-		Field: "model.teams.members",
-		Value: attachmentNames,
+		Field: "model.hiring_teams.members",
+		Value: teamMembers,
 	})
 	return atInterface
 }
 
-func (d teamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.Team, newRecord *ent.Team, atInterface []interface{}) []interface{} {
+func (d hiringTeamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.HiringTeam, newRecord *ent.HiringTeam, atInterface []interface{}) []interface{} {
 	if len(oldRecord.Edges.UserEdges) == 0 && len(newRecord.Edges.UserEdges) == 0 {
 		return atInterface
 	}
@@ -127,7 +127,7 @@ func (d teamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.Team, newRecord *
 	})
 	if !CompareArray(oldUserNames, newUserNames) {
 		atInterface = append(atInterface, models.AuditTrailUpdate{
-			Field: "model.teams.members",
+			Field: "model.hiring_teams.members",
 			Value: models.ValueChange{
 				OldValue: oldUserNames,
 				NewValue: newUserNames,
@@ -137,10 +137,10 @@ func (d teamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.Team, newRecord *
 	return atInterface
 }
 
-func (d teamDtoImpl) formatFieldI18n(input string) string {
+func (d hiringTeamDtoImpl) formatFieldI18n(input string) string {
 	switch input {
 	case "Name":
-		return "model.teams.name"
+		return "model.hiring_teams.name"
 	}
 	return ""
 }

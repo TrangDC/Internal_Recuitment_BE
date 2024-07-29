@@ -15,7 +15,7 @@ type HiringJobDto interface {
 	AuditTrailCreate(record *ent.HiringJob) (string, error)
 	AuditTrailDelete(record *ent.HiringJob) (string, error)
 	AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *ent.HiringJob) (string, error)
-	MappingEdge(records []*ent.HiringJob, teams []*ent.Team)
+	MappingEdge(records []*ent.HiringJob, hiringTeams []*ent.HiringTeam)
 	MappingPriority(input int) string
 	MappingLocation(input hiringjob.Location) string
 	MappingStatus(input hiringjob.Status) string
@@ -83,27 +83,23 @@ func (d hiringJobDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *
 			case "model.hiring_jobs.currency":
 				oldValueField = d.currencyI18n(oldRecord.Currency)
 				newValueField = d.currencyI18n(newRecord.Currency)
-			case "model.hiring_jobs.team":
-				if oldRecord.Edges.TeamEdge == nil {
-					oldValueField = oldRecord.Edges.TeamEdge.Name
-				} else {
-					oldValueField = ""
+			case "model.hiring_jobs.hiring_team":
+				oldValueField = ""
+				if oldRecord.Edges.HiringTeamEdge != nil {
+					oldValueField = oldRecord.Edges.HiringTeamEdge.Name
 				}
-				if newRecord.Edges.TeamEdge == nil {
-					newValueField = newRecord.Edges.TeamEdge.Name
-				} else {
-					newValueField = ""
+				newValueField = ""
+				if newRecord.Edges.HiringTeamEdge != nil {
+					newValueField = newRecord.Edges.HiringTeamEdge.Name
 				}
 			case "model.hiring_jobs.created_by":
-				if oldRecord.Edges.OwnerEdge == nil {
+				oldValueField = ""
+				if oldRecord.Edges.OwnerEdge != nil {
 					oldValueField = oldRecord.Edges.OwnerEdge.Name
-				} else {
-					oldValueField = ""
 				}
-				if newRecord.Edges.OwnerEdge == nil {
+				newValueField = ""
+				if newRecord.Edges.OwnerEdge != nil {
 					newValueField = newRecord.Edges.OwnerEdge.Name
-				} else {
-					newValueField = ""
 				}
 			case "model.hiring_jobs.priority":
 				oldValueField = d.priorityI18n(oldRecord.Priority)
@@ -143,17 +139,15 @@ func (d hiringJobDtoImpl) recordAudit(record *ent.HiringJob) []interface{} {
 			valueField = d.salaryTypeI18n(record.SalaryType)
 		case "model.hiring_jobs.currency":
 			valueField = d.currencyI18n(record.Currency)
-		case "model.hiring_jobs.team":
-			if record.Edges.TeamEdge == nil {
-				valueField = record.Edges.TeamEdge.Name
-			} else {
-				valueField = ""
+		case "model.hiring_jobs.hiring_team":
+			valueField = ""
+			if record.Edges.HiringTeamEdge != nil {
+				valueField = record.Edges.HiringTeamEdge.Name
 			}
 		case "model.hiring_jobs.created_by":
-			if record.Edges.OwnerEdge == nil {
+			valueField = ""
+			if record.Edges.OwnerEdge != nil {
 				valueField = record.Edges.OwnerEdge.Name
-			} else {
-				valueField = ""
 			}
 		case "model.hiring_jobs.priority":
 			valueField = d.priorityI18n(record.Priority)
@@ -221,8 +215,8 @@ func (d hiringJobDtoImpl) formatFieldI18n(input string) string {
 		return "model.hiring_jobs.salary_to"
 	case "Currency":
 		return "model.hiring_jobs.currency"
-	case "TeamID":
-		return "model.hiring_jobs.team"
+	case "HiringTeamID":
+		return "model.hiring_jobs.hiring_team"
 	case "CreatedBy":
 		return "model.hiring_jobs.created_by"
 	case "Status":
@@ -301,12 +295,11 @@ func (d hiringJobDtoImpl) priorityI18n(input int) string {
 	return ""
 }
 
-func (d hiringJobDtoImpl) MappingEdge(records []*ent.HiringJob, teams []*ent.Team) {
+func (d hiringJobDtoImpl) MappingEdge(records []*ent.HiringJob, hiringTeams []*ent.HiringTeam) {
 	for _, record := range records {
-		teamEdge, _ := lo.Find(teams, func(team *ent.Team) bool {
-			return team.ID == record.TeamID
+		record.Edges.HiringTeamEdge, _ = lo.Find(hiringTeams, func(team *ent.HiringTeam) bool {
+			return team.ID == record.HiringTeamID
 		})
-		record.Edges.TeamEdge = teamEdge
 	}
 }
 

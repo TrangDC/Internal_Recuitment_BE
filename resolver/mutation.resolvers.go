@@ -27,19 +27,19 @@ func (r *mutationResolver) UpdateUserStatus(ctx context.Context, id string, inpu
 	return r.serviceRegistry.User().UpdateUserStatus(ctx, input, uuid.MustParse(id), note)
 }
 
-// CreateTeam is the resolver for the CreateTeam field.
-func (r *mutationResolver) CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error) {
-	return r.serviceRegistry.Team().CreateTeam(ctx, input, note)
+// CreateHiringTeam is the resolver for the CreateHiringTeam field.
+func (r *mutationResolver) CreateHiringTeam(ctx context.Context, input ent.NewHiringTeamInput, note string) (*ent.HiringTeamResponse, error) {
+	return r.serviceRegistry.HiringTeam().CreateHiringTeam(ctx, input, note)
 }
 
-// UpdateTeam is the resolver for the UpdateTeam field.
-func (r *mutationResolver) UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error) {
-	return r.serviceRegistry.Team().UpdateTeam(ctx, uuid.MustParse(id), input, note)
+// UpdateHiringTeam is the resolver for the UpdateHiringTeam field.
+func (r *mutationResolver) UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error) {
+	return r.serviceRegistry.HiringTeam().UpdateHiringTeam(ctx, uuid.MustParse(id), input, note)
 }
 
-// DeleteTeam is the resolver for the DeleteTeam field.
-func (r *mutationResolver) DeleteTeam(ctx context.Context, id string, note string) (bool, error) {
-	err := r.serviceRegistry.Team().DeleteTeam(ctx, uuid.MustParse(id), note)
+// DeleteHiringTeam is the resolver for the DeleteHiringTeam field.
+func (r *mutationResolver) DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.HiringTeam().DeleteHiringTeam(ctx, uuid.MustParse(id), note)
 	if err != nil {
 		return false, err
 	}

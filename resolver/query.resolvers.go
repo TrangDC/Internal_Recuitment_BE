@@ -11,14 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// GetTeam is the resolver for the GetTeam field.
-func (r *queryResolver) GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error) {
-	return r.serviceRegistry.Team().GetTeam(ctx, uuid.MustParse(id))
+// GetHiringTeam is the resolver for the GetHiringTeam field.
+func (r *queryResolver) GetHiringTeam(ctx context.Context, id string) (*ent.HiringTeamResponse, error) {
+	return r.serviceRegistry.HiringTeam().GetHiringTeam(ctx, uuid.MustParse(id))
 }
 
-// GetAllTeams is the resolver for the GetAllTeams field.
-func (r *queryResolver) GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error) {
-	return r.serviceRegistry.Team().GetTeams(ctx, pagination, freeWord, filter, orderBy)
+// GetAllHiringTeams is the resolver for the GetAllHiringTeams field.
+func (r *queryResolver) GetAllHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamResponseGetAll, error) {
+	return r.serviceRegistry.HiringTeam().GetHiringTeams(ctx, pagination, freeWord, filter, orderBy)
 }
 
 // GetUser is the resolver for the GetUser field.UserSelectionResponseGetAll
@@ -151,9 +151,9 @@ func (r *queryResolver) SelectionUsers(ctx context.Context, pagination *ent.Pagi
 	return r.serviceRegistry.User().Selections(ctx, pagination, filter, freeWord, orderBy)
 }
 
-// SelectionTeams is the resolver for the SelectionTeams field.
-func (r *queryResolver) SelectionTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamSelectionResponseGetAll, error) {
-	return r.serviceRegistry.Team().Selections(ctx, pagination, freeWord, filter, orderBy)
+// SelectionHiringTeams is the resolver for the SelectionHiringTeams field.
+func (r *queryResolver) SelectionHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamSelectionResponseGetAll, error) {
+	return r.serviceRegistry.HiringTeam().Selections(ctx, pagination, freeWord, filter, orderBy)
 }
 
 // SelectionHiringJobs is the resolver for the SelectionHiringJobs field.
