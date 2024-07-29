@@ -12,6 +12,7 @@ import (
 type Repository interface {
 	User() UserRepository
 	Team() TeamRepository
+	JobPosition() JobPositionRepository
 	HiringJob() HiringJobRepository
 	AuditTrail() AuditTrailRepository
 	Candidate() CandidateRepository
@@ -42,6 +43,7 @@ type RepoImpl struct {
 	entTx                *ent.Tx
 	user                 UserRepository
 	team                 TeamRepository
+	jobPosition          JobPositionRepository
 	hiringJob            HiringJobRepository
 	auditTrail           AuditTrailRepository
 	candidate            CandidateRepository
@@ -69,6 +71,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		entClient:            entClient,
 		user:                 NewUserRepository(entClient),
 		team:                 NewTeamRepository(entClient),
+		jobPosition:          NewJobPositionRepository(entClient),
 		hiringJob:            NewHiringJobRepository(entClient),
 		auditTrail:           NewAuditTrailRepository(entClient),
 		candidate:            NewCandidateRepository(entClient),
@@ -97,6 +100,10 @@ func (r *RepoImpl) User() UserRepository {
 
 func (r *RepoImpl) Team() TeamRepository {
 	return r.team
+}
+
+func (r *RepoImpl) JobPosition() JobPositionRepository {
+	return r.jobPosition
 }
 
 func (r *RepoImpl) HiringJob() HiringJobRepository {
@@ -186,13 +193,13 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		return errors.WithStack(err)
 	}
 
-	commited := false
+	committed := false
 
 	defer func() {
-		if commited {
+		if committed {
 			return
 		}
-		// rollback if not commited
+		// rollback if not committed
 		_ = tx.Rollback()
 	}()
 
@@ -200,6 +207,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		entTx:                tx,
 		user:                 NewUserRepository(tx.Client()),
 		team:                 NewTeamRepository(tx.Client()),
+		jobPosition:          NewJobPositionRepository(tx.Client()),
 		hiringJob:            NewHiringJobRepository(tx.Client()),
 		auditTrail:           NewAuditTrailRepository(tx.Client()),
 		candidate:            NewCandidateRepository(tx.Client()),
@@ -226,6 +234,6 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		return errors.WithStack(fmt.Errorf("failed to commit tx: %s", err.Error()))
 	}
 
-	commited = true
+	committed = true
 	return nil
 }

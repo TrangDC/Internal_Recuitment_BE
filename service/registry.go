@@ -19,6 +19,7 @@ type Service interface {
 	Storage() StorageService
 	User() UserService
 	Team() TeamService
+	JobPosition() JobPositionService
 	HiringJob() HiringJobService
 	AuditTrail() AuditTrailService
 	Candidate() CandidateService
@@ -45,6 +46,7 @@ type serviceImpl struct {
 	storageService              StorageService
 	userService                 UserService
 	teamService                 TeamService
+	jobPositionService          JobPositionService
 	hiringJobService            HiringJobService
 	auditTrailService           AuditTrailService
 	candidateService            CandidateService
@@ -75,6 +77,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		storageService:              NewStorageService(azureStorage, logger),
 		userService:                 NewUserService(repoRegistry, dtoRegistry, logger),
 		teamService:                 NewTeamService(repoRegistry, dtoRegistry, logger),
+		jobPositionService:          NewJobPositionService(repoRegistry, dtoRegistry, logger),
 		hiringJobService:            NewHiringJobService(repoRegistry, dtoRegistry, logger),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
 		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
@@ -114,6 +117,11 @@ func (i serviceImpl) User() UserService {
 // Team returns the TeamService.
 func (i serviceImpl) Team() TeamService {
 	return i.teamService
+}
+
+// JobPosition returns the JobPositionService.
+func (i serviceImpl) JobPosition() JobPositionService {
+	return i.jobPositionService
 }
 
 // HiringJob returns the HiringJobService.
