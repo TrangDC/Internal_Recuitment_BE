@@ -140,9 +140,9 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		managerNames := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) string {
 			return entity.Name
 		})
-		keywords["{{ tm:name }}"] = groupModule.HiringTeam.Name
-		keywords["{{ tm:manager_name }}"] = strings.Join(managerNames, ", ")
-		keywords["{{ lk:team }}"] = fmt.Sprintf("%s/dashboard/team-detail/%s", svc.configs.App.AppUrl, groupModule.HiringTeam.ID)
+		keywords["{{ hrtm:name }}"] = groupModule.HiringTeam.Name
+		keywords["{{ hrtm:manager_name }}"] = strings.Join(managerNames, ", ")
+		keywords["{{ lk:hiring_team }}"] = fmt.Sprintf("%s/dashboard/team-detail/%s", svc.configs.App.AppUrl, groupModule.HiringTeam.ID)
 	}
 	if groupModule.HiringJob != nil {
 		skillNames := lo.Map(groupModule.HiringJob.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
@@ -194,8 +194,8 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		})
 		keywords["{{ intv:title }}"] = groupModule.Interview.Title
 		keywords["{{ intv:interviewer_name }}"] = strings.Join(interviewers, ", ")
-		keywords["{{ lk:interview }}"] = fmt.Sprintf("%sdashboard/calendars?interview_id=%s&is_open_detail=true", svc.configs.App.AppUrl, groupModule.Interview.ID) // connect with FE
-		keywords["{{ intv:location }}"] = svc.dtoRegistry.CandidateInterview().MappingLocation(groupModule.Interview.Location)                                      // enum
+		keywords["{{ lk:interview }}"] = fmt.Sprintf("%s/dashboard/calendars?interview_id=%s&is_open_detail=true", svc.configs.App.AppUrl, groupModule.Interview.ID) // connect with FE
+		keywords["{{ intv:location }}"] = svc.dtoRegistry.CandidateInterview().MappingLocation(groupModule.Interview.Location)                                       // enum
 	}
 	return keywords
 }

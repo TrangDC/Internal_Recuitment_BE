@@ -32,9 +32,9 @@ func (r *hiringJobResolver) Currency(ctx context.Context, obj *ent.HiringJob) (e
 	return ent.CurrencyEnum(obj.Currency), nil
 }
 
-// Team is the resolver for the team field.
-func (r *hiringJobResolver) Team(ctx context.Context, obj *ent.HiringJob) (*ent.Team, error) {
-	return obj.Edges.TeamEdge, nil
+// HiringTeam is the resolver for the hiring_team field.
+func (r *hiringJobResolver) HiringTeam(ctx context.Context, obj *ent.HiringJob) (*ent.HiringTeam, error) {
+	return obj.Edges.HiringTeamEdge, nil
 }
 
 // User is the resolver for the user field.

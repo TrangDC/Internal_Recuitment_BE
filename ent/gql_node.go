@@ -1397,8 +1397,8 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     hj.ID,
 		Type:   "HiringJob",
-		Fields: make([]*Field, 18),
-		Edges:  make([]*Edge, 5),
+		Fields: make([]*Field, 17),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
@@ -1473,18 +1473,10 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "created_by",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(hj.TeamID); err != nil {
-		return nil, err
-	}
-	node.Fields[9] = &Field{
-		Type:  "uuid.UUID",
-		Name:  "team_id",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(hj.Location); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "hiringjob.Location",
 		Name:  "location",
 		Value: string(buf),
@@ -1492,7 +1484,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.SalaryType); err != nil {
 		return nil, err
 	}
-	node.Fields[11] = &Field{
+	node.Fields[10] = &Field{
 		Type:  "hiringjob.SalaryType",
 		Name:  "salary_type",
 		Value: string(buf),
@@ -1500,7 +1492,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.SalaryFrom); err != nil {
 		return nil, err
 	}
-	node.Fields[12] = &Field{
+	node.Fields[11] = &Field{
 		Type:  "int",
 		Name:  "salary_from",
 		Value: string(buf),
@@ -1508,7 +1500,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.SalaryTo); err != nil {
 		return nil, err
 	}
-	node.Fields[13] = &Field{
+	node.Fields[12] = &Field{
 		Type:  "int",
 		Name:  "salary_to",
 		Value: string(buf),
@@ -1516,7 +1508,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.Currency); err != nil {
 		return nil, err
 	}
-	node.Fields[14] = &Field{
+	node.Fields[13] = &Field{
 		Type:  "hiringjob.Currency",
 		Name:  "currency",
 		Value: string(buf),
@@ -1524,7 +1516,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.LastApplyDate); err != nil {
 		return nil, err
 	}
-	node.Fields[15] = &Field{
+	node.Fields[14] = &Field{
 		Type:  "time.Time",
 		Name:  "last_apply_date",
 		Value: string(buf),
@@ -1532,7 +1524,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.Priority); err != nil {
 		return nil, err
 	}
-	node.Fields[16] = &Field{
+	node.Fields[15] = &Field{
 		Type:  "int",
 		Name:  "priority",
 		Value: string(buf),
@@ -1540,7 +1532,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(hj.HiringTeamID); err != nil {
 		return nil, err
 	}
-	node.Fields[17] = &Field{
+	node.Fields[16] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "hiring_team_id",
 		Value: string(buf),
@@ -1556,42 +1548,32 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
-		Type: "Team",
-		Name: "team_edge",
-	}
-	err = hj.QueryTeamEdge().
-		Select(team.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[2] = &Edge{
 		Type: "CandidateJob",
 		Name: "candidate_job_edges",
 	}
 	err = hj.QueryCandidateJobEdges().
 		Select(candidatejob.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[3] = &Edge{
+	node.Edges[2] = &Edge{
 		Type: "EntitySkill",
 		Name: "hiring_job_skill_edges",
 	}
 	err = hj.QueryHiringJobSkillEdges().
 		Select(entityskill.FieldID).
-		Scan(ctx, &node.Edges[3].IDs)
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[4] = &Edge{
+	node.Edges[3] = &Edge{
 		Type: "HiringTeam",
 		Name: "hiring_team_edge",
 	}
 	err = hj.QueryHiringTeamEdge().
 		Select(hiringteam.FieldID).
-		Scan(ctx, &node.Edges[4].IDs)
+		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2451,7 +2433,7 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 		ID:     t.ID,
 		Type:   "Team",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.CreatedAt); err != nil {
@@ -2505,22 +2487,12 @@ func (t *Team) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
-		Type: "HiringJob",
-		Name: "team_job_edges",
-	}
-	err = t.QueryTeamJobEdges().
-		Select(hiringjob.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[2] = &Edge{
 		Type: "TeamManager",
 		Name: "user_teams",
 	}
 	err = t.QueryUserTeams().
 		Select(teammanager.FieldID).
-		Scan(ctx, &node.Edges[2].IDs)
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

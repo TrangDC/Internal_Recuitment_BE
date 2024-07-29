@@ -156,8 +156,8 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())

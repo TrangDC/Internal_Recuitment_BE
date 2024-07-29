@@ -35,7 +35,7 @@ type HiringJobRepository interface {
 	BuildGetOne(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error)
 	// common function
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error)
-	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) (error, error)
+	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error)
 }
 
 type hiringJobRepoImpl struct {
@@ -70,8 +70,8 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 		func(query *ent.CandidateJobQuery) {
 			query.Where(candidatejob.DeletedAtIsNil())
 		},
-	).WithOwnerEdge().WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	).WithOwnerEdge().WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
@@ -138,7 +138,7 @@ func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.Ne
 		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
 		SetStatus(hiringjob.Status(input.Status)).
-		SetTeamID(uuid.MustParse(input.TeamID)).
+		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
 		Save(ctx)
@@ -155,7 +155,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetSalaryFrom(input.SalaryFrom).
 		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
-		SetTeamID(uuid.MustParse(input.TeamID)).
+		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
 		Save(ctx)
@@ -208,8 +208,8 @@ func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UU
 	return nil, nil
 }
 
-func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, teamId uuid.UUID, priority int) (error, error) {
-	query := rps.BuildQuery().Where(hiringjob.PriorityEQ(priority), hiringjob.TeamIDEQ(teamId))
+func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error) {
+	query := rps.BuildQuery().Where(hiringjob.PriorityEQ(priority), hiringjob.HiringTeamID(hiringTeamID))
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}

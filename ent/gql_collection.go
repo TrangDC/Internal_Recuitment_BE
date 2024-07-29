@@ -1259,16 +1259,6 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.withOwnerEdge = query
-		case "teamEdge":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &TeamQuery{config: hj.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			hj.withTeamEdge = query
 		case "candidateJobEdges":
 			var (
 				alias = field.Alias
@@ -2304,18 +2294,6 @@ func (t *TeamQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			t.WithNamedUserEdges(alias, func(wq *UserQuery) {
-				*wq = *query
-			})
-		case "teamJobEdges":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &HiringJobQuery{config: t.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			t.WithNamedTeamJobEdges(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "userTeams":

@@ -21,7 +21,6 @@ func (HiringJob) Fields() []ent.Field {
 		field.Int("amount").Default(0).Annotations(entgql.OrderField("amount")),
 		field.Enum("status").Values("draft", "opened", "closed").Default("opened"),
 		field.UUID("created_by", uuid.UUID{}).Optional().Annotations(),
-		field.UUID("team_id", uuid.UUID{}).Optional().Annotations(),
 		field.Enum("location").Values("ha_noi", "ho_chi_minh", "da_nang", "japan", "singapore"),
 		field.Enum("salary_type").Values("range", "up_to", "negotiate", "minimum"),
 		field.Int("salary_from").Default(0).Annotations(entgql.OrderField("salary_from")),
@@ -37,7 +36,6 @@ func (HiringJob) Fields() []ent.Field {
 func (HiringJob) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("owner_edge", User.Type).Ref("hiring_owner").Unique().Field("created_by"),
-		edge.From("team_edge", Team.Type).Ref("team_job_edges").Unique().Field("team_id"),
 		edge.To("candidate_job_edges", CandidateJob.Type),
 		edge.To("hiring_job_skill_edges", EntitySkill.Type),
 		edge.From("hiring_team_edge", HiringTeam.Type).Ref("hiring_team_job_edges").Unique().Field("hiring_team_id"),

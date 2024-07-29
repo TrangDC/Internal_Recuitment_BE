@@ -77,8 +77,8 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var candidateJob *ent.CandidateJob
 	var inputValidate models.CandidateJobValidInput
-	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
@@ -163,8 +163,8 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.HiringJobID)).WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
@@ -247,8 +247,8 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
@@ -318,8 +318,8 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithTeamEdge(
-		func(query *ent.TeamQuery) {
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithHiringTeamEdge(
+		func(query *ent.HiringTeamQuery) {
 			query.WithUserEdges(
 				func(query *ent.UserQuery) {
 					query.Where(user.DeletedAtIsNil())
@@ -496,7 +496,7 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	hiringTeamIds := lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) uuid.UUID {
-		return hiringJob.TeamID
+		return hiringJob.HiringTeamID
 	})
 	hiringTeams, err := svc.repoRegistry.HiringTeam().BuildList(ctx,
 		svc.repoRegistry.HiringTeam().BuildBaseQuery().Where(hiringteam.IDIn(hiringTeamIds...)))

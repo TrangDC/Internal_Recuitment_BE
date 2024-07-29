@@ -80,7 +80,7 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		},
 	).WithCandidateEdge().WithHiringJobEdge(
 		func(query *ent.HiringJobQuery) {
-			query.WithTeamEdge().WithOwnerEdge()
+			query.WithHiringTeamEdge().WithOwnerEdge()
 		},
 	).WithCreatedByEdge().WithCandidateJobStep(
 		func(query *ent.CandidateJobStepQuery) {

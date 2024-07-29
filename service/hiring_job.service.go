@@ -54,25 +54,25 @@ func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto
 func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
 	var record *ent.HiringJob
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	teamRecord, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, uuid.MustParse(input.TeamID))
+	hiringTeam, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, uuid.MustParse(input.HiringTeamID))
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, teamRecord) {
+	if !svc.validPermissionMutation(payload, hiringTeam) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, uuid.Nil, uuid.MustParse(input.TeamID), input.Priority)
+	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, uuid.Nil, uuid.MustParse(input.HiringTeamID), input.Priority)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
@@ -90,17 +90,17 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailCreate(result)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -111,7 +111,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
@@ -130,11 +130,11 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	})
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailDelete(record)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	return err
 }
@@ -144,7 +144,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	var result *ent.HiringJob
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
@@ -155,15 +155,15 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	}
 	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, id, uuid.MustParse(input.TeamID), input.Priority)
+	errString, err = svc.repoRegistry.HiringJob().ValidPriority(ctx, id, uuid.MustParse(input.HiringTeamID), input.Priority)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
@@ -178,17 +178,17 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -200,13 +200,13 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	var result *ent.HiringJob
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
+	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, _ int) bool {
 		return ent.CandidateJobStatusAbleToClose.IsValid(ent.CandidateJobStatusAbleToClose(item.Status))
 	})
 	if len(candidateJobWithStatusOpen) > 0 && record.Status == hiringjob.StatusOpened && hiringjob.Status(status) == hiringjob.StatusClosed {
@@ -217,17 +217,17 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -240,7 +240,7 @@ func (svc *hiringJobSvcImpl) GetHiringJob(ctx context.Context, id uuid.UUID) (*e
 	svc.validPermissionGet(payload, query)
 	result, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	return &ent.HiringJobResponse{
@@ -251,18 +251,20 @@ func (svc *hiringJobSvcImpl) GetHiringJob(ctx context.Context, id uuid.UUID) (*e
 func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	var result *ent.HiringJobResponseGetAll
-	var edges []*ent.HiringJobEdge
-	var page int
-	var perPage int
-	var err error
-	var count int
-	var hiringJobs []*ent.HiringJob
+	var (
+		result     *ent.HiringJobResponseGetAll
+		edges      []*ent.HiringJobEdge
+		page       int
+		perPage    int
+		err        error
+		count      int
+		hiringJobs []*ent.HiringJob
+	)
 	query := svc.repoRegistry.HiringJob().BuildQuery()
 	svc.validPermissionGet(payload, query)
 	hiringJobs, count, page, perPage, err = svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, err
 	}
 	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) *ent.HiringJobEdge {
@@ -286,20 +288,22 @@ func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.
 
 func (svc *hiringJobSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error) {
-	var result *ent.HiringJobSelectionResponseGetAll
-	var edges []*ent.HiringJobSelectionEdge
-	var page int
-	var perPage int
-	var err error
-	var count int
-	var hiringJobs []*ent.HiringJob
+	var (
+		result     *ent.HiringJobSelectionResponseGetAll
+		edges      []*ent.HiringJobSelectionEdge
+		page       int
+		perPage    int
+		err        error
+		count      int
+		hiringJobs []*ent.HiringJob
+	)
 	query := svc.repoRegistry.HiringJob().BuildBaseQuery()
 	hiringJobs, count, page, perPage, err = svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, err
 	}
-	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, index int) *ent.HiringJobSelectionEdge {
+	edges = lo.Map(hiringJobs, func(hiringJob *ent.HiringJob, _ int) *ent.HiringJobSelectionEdge {
 		return &ent.HiringJobSelectionEdge{
 			Node: &ent.HiringJobSelection{
 				ID:   hiringJob.ID.String(),
@@ -327,11 +331,13 @@ func (svc hiringJobSvcImpl) GroupSkillType(input []*ent.EntitySkill) []*ent.Enti
 
 func (svc *hiringJobSvcImpl) getHiringJobs(ctx context.Context, query *ent.HiringJobQuery, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) ([]*ent.HiringJob, int, int, int, error) {
-	var page int
-	var perPage int
-	var err error
-	var count int
-	var hiringJobs []*ent.HiringJob
+	var (
+		page       int
+		perPage    int
+		err        error
+		count      int
+		hiringJobs []*ent.HiringJob
+	)
 	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
 	if pagination != nil {
@@ -358,7 +364,7 @@ func (svc *hiringJobSvcImpl) getHiringJobs(ctx context.Context, query *ent.Hirin
 func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
 	count, err := svc.repoRegistry.HiringJob().BuildCount(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return 0, nil, err
 	}
 	order := ent.Desc(strings.ToLower(orderBy.Field.String()))
@@ -371,7 +377,7 @@ func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent
 	}
 	hiringJobs, err := svc.repoRegistry.HiringJob().BuildList(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return 0, nil, err
 	}
 	return count, hiringJobs, nil
@@ -380,7 +386,7 @@ func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent
 func (svc hiringJobSvcImpl) getListByAdditionalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
 	hiringJobs, err := svc.repoRegistry.HiringJob().BuildList(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return 0, nil, err
 	}
 	count := len(hiringJobs)
@@ -424,11 +430,11 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 		if input.Name != nil {
 			hiringJobQuery.Where(hiringjob.NameEqualFold(strings.TrimSpace(*input.Name)))
 		}
-		if input.TeamIds != nil {
-			ids := lo.Map(input.TeamIds, func(item string, index int) uuid.UUID {
+		if input.HiringTeamIds != nil {
+			ids := lo.Map(input.HiringTeamIds, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			hiringJobQuery.Where(hiringjob.TeamIDIn(ids...))
+			hiringJobQuery.Where(hiringjob.HiringTeamIDIn(ids...))
 		}
 		if input.Status != nil {
 			hiringJobQuery.Where(hiringjob.StatusEQ(hiringjob.Status(*input.Status)))
@@ -465,8 +471,8 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 				hiringJobQuery.Where(hiringjob.IDEQ(uuid.Nil))
 			}
 		}
-		if input.ForTeam != nil {
-			if *input.ForTeam {
+		if input.ForHiringTeam != nil {
+			if *input.ForHiringTeam {
 				hiringJobQuery.Where(hiringjob.HasHiringTeamEdgeWith(
 					hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 				))
@@ -478,15 +484,15 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 }
 
 // permission
-func (svc hiringJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.HiringTeam) bool {
+func (svc hiringJobSvcImpl) validPermissionMutation(payload *middleware.Payload, hiringTeam *ent.HiringTeam) bool {
 	if payload.ForAll {
 		return true
 	}
 	if payload.ForTeam {
-		memberIds := lo.Map(teamRecord.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
+		memberIds := lo.Map(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
 			return item.ID
 		})
-		managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+		managerIds := lo.Map(hiringTeam.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
 			return item.ID
 		})
 		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
