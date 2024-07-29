@@ -94,7 +94,7 @@ func (svc *hiringTeamSvcImpl) CreateHiringTeam(ctx context.Context, input ent.Ne
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleTeams, jsonString, audittrail.ActionTypeCreate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleHiringTeams, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
@@ -156,7 +156,7 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringTeamID, audittrail.ModuleTeams, jsonString, audittrail.ActionTypeUpdate, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringTeamID, audittrail.ModuleHiringTeams, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
@@ -201,7 +201,7 @@ func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringTeamID, audittrail.ModuleTeams, jsonString, audittrail.ActionTypeDelete, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringTeamID, audittrail.ModuleHiringTeams, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}

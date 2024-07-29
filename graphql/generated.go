@@ -6405,7 +6405,7 @@ type Base64Response {
 }
 
 enum projectModule {
-  teams
+  hiring_teams
   hiring_jobs
   candidates
   skills

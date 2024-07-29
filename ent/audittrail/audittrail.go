@@ -81,7 +81,7 @@ type Module string
 
 // Module values.
 const (
-	ModuleTeams          Module = "teams"
+	ModuleHiringTeams    Module = "hiring_teams"
 	ModuleHiringJobs     Module = "hiring_jobs"
 	ModuleCandidates     Module = "candidates"
 	ModuleSkills         Module = "skills"
@@ -98,7 +98,7 @@ func (m Module) String() string {
 // ModuleValidator is a validator for the "module" field enum values. It is called by the builders before save.
 func ModuleValidator(m Module) error {
 	switch m {
-	case ModuleTeams, ModuleHiringJobs, ModuleCandidates, ModuleSkills, ModuleUsers, ModuleSkillTypes, ModuleRoles, ModuleEmailTemplates:
+	case ModuleHiringTeams, ModuleHiringJobs, ModuleCandidates, ModuleSkills, ModuleUsers, ModuleSkillTypes, ModuleRoles, ModuleEmailTemplates:
 		return nil
 	default:
 		return fmt.Errorf("audittrail: invalid enum value for module field: %q", m)
