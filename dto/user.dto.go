@@ -12,7 +12,7 @@ type UserDto interface {
 	AuditTrailCreate(record *ent.User) (string, error)
 	AuditTrailDelete(record *ent.User) (string, error)
 	AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) (string, error)
-	AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) string
+	AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamName string) string
 }
 
 type userDtoImpl struct {
@@ -67,16 +67,14 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 			case "model.users.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
-			case "model.users.team":
-				if oldRecord.Edges.MemberOfTeamEdges != nil {
-					oldValueField = oldRecord.Edges.MemberOfTeamEdges.Name
-				} else {
-					oldValueField = ""
+			case "model.users.hiring_team":
+				oldValueField = ""
+				if oldRecord.Edges.MemberOfHiringTeamEdges != nil {
+					oldValueField = oldRecord.Edges.MemberOfHiringTeamEdges.Name
 				}
-				if newRecord.Edges.MemberOfTeamEdges != nil {
-					newValueField = newRecord.Edges.MemberOfTeamEdges.Name
-				} else {
-					newValueField = ""
+				newValueField = ""
+				if newRecord.Edges.MemberOfHiringTeamEdges != nil {
+					newValueField = newRecord.Edges.MemberOfHiringTeamEdges.Name
 				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
@@ -93,7 +91,7 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 	return string(jsonObj), err
 }
 
-func (d userDtoImpl) AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) string {
+func (d userDtoImpl) AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamName string) string {
 	result := models.AuditTrailData{
 		Module: UserI18n,
 		Create: []interface{}{},
@@ -102,14 +100,14 @@ func (d userDtoImpl) AuditTrailUpdateTeam(oldRecord *ent.User, teamName string) 
 	}
 	entity := []interface{}{}
 	oldTeamName := ""
-	if oldRecord.Edges.MemberOfTeamEdges != nil {
-		oldTeamName = oldRecord.Edges.MemberOfTeamEdges.Name
+	if oldRecord.Edges.MemberOfHiringTeamEdges != nil {
+		oldTeamName = oldRecord.Edges.MemberOfHiringTeamEdges.Name
 	}
 	entity = append(entity, models.AuditTrailUpdate{
-		Field: "model.users.team",
+		Field: "model.users.hiring_team",
 		Value: models.ValueChange{
 			OldValue: oldTeamName,
-			NewValue: teamName,
+			NewValue: hiringTeamName,
 		},
 	})
 	result.Update = append(result.Update, entity...)
@@ -130,8 +128,11 @@ func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 			continue
 		case "model.users.status":
 			valueField = d.statusI18n(record.Status)
-		case "model.users.team":
-			valueField = record.Edges.MemberOfTeamEdges.Name
+		case "model.users.hiring_team":
+			valueField = ""
+			if record.Edges.MemberOfHiringTeamEdges != nil {
+				valueField = record.Edges.MemberOfHiringTeamEdges.Name
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -158,8 +159,8 @@ func (d userDtoImpl) formatFieldI18n(input string) string {
 		return "model.users.work_email"
 	case "Status":
 		return "model.users.status"
-	case "TeamID":
-		return "model.users.team"
+	case "HiringTeamID":
+		return "model.users.hiring_team"
 	}
 	return ""
 }

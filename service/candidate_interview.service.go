@@ -15,8 +15,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/emailtemplate"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/predicate"
-	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/servicebus"
 	"trec/internal/util"
@@ -94,7 +94,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionCreate(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionCreate(payload, hiringJob.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	jsonString, _ := json.Marshal(input)
@@ -163,7 +163,7 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionCreate(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionCreate(payload, hiringJob.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	candidateJobs, stringError, err := svc.repoRegistry.CandidateInterview().ValidateCreateBulkInput(ctx, input)
@@ -234,7 +234,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if time.Now().UTC().After(record.EndAt) {
@@ -305,7 +305,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if candidatejob.Status(record.CandidateJobStatus) != record.Edges.CandidateJobEdge.Status {
@@ -367,7 +367,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if time.Now().UTC().After(record.EndAt) {
@@ -451,7 +451,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionUpdate(payload, hiringJob.Edges.TeamEdge, record) {
+	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
@@ -711,8 +711,8 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 	if input.TeamId != nil {
 		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(
 			candidatejob.HasHiringJobEdgeWith(
-				hiringjob.HasTeamEdgeWith(
-					team.IDEQ(uuid.MustParse(*input.TeamId)),
+				hiringjob.HasHiringTeamEdgeWith(
+					hiringteam.IDEQ(uuid.MustParse(*input.TeamId)),
 				),
 			),
 		))
@@ -739,11 +739,11 @@ func (svc *candidateInterviewSvcImpl) updateMembers(record *ent.CandidateIntervi
 }
 
 // permission
-func (svc candidateInterviewSvcImpl) validPermissionCreate(payload *middleware.Payload, teamRecord *ent.Team) bool {
+func (svc candidateInterviewSvcImpl) validPermissionCreate(payload *middleware.Payload, teamRecord *ent.HiringTeam) bool {
 	if payload.ForAll {
 		return true
 	}
-	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+	memberIds := lo.Map(teamRecord.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
 		return item.ID
 	})
 	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
@@ -757,7 +757,7 @@ func (svc candidateInterviewSvcImpl) validPermissionCreate(payload *middleware.P
 	return false
 }
 
-func (svc candidateInterviewSvcImpl) validPermissionUpdate(payload *middleware.Payload, teamRecord *ent.Team, record *ent.CandidateInterview) bool {
+func (svc candidateInterviewSvcImpl) validPermissionUpdate(payload *middleware.Payload, teamRecord *ent.HiringTeam, record *ent.CandidateInterview) bool {
 	interviewerIds := lo.Map(record.Edges.InterviewerEdges, func(item *ent.User, index int) uuid.UUID {
 		return item.ID
 	})
@@ -772,8 +772,8 @@ func (svc candidateInterviewSvcImpl) validPermissionGet(payload *middleware.Payl
 		return
 	}
 	if payload.ForTeam {
-		query.Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasTeamEdgeWith(
-			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		query.Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 		))))
 	}
 	if payload.ForOwner {

@@ -110,20 +110,6 @@ func (uc *UserCreate) SetOid(s string) *UserCreate {
 	return uc
 }
 
-// SetTeamID sets the "team_id" field.
-func (uc *UserCreate) SetTeamID(u uuid.UUID) *UserCreate {
-	uc.mutation.SetTeamID(u)
-	return uc
-}
-
-// SetNillableTeamID sets the "team_id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableTeamID(u *uuid.UUID) *UserCreate {
-	if u != nil {
-		uc.SetTeamID(*u)
-	}
-	return uc
-}
-
 // SetRecTeamID sets the "rec_team_id" field.
 func (uc *UserCreate) SetRecTeamID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetRecTeamID(u)
@@ -320,25 +306,6 @@ func (uc *UserCreate) AddRoleEdges(r ...*Role) *UserCreate {
 		ids[i] = r[i].ID
 	}
 	return uc.AddRoleEdgeIDs(ids...)
-}
-
-// SetMemberOfTeamEdgesID sets the "member_of_team_edges" edge to the Team entity by ID.
-func (uc *UserCreate) SetMemberOfTeamEdgesID(id uuid.UUID) *UserCreate {
-	uc.mutation.SetMemberOfTeamEdgesID(id)
-	return uc
-}
-
-// SetNillableMemberOfTeamEdgesID sets the "member_of_team_edges" edge to the Team entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableMemberOfTeamEdgesID(id *uuid.UUID) *UserCreate {
-	if id != nil {
-		uc = uc.SetMemberOfTeamEdgesID(*id)
-	}
-	return uc
-}
-
-// SetMemberOfTeamEdges sets the "member_of_team_edges" edge to the Team entity.
-func (uc *UserCreate) SetMemberOfTeamEdges(t *Team) *UserCreate {
-	return uc.SetMemberOfTeamEdgesID(t.ID)
 }
 
 // AddHiringTeamEdgeIDs adds the "hiring_team_edges" edge to the HiringTeam entity by IDs.
@@ -866,26 +833,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.MemberOfTeamEdgesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.MemberOfTeamEdgesTable,
-			Columns: []string{user.MemberOfTeamEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: team.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.TeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.HiringTeamEdgesIDs(); len(nodes) > 0 {

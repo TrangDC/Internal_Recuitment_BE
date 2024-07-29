@@ -28,8 +28,6 @@ const (
 	FieldStatus = "status"
 	// FieldOid holds the string denoting the oid field in the database.
 	FieldOid = "oid"
-	// FieldTeamID holds the string denoting the team_id field in the database.
-	FieldTeamID = "team_id"
 	// FieldRecTeamID holds the string denoting the rec_team_id field in the database.
 	FieldRecTeamID = "rec_team_id"
 	// FieldLocation holds the string denoting the location field in the database.
@@ -56,8 +54,6 @@ const (
 	EdgeUserPermissionEdges = "user_permission_edges"
 	// EdgeRoleEdges holds the string denoting the role_edges edge name in mutations.
 	EdgeRoleEdges = "role_edges"
-	// EdgeMemberOfTeamEdges holds the string denoting the member_of_team_edges edge name in mutations.
-	EdgeMemberOfTeamEdges = "member_of_team_edges"
 	// EdgeHiringTeamEdges holds the string denoting the hiring_team_edges edge name in mutations.
 	EdgeHiringTeamEdges = "hiring_team_edges"
 	// EdgeLedRecTeams holds the string denoting the led_rec_teams edge name in mutations.
@@ -140,13 +136,6 @@ const (
 	// RoleEdgesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RoleEdgesInverseTable = "roles"
-	// MemberOfTeamEdgesTable is the table that holds the member_of_team_edges relation/edge.
-	MemberOfTeamEdgesTable = "users"
-	// MemberOfTeamEdgesInverseTable is the table name for the Team entity.
-	// It exists in this package in order to avoid circular dependency with the "team" package.
-	MemberOfTeamEdgesInverseTable = "teams"
-	// MemberOfTeamEdgesColumn is the table column denoting the member_of_team_edges relation/edge.
-	MemberOfTeamEdgesColumn = "team_id"
 	// HiringTeamEdgesTable is the table that holds the hiring_team_edges relation/edge. The primary key declared below.
 	HiringTeamEdgesTable = "hiring_team_managers"
 	// HiringTeamEdgesInverseTable is the table name for the HiringTeam entity.
@@ -213,7 +202,6 @@ var Columns = []string{
 	FieldWorkEmail,
 	FieldStatus,
 	FieldOid,
-	FieldTeamID,
 	FieldRecTeamID,
 	FieldLocation,
 	FieldHiringTeamID,

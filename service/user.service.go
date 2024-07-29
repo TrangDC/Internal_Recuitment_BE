@@ -47,7 +47,7 @@ type userSvcImpl struct {
 func NewUserService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) UserService {
 	return &userSvcImpl{
 		repoRegistry: repoRegistry,
-		dtoRegistry:  dto.NewDto(),
+		dtoRegistry:  dtoRegistry,
 		logger:       logger,
 	}
 }
@@ -57,7 +57,7 @@ func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput,
 	var record *ent.User
 	errString, err := svc.repoRegistry.User().ValidWorkEmail(ctx, uuid.Nil, input.WorkEmail)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
@@ -65,7 +65,7 @@ func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput,
 	}
 	errString, err = svc.repoRegistry.EntityPermission().ValidActionPermission(ctx, input.EntityPermissions)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	if errString != nil {
@@ -167,7 +167,7 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	}
 	if len(record.Edges.TeamEdges) != 0 {
 		currentTeamId := record.Edges.TeamEdges[0].ID.String()
-		input.TeamID = &currentTeamId
+		input.HiringTeamID = &currentTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
@@ -359,14 +359,14 @@ func (svc *userSvcImpl) UpdateHiringTeam(ctx context.Context, teamName string, t
 	if err != nil {
 		return err
 	}
-	err = svc.repoRegistry.User().UpdateUserTeam(ctx, userId, teamId)
+	err = svc.repoRegistry.User().UpdateUserHiringTeam(ctx, userId, teamId)
 	if err != nil {
 		return err
 	}
 	recordAuditTrails := lo.Map(users, func(user *ent.User, index int) models.UserTeamAuditTrail {
 		return models.UserTeamAuditTrail{
 			RecordId:   user.ID,
-			JsonString: svc.dtoRegistry.User().AuditTrailUpdateTeam(user, teamName),
+			JsonString: svc.dtoRegistry.User().AuditTrailUpdateHiringTeam(user, teamName),
 		}
 	})
 	err = svc.repoRegistry.AuditTrail().CreateBulkUserTeamAt(ctx, recordAuditTrails, note)
@@ -378,14 +378,14 @@ func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, 
 	if err != nil {
 		return err
 	}
-	err = svc.repoRegistry.User().DeleteUserTeam(ctx, userId, teamId)
+	err = svc.repoRegistry.User().DeleteUserHiringTeam(ctx, userId)
 	if err != nil {
 		return err
 	}
 	recordAuditTrails := lo.Map(users, func(user *ent.User, index int) models.UserTeamAuditTrail {
 		return models.UserTeamAuditTrail{
 			RecordId:   user.ID,
-			JsonString: svc.dtoRegistry.User().AuditTrailUpdateTeam(user, ""),
+			JsonString: svc.dtoRegistry.User().AuditTrailUpdateHiringTeam(user, ""),
 		}
 	})
 	err = svc.repoRegistry.AuditTrail().CreateBulkUserTeamAt(ctx, recordAuditTrails, note)
@@ -425,13 +425,6 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			})
 			userQuery.Where(user.IDNotIn(ids...))
 		}
-		if input.NotInTeam != nil {
-			predicate := user.HasTeamEdgesWith(team.DeletedAtIsNil())
-			if *input.NotInTeam {
-				predicate = user.Not(user.HasTeamEdgesWith(team.DeletedAtIsNil()))
-			}
-			userQuery.Where(predicate)
-		}
 		if input.IsAbleToInterviewer != nil {
 			if *input.IsAbleToInterviewer {
 				userQuery.Where(user.HasUserPermissionEdgesWith(
@@ -453,11 +446,11 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			})
 			userQuery.Where(user.HasRoleEdgesWith(role.IDIn(roles...)))
 		}
-		if input.TeamID != nil {
-			teamIds := lo.Map(input.TeamID, func(item string, index int) uuid.UUID {
+		if input.HiringTeamID != nil {
+			teamIds := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.Or(user.TeamIDIn(teamIds...), user.HasTeamEdgesWith(team.IDIn(teamIds...))))
+			userQuery.Where(user.Or(user.HiringTeamIDIn(teamIds...), user.HasTeamEdgesWith(team.IDIn(teamIds...))))
 		}
 	}
 }

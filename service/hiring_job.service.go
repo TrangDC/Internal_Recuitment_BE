@@ -10,7 +10,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
-	"trec/ent/team"
+	"trec/ent/hiringteam"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
@@ -458,8 +458,8 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 		}
 		if input.ForOwner != nil {
 			if *input.ForOwner {
-				hiringJobQuery.Where(hiringjob.HasTeamEdgeWith(
-					team.HasUserEdgesWith(user.IDEQ(payload.UserID)),
+				hiringJobQuery.Where(hiringjob.HasHiringTeamEdgeWith(
+					hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)),
 				))
 			} else {
 				hiringJobQuery.Where(hiringjob.IDEQ(uuid.Nil))
@@ -467,8 +467,8 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 		}
 		if input.ForTeam != nil {
 			if *input.ForTeam {
-				hiringJobQuery.Where(hiringjob.HasTeamEdgeWith(
-					team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+				hiringJobQuery.Where(hiringjob.HasHiringTeamEdgeWith(
+					hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 				))
 			} else {
 				hiringJobQuery.Where(hiringjob.IDEQ(uuid.Nil))
@@ -501,8 +501,8 @@ func (svc hiringJobSvcImpl) validPermissionGet(payload *middleware.Payload, quer
 		return
 	}
 	if payload.ForTeam {
-		query.Where(hiringjob.HasTeamEdgeWith(
-			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		query.Where(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 		))
 	}
 }

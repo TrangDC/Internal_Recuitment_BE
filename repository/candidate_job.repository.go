@@ -13,9 +13,9 @@ import (
 	"trec/ent/candidatejobstep"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
-	"trec/ent/team"
 	"trec/middleware"
 	"trec/models"
 
@@ -41,7 +41,7 @@ type CandidateJobRepository interface {
 	// common function
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
 	ValidInput(ctx context.Context, input models.CandidateJobValidInput) ([]string, error, error)
-	ValidStatus(oldStatus candidatejob.Status, newStatus ent.CandidateJobStatus) (error)
+	ValidStatus(oldStatus candidatejob.Status, newStatus ent.CandidateJobStatus) error
 	GetDataForKeyword(ctx context.Context, record *ent.CandidateJob) (models.GroupModule, error)
 }
 
@@ -233,14 +233,14 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 	if err != nil {
 		return result, err
 	}
-	teamRecord, err := rps.client.Team.Query().Where(team.DeletedAtIsNil(), team.IDEQ(hiringJobRecord.TeamID)).WithUserEdges().First(ctx)
+	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).WithUserEdges().First(ctx)
 	if err != nil {
 		return result, nil
 	}
 	return models.GroupModule{
 		Candidate:    candidateRecord,
 		HiringJob:    hiringJobRecord,
-		Team:         teamRecord,
+		HiringTeam:   hiringTeamRecord,
 		CandidateJob: record,
 	}, nil
 }

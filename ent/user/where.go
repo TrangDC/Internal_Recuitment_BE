@@ -124,13 +124,6 @@ func Oid(v string) predicate.User {
 	})
 }
 
-// TeamID applies equality check predicate on the "team_id" field. It's identical to TeamIDEQ.
-func TeamID(v uuid.UUID) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTeamID), v))
-	})
-}
-
 // RecTeamID applies equality check predicate on the "rec_team_id" field. It's identical to RecTeamIDEQ.
 func RecTeamID(v uuid.UUID) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -705,56 +698,6 @@ func OidContainsFold(v string) predicate.User {
 	})
 }
 
-// TeamIDEQ applies the EQ predicate on the "team_id" field.
-func TeamIDEQ(v uuid.UUID) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTeamID), v))
-	})
-}
-
-// TeamIDNEQ applies the NEQ predicate on the "team_id" field.
-func TeamIDNEQ(v uuid.UUID) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTeamID), v))
-	})
-}
-
-// TeamIDIn applies the In predicate on the "team_id" field.
-func TeamIDIn(vs ...uuid.UUID) predicate.User {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTeamID), v...))
-	})
-}
-
-// TeamIDNotIn applies the NotIn predicate on the "team_id" field.
-func TeamIDNotIn(vs ...uuid.UUID) predicate.User {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTeamID), v...))
-	})
-}
-
-// TeamIDIsNil applies the IsNil predicate on the "team_id" field.
-func TeamIDIsNil() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldTeamID)))
-	})
-}
-
-// TeamIDNotNil applies the NotNil predicate on the "team_id" field.
-func TeamIDNotNil() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldTeamID)))
-	})
-}
-
 // RecTeamIDEQ applies the EQ predicate on the "rec_team_id" field.
 func RecTeamIDEQ(v uuid.UUID) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -1239,34 +1182,6 @@ func HasRoleEdgesWith(preds ...predicate.Role) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RoleEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, RoleEdgesTable, RoleEdgesPrimaryKey...),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasMemberOfTeamEdges applies the HasEdge predicate on the "member_of_team_edges" edge.
-func HasMemberOfTeamEdges() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MemberOfTeamEdgesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, MemberOfTeamEdgesTable, MemberOfTeamEdgesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasMemberOfTeamEdgesWith applies the HasEdge predicate on the "member_of_team_edges" edge with a given conditions (other predicates).
-func HasMemberOfTeamEdgesWith(preds ...predicate.Team) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MemberOfTeamEdgesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, MemberOfTeamEdgesTable, MemberOfTeamEdgesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

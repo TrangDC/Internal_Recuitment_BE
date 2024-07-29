@@ -616,7 +616,7 @@ func init() {
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
 	// userDescLocation is the schema descriptor for location field.
-	userDescLocation := userFields[6].Descriptor()
+	userDescLocation := userFields[5].Descriptor()
 	// user.LocationValidator is a validator for the "location" field. It is called by the builders before save.
 	user.LocationValidator = userDescLocation.Validators[0].(func(string) error)
 	userroleMixin := schema.UserRole{}.Mixin()
