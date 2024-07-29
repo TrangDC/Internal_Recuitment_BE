@@ -3501,22 +3501,6 @@ func (c *TeamClient) QueryTeamJobEdges(t *Team) *HiringJobQuery {
 	return query
 }
 
-// QueryMemberEdges queries the member_edges edge of a Team.
-func (c *TeamClient) QueryMemberEdges(t *Team) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := t.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(team.Table, team.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, team.MemberEdgesTable, team.MemberEdgesColumn),
-		)
-		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryUserTeams queries the user_teams edge of a Team.
 func (c *TeamClient) QueryUserTeams(t *Team) *TeamManagerQuery {
 	query := &TeamManagerQuery{config: c.config}
@@ -3898,22 +3882,6 @@ func (c *UserClient) QueryRoleEdges(u *User) *RoleQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.RoleEdgesTable, user.RoleEdgesPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryMemberOfTeamEdges queries the member_of_team_edges edge of a User.
-func (c *UserClient) QueryMemberOfTeamEdges(u *User) *TeamQuery {
-	query := &TeamQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(team.Table, team.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, user.MemberOfTeamEdgesTable, user.MemberOfTeamEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

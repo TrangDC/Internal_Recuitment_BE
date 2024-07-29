@@ -12,10 +12,10 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/permission"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
-	"trec/ent/team"
 	"trec/ent/user"
 	"trec/middleware"
 	"trec/models"
@@ -246,14 +246,14 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 	if err != nil {
 		return result, err
 	}
-	teamRecord, err := rps.client.Team.Query().Where(team.DeletedAtIsNil(), team.IDEQ(hiringJobRecord.TeamID)).WithUserEdges().First(ctx)
+	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).WithUserEdges().First(ctx)
 	if err != nil {
 		return result, nil
 	}
 	return models.GroupModule{
 		Candidate:    candidateRecord,
 		HiringJob:    hiringJobRecord,
-		Team:         teamRecord,
+		HiringTeam:   hiringTeamRecord,
 		CandidateJob: candidateJobRecord,
 		Interview:    record,
 	}, nil

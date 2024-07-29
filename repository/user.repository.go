@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/hiringteam"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/role"
-	"trec/ent/team"
 	"trec/ent/user"
 
 	"github.com/google/uuid"
@@ -21,8 +21,8 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, record *ent.User, input *ent.UpdateUserInput, newRoleIds, removeRoleIds []uuid.UUID) (*ent.User, error)
 	DeleteUser(ctx context.Context, record *ent.User, roleIds []uuid.UUID) error
 	UpdateUserStatus(ctx context.Context, record *ent.User, status user.Status) (*ent.User, error)
-	UpdateUserTeam(ctx context.Context, userIds []uuid.UUID, teamId uuid.UUID) error
-	DeleteUserTeam(ctx context.Context, userIds []uuid.UUID, teamId uuid.UUID) error
+	UpdateUserHiringTeam(ctx context.Context, userIds []uuid.UUID, hiringTeamID uuid.UUID) error
+	DeleteUserHiringTeam(ctx context.Context, userIds []uuid.UUID) error
 
 	// query
 	GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error)
@@ -58,31 +58,24 @@ func (rps *userRepoImpl) BuildDelete() *ent.UserUpdate {
 }
 
 func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
-	return rps.client.User.Query().Where(user.DeletedAtIsNil()).WithTeamEdges(
-		func(query *ent.TeamQuery) {
-			query.Where(team.DeletedAtIsNil())
-		},
-	).WithUserPermissionEdges(
-		func(query *ent.EntityPermissionQuery) {
-			query.WithPermissionEdges(
-				func(query *ent.PermissionQuery) {
-					query.Where(permission.DeletedAtIsNil()).WithGroupPermissionEdge(
-						func(query *ent.PermissionGroupQuery) {
-							query.Where(permissiongroup.DeletedAtIsNil())
-						},
-					)
-				},
-			)
-		},
-	).WithMemberOfTeamEdges(
-		func(query *ent.TeamQuery) {
-			query.Where(team.DeletedAtIsNil())
-		},
-	).WithRoleEdges(
-		func(query *ent.RoleQuery) {
+	return rps.client.User.Query().Where(user.DeletedAtIsNil()).
+		WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+			query.Where(hiringteam.DeletedAtIsNil())
+		}).
+		WithUserPermissionEdges(func(query *ent.EntityPermissionQuery) {
+			query.WithPermissionEdges(func(query *ent.PermissionQuery) {
+				query.Where(permission.DeletedAtIsNil()).
+					WithGroupPermissionEdge(func(query *ent.PermissionGroupQuery) {
+						query.Where(permissiongroup.DeletedAtIsNil())
+					})
+			})
+		}).
+		WithMemberOfHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+			query.Where(hiringteam.DeletedAtIsNil())
+		}).
+		WithRoleEdges(func(query *ent.RoleQuery) {
 			query.Where(role.DeletedAtIsNil())
-		},
-	)
+		})
 }
 
 func (rps *userRepoImpl) BuildBaseQuery() *ent.UserQuery {
@@ -124,8 +117,8 @@ func (rps *userRepoImpl) CreateUser(ctx context.Context, input *ent.NewUserInput
 		SetWorkEmail(strings.TrimSpace(input.WorkEmail)).
 		SetStatus(user.Status(input.Status)).
 		AddRoleEdgeIDs(roleIds...)
-	if input.TeamID != nil && *input.TeamID != "" {
-		create.SetTeamID(uuid.MustParse(*input.TeamID))
+	if input.HiringTeamID != nil && *input.HiringTeamID != "" {
+		create.SetHiringTeamID(uuid.MustParse(*input.HiringTeamID))
 	}
 	return create.Save(ctx)
 }
@@ -135,10 +128,10 @@ func (rps *userRepoImpl) UpdateUser(ctx context.Context, record *ent.User, input
 		SetName(strings.TrimSpace(input.Name)).
 		SetWorkEmail(strings.TrimSpace(input.WorkEmail)).
 		SetStatus(user.Status(input.Status)).AddRoleEdgeIDs(newRoleIds...).RemoveRoleEdgeIDs(removeRoleIds...)
-	if input.TeamID != nil && *input.TeamID != "" {
-		update.SetTeamID(uuid.MustParse(*input.TeamID))
+	if input.HiringTeamID != nil && *input.HiringTeamID != "" {
+		update.SetHiringTeamID(uuid.MustParse(*input.HiringTeamID))
 	} else {
-		update.ClearTeamID()
+		update.ClearHiringTeamID()
 	}
 	return update.Save(ctx)
 }
@@ -152,13 +145,13 @@ func (rps *userRepoImpl) DeleteUser(ctx context.Context, record *ent.User, roleI
 	return err
 }
 
-func (rps userRepoImpl) UpdateUserTeam(ctx context.Context, userIds []uuid.UUID, teamId uuid.UUID) error {
-	_, err := rps.client.User.Update().Where(user.IDIn(userIds...)).SetTeamID(teamId).SetUpdatedAt(time.Now().UTC()).Save(ctx)
+func (rps userRepoImpl) UpdateUserHiringTeam(ctx context.Context, userIds []uuid.UUID, hiringTeamID uuid.UUID) error {
+	_, err := rps.client.User.Update().Where(user.IDIn(userIds...)).SetHiringTeamID(hiringTeamID).SetUpdatedAt(time.Now().UTC()).Save(ctx)
 	return err
 }
 
-func (rps userRepoImpl) DeleteUserTeam(ctx context.Context, userIds []uuid.UUID, teamId uuid.UUID) error {
-	_, err := rps.client.User.Update().Where(user.IDIn(userIds...)).ClearTeamID().SetUpdatedAt(time.Now().UTC()).Save(ctx)
+func (rps userRepoImpl) DeleteUserHiringTeam(ctx context.Context, userIds []uuid.UUID) error {
+	_, err := rps.client.User.Update().Where(user.IDIn(userIds...)).ClearHiringTeamID().SetUpdatedAt(time.Now().UTC()).Save(ctx)
 	return err
 }
 

@@ -623,7 +623,7 @@ type NewUserInput struct {
 	WorkEmail         string                      `json:"work_email"`
 	Status            UserStatus                  `json:"status"`
 	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
-	TeamID            *string                     `json:"team_id"`
+	HiringTeamID      *string                     `json:"hiring_team_id"`
 	RoleID            []string                    `json:"role_id"`
 }
 
@@ -1002,7 +1002,7 @@ type UpdateUserInput struct {
 	WorkEmail         string                      `json:"work_email"`
 	Status            UserStatus                  `json:"status"`
 	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
-	TeamID            *string                     `json:"team_id"`
+	HiringTeamID      *string                     `json:"hiring_team_id"`
 	RoleID            []string                    `json:"role_id"`
 }
 
@@ -1014,10 +1014,9 @@ type UserFilter struct {
 	Name                *string     `json:"name"`
 	Ids                 []string    `json:"ids"`
 	IgnoreIds           []string    `json:"ignore_ids"`
-	NotInTeam           *bool       `json:"not_in_team"`
 	Status              *UserStatus `json:"status"`
 	IsAbleToInterviewer *bool       `json:"is_able_to_interviewer"`
-	TeamID              []string    `json:"team_id"`
+	HiringTeamID        []string    `json:"hiring_team_id"`
 	RoleID              []string    `json:"role_id"`
 }
 

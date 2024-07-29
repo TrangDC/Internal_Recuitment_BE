@@ -25,7 +25,6 @@ func (Team) Edges() []ent.Edge {
 		edge.From("user_edges", User.Type).Ref("team_edges").Through("user_teams", TeamManager.Type).
 			Comment("The uniqueness of the user is enforced on the edge schema"),
 		edge.To("team_job_edges", HiringJob.Type),
-		edge.To("member_edges", User.Type),
 	}
 }
 

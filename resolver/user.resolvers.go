@@ -19,10 +19,10 @@ func (r *userResolver) Status(ctx context.Context, obj *ent.User) (ent.UserStatu
 	return ent.UserStatus(obj.Status), nil
 }
 
-// Team is the resolver for the team field.
-func (r *userResolver) Team(ctx context.Context, obj *ent.User) (*ent.Team, error) {
-	if len(obj.Edges.TeamEdges) > 0 {
-		return obj.Edges.TeamEdges[0], nil
+// HiringTeam is the resolver for the hiring_team field.
+func (r *userResolver) HiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error) {
+	if len(obj.Edges.HiringTeamEdges) > 0 {
+		return obj.Edges.HiringTeamEdges[0], nil
 	}
 	return nil, nil
 }
@@ -37,9 +37,9 @@ func (r *userResolver) Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, e
 	return obj.Edges.RoleEdges, nil
 }
 
-// MemberOfTeams is the resolver for the member_of_teams field.
-func (r *userResolver) MemberOfTeams(ctx context.Context, obj *ent.User) (*ent.Team, error) {
-	return obj.Edges.MemberOfTeamEdges, nil
+// MemberOfHiringTeam is the resolver for the member_of_hiring_team field.
+func (r *userResolver) MemberOfHiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error) {
+	return obj.Edges.MemberOfHiringTeamEdges, nil
 }
 
 // User returns graphql1.UserResolver implementation.

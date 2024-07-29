@@ -11,8 +11,8 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/predicate"
-	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
@@ -166,7 +166,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 		},
 	)
 	hiringJob, _ := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
-	if !svc.validPermissionDelete(payload, record, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionDelete(payload, record, hiringJob.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	_, errString, err := svc.repoRegistry.CandidateJobFeedback().ValidCandidate(ctx, record.CandidateJobID)
@@ -296,8 +296,8 @@ func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.Ca
 }
 
 // permission
-func (svc candidateJobFeedbackSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateJobFeedback, teamRecord *ent.Team) bool {
-	memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+func (svc candidateJobFeedbackSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateJobFeedback, teamRecord *ent.HiringTeam) bool {
+	memberIds := lo.Map(teamRecord.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
 		return item.ID
 	})
 	managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
@@ -322,8 +322,8 @@ func (svc candidateJobFeedbackSvcImpl) validPermissionGet(payload *middleware.Pa
 		return
 	}
 	if payload.ForTeam {
-		query.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasTeamEdgeWith(
-			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		query.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 		))))
 	}
 	if payload.ForOwner {

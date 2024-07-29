@@ -29,7 +29,7 @@ type Messages struct {
 type GroupModule struct {
 	Interview    *ent.CandidateInterview
 	Candidate    *ent.Candidate
-	Team         *ent.Team
+	HiringTeam   *ent.HiringTeam
 	HiringJob    *ent.HiringJob
 	CandidateJob *ent.CandidateJob
 }

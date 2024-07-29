@@ -19,7 +19,6 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/predicate"
-	"trec/ent/team"
 	"trec/ent/user"
 	"trec/internal/servicebus"
 	"trec/internal/util"
@@ -92,7 +91,7 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, hiringJob.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	jsonValidate, _ := json.Marshal(input)
@@ -178,7 +177,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, hiringJob.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if record.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
@@ -262,7 +261,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, hiringJob.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusClosed {
@@ -333,7 +332,7 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionMutation(payload, hiringJob.Edges.TeamEdge) {
+	if !svc.validPermissionMutation(payload, hiringJob.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusClosed && candidateJob.Status != candidatejob.StatusApplied {
@@ -665,8 +664,8 @@ func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuer
 	if input != nil {
 		if input.Team != nil {
 			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
-				hiringjob.HasTeamEdgeWith(
-					team.NameEqualFold(strings.TrimSpace(*input.Team)),
+				hiringjob.HasHiringTeamEdgeWith(
+					hiringteam.NameEqualFold(strings.TrimSpace(*input.Team)),
 				),
 			))
 		}
@@ -687,8 +686,8 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 	}
 	if input.TeamID != nil {
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
-			hiringjob.HasTeamEdgeWith(
-				team.IDEQ(uuid.MustParse(*input.TeamID)),
+			hiringjob.HasHiringTeamEdgeWith(
+				hiringteam.IDEQ(uuid.MustParse(*input.TeamID)),
 			),
 		))
 	}
@@ -850,12 +849,12 @@ func (svc candidateJobSvcImpl) triggerEventSendEmail(ctx context.Context, oldRec
 }
 
 // permission
-func (svc candidateJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.Team) bool {
+func (svc candidateJobSvcImpl) validPermissionMutation(payload *middleware.Payload, teamRecord *ent.HiringTeam) bool {
 	if payload.ForAll {
 		return true
 	}
 	if payload.ForTeam {
-		memberIds := lo.Map(teamRecord.Edges.MemberEdges, func(item *ent.User, index int) uuid.UUID {
+		memberIds := lo.Map(teamRecord.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
 			return item.ID
 		})
 		managerIds := lo.Map(teamRecord.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
@@ -873,8 +872,8 @@ func (svc candidateJobSvcImpl) validPermissionGet(payload *middleware.Payload, q
 		return
 	}
 	if payload.ForTeam {
-		query.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.HasTeamEdgeWith(
-			team.Or(team.HasUserEdgesWith(user.IDEQ(payload.UserID)), team.HasMemberEdgesWith(user.IDEQ(payload.UserID))),
+		query.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
 		)))
 	}
 }

@@ -2318,18 +2318,6 @@ func (t *TeamQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			t.WithNamedTeamJobEdges(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
-		case "memberEdges":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &UserQuery{config: t.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			t.WithNamedMemberEdges(alias, func(wq *UserQuery) {
-				*wq = *query
-			})
 		case "userTeams":
 			var (
 				alias = field.Alias
@@ -2620,16 +2608,6 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedRoleEdges(alias, func(wq *RoleQuery) {
 				*wq = *query
 			})
-		case "memberOfTeamEdges":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &TeamQuery{config: u.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			u.withMemberOfTeamEdges = query
 		case "hiringTeamEdges":
 			var (
 				alias = field.Alias

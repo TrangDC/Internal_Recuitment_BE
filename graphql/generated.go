@@ -962,14 +962,14 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		EntityPermissions func(childComplexity int) int
-		ID                func(childComplexity int) int
-		MemberOfTeams     func(childComplexity int) int
-		Name              func(childComplexity int) int
-		Roles             func(childComplexity int) int
-		Status            func(childComplexity int) int
-		Team              func(childComplexity int) int
-		WorkEmail         func(childComplexity int) int
+		EntityPermissions  func(childComplexity int) int
+		HiringTeam         func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		MemberOfHiringTeam func(childComplexity int) int
+		Name               func(childComplexity int) int
+		Roles              func(childComplexity int) int
+		Status             func(childComplexity int) int
+		WorkEmail          func(childComplexity int) int
 	}
 
 	UserEdge struct {
@@ -1245,10 +1245,10 @@ type UserResolver interface {
 	ID(ctx context.Context, obj *ent.User) (string, error)
 
 	Status(ctx context.Context, obj *ent.User) (ent.UserStatus, error)
-	Team(ctx context.Context, obj *ent.User) (*ent.Team, error)
+	HiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error)
 	EntityPermissions(ctx context.Context, obj *ent.User) ([]*ent.EntityPermission, error)
 	Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, error)
-	MemberOfTeams(ctx context.Context, obj *ent.User) (*ent.Team, error)
+	MemberOfHiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error)
 }
 
 type executableSchema struct {
@@ -5362,6 +5362,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.EntityPermissions(childComplexity), true
 
+	case "User.hiring_team":
+		if e.complexity.User.HiringTeam == nil {
+			break
+		}
+
+		return e.complexity.User.HiringTeam(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -5369,12 +5376,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
-	case "User.member_of_teams":
-		if e.complexity.User.MemberOfTeams == nil {
+	case "User.member_of_hiring_team":
+		if e.complexity.User.MemberOfHiringTeam == nil {
 			break
 		}
 
-		return e.complexity.User.MemberOfTeams(childComplexity), true
+		return e.complexity.User.MemberOfHiringTeam(childComplexity), true
 
 	case "User.name":
 		if e.complexity.User.Name == nil {
@@ -5396,13 +5403,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Status(childComplexity), true
-
-	case "User.team":
-		if e.complexity.User.Team == nil {
-			break
-		}
-
-		return e.complexity.User.Team(childComplexity), true
 
 	case "User.work_email":
 		if e.complexity.User.WorkEmail == nil {
@@ -7575,10 +7575,10 @@ type User {
   name: String!
   work_email: String!
   status: UserStatus!
-  team: Team
+  hiring_team: HiringTeam
   entity_permissions: [EntityPermission!]!
   roles: [Role!]!
-  member_of_teams: Team
+  member_of_hiring_team: HiringTeam
 }
 
 type UserSelectionEdge {
@@ -7595,10 +7595,9 @@ input UserFilter {
   name: String
   ids: [ID!]
   ignore_ids: [ID!]
-  not_in_team: Boolean
   status: UserStatus
   is_able_to_interviewer: Boolean
-  team_id: [ID!]
+  hiring_team_id: [ID!]
   role_id: [ID!]
 }
 
@@ -7612,7 +7611,7 @@ input NewUserInput {
   work_email: String!
   status: UserStatus!
   entity_permissions: [NewEntityPermissionInput!]!
-  team_id: ID
+  hiring_team_id: ID
   role_id: [ID!]
 }
 
@@ -7621,7 +7620,7 @@ input UpdateUserInput {
   work_email: String!
   status: UserStatus!
   entity_permissions: [NewEntityPermissionInput!]!
-  team_id: ID
+  hiring_team_id: ID
   role_id: [ID!]
 }
 
@@ -11486,14 +11485,14 @@ func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Cont
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -13192,14 +13191,14 @@ func (ec *executionContext) fieldContext_Candidate_reference_user(ctx context.Co
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14238,14 +14237,14 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14419,14 +14418,14 @@ func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Co
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -15663,14 +15662,14 @@ func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context,
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -16409,14 +16408,14 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -21828,14 +21827,14 @@ func (ec *executionContext) fieldContext_HiringJob_user(ctx context.Context, fie
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -23027,14 +23026,14 @@ func (ec *executionContext) fieldContext_HiringTeam_managers(ctx context.Context
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -31048,14 +31047,14 @@ func (ec *executionContext) fieldContext_RecTeam_leader(ctx context.Context, fie
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -35794,14 +35793,14 @@ func (ec *executionContext) fieldContext_Team_members(ctx context.Context, field
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -36757,8 +36756,8 @@ func (ec *executionContext) fieldContext_User_status(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _User_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_team(ctx, field)
+func (ec *executionContext) _User_hiring_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_hiring_team(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36771,7 +36770,7 @@ func (ec *executionContext) _User_team(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Team(rctx, obj)
+		return ec.resolvers.User().HiringTeam(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -36780,12 +36779,12 @@ func (ec *executionContext) _User_team(ctx context.Context, field graphql.Collec
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Team)
+	res := resTmp.(*ent.HiringTeam)
 	fc.Result = res
-	return ec.marshalOTeam2ᚖtrecᚋentᚐTeam(ctx, field.Selections, res)
+	return ec.marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_hiring_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -36794,25 +36793,25 @@ func (ec *executionContext) fieldContext_User_team(ctx context.Context, field gr
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Team_id(ctx, field)
+				return ec.fieldContext_HiringTeam_id(ctx, field)
 			case "name":
-				return ec.fieldContext_Team_name(ctx, field)
+				return ec.fieldContext_HiringTeam_name(ctx, field)
 			case "slug":
-				return ec.fieldContext_Team_slug(ctx, field)
-			case "members":
-				return ec.fieldContext_Team_members(ctx, field)
+				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "managers":
+				return ec.fieldContext_HiringTeam_managers(ctx, field)
 			case "opening_requests":
-				return ec.fieldContext_Team_opening_requests(ctx, field)
+				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
-				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
+				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
 			case "created_at":
-				return ec.fieldContext_Team_created_at(ctx, field)
+				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_Team_updated_at(ctx, field)
+				return ec.fieldContext_HiringTeam_updated_at(ctx, field)
 			case "deleted_at":
-				return ec.fieldContext_Team_deleted_at(ctx, field)
+				return ec.fieldContext_HiringTeam_deleted_at(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeam", field.Name)
 		},
 	}
 	return fc, nil
@@ -36928,8 +36927,8 @@ func (ec *executionContext) fieldContext_User_roles(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _User_member_of_teams(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_member_of_teams(ctx, field)
+func (ec *executionContext) _User_member_of_hiring_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_member_of_hiring_team(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36942,7 +36941,7 @@ func (ec *executionContext) _User_member_of_teams(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().MemberOfTeams(rctx, obj)
+		return ec.resolvers.User().MemberOfHiringTeam(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -36951,12 +36950,12 @@ func (ec *executionContext) _User_member_of_teams(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Team)
+	res := resTmp.(*ent.HiringTeam)
 	fc.Result = res
-	return ec.marshalOTeam2ᚖtrecᚋentᚐTeam(ctx, field.Selections, res)
+	return ec.marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_member_of_teams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_member_of_hiring_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -36965,25 +36964,25 @@ func (ec *executionContext) fieldContext_User_member_of_teams(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Team_id(ctx, field)
+				return ec.fieldContext_HiringTeam_id(ctx, field)
 			case "name":
-				return ec.fieldContext_Team_name(ctx, field)
+				return ec.fieldContext_HiringTeam_name(ctx, field)
 			case "slug":
-				return ec.fieldContext_Team_slug(ctx, field)
-			case "members":
-				return ec.fieldContext_Team_members(ctx, field)
+				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "managers":
+				return ec.fieldContext_HiringTeam_managers(ctx, field)
 			case "opening_requests":
-				return ec.fieldContext_Team_opening_requests(ctx, field)
+				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
-				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
+				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
 			case "created_at":
-				return ec.fieldContext_Team_created_at(ctx, field)
+				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_Team_updated_at(ctx, field)
+				return ec.fieldContext_HiringTeam_updated_at(ctx, field)
 			case "deleted_at":
-				return ec.fieldContext_Team_deleted_at(ctx, field)
+				return ec.fieldContext_HiringTeam_deleted_at(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeam", field.Name)
 		},
 	}
 	return fc, nil
@@ -37036,14 +37035,14 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -37139,14 +37138,14 @@ func (ec *executionContext) fieldContext_UserResponse_data(ctx context.Context, 
 				return ec.fieldContext_User_work_email(ctx, field)
 			case "status":
 				return ec.fieldContext_User_status(ctx, field)
-			case "team":
-				return ec.fieldContext_User_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_User_entity_permissions(ctx, field)
 			case "roles":
 				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_teams":
-				return ec.fieldContext_User_member_of_teams(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -42046,7 +42045,7 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "hiring_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42085,11 +42084,11 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
-		case "team_id":
+		case "hiring_team_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
-			it.TeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
+			it.HiringTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43478,7 +43477,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "hiring_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43517,11 +43516,11 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "team_id":
+		case "hiring_team_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
-			it.TeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
+			it.HiringTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43574,7 +43573,7 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "not_in_team", "status", "is_able_to_interviewer", "team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "status", "is_able_to_interviewer", "hiring_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43605,14 +43604,6 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "not_in_team":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not_in_team"))
-			it.NotInTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "status":
 			var err error
 
@@ -43629,11 +43620,11 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "team_id":
+		case "hiring_team_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
-			it.TeamID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
+			it.HiringTeamID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -51786,7 +51777,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "team":
+		case "hiring_team":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -51795,7 +51786,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_team(ctx, field, obj)
+				res = ec._User_hiring_team(ctx, field, obj)
 				return res
 			}
 
@@ -51843,7 +51834,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "member_of_teams":
+		case "member_of_hiring_team":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -51852,7 +51843,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_member_of_teams(ctx, field, obj)
+				res = ec._User_member_of_hiring_team(ctx, field, obj)
 				return res
 			}
 

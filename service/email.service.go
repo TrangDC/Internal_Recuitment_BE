@@ -112,12 +112,12 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 			requestId := groupModule.HiringJob.CreatedBy
 			sendToIds = append(sendToIds, requestId)
 		case ent.EmailTemplateSendToTeamManager:
-			managerIds := lo.Map(groupModule.Team.Edges.UserEdges, func(entity *ent.User, index int) uuid.UUID {
+			managerIds := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) uuid.UUID {
 				return entity.ID
 			})
 			sendToIds = append(sendToIds, managerIds...)
 		case ent.EmailTemplateSendToTeamMember:
-			memberIds := lo.Map(groupModule.Team.Edges.MemberEdges, func(entity *ent.User, index int) uuid.UUID {
+			memberIds := lo.Map(groupModule.HiringTeam.Edges.HiringMemberEdges, func(entity *ent.User, index int) uuid.UUID {
 				return entity.ID
 			})
 			sendToIds = append(sendToIds, memberIds...)
@@ -136,13 +136,13 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 
 func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[string]string {
 	var keywords = models.AllEmailTPKeyword
-	if groupModule.Team != nil {
-		managerNames := lo.Map(groupModule.Team.Edges.UserEdges, func(entity *ent.User, index int) string {
+	if groupModule.HiringTeam != nil {
+		managerNames := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) string {
 			return entity.Name
 		})
-		keywords["{{ tm:name }}"] = groupModule.Team.Name
+		keywords["{{ tm:name }}"] = groupModule.HiringTeam.Name
 		keywords["{{ tm:manager_name }}"] = strings.Join(managerNames, ", ")
-		keywords["{{ lk:team }}"] = fmt.Sprintf("%s/dashboard/team-detail/%s", svc.configs.App.AppUrl, groupModule.Team.ID)
+		keywords["{{ lk:team }}"] = fmt.Sprintf("%s/dashboard/team-detail/%s", svc.configs.App.AppUrl, groupModule.HiringTeam.ID)
 	}
 	if groupModule.HiringJob != nil {
 		skillNames := lo.Map(groupModule.HiringJob.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
