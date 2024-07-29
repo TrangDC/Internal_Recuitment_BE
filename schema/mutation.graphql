@@ -13,6 +13,7 @@ type Mutation {
 
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
+  UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!): JobPositionResponse!
 
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!, note: String!): HiringJobResponse!

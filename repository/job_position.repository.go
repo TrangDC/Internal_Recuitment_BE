@@ -14,6 +14,7 @@ import (
 type JobPositionRepository interface {
 	// mutation
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPosition, error)
+	UpdateJobPosition(ctx context.Context, record *ent.JobPosition, input ent.UpdateJobPositionInput) (*ent.JobPosition, error)
 
 	// query
 	GetJobPosition(ctx context.Context, id uuid.UUID) (*ent.JobPosition, error)
@@ -49,10 +50,19 @@ func (rps *jobPositionRepoImpl) BuildGet(ctx context.Context, query *ent.JobPosi
 func (rps *jobPositionRepoImpl) BuildExist(ctx context.Context, query *ent.JobPositionQuery) (bool, error) {
 	return query.Exist(ctx)
 }
+func (rps *jobPositionRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.JobPosition) *ent.JobPositionUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now())
+}
 
 // mutation
 func (rps *jobPositionRepoImpl) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPosition, error) {
 	return rps.BuildCreate().
+		SetName(strings.TrimSpace(input.Name)).
+		SetDescription(strings.TrimSpace(input.Description)).Save(ctx)
+}
+
+func (rps *jobPositionRepoImpl) UpdateJobPosition(ctx context.Context, record *ent.JobPosition, input ent.UpdateJobPositionInput) (*ent.JobPosition, error) {
+	return rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).Save(ctx)
 }

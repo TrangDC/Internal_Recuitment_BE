@@ -3,6 +3,11 @@ input NewJobPositionInput {
   description: String!
 }
 
+input UpdateJobPositionInput {
+  name: String!
+  description: String!
+}
+
 type JobPosition {
   id: ID!
   name: String!

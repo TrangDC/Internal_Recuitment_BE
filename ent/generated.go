@@ -907,6 +907,11 @@ type UpdateHiringJobInput struct {
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 }
 
+type UpdateJobPositionInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type UpdateRoleInput struct {
 	Name              *string                     `json:"name"`
 	Description       *string                     `json:"description"`
