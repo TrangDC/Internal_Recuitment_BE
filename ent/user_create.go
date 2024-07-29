@@ -152,6 +152,20 @@ func (uc *UserCreate) SetNillableLocation(s *string) *UserCreate {
 	return uc
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (uc *UserCreate) SetHiringTeamID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetHiringTeamID(u)
+	return uc
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableHiringTeamID(u *uuid.UUID) *UserCreate {
+	if u != nil {
+		uc.SetHiringTeamID(*u)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
@@ -374,6 +388,25 @@ func (uc *UserCreate) SetNillableRecTeamsID(id *uuid.UUID) *UserCreate {
 // SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
 func (uc *UserCreate) SetRecTeams(r *RecTeam) *UserCreate {
 	return uc.SetRecTeamsID(r.ID)
+}
+
+// SetMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID.
+func (uc *UserCreate) SetMemberOfHiringTeamEdgesID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetMemberOfHiringTeamEdgesID(id)
+	return uc
+}
+
+// SetNillableMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableMemberOfHiringTeamEdgesID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetMemberOfHiringTeamEdgesID(*id)
+	}
+	return uc
+}
+
+// SetMemberOfHiringTeamEdges sets the "member_of_hiring_team_edges" edge to the HiringTeam entity.
+func (uc *UserCreate) SetMemberOfHiringTeamEdges(h *HiringTeam) *UserCreate {
+	return uc.SetMemberOfHiringTeamEdgesID(h.ID)
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
@@ -915,6 +948,26 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.RecTeamID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.MemberOfHiringTeamEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MemberOfHiringTeamEdgesTable,
+			Columns: []string{user.MemberOfHiringTeamEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.HiringTeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.TeamUsersIDs(); len(nodes) > 0 {

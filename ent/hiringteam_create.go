@@ -114,6 +114,21 @@ func (htc *HiringTeamCreate) AddHiringTeamJobEdges(h ...*HiringJob) *HiringTeamC
 	return htc.AddHiringTeamJobEdgeIDs(ids...)
 }
 
+// AddHiringMemberEdgeIDs adds the "hiring_member_edges" edge to the User entity by IDs.
+func (htc *HiringTeamCreate) AddHiringMemberEdgeIDs(ids ...uuid.UUID) *HiringTeamCreate {
+	htc.mutation.AddHiringMemberEdgeIDs(ids...)
+	return htc
+}
+
+// AddHiringMemberEdges adds the "hiring_member_edges" edges to the User entity.
+func (htc *HiringTeamCreate) AddHiringMemberEdges(u ...*User) *HiringTeamCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htc.AddHiringMemberEdgeIDs(ids...)
+}
+
 // AddUserHiringTeamIDs adds the "user_hiring_teams" edge to the HiringTeamManager entity by IDs.
 func (htc *HiringTeamCreate) AddUserHiringTeamIDs(ids ...uuid.UUID) *HiringTeamCreate {
 	htc.mutation.AddUserHiringTeamIDs(ids...)
@@ -323,6 +338,25 @@ func (htc *HiringTeamCreate) createSpec() (*HiringTeam, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := htc.mutation.HiringMemberEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

@@ -176,6 +176,26 @@ func (uu *UserUpdate) ClearLocation() *UserUpdate {
 	return uu
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (uu *UserUpdate) SetHiringTeamID(u uuid.UUID) *UserUpdate {
+	uu.mutation.SetHiringTeamID(u)
+	return uu
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHiringTeamID(u *uuid.UUID) *UserUpdate {
+	if u != nil {
+		uu.SetHiringTeamID(*u)
+	}
+	return uu
+}
+
+// ClearHiringTeamID clears the value of the "hiring_team_id" field.
+func (uu *UserUpdate) ClearHiringTeamID() *UserUpdate {
+	uu.mutation.ClearHiringTeamID()
+	return uu
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uu *UserUpdate) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddAuditEdgeIDs(ids...)
@@ -392,6 +412,25 @@ func (uu *UserUpdate) SetNillableRecTeamsID(id *uuid.UUID) *UserUpdate {
 // SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
 func (uu *UserUpdate) SetRecTeams(r *RecTeam) *UserUpdate {
 	return uu.SetRecTeamsID(r.ID)
+}
+
+// SetMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID.
+func (uu *UserUpdate) SetMemberOfHiringTeamEdgesID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetMemberOfHiringTeamEdgesID(id)
+	return uu
+}
+
+// SetNillableMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableMemberOfHiringTeamEdgesID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetMemberOfHiringTeamEdgesID(*id)
+	}
+	return uu
+}
+
+// SetMemberOfHiringTeamEdges sets the "member_of_hiring_team_edges" edge to the HiringTeam entity.
+func (uu *UserUpdate) SetMemberOfHiringTeamEdges(h *HiringTeam) *UserUpdate {
+	return uu.SetMemberOfHiringTeamEdgesID(h.ID)
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
@@ -720,6 +759,12 @@ func (uu *UserUpdate) RemoveLedRecTeams(r ...*RecTeam) *UserUpdate {
 // ClearRecTeams clears the "rec_teams" edge to the RecTeam entity.
 func (uu *UserUpdate) ClearRecTeams() *UserUpdate {
 	uu.mutation.ClearRecTeams()
+	return uu
+}
+
+// ClearMemberOfHiringTeamEdges clears the "member_of_hiring_team_edges" edge to the HiringTeam entity.
+func (uu *UserUpdate) ClearMemberOfHiringTeamEdges() *UserUpdate {
+	uu.mutation.ClearMemberOfHiringTeamEdges()
 	return uu
 }
 
@@ -1711,6 +1756,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.MemberOfHiringTeamEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MemberOfHiringTeamEdgesTable,
+			Columns: []string{user.MemberOfHiringTeamEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.MemberOfHiringTeamEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MemberOfHiringTeamEdgesTable,
+			Columns: []string{user.MemberOfHiringTeamEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if uu.mutation.TeamUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2078,6 +2158,26 @@ func (uuo *UserUpdateOne) ClearLocation() *UserUpdateOne {
 	return uuo
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (uuo *UserUpdateOne) SetHiringTeamID(u uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetHiringTeamID(u)
+	return uuo
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHiringTeamID(u *uuid.UUID) *UserUpdateOne {
+	if u != nil {
+		uuo.SetHiringTeamID(*u)
+	}
+	return uuo
+}
+
+// ClearHiringTeamID clears the value of the "hiring_team_id" field.
+func (uuo *UserUpdateOne) ClearHiringTeamID() *UserUpdateOne {
+	uuo.mutation.ClearHiringTeamID()
+	return uuo
+}
+
 // AddAuditEdgeIDs adds the "audit_edge" edge to the AuditTrail entity by IDs.
 func (uuo *UserUpdateOne) AddAuditEdgeIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddAuditEdgeIDs(ids...)
@@ -2294,6 +2394,25 @@ func (uuo *UserUpdateOne) SetNillableRecTeamsID(id *uuid.UUID) *UserUpdateOne {
 // SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
 func (uuo *UserUpdateOne) SetRecTeams(r *RecTeam) *UserUpdateOne {
 	return uuo.SetRecTeamsID(r.ID)
+}
+
+// SetMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID.
+func (uuo *UserUpdateOne) SetMemberOfHiringTeamEdgesID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetMemberOfHiringTeamEdgesID(id)
+	return uuo
+}
+
+// SetNillableMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableMemberOfHiringTeamEdgesID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetMemberOfHiringTeamEdgesID(*id)
+	}
+	return uuo
+}
+
+// SetMemberOfHiringTeamEdges sets the "member_of_hiring_team_edges" edge to the HiringTeam entity.
+func (uuo *UserUpdateOne) SetMemberOfHiringTeamEdges(h *HiringTeam) *UserUpdateOne {
+	return uuo.SetMemberOfHiringTeamEdgesID(h.ID)
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
@@ -2622,6 +2741,12 @@ func (uuo *UserUpdateOne) RemoveLedRecTeams(r ...*RecTeam) *UserUpdateOne {
 // ClearRecTeams clears the "rec_teams" edge to the RecTeam entity.
 func (uuo *UserUpdateOne) ClearRecTeams() *UserUpdateOne {
 	uuo.mutation.ClearRecTeams()
+	return uuo
+}
+
+// ClearMemberOfHiringTeamEdges clears the "member_of_hiring_team_edges" edge to the HiringTeam entity.
+func (uuo *UserUpdateOne) ClearMemberOfHiringTeamEdges() *UserUpdateOne {
+	uuo.mutation.ClearMemberOfHiringTeamEdges()
 	return uuo
 }
 
@@ -3635,6 +3760,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.MemberOfHiringTeamEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MemberOfHiringTeamEdgesTable,
+			Columns: []string{user.MemberOfHiringTeamEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.MemberOfHiringTeamEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MemberOfHiringTeamEdgesTable,
+			Columns: []string{user.MemberOfHiringTeamEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
 				},
 			},
 		}

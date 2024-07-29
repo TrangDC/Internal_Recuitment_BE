@@ -34,6 +34,8 @@ const (
 	FieldRecTeamID = "rec_team_id"
 	// FieldLocation holds the string denoting the location field in the database.
 	FieldLocation = "location"
+	// FieldHiringTeamID holds the string denoting the hiring_team_id field in the database.
+	FieldHiringTeamID = "hiring_team_id"
 	// EdgeAuditEdge holds the string denoting the audit_edge edge name in mutations.
 	EdgeAuditEdge = "audit_edge"
 	// EdgeHiringOwner holds the string denoting the hiring_owner edge name in mutations.
@@ -62,6 +64,8 @@ const (
 	EdgeLedRecTeams = "led_rec_teams"
 	// EdgeRecTeams holds the string denoting the rec_teams edge name in mutations.
 	EdgeRecTeams = "rec_teams"
+	// EdgeMemberOfHiringTeamEdges holds the string denoting the member_of_hiring_team_edges edge name in mutations.
+	EdgeMemberOfHiringTeamEdges = "member_of_hiring_team_edges"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
@@ -162,6 +166,13 @@ const (
 	RecTeamsInverseTable = "rec_teams"
 	// RecTeamsColumn is the table column denoting the rec_teams relation/edge.
 	RecTeamsColumn = "rec_team_id"
+	// MemberOfHiringTeamEdgesTable is the table that holds the member_of_hiring_team_edges relation/edge.
+	MemberOfHiringTeamEdgesTable = "users"
+	// MemberOfHiringTeamEdgesInverseTable is the table name for the HiringTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
+	MemberOfHiringTeamEdgesInverseTable = "hiring_teams"
+	// MemberOfHiringTeamEdgesColumn is the table column denoting the member_of_hiring_team_edges relation/edge.
+	MemberOfHiringTeamEdgesColumn = "hiring_team_id"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.
@@ -205,6 +216,7 @@ var Columns = []string{
 	FieldTeamID,
 	FieldRecTeamID,
 	FieldLocation,
+	FieldHiringTeamID,
 }
 
 var (

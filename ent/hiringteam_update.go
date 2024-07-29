@@ -114,6 +114,21 @@ func (htu *HiringTeamUpdate) AddHiringTeamJobEdges(h ...*HiringJob) *HiringTeamU
 	return htu.AddHiringTeamJobEdgeIDs(ids...)
 }
 
+// AddHiringMemberEdgeIDs adds the "hiring_member_edges" edge to the User entity by IDs.
+func (htu *HiringTeamUpdate) AddHiringMemberEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdate {
+	htu.mutation.AddHiringMemberEdgeIDs(ids...)
+	return htu
+}
+
+// AddHiringMemberEdges adds the "hiring_member_edges" edges to the User entity.
+func (htu *HiringTeamUpdate) AddHiringMemberEdges(u ...*User) *HiringTeamUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htu.AddHiringMemberEdgeIDs(ids...)
+}
+
 // AddUserHiringTeamIDs adds the "user_hiring_teams" edge to the HiringTeamManager entity by IDs.
 func (htu *HiringTeamUpdate) AddUserHiringTeamIDs(ids ...uuid.UUID) *HiringTeamUpdate {
 	htu.mutation.AddUserHiringTeamIDs(ids...)
@@ -174,6 +189,27 @@ func (htu *HiringTeamUpdate) RemoveHiringTeamJobEdges(h ...*HiringJob) *HiringTe
 		ids[i] = h[i].ID
 	}
 	return htu.RemoveHiringTeamJobEdgeIDs(ids...)
+}
+
+// ClearHiringMemberEdges clears all "hiring_member_edges" edges to the User entity.
+func (htu *HiringTeamUpdate) ClearHiringMemberEdges() *HiringTeamUpdate {
+	htu.mutation.ClearHiringMemberEdges()
+	return htu
+}
+
+// RemoveHiringMemberEdgeIDs removes the "hiring_member_edges" edge to User entities by IDs.
+func (htu *HiringTeamUpdate) RemoveHiringMemberEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdate {
+	htu.mutation.RemoveHiringMemberEdgeIDs(ids...)
+	return htu
+}
+
+// RemoveHiringMemberEdges removes "hiring_member_edges" edges to User entities.
+func (htu *HiringTeamUpdate) RemoveHiringMemberEdges(u ...*User) *HiringTeamUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htu.RemoveHiringMemberEdgeIDs(ids...)
 }
 
 // ClearUserHiringTeams clears all "user_hiring_teams" edges to the HiringTeamManager entity.
@@ -428,6 +464,60 @@ func (htu *HiringTeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if htu.mutation.HiringMemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := htu.mutation.RemovedHiringMemberEdgesIDs(); len(nodes) > 0 && !htu.mutation.HiringMemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := htu.mutation.HiringMemberEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if htu.mutation.UserHiringTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -583,6 +673,21 @@ func (htuo *HiringTeamUpdateOne) AddHiringTeamJobEdges(h ...*HiringJob) *HiringT
 	return htuo.AddHiringTeamJobEdgeIDs(ids...)
 }
 
+// AddHiringMemberEdgeIDs adds the "hiring_member_edges" edge to the User entity by IDs.
+func (htuo *HiringTeamUpdateOne) AddHiringMemberEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdateOne {
+	htuo.mutation.AddHiringMemberEdgeIDs(ids...)
+	return htuo
+}
+
+// AddHiringMemberEdges adds the "hiring_member_edges" edges to the User entity.
+func (htuo *HiringTeamUpdateOne) AddHiringMemberEdges(u ...*User) *HiringTeamUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htuo.AddHiringMemberEdgeIDs(ids...)
+}
+
 // AddUserHiringTeamIDs adds the "user_hiring_teams" edge to the HiringTeamManager entity by IDs.
 func (htuo *HiringTeamUpdateOne) AddUserHiringTeamIDs(ids ...uuid.UUID) *HiringTeamUpdateOne {
 	htuo.mutation.AddUserHiringTeamIDs(ids...)
@@ -643,6 +748,27 @@ func (htuo *HiringTeamUpdateOne) RemoveHiringTeamJobEdges(h ...*HiringJob) *Hiri
 		ids[i] = h[i].ID
 	}
 	return htuo.RemoveHiringTeamJobEdgeIDs(ids...)
+}
+
+// ClearHiringMemberEdges clears all "hiring_member_edges" edges to the User entity.
+func (htuo *HiringTeamUpdateOne) ClearHiringMemberEdges() *HiringTeamUpdateOne {
+	htuo.mutation.ClearHiringMemberEdges()
+	return htuo
+}
+
+// RemoveHiringMemberEdgeIDs removes the "hiring_member_edges" edge to User entities by IDs.
+func (htuo *HiringTeamUpdateOne) RemoveHiringMemberEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdateOne {
+	htuo.mutation.RemoveHiringMemberEdgeIDs(ids...)
+	return htuo
+}
+
+// RemoveHiringMemberEdges removes "hiring_member_edges" edges to User entities.
+func (htuo *HiringTeamUpdateOne) RemoveHiringMemberEdges(u ...*User) *HiringTeamUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htuo.RemoveHiringMemberEdgeIDs(ids...)
 }
 
 // ClearUserHiringTeams clears all "user_hiring_teams" edges to the HiringTeamManager entity.
@@ -919,6 +1045,60 @@ func (htuo *HiringTeamUpdateOne) sqlSave(ctx context.Context) (_node *HiringTeam
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if htuo.mutation.HiringMemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := htuo.mutation.RemovedHiringMemberEdgesIDs(); len(nodes) > 0 && !htuo.mutation.HiringMemberEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := htuo.mutation.HiringMemberEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringteam.HiringMemberEdgesTable,
+			Columns: []string{hiringteam.HiringMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}
