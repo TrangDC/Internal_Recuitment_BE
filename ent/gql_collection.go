@@ -1875,6 +1875,97 @@ func newPermissionGroupPaginateArgs(rv map[string]interface{}) *permissiongroupP
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (rt *RecTeamQuery) CollectFields(ctx context.Context, satisfies ...string) (*RecTeamQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return rt, nil
+	}
+	if err := rt.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return rt, nil
+}
+
+func (rt *RecTeamQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "recLeaderEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: rt.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			rt.withRecLeaderEdge = query
+		case "recMemberEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: rt.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			rt.WithNamedRecMemberEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type recteamPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RecTeamPaginateOption
+}
+
+func newRecTeamPaginateArgs(rv map[string]interface{}) *recteamPaginateArgs {
+	args := &recteamPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &RecTeamOrder{Field: &RecTeamOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRecTeamOrder(order))
+			}
+		case *RecTeamOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRecTeamOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (r *RoleQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoleQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -2539,6 +2630,28 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedHiringTeamEdges(alias, func(wq *HiringTeamQuery) {
 				*wq = *query
 			})
+		case "ledRecTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecTeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedLedRecTeams(alias, func(wq *RecTeamQuery) {
+				*wq = *query
+			})
+		case "recTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecTeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withRecTeams = query
 		case "teamUsers":
 			var (
 				alias = field.Alias

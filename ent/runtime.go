@@ -23,6 +23,7 @@ import (
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/schema"
 	"trec/ent/skill"
@@ -435,6 +436,37 @@ func init() {
 	permissiongroupDescCreatedAt := permissiongroupMixinFields0[1].Descriptor()
 	// permissiongroup.DefaultCreatedAt holds the default value on creation for the created_at field.
 	permissiongroup.DefaultCreatedAt = permissiongroupDescCreatedAt.Default.(func() time.Time)
+	recteamMixin := schema.RecTeam{}.Mixin()
+	recteamMixinFields0 := recteamMixin[0].Fields()
+	_ = recteamMixinFields0
+	recteamFields := schema.RecTeam{}.Fields()
+	_ = recteamFields
+	// recteamDescCreatedAt is the schema descriptor for created_at field.
+	recteamDescCreatedAt := recteamMixinFields0[1].Descriptor()
+	// recteam.DefaultCreatedAt holds the default value on creation for the created_at field.
+	recteam.DefaultCreatedAt = recteamDescCreatedAt.Default.(func() time.Time)
+	// recteamDescName is the schema descriptor for name field.
+	recteamDescName := recteamFields[0].Descriptor()
+	// recteam.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	recteam.NameValidator = func() func(string) error {
+		validators := recteamDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// recteamDescDescription is the schema descriptor for description field.
+	recteamDescDescription := recteamFields[1].Descriptor()
+	// recteam.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	recteam.DescriptionValidator = recteamDescDescription.Validators[0].(func(string) error)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0
@@ -584,7 +616,7 @@ func init() {
 	// user.OidValidator is a validator for the "oid" field. It is called by the builders before save.
 	user.OidValidator = userDescOid.Validators[0].(func(string) error)
 	// userDescLocation is the schema descriptor for location field.
-	userDescLocation := userFields[5].Descriptor()
+	userDescLocation := userFields[6].Descriptor()
 	// user.LocationValidator is a validator for the "location" field. It is called by the builders before save.
 	user.LocationValidator = userDescLocation.Validators[0].(func(string) error)
 	userroleMixin := schema.UserRole{}.Mixin()

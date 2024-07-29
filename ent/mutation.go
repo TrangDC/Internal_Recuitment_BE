@@ -28,6 +28,7 @@ import (
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
 	"trec/ent/predicate"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -69,6 +70,7 @@ const (
 	TypeOutgoingEmail        = "OutgoingEmail"
 	TypePermission           = "Permission"
 	TypePermissionGroup      = "PermissionGroup"
+	TypeRecTeam              = "RecTeam"
 	TypeRole                 = "Role"
 	TypeSkill                = "Skill"
 	TypeSkillType            = "SkillType"
@@ -19619,6 +19621,804 @@ func (m *PermissionGroupMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PermissionGroup edge %s", name)
 }
 
+// RecTeamMutation represents an operation that mutates the RecTeam nodes in the graph.
+type RecTeamMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	name                    *string
+	description             *string
+	clearedFields           map[string]struct{}
+	rec_leader_edge         *uuid.UUID
+	clearedrec_leader_edge  bool
+	rec_member_edges        map[uuid.UUID]struct{}
+	removedrec_member_edges map[uuid.UUID]struct{}
+	clearedrec_member_edges bool
+	done                    bool
+	oldValue                func(context.Context) (*RecTeam, error)
+	predicates              []predicate.RecTeam
+}
+
+var _ ent.Mutation = (*RecTeamMutation)(nil)
+
+// recteamOption allows management of the mutation configuration using functional options.
+type recteamOption func(*RecTeamMutation)
+
+// newRecTeamMutation creates new mutation for the RecTeam entity.
+func newRecTeamMutation(c config, op Op, opts ...recteamOption) *RecTeamMutation {
+	m := &RecTeamMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRecTeam,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRecTeamID sets the ID field of the mutation.
+func withRecTeamID(id uuid.UUID) recteamOption {
+	return func(m *RecTeamMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RecTeam
+		)
+		m.oldValue = func(ctx context.Context) (*RecTeam, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RecTeam.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRecTeam sets the old RecTeam of the mutation.
+func withRecTeam(node *RecTeam) recteamOption {
+	return func(m *RecTeamMutation) {
+		m.oldValue = func(context.Context) (*RecTeam, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RecTeamMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RecTeamMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of RecTeam entities.
+func (m *RecTeamMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RecTeamMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RecTeamMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RecTeam.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RecTeamMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RecTeamMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RecTeamMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RecTeamMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RecTeamMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *RecTeamMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[recteam.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *RecTeamMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[recteam.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RecTeamMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, recteam.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *RecTeamMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *RecTeamMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *RecTeamMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[recteam.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *RecTeamMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[recteam.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *RecTeamMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, recteam.FieldDeletedAt)
+}
+
+// SetName sets the "name" field.
+func (m *RecTeamMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RecTeamMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RecTeamMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *RecTeamMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RecTeamMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *RecTeamMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[recteam.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *RecTeamMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[recteam.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RecTeamMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, recteam.FieldDescription)
+}
+
+// SetLeaderID sets the "leader_id" field.
+func (m *RecTeamMutation) SetLeaderID(u uuid.UUID) {
+	m.rec_leader_edge = &u
+}
+
+// LeaderID returns the value of the "leader_id" field in the mutation.
+func (m *RecTeamMutation) LeaderID() (r uuid.UUID, exists bool) {
+	v := m.rec_leader_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeaderID returns the old "leader_id" field's value of the RecTeam entity.
+// If the RecTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecTeamMutation) OldLeaderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeaderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeaderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeaderID: %w", err)
+	}
+	return oldValue.LeaderID, nil
+}
+
+// ResetLeaderID resets all changes to the "leader_id" field.
+func (m *RecTeamMutation) ResetLeaderID() {
+	m.rec_leader_edge = nil
+}
+
+// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by id.
+func (m *RecTeamMutation) SetRecLeaderEdgeID(id uuid.UUID) {
+	m.rec_leader_edge = &id
+}
+
+// ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
+func (m *RecTeamMutation) ClearRecLeaderEdge() {
+	m.clearedrec_leader_edge = true
+}
+
+// RecLeaderEdgeCleared reports if the "rec_leader_edge" edge to the User entity was cleared.
+func (m *RecTeamMutation) RecLeaderEdgeCleared() bool {
+	return m.clearedrec_leader_edge
+}
+
+// RecLeaderEdgeID returns the "rec_leader_edge" edge ID in the mutation.
+func (m *RecTeamMutation) RecLeaderEdgeID() (id uuid.UUID, exists bool) {
+	if m.rec_leader_edge != nil {
+		return *m.rec_leader_edge, true
+	}
+	return
+}
+
+// RecLeaderEdgeIDs returns the "rec_leader_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecLeaderEdgeID instead. It exists only for internal usage by the builders.
+func (m *RecTeamMutation) RecLeaderEdgeIDs() (ids []uuid.UUID) {
+	if id := m.rec_leader_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecLeaderEdge resets all changes to the "rec_leader_edge" edge.
+func (m *RecTeamMutation) ResetRecLeaderEdge() {
+	m.rec_leader_edge = nil
+	m.clearedrec_leader_edge = false
+}
+
+// AddRecMemberEdgeIDs adds the "rec_member_edges" edge to the User entity by ids.
+func (m *RecTeamMutation) AddRecMemberEdgeIDs(ids ...uuid.UUID) {
+	if m.rec_member_edges == nil {
+		m.rec_member_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.rec_member_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRecMemberEdges clears the "rec_member_edges" edge to the User entity.
+func (m *RecTeamMutation) ClearRecMemberEdges() {
+	m.clearedrec_member_edges = true
+}
+
+// RecMemberEdgesCleared reports if the "rec_member_edges" edge to the User entity was cleared.
+func (m *RecTeamMutation) RecMemberEdgesCleared() bool {
+	return m.clearedrec_member_edges
+}
+
+// RemoveRecMemberEdgeIDs removes the "rec_member_edges" edge to the User entity by IDs.
+func (m *RecTeamMutation) RemoveRecMemberEdgeIDs(ids ...uuid.UUID) {
+	if m.removedrec_member_edges == nil {
+		m.removedrec_member_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.rec_member_edges, ids[i])
+		m.removedrec_member_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRecMemberEdges returns the removed IDs of the "rec_member_edges" edge to the User entity.
+func (m *RecTeamMutation) RemovedRecMemberEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedrec_member_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RecMemberEdgesIDs returns the "rec_member_edges" edge IDs in the mutation.
+func (m *RecTeamMutation) RecMemberEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.rec_member_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRecMemberEdges resets all changes to the "rec_member_edges" edge.
+func (m *RecTeamMutation) ResetRecMemberEdges() {
+	m.rec_member_edges = nil
+	m.clearedrec_member_edges = false
+	m.removedrec_member_edges = nil
+}
+
+// Where appends a list predicates to the RecTeamMutation builder.
+func (m *RecTeamMutation) Where(ps ...predicate.RecTeam) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *RecTeamMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (RecTeam).
+func (m *RecTeamMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RecTeamMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, recteam.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, recteam.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, recteam.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, recteam.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, recteam.FieldDescription)
+	}
+	if m.rec_leader_edge != nil {
+		fields = append(fields, recteam.FieldLeaderID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RecTeamMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case recteam.FieldCreatedAt:
+		return m.CreatedAt()
+	case recteam.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case recteam.FieldDeletedAt:
+		return m.DeletedAt()
+	case recteam.FieldName:
+		return m.Name()
+	case recteam.FieldDescription:
+		return m.Description()
+	case recteam.FieldLeaderID:
+		return m.LeaderID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RecTeamMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case recteam.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case recteam.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case recteam.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case recteam.FieldName:
+		return m.OldName(ctx)
+	case recteam.FieldDescription:
+		return m.OldDescription(ctx)
+	case recteam.FieldLeaderID:
+		return m.OldLeaderID(ctx)
+	}
+	return nil, fmt.Errorf("unknown RecTeam field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RecTeamMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case recteam.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case recteam.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case recteam.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case recteam.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case recteam.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case recteam.FieldLeaderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeaderID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RecTeam field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RecTeamMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RecTeamMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RecTeamMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown RecTeam numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RecTeamMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(recteam.FieldUpdatedAt) {
+		fields = append(fields, recteam.FieldUpdatedAt)
+	}
+	if m.FieldCleared(recteam.FieldDeletedAt) {
+		fields = append(fields, recteam.FieldDeletedAt)
+	}
+	if m.FieldCleared(recteam.FieldDescription) {
+		fields = append(fields, recteam.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RecTeamMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RecTeamMutation) ClearField(name string) error {
+	switch name {
+	case recteam.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case recteam.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case recteam.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown RecTeam nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RecTeamMutation) ResetField(name string) error {
+	switch name {
+	case recteam.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case recteam.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case recteam.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case recteam.FieldName:
+		m.ResetName()
+		return nil
+	case recteam.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case recteam.FieldLeaderID:
+		m.ResetLeaderID()
+		return nil
+	}
+	return fmt.Errorf("unknown RecTeam field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RecTeamMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.rec_leader_edge != nil {
+		edges = append(edges, recteam.EdgeRecLeaderEdge)
+	}
+	if m.rec_member_edges != nil {
+		edges = append(edges, recteam.EdgeRecMemberEdges)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RecTeamMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case recteam.EdgeRecLeaderEdge:
+		if id := m.rec_leader_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case recteam.EdgeRecMemberEdges:
+		ids := make([]ent.Value, 0, len(m.rec_member_edges))
+		for id := range m.rec_member_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RecTeamMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedrec_member_edges != nil {
+		edges = append(edges, recteam.EdgeRecMemberEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RecTeamMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case recteam.EdgeRecMemberEdges:
+		ids := make([]ent.Value, 0, len(m.removedrec_member_edges))
+		for id := range m.removedrec_member_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RecTeamMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedrec_leader_edge {
+		edges = append(edges, recteam.EdgeRecLeaderEdge)
+	}
+	if m.clearedrec_member_edges {
+		edges = append(edges, recteam.EdgeRecMemberEdges)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RecTeamMutation) EdgeCleared(name string) bool {
+	switch name {
+	case recteam.EdgeRecLeaderEdge:
+		return m.clearedrec_leader_edge
+	case recteam.EdgeRecMemberEdges:
+		return m.clearedrec_member_edges
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RecTeamMutation) ClearEdge(name string) error {
+	switch name {
+	case recteam.EdgeRecLeaderEdge:
+		m.ClearRecLeaderEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown RecTeam unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RecTeamMutation) ResetEdge(name string) error {
+	switch name {
+	case recteam.EdgeRecLeaderEdge:
+		m.ResetRecLeaderEdge()
+		return nil
+	case recteam.EdgeRecMemberEdges:
+		m.ResetRecMemberEdges()
+		return nil
+	}
+	return fmt.Errorf("unknown RecTeam edge %s", name)
+}
+
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
 type RoleMutation struct {
 	config
@@ -23785,6 +24585,11 @@ type UserMutation struct {
 	hiring_team_edges                map[uuid.UUID]struct{}
 	removedhiring_team_edges         map[uuid.UUID]struct{}
 	clearedhiring_team_edges         bool
+	led_rec_teams                    map[uuid.UUID]struct{}
+	removedled_rec_teams             map[uuid.UUID]struct{}
+	clearedled_rec_teams             bool
+	rec_teams                        *uuid.UUID
+	clearedrec_teams                 bool
 	team_users                       map[uuid.UUID]struct{}
 	removedteam_users                map[uuid.UUID]struct{}
 	clearedteam_users                bool
@@ -24231,6 +25036,55 @@ func (m *UserMutation) TeamIDCleared() bool {
 func (m *UserMutation) ResetTeamID() {
 	m.member_of_team_edges = nil
 	delete(m.clearedFields, user.FieldTeamID)
+}
+
+// SetRecTeamID sets the "rec_team_id" field.
+func (m *UserMutation) SetRecTeamID(u uuid.UUID) {
+	m.rec_teams = &u
+}
+
+// RecTeamID returns the value of the "rec_team_id" field in the mutation.
+func (m *UserMutation) RecTeamID() (r uuid.UUID, exists bool) {
+	v := m.rec_teams
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecTeamID returns the old "rec_team_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldRecTeamID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecTeamID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecTeamID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecTeamID: %w", err)
+	}
+	return oldValue.RecTeamID, nil
+}
+
+// ClearRecTeamID clears the value of the "rec_team_id" field.
+func (m *UserMutation) ClearRecTeamID() {
+	m.rec_teams = nil
+	m.clearedFields[user.FieldRecTeamID] = struct{}{}
+}
+
+// RecTeamIDCleared returns if the "rec_team_id" field was cleared in this mutation.
+func (m *UserMutation) RecTeamIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldRecTeamID]
+	return ok
+}
+
+// ResetRecTeamID resets all changes to the "rec_team_id" field.
+func (m *UserMutation) ResetRecTeamID() {
+	m.rec_teams = nil
+	delete(m.clearedFields, user.FieldRecTeamID)
 }
 
 // SetLocation sets the "location" field.
@@ -24915,6 +25769,99 @@ func (m *UserMutation) ResetHiringTeamEdges() {
 	m.removedhiring_team_edges = nil
 }
 
+// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by ids.
+func (m *UserMutation) AddLedRecTeamIDs(ids ...uuid.UUID) {
+	if m.led_rec_teams == nil {
+		m.led_rec_teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.led_rec_teams[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLedRecTeams clears the "led_rec_teams" edge to the RecTeam entity.
+func (m *UserMutation) ClearLedRecTeams() {
+	m.clearedled_rec_teams = true
+}
+
+// LedRecTeamsCleared reports if the "led_rec_teams" edge to the RecTeam entity was cleared.
+func (m *UserMutation) LedRecTeamsCleared() bool {
+	return m.clearedled_rec_teams
+}
+
+// RemoveLedRecTeamIDs removes the "led_rec_teams" edge to the RecTeam entity by IDs.
+func (m *UserMutation) RemoveLedRecTeamIDs(ids ...uuid.UUID) {
+	if m.removedled_rec_teams == nil {
+		m.removedled_rec_teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.led_rec_teams, ids[i])
+		m.removedled_rec_teams[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLedRecTeams returns the removed IDs of the "led_rec_teams" edge to the RecTeam entity.
+func (m *UserMutation) RemovedLedRecTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.removedled_rec_teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LedRecTeamsIDs returns the "led_rec_teams" edge IDs in the mutation.
+func (m *UserMutation) LedRecTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.led_rec_teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLedRecTeams resets all changes to the "led_rec_teams" edge.
+func (m *UserMutation) ResetLedRecTeams() {
+	m.led_rec_teams = nil
+	m.clearedled_rec_teams = false
+	m.removedled_rec_teams = nil
+}
+
+// SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by id.
+func (m *UserMutation) SetRecTeamsID(id uuid.UUID) {
+	m.rec_teams = &id
+}
+
+// ClearRecTeams clears the "rec_teams" edge to the RecTeam entity.
+func (m *UserMutation) ClearRecTeams() {
+	m.clearedrec_teams = true
+}
+
+// RecTeamsCleared reports if the "rec_teams" edge to the RecTeam entity was cleared.
+func (m *UserMutation) RecTeamsCleared() bool {
+	return m.RecTeamIDCleared() || m.clearedrec_teams
+}
+
+// RecTeamsID returns the "rec_teams" edge ID in the mutation.
+func (m *UserMutation) RecTeamsID() (id uuid.UUID, exists bool) {
+	if m.rec_teams != nil {
+		return *m.rec_teams, true
+	}
+	return
+}
+
+// RecTeamsIDs returns the "rec_teams" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecTeamsID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) RecTeamsIDs() (ids []uuid.UUID) {
+	if id := m.rec_teams; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecTeams resets all changes to the "rec_teams" edge.
+func (m *UserMutation) ResetRecTeams() {
+	m.rec_teams = nil
+	m.clearedrec_teams = false
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by ids.
 func (m *UserMutation) AddTeamUserIDs(ids ...uuid.UUID) {
 	if m.team_users == nil {
@@ -25150,7 +26097,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -25174,6 +26121,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.member_of_team_edges != nil {
 		fields = append(fields, user.FieldTeamID)
+	}
+	if m.rec_teams != nil {
+		fields = append(fields, user.FieldRecTeamID)
 	}
 	if m.location != nil {
 		fields = append(fields, user.FieldLocation)
@@ -25202,6 +26152,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Oid()
 	case user.FieldTeamID:
 		return m.TeamID()
+	case user.FieldRecTeamID:
+		return m.RecTeamID()
 	case user.FieldLocation:
 		return m.Location()
 	}
@@ -25229,6 +26181,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOid(ctx)
 	case user.FieldTeamID:
 		return m.OldTeamID(ctx)
+	case user.FieldRecTeamID:
+		return m.OldRecTeamID(ctx)
 	case user.FieldLocation:
 		return m.OldLocation(ctx)
 	}
@@ -25296,6 +26250,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTeamID(v)
 		return nil
+	case user.FieldRecTeamID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecTeamID(v)
+		return nil
 	case user.FieldLocation:
 		v, ok := value.(string)
 		if !ok {
@@ -25342,6 +26303,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldTeamID) {
 		fields = append(fields, user.FieldTeamID)
 	}
+	if m.FieldCleared(user.FieldRecTeamID) {
+		fields = append(fields, user.FieldRecTeamID)
+	}
 	if m.FieldCleared(user.FieldLocation) {
 		fields = append(fields, user.FieldLocation)
 	}
@@ -25367,6 +26331,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldTeamID:
 		m.ClearTeamID()
+		return nil
+	case user.FieldRecTeamID:
+		m.ClearRecTeamID()
 		return nil
 	case user.FieldLocation:
 		m.ClearLocation()
@@ -25403,6 +26370,9 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldTeamID:
 		m.ResetTeamID()
 		return nil
+	case user.FieldRecTeamID:
+		m.ResetRecTeamID()
+		return nil
 	case user.FieldLocation:
 		m.ResetLocation()
 		return nil
@@ -25412,7 +26382,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 18)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -25448,6 +26418,12 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.hiring_team_edges != nil {
 		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
+	if m.led_rec_teams != nil {
+		edges = append(edges, user.EdgeLedRecTeams)
+	}
+	if m.rec_teams != nil {
+		edges = append(edges, user.EdgeRecTeams)
 	}
 	if m.team_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
@@ -25538,6 +26514,16 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeLedRecTeams:
+		ids := make([]ent.Value, 0, len(m.led_rec_teams))
+		for id := range m.led_rec_teams {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeRecTeams:
+		if id := m.rec_teams; id != nil {
+			return []ent.Value{*id}
+		}
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.team_users))
 		for id := range m.team_users {
@@ -25568,7 +26554,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 18)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -25601,6 +26587,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedhiring_team_edges != nil {
 		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
+	if m.removedled_rec_teams != nil {
+		edges = append(edges, user.EdgeLedRecTeams)
 	}
 	if m.removedteam_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
@@ -25687,6 +26676,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeLedRecTeams:
+		ids := make([]ent.Value, 0, len(m.removedled_rec_teams))
+		for id := range m.removedled_rec_teams {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.removedteam_users))
 		for id := range m.removedteam_users {
@@ -25717,7 +26712,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 18)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -25753,6 +26748,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedhiring_team_edges {
 		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
+	if m.clearedled_rec_teams {
+		edges = append(edges, user.EdgeLedRecTeams)
+	}
+	if m.clearedrec_teams {
+		edges = append(edges, user.EdgeRecTeams)
 	}
 	if m.clearedteam_users {
 		edges = append(edges, user.EdgeTeamUsers)
@@ -25797,6 +26798,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedmember_of_team_edges
 	case user.EdgeHiringTeamEdges:
 		return m.clearedhiring_team_edges
+	case user.EdgeLedRecTeams:
+		return m.clearedled_rec_teams
+	case user.EdgeRecTeams:
+		return m.clearedrec_teams
 	case user.EdgeTeamUsers:
 		return m.clearedteam_users
 	case user.EdgeInterviewUsers:
@@ -25815,6 +26820,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
 	case user.EdgeMemberOfTeamEdges:
 		m.ClearMemberOfTeamEdges()
+		return nil
+	case user.EdgeRecTeams:
+		m.ClearRecTeams()
 		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
@@ -25859,6 +26867,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeHiringTeamEdges:
 		m.ResetHiringTeamEdges()
+		return nil
+	case user.EdgeLedRecTeams:
+		m.ResetLedRecTeams()
+		return nil
+	case user.EdgeRecTeams:
+		m.ResetRecTeams()
 		return nil
 	case user.EdgeTeamUsers:
 		m.ResetTeamUsers()

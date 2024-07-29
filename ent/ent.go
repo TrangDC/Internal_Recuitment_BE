@@ -25,6 +25,7 @@ import (
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -75,6 +76,7 @@ func columnChecker(table string) func(string) error {
 		outgoingemail.Table:        outgoingemail.ValidColumn,
 		permission.Table:           permission.ValidColumn,
 		permissiongroup.Table:      permissiongroup.ValidColumn,
+		recteam.Table:              recteam.ValidColumn,
 		role.Table:                 role.ValidColumn,
 		skill.Table:                skill.ValidColumn,
 		skilltype.Table:            skilltype.ValidColumn,

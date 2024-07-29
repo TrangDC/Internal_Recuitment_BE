@@ -1,0 +1,9 @@
+type RecTeam {
+    id: ID!
+    name: String!
+    description: String!
+    leader: User!
+    created_at: Time!
+    updated_at: Time!
+    deleted_at: Time
+}

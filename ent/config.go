@@ -47,6 +47,7 @@ type hooks struct {
 	OutgoingEmail        []ent.Hook
 	Permission           []ent.Hook
 	PermissionGroup      []ent.Hook
+	RecTeam              []ent.Hook
 	Role                 []ent.Hook
 	Skill                []ent.Hook
 	SkillType            []ent.Hook

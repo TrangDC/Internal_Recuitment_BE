@@ -600,6 +600,30 @@ var (
 			},
 		},
 	}
+	// RecTeamsColumns holds the columns for the "rec_teams" table.
+	RecTeamsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
+		{Name: "leader_id", Type: field.TypeUUID},
+	}
+	// RecTeamsTable holds the schema information for the "rec_teams" table.
+	RecTeamsTable = &schema.Table{
+		Name:       "rec_teams",
+		Columns:    RecTeamsColumns,
+		PrimaryKey: []*schema.Column{RecTeamsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "rec_teams_users_led_rec_teams",
+				Columns:    []*schema.Column{RecTeamsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -716,6 +740,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "location", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "rec_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -725,8 +750,14 @@ var (
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "users_teams_member_edges",
+				Symbol:     "users_rec_teams_rec_member_edges",
 				Columns:    []*schema.Column{UsersColumns[9]},
+				RefColumns: []*schema.Column{RecTeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_teams_member_edges",
+				Columns:    []*schema.Column{UsersColumns[10]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -789,6 +820,7 @@ var (
 		OutgoingEmailsTable,
 		PermissionsTable,
 		PermissionGroupsTable,
+		RecTeamsTable,
 		RolesTable,
 		SkillsTable,
 		SkillTypesTable,
@@ -831,10 +863,12 @@ func init() {
 	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
+	RecTeamsTable.ForeignKeys[0].RefTable = UsersTable
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
-	UsersTable.ForeignKeys[0].RefTable = TeamsTable
+	UsersTable.ForeignKeys[0].RefTable = RecTeamsTable
+	UsersTable.ForeignKeys[1].RefTable = TeamsTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

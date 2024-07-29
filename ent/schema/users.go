@@ -21,6 +21,7 @@ func (User) Fields() []ent.Field {
 		field.Enum("status").Values("active", "inactive").Default("active"),
 		field.String("oid").Unique().MaxLen(255),
 		field.UUID("team_id", uuid.UUID{}).Unique().Optional(),
+		field.UUID("rec_team_id", uuid.UUID{}).Unique().Optional(),
 		field.String("location").MaxLen(255).Optional(),
 	}
 }
@@ -40,6 +41,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("role_edges", Role.Type).Through("role_users", UserRole.Type),
 		edge.From("member_of_team_edges", Team.Type).Ref("member_edges").Unique().Field("team_id"),
 		edge.To("hiring_team_edges", HiringTeam.Type).Through("hiring_team_users", HiringTeamManager.Type),
+		edge.To("led_rec_teams", RecTeam.Type).Annotations(),
+		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
 	}
 }
 
