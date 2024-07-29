@@ -15,6 +15,7 @@ import (
 type JobPositionService interface {
 	// mutation
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
+	UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
 }
 
 type jobPositionSvcImpl struct {
@@ -51,6 +52,35 @@ func (svc *jobPositionSvcImpl) CreateJobPosition(ctx context.Context, input ent.
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.JobPosition().GetJobPosition(ctx, result.ID)
+	return &ent.JobPositionResponse{
+		Data: result,
+	}, nil
+}
+
+func (svc *jobPositionSvcImpl) UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error) {
+	var result *ent.JobPosition
+	record, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	errString, err := svc.repoRegistry.JobPosition().ValidName(ctx, jobPositionId, input.Name)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		_, err = repoRegistry.JobPosition().UpdateJobPosition(ctx, record, input)
+		return err
+	})
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result, _ = svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	return &ent.JobPositionResponse{
 		Data: result,
 	}, nil
