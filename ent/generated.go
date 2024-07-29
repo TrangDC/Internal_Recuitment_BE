@@ -467,8 +467,21 @@ type HiringTeamSelectionResponseGetAll struct {
 	Pagination *Pagination                `json:"pagination"`
 }
 
+type JobPositionFilter struct {
+	Name *string `json:"name"`
+}
+
+type JobPositionFreeWord struct {
+	Name *string `json:"name"`
+}
+
 type JobPositionResponse struct {
 	Data *JobPosition `json:"data"`
+}
+
+type JobPositionResponseGetAll struct {
+	Edges      []*JobPositionEdge `json:"edges"`
+	Pagination *Pagination        `json:"pagination"`
 }
 
 type JSONFormat struct {

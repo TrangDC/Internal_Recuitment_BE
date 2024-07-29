@@ -41,6 +41,11 @@ func (r *queryResolver) GetJobPosition(ctx context.Context, id string) (*ent.Job
 	return r.serviceRegistry.JobPosition().GetJobPosition(ctx, uuid.MustParse(id))
 }
 
+// GetAllJobPositions is the resolver for the GetAllJobPositions field.
+func (r *queryResolver) GetAllJobPositions(ctx context.Context, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) (*ent.JobPositionResponseGetAll, error) {
+	return r.serviceRegistry.JobPosition().GetJobPositions(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // GetHiringJob is the resolver for the GetHiringJob field.
 func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().GetHiringJob(ctx, uuid.MustParse(id))
