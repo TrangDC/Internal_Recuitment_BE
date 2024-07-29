@@ -10,7 +10,7 @@ import (
 )
 
 // ID is the resolver for the id field.
-func (r *jobPositionResolver) ID(_ context.Context, obj *ent.JobPosition) (string, error) {
+func (r *jobPositionResolver) ID(ctx context.Context, obj *ent.JobPosition) (string, error) {
 	return obj.ID.String(), nil
 }
 
