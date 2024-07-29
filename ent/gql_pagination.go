@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
@@ -4341,6 +4342,336 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// JobPositionEdge is the edge representation of JobPosition.
+type JobPositionEdge struct {
+	Node   *JobPosition `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// JobPositionConnection is the connection containing edges to JobPosition.
+type JobPositionConnection struct {
+	Edges      []*JobPositionEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *JobPositionConnection) build(nodes []*JobPosition, pager *jobpositionPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *JobPosition
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *JobPosition {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *JobPosition {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*JobPositionEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &JobPositionEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// JobPositionPaginateOption enables pagination customization.
+type JobPositionPaginateOption func(*jobpositionPager) error
+
+// WithJobPositionOrder configures pagination ordering.
+func WithJobPositionOrder(order *JobPositionOrder) JobPositionPaginateOption {
+	if order == nil {
+		order = DefaultJobPositionOrder
+	}
+	o := *order
+	return func(pager *jobpositionPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultJobPositionOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithJobPositionFilter configures pagination filter.
+func WithJobPositionFilter(filter func(*JobPositionQuery) (*JobPositionQuery, error)) JobPositionPaginateOption {
+	return func(pager *jobpositionPager) error {
+		if filter == nil {
+			return errors.New("JobPositionQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type jobpositionPager struct {
+	order  *JobPositionOrder
+	filter func(*JobPositionQuery) (*JobPositionQuery, error)
+}
+
+func newJobPositionPager(opts []JobPositionPaginateOption) (*jobpositionPager, error) {
+	pager := &jobpositionPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultJobPositionOrder
+	}
+	return pager, nil
+}
+
+func (p *jobpositionPager) applyFilter(query *JobPositionQuery) (*JobPositionQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *jobpositionPager) toCursor(jp *JobPosition) Cursor {
+	return p.order.Field.toCursor(jp)
+}
+
+func (p *jobpositionPager) applyCursors(query *JobPositionQuery, after, before *Cursor) *JobPositionQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultJobPositionOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *jobpositionPager) applyOrder(query *JobPositionQuery, reverse bool) *JobPositionQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultJobPositionOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultJobPositionOrder.Field.field))
+	}
+	return query
+}
+
+func (p *jobpositionPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultJobPositionOrder.Field {
+			b.Comma().Ident(DefaultJobPositionOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to JobPosition.
+func (jp *JobPositionQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...JobPositionPaginateOption,
+) (*JobPositionConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newJobPositionPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if jp, err = pager.applyFilter(jp); err != nil {
+		return nil, err
+	}
+	conn := &JobPositionConnection{Edges: []*JobPositionEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = jp.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	jp = pager.applyCursors(jp, after, before)
+	jp = pager.applyOrder(jp, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		jp.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := jp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := jp.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// JobPositionOrderFieldCreatedAt orders JobPosition by created_at.
+	JobPositionOrderFieldCreatedAt = &JobPositionOrderField{
+		field: jobposition.FieldCreatedAt,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{
+				ID:    jp.ID,
+				Value: jp.CreatedAt,
+			}
+		},
+	}
+	// JobPositionOrderFieldUpdatedAt orders JobPosition by updated_at.
+	JobPositionOrderFieldUpdatedAt = &JobPositionOrderField{
+		field: jobposition.FieldUpdatedAt,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{
+				ID:    jp.ID,
+				Value: jp.UpdatedAt,
+			}
+		},
+	}
+	// JobPositionOrderFieldDeletedAt orders JobPosition by deleted_at.
+	JobPositionOrderFieldDeletedAt = &JobPositionOrderField{
+		field: jobposition.FieldDeletedAt,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{
+				ID:    jp.ID,
+				Value: jp.DeletedAt,
+			}
+		},
+	}
+	// JobPositionOrderFieldName orders JobPosition by name.
+	JobPositionOrderFieldName = &JobPositionOrderField{
+		field: jobposition.FieldName,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{
+				ID:    jp.ID,
+				Value: jp.Name,
+			}
+		},
+	}
+	// JobPositionOrderFieldDescription orders JobPosition by description.
+	JobPositionOrderFieldDescription = &JobPositionOrderField{
+		field: jobposition.FieldDescription,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{
+				ID:    jp.ID,
+				Value: jp.Description,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f JobPositionOrderField) String() string {
+	var str string
+	switch f.field {
+	case jobposition.FieldCreatedAt:
+		str = "created_at"
+	case jobposition.FieldUpdatedAt:
+		str = "updated_at"
+	case jobposition.FieldDeletedAt:
+		str = "deleted_at"
+	case jobposition.FieldName:
+		str = "name"
+	case jobposition.FieldDescription:
+		str = "description"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f JobPositionOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *JobPositionOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("JobPositionOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *JobPositionOrderFieldCreatedAt
+	case "updated_at":
+		*f = *JobPositionOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *JobPositionOrderFieldDeletedAt
+	case "name":
+		*f = *JobPositionOrderFieldName
+	case "description":
+		*f = *JobPositionOrderFieldDescription
+	default:
+		return fmt.Errorf("%s is not a valid JobPositionOrderField", str)
+	}
+	return nil
+}
+
+// JobPositionOrderField defines the ordering field of JobPosition.
+type JobPositionOrderField struct {
+	field    string
+	toCursor func(*JobPosition) Cursor
+}
+
+// JobPositionOrder defines the ordering of JobPosition.
+type JobPositionOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *JobPositionOrderField `json:"field"`
+}
+
+// DefaultJobPositionOrder is the default ordering of JobPosition.
+var DefaultJobPositionOrder = &JobPositionOrder{
+	Direction: OrderDirectionAsc,
+	Field: &JobPositionOrderField{
+		field: jobposition.FieldID,
+		toCursor: func(jp *JobPosition) Cursor {
+			return Cursor{ID: jp.ID}
+		},
+	},
+}
+
+// ToEdge converts JobPosition into JobPositionEdge.
+func (jp *JobPosition) ToEdge(order *JobPositionOrder) *JobPositionEdge {
+	if order == nil {
+		order = DefaultJobPositionOrder
+	}
+	return &JobPositionEdge{
+		Node:   jp,
+		Cursor: order.Field.toCursor(jp),
 	}
 }
 

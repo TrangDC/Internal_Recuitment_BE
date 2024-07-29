@@ -17,6 +17,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
@@ -312,6 +313,37 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[12].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	jobpositionMixin := schema.JobPosition{}.Mixin()
+	jobpositionMixinFields0 := jobpositionMixin[0].Fields()
+	_ = jobpositionMixinFields0
+	jobpositionFields := schema.JobPosition{}.Fields()
+	_ = jobpositionFields
+	// jobpositionDescCreatedAt is the schema descriptor for created_at field.
+	jobpositionDescCreatedAt := jobpositionMixinFields0[1].Descriptor()
+	// jobposition.DefaultCreatedAt holds the default value on creation for the created_at field.
+	jobposition.DefaultCreatedAt = jobpositionDescCreatedAt.Default.(func() time.Time)
+	// jobpositionDescName is the schema descriptor for name field.
+	jobpositionDescName := jobpositionFields[0].Descriptor()
+	// jobposition.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	jobposition.NameValidator = func() func(string) error {
+		validators := jobpositionDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// jobpositionDescDescription is the schema descriptor for description field.
+	jobpositionDescDescription := jobpositionFields[1].Descriptor()
+	// jobposition.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	jobposition.DescriptionValidator = jobpositionDescDescription.Validators[0].(func(string) error)
 	outgoingemailMixin := schema.OutgoingEmail{}.Mixin()
 	outgoingemailMixinFields0 := outgoingemailMixin[0].Fields()
 	_ = outgoingemailMixinFields0

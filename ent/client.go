@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
@@ -71,6 +72,8 @@ type Client struct {
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// JobPosition is the client for interacting with the JobPosition builders.
+	JobPosition *JobPositionClient
 	// OutgoingEmail is the client for interacting with the OutgoingEmail builders.
 	OutgoingEmail *OutgoingEmailClient
 	// Permission is the client for interacting with the Permission builders.
@@ -117,6 +120,7 @@ func (c *Client) init() {
 	c.EntityPermission = NewEntityPermissionClient(c.config)
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
+	c.JobPosition = NewJobPositionClient(c.config)
 	c.OutgoingEmail = NewOutgoingEmailClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.PermissionGroup = NewPermissionGroupClient(c.config)
@@ -173,6 +177,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
@@ -215,6 +220,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
@@ -266,6 +272,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.EntityPermission.Use(hooks...)
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
+	c.JobPosition.Use(hooks...)
 	c.OutgoingEmail.Use(hooks...)
 	c.Permission.Use(hooks...)
 	c.PermissionGroup.Use(hooks...)
@@ -2102,6 +2109,96 @@ func (c *HiringJobClient) QueryHiringJobSkillEdges(hj *HiringJob) *EntitySkillQu
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
+}
+
+// JobPositionClient is a client for the JobPosition schema.
+type JobPositionClient struct {
+	config
+}
+
+// NewJobPositionClient returns a client for the JobPosition from the given config.
+func NewJobPositionClient(c config) *JobPositionClient {
+	return &JobPositionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `jobposition.Hooks(f(g(h())))`.
+func (c *JobPositionClient) Use(hooks ...Hook) {
+	c.hooks.JobPosition = append(c.hooks.JobPosition, hooks...)
+}
+
+// Create returns a builder for creating a JobPosition entity.
+func (c *JobPositionClient) Create() *JobPositionCreate {
+	mutation := newJobPositionMutation(c.config, OpCreate)
+	return &JobPositionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of JobPosition entities.
+func (c *JobPositionClient) CreateBulk(builders ...*JobPositionCreate) *JobPositionCreateBulk {
+	return &JobPositionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for JobPosition.
+func (c *JobPositionClient) Update() *JobPositionUpdate {
+	mutation := newJobPositionMutation(c.config, OpUpdate)
+	return &JobPositionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *JobPositionClient) UpdateOne(jp *JobPosition) *JobPositionUpdateOne {
+	mutation := newJobPositionMutation(c.config, OpUpdateOne, withJobPosition(jp))
+	return &JobPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *JobPositionClient) UpdateOneID(id uuid.UUID) *JobPositionUpdateOne {
+	mutation := newJobPositionMutation(c.config, OpUpdateOne, withJobPositionID(id))
+	return &JobPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for JobPosition.
+func (c *JobPositionClient) Delete() *JobPositionDelete {
+	mutation := newJobPositionMutation(c.config, OpDelete)
+	return &JobPositionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *JobPositionClient) DeleteOne(jp *JobPosition) *JobPositionDeleteOne {
+	return c.DeleteOneID(jp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *JobPositionClient) DeleteOneID(id uuid.UUID) *JobPositionDeleteOne {
+	builder := c.Delete().Where(jobposition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &JobPositionDeleteOne{builder}
+}
+
+// Query returns a query builder for JobPosition.
+func (c *JobPositionClient) Query() *JobPositionQuery {
+	return &JobPositionQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a JobPosition entity by its id.
+func (c *JobPositionClient) Get(ctx context.Context, id uuid.UUID) (*JobPosition, error) {
+	return c.Query().Where(jobposition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *JobPositionClient) GetX(ctx context.Context, id uuid.UUID) *JobPosition {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *JobPositionClient) Hooks() []Hook {
+	return c.hooks.JobPosition
 }
 
 // OutgoingEmailClient is a client for the OutgoingEmail schema.
