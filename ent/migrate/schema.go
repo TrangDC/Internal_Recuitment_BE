@@ -740,6 +740,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "location", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "hiring_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "rec_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -750,14 +751,20 @@ var (
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "users_rec_teams_rec_member_edges",
+				Symbol:     "users_hiring_teams_hiring_member_edges",
 				Columns:    []*schema.Column{UsersColumns[9]},
+				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_rec_teams_rec_member_edges",
+				Columns:    []*schema.Column{UsersColumns[10]},
 				RefColumns: []*schema.Column{RecTeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "users_teams_member_edges",
-				Columns:    []*schema.Column{UsersColumns[10]},
+				Columns:    []*schema.Column{UsersColumns[11]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -867,8 +874,9 @@ func init() {
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable
 	TeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	TeamManagersTable.ForeignKeys[1].RefTable = TeamsTable
-	UsersTable.ForeignKeys[0].RefTable = RecTeamsTable
-	UsersTable.ForeignKeys[1].RefTable = TeamsTable
+	UsersTable.ForeignKeys[0].RefTable = HiringTeamsTable
+	UsersTable.ForeignKeys[1].RefTable = RecTeamsTable
+	UsersTable.ForeignKeys[2].RefTable = TeamsTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

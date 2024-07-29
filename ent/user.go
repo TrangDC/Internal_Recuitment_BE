@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"trec/ent/hiringteam"
 	"trec/ent/recteam"
 	"trec/ent/team"
 	"trec/ent/user"
@@ -39,6 +40,8 @@ type User struct {
 	RecTeamID uuid.UUID `json:"rec_team_id,omitempty"`
 	// Location holds the value of the "location" field.
 	Location string `json:"location,omitempty"`
+	// HiringTeamID holds the value of the "hiring_team_id" field.
+	HiringTeamID uuid.UUID `json:"hiring_team_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -74,6 +77,8 @@ type UserEdges struct {
 	LedRecTeams []*RecTeam `json:"led_rec_teams,omitempty"`
 	// RecTeams holds the value of the rec_teams edge.
 	RecTeams *RecTeam `json:"rec_teams,omitempty"`
+	// MemberOfHiringTeamEdges holds the value of the member_of_hiring_team_edges edge.
+	MemberOfHiringTeamEdges *HiringTeam `json:"member_of_hiring_team_edges,omitempty"`
 	// TeamUsers holds the value of the team_users edge.
 	TeamUsers []*TeamManager `json:"team_users,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
@@ -84,9 +89,9 @@ type UserEdges struct {
 	HiringTeamUsers []*HiringTeamManager `json:"hiring_team_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [18]bool
+	loadedTypes [19]bool
 	// totalCount holds the count of the edges above.
-	totalCount [18]map[string]int
+	totalCount [19]map[string]int
 
 	namedAuditEdge               map[string][]*AuditTrail
 	namedHiringOwner             map[string][]*HiringJob
@@ -240,10 +245,23 @@ func (e UserEdges) RecTeamsOrErr() (*RecTeam, error) {
 	return nil, &NotLoadedError{edge: "rec_teams"}
 }
 
+// MemberOfHiringTeamEdgesOrErr returns the MemberOfHiringTeamEdges value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) MemberOfHiringTeamEdgesOrErr() (*HiringTeam, error) {
+	if e.loadedTypes[14] {
+		if e.MemberOfHiringTeamEdges == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: hiringteam.Label}
+		}
+		return e.MemberOfHiringTeamEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "member_of_hiring_team_edges"}
+}
+
 // TeamUsersOrErr returns the TeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.TeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "team_users"}
@@ -252,7 +270,7 @@ func (e UserEdges) TeamUsersOrErr() ([]*TeamManager, error) {
 // InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[16] {
 		return e.InterviewUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "interview_users"}
@@ -261,7 +279,7 @@ func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
 // RoleUsersOrErr returns the RoleUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RoleUsersOrErr() ([]*UserRole, error) {
-	if e.loadedTypes[16] {
+	if e.loadedTypes[17] {
 		return e.RoleUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "role_users"}
@@ -270,7 +288,7 @@ func (e UserEdges) RoleUsersOrErr() ([]*UserRole, error) {
 // HiringTeamUsersOrErr returns the HiringTeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) HiringTeamUsersOrErr() ([]*HiringTeamManager, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[18] {
 		return e.HiringTeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "hiring_team_users"}
@@ -285,7 +303,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case user.FieldID, user.FieldTeamID, user.FieldRecTeamID:
+		case user.FieldID, user.FieldTeamID, user.FieldRecTeamID, user.FieldHiringTeamID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -368,6 +386,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Location = value.String
 			}
+		case user.FieldHiringTeamID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field hiring_team_id", values[i])
+			} else if value != nil {
+				u.HiringTeamID = *value
+			}
 		}
 	}
 	return nil
@@ -443,6 +467,11 @@ func (u *User) QueryRecTeams() *RecTeamQuery {
 	return (&UserClient{config: u.config}).QueryRecTeams(u)
 }
 
+// QueryMemberOfHiringTeamEdges queries the "member_of_hiring_team_edges" edge of the User entity.
+func (u *User) QueryMemberOfHiringTeamEdges() *HiringTeamQuery {
+	return (&UserClient{config: u.config}).QueryMemberOfHiringTeamEdges(u)
+}
+
 // QueryTeamUsers queries the "team_users" edge of the User entity.
 func (u *User) QueryTeamUsers() *TeamManagerQuery {
 	return (&UserClient{config: u.config}).QueryTeamUsers(u)
@@ -515,6 +544,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("location=")
 	builder.WriteString(u.Location)
+	builder.WriteString(", ")
+	builder.WriteString("hiring_team_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.HiringTeamID))
 	builder.WriteByte(')')
 	return builder.String()
 }

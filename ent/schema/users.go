@@ -23,6 +23,7 @@ func (User) Fields() []ent.Field {
 		field.UUID("team_id", uuid.UUID{}).Unique().Optional(),
 		field.UUID("rec_team_id", uuid.UUID{}).Unique().Optional(),
 		field.String("location").MaxLen(255).Optional(),
+		field.UUID("hiring_team_id", uuid.UUID{}).Unique().Optional(),
 	}
 }
 
@@ -43,6 +44,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("hiring_team_edges", HiringTeam.Type).Through("hiring_team_users", HiringTeamManager.Type),
 		edge.To("led_rec_teams", RecTeam.Type).Annotations(),
 		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
+		edge.From("member_of_hiring_team_edges", HiringTeam.Type).Ref("hiring_member_edges").Unique().Field("hiring_team_id"),
 	}
 }
 
