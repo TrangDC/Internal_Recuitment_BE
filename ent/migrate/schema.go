@@ -452,6 +452,21 @@ var (
 			},
 		},
 	}
+	// JobPositionsColumns holds the columns for the "job_positions" table.
+	JobPositionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+	}
+	// JobPositionsTable holds the schema information for the "job_positions" table.
+	JobPositionsTable = &schema.Table{
+		Name:       "job_positions",
+		Columns:    JobPositionsColumns,
+		PrimaryKey: []*schema.Column{JobPositionsColumns[0]},
+	}
 	// OutgoingEmailsColumns holds the columns for the "outgoing_emails" table.
 	OutgoingEmailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -710,6 +725,7 @@ var (
 		EntityPermissionsTable,
 		EntitySkillsTable,
 		HiringJobsTable,
+		JobPositionsTable,
 		OutgoingEmailsTable,
 		PermissionsTable,
 		PermissionGroupsTable,

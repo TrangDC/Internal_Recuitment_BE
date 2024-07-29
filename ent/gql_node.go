@@ -19,6 +19,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
@@ -1576,6 +1577,57 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (jp *JobPosition) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     jp.ID,
+		Type:   "JobPosition",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(jp.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(jp.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(jp.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(jp.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(jp.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     oe.ID,
@@ -2810,6 +2862,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case jobposition.Table:
+		query := c.JobPosition.Query().
+			Where(jobposition.ID(id))
+		query, err := query.CollectFields(ctx, "JobPosition")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case outgoingemail.Table:
 		query := c.OutgoingEmail.Query().
 			Where(outgoingemail.ID(id))
@@ -3199,6 +3263,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringJob.Query().
 			Where(hiringjob.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case jobposition.Table:
+		query := c.JobPosition.Query().
+			Where(jobposition.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "JobPosition")
 		if err != nil {
 			return nil, err
 		}
