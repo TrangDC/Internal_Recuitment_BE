@@ -8,6 +8,9 @@ type Query {
 	GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
 	GetMe: UserResponse!
 
+	# JobPosition
+	GetJobPosition(id: ID!): JobPositionResponse!
+
 	# HiringJob
 	GetHiringJob(id: ID!): HiringJobResponse!
 	GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
@@ -39,8 +42,8 @@ type Query {
 	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 
 	# Skill
-  GetSkill(id: ID!): SkillResponse!
-  GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
+	GetSkill(id: ID!): SkillResponse!
+	GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
 
 	# SkillType
 	GetSkillType(id: ID!): SkillTypeResponse!

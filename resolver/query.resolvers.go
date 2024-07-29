@@ -36,6 +36,11 @@ func (r *queryResolver) GetMe(ctx context.Context) (*ent.UserResponse, error) {
 	return r.serviceRegistry.User().GetMe(ctx)
 }
 
+// GetJobPosition is the resolver for the GetJobPosition field.
+func (r *queryResolver) GetJobPosition(ctx context.Context, id string) (*ent.JobPositionResponse, error) {
+	return r.serviceRegistry.JobPosition().GetJobPosition(ctx, uuid.MustParse(id))
+}
+
 // GetHiringJob is the resolver for the GetHiringJob field.
 func (r *queryResolver) GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().GetHiringJob(ctx, uuid.MustParse(id))

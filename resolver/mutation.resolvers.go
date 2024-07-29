@@ -56,6 +56,15 @@ func (r *mutationResolver) UpdateJobPosition(ctx context.Context, id string, inp
 	return r.serviceRegistry.JobPosition().UpdateJobPosition(ctx, uuid.MustParse(id), input)
 }
 
+// DeleteJobPosition is the resolver for the DeleteJobPosition field.
+func (r *mutationResolver) DeleteJobPosition(ctx context.Context, id string) (bool, error) {
+	err := r.serviceRegistry.JobPosition().DeleteJobPosition(ctx, uuid.MustParse(id))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // CreateHiringJob is the resolver for the CreateHiringJob field.
 func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().CreateHiringJob(ctx, &input, note)

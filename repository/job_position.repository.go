@@ -15,6 +15,7 @@ type JobPositionRepository interface {
 	// mutation
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPosition, error)
 	UpdateJobPosition(ctx context.Context, record *ent.JobPosition, input ent.UpdateJobPositionInput) (*ent.JobPosition, error)
+	DeleteJobPosition(ctx context.Context, record *ent.JobPosition) (*ent.JobPosition, error)
 
 	// query
 	GetJobPosition(ctx context.Context, id uuid.UUID) (*ent.JobPosition, error)
@@ -65,6 +66,11 @@ func (rps *jobPositionRepoImpl) UpdateJobPosition(ctx context.Context, record *e
 	return rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).Save(ctx)
+}
+
+func (rps *jobPositionRepoImpl) DeleteJobPosition(ctx context.Context, record *ent.JobPosition) (*ent.JobPosition, error) {
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+	return update.Save(ctx)
 }
 
 // query

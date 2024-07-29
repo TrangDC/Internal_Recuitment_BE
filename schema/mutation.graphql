@@ -14,6 +14,9 @@ type Mutation {
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
   UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!): JobPositionResponse!
+  DeleteJobPosition(id: ID!): Boolean!
+
+  # Department
 
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!, note: String!): HiringJobResponse!
