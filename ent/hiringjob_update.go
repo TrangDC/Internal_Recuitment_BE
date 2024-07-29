@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/user"
@@ -267,6 +268,26 @@ func (hju *HiringJobUpdate) AddPriority(i int) *HiringJobUpdate {
 	return hju
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (hju *HiringJobUpdate) SetHiringTeamID(u uuid.UUID) *HiringJobUpdate {
+	hju.mutation.SetHiringTeamID(u)
+	return hju
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableHiringTeamID(u *uuid.UUID) *HiringJobUpdate {
+	if u != nil {
+		hju.SetHiringTeamID(*u)
+	}
+	return hju
+}
+
+// ClearHiringTeamID clears the value of the "hiring_team_id" field.
+func (hju *HiringJobUpdate) ClearHiringTeamID() *HiringJobUpdate {
+	hju.mutation.ClearHiringTeamID()
+	return hju
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hju *HiringJobUpdate) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdate {
 	hju.mutation.SetOwnerEdgeID(id)
@@ -335,6 +356,25 @@ func (hju *HiringJobUpdate) AddHiringJobSkillEdges(e ...*EntitySkill) *HiringJob
 	return hju.AddHiringJobSkillEdgeIDs(ids...)
 }
 
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (hju *HiringJobUpdate) SetHiringTeamEdgeID(id uuid.UUID) *HiringJobUpdate {
+	hju.mutation.SetHiringTeamEdgeID(id)
+	return hju
+}
+
+// SetNillableHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableHiringTeamEdgeID(id *uuid.UUID) *HiringJobUpdate {
+	if id != nil {
+		hju = hju.SetHiringTeamEdgeID(*id)
+	}
+	return hju
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (hju *HiringJobUpdate) SetHiringTeamEdge(h *HiringTeam) *HiringJobUpdate {
+	return hju.SetHiringTeamEdgeID(h.ID)
+}
+
 // Mutation returns the HiringJobMutation object of the builder.
 func (hju *HiringJobUpdate) Mutation() *HiringJobMutation {
 	return hju.mutation
@@ -392,6 +432,12 @@ func (hju *HiringJobUpdate) RemoveHiringJobSkillEdges(e ...*EntitySkill) *Hiring
 		ids[i] = e[i].ID
 	}
 	return hju.RemoveHiringJobSkillEdgeIDs(ids...)
+}
+
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (hju *HiringJobUpdate) ClearHiringTeamEdge() *HiringJobUpdate {
+	hju.mutation.ClearHiringTeamEdge()
+	return hju
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -753,6 +799,41 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if hju.mutation.HiringTeamEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.HiringTeamEdgeTable,
+			Columns: []string{hiringjob.HiringTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hju.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.HiringTeamEdgeTable,
+			Columns: []string{hiringjob.HiringTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{hiringjob.Label}
@@ -1006,6 +1087,26 @@ func (hjuo *HiringJobUpdateOne) AddPriority(i int) *HiringJobUpdateOne {
 	return hjuo
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (hjuo *HiringJobUpdateOne) SetHiringTeamID(u uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.SetHiringTeamID(u)
+	return hjuo
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableHiringTeamID(u *uuid.UUID) *HiringJobUpdateOne {
+	if u != nil {
+		hjuo.SetHiringTeamID(*u)
+	}
+	return hjuo
+}
+
+// ClearHiringTeamID clears the value of the "hiring_team_id" field.
+func (hjuo *HiringJobUpdateOne) ClearHiringTeamID() *HiringJobUpdateOne {
+	hjuo.mutation.ClearHiringTeamID()
+	return hjuo
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjuo *HiringJobUpdateOne) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdateOne {
 	hjuo.mutation.SetOwnerEdgeID(id)
@@ -1074,6 +1175,25 @@ func (hjuo *HiringJobUpdateOne) AddHiringJobSkillEdges(e ...*EntitySkill) *Hirin
 	return hjuo.AddHiringJobSkillEdgeIDs(ids...)
 }
 
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (hjuo *HiringJobUpdateOne) SetHiringTeamEdgeID(id uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.SetHiringTeamEdgeID(id)
+	return hjuo
+}
+
+// SetNillableHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableHiringTeamEdgeID(id *uuid.UUID) *HiringJobUpdateOne {
+	if id != nil {
+		hjuo = hjuo.SetHiringTeamEdgeID(*id)
+	}
+	return hjuo
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (hjuo *HiringJobUpdateOne) SetHiringTeamEdge(h *HiringTeam) *HiringJobUpdateOne {
+	return hjuo.SetHiringTeamEdgeID(h.ID)
+}
+
 // Mutation returns the HiringJobMutation object of the builder.
 func (hjuo *HiringJobUpdateOne) Mutation() *HiringJobMutation {
 	return hjuo.mutation
@@ -1131,6 +1251,12 @@ func (hjuo *HiringJobUpdateOne) RemoveHiringJobSkillEdges(e ...*EntitySkill) *Hi
 		ids[i] = e[i].ID
 	}
 	return hjuo.RemoveHiringJobSkillEdgeIDs(ids...)
+}
+
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (hjuo *HiringJobUpdateOne) ClearHiringTeamEdge() *HiringJobUpdateOne {
+	hjuo.mutation.ClearHiringTeamEdge()
+	return hjuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1514,6 +1640,41 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hjuo.mutation.HiringTeamEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.HiringTeamEdgeTable,
+			Columns: []string{hiringjob.HiringTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hjuo.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.HiringTeamEdgeTable,
+			Columns: []string{hiringjob.HiringTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
 				},
 			},
 		}

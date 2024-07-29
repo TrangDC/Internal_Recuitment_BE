@@ -1396,8 +1396,8 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     hj.ID,
 		Type:   "HiringJob",
-		Fields: make([]*Field, 17),
-		Edges:  make([]*Edge, 4),
+		Fields: make([]*Field, 18),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
@@ -1536,6 +1536,14 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "priority",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(hj.HiringTeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[17] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "hiring_team_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "User",
 		Name: "owner_edge",
@@ -1576,6 +1584,16 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Edges[4] = &Edge{
+		Type: "HiringTeam",
+		Name: "hiring_team_edge",
+	}
+	err = hj.QueryHiringTeamEdge().
+		Select(hiringteam.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -1584,7 +1602,7 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ht.ID,
 		Type:   "HiringTeam",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ht.CreatedAt); err != nil {
@@ -1638,12 +1656,22 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
+		Type: "HiringJob",
+		Name: "hiring_team_job_edges",
+	}
+	err = ht.QueryHiringTeamJobEdges().
+		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
 		Type: "HiringTeamManager",
 		Name: "user_hiring_teams",
 	}
 	err = ht.QueryUserHiringTeams().
 		Select(hiringteammanager.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}

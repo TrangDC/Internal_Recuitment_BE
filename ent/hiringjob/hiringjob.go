@@ -48,6 +48,8 @@ const (
 	FieldLastApplyDate = "last_apply_date"
 	// FieldPriority holds the string denoting the priority field in the database.
 	FieldPriority = "priority"
+	// FieldHiringTeamID holds the string denoting the hiring_team_id field in the database.
+	FieldHiringTeamID = "hiring_team_id"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
@@ -56,6 +58,8 @@ const (
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// EdgeHiringJobSkillEdges holds the string denoting the hiring_job_skill_edges edge name in mutations.
 	EdgeHiringJobSkillEdges = "hiring_job_skill_edges"
+	// EdgeHiringTeamEdge holds the string denoting the hiring_team_edge edge name in mutations.
+	EdgeHiringTeamEdge = "hiring_team_edge"
 	// Table holds the table name of the hiringjob in the database.
 	Table = "hiring_jobs"
 	// OwnerEdgeTable is the table that holds the owner_edge relation/edge.
@@ -86,6 +90,13 @@ const (
 	HiringJobSkillEdgesInverseTable = "entity_skills"
 	// HiringJobSkillEdgesColumn is the table column denoting the hiring_job_skill_edges relation/edge.
 	HiringJobSkillEdgesColumn = "entity_id"
+	// HiringTeamEdgeTable is the table that holds the hiring_team_edge relation/edge.
+	HiringTeamEdgeTable = "hiring_jobs"
+	// HiringTeamEdgeInverseTable is the table name for the HiringTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
+	HiringTeamEdgeInverseTable = "hiring_teams"
+	// HiringTeamEdgeColumn is the table column denoting the hiring_team_edge relation/edge.
+	HiringTeamEdgeColumn = "hiring_team_id"
 )
 
 // Columns holds all SQL columns for hiringjob fields.
@@ -108,6 +119,7 @@ var Columns = []string{
 	FieldCurrency,
 	FieldLastApplyDate,
 	FieldPriority,
+	FieldHiringTeamID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

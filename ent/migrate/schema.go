@@ -429,6 +429,7 @@ var (
 		{Name: "currency", Type: field.TypeEnum, Enums: []string{"vnd", "usd", "jpy"}},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 		{Name: "priority", Type: field.TypeInt, Default: 4},
+		{Name: "hiring_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
@@ -439,14 +440,20 @@ var (
 		PrimaryKey: []*schema.Column{HiringJobsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "hiring_jobs_teams_team_job_edges",
+				Symbol:     "hiring_jobs_hiring_teams_hiring_team_job_edges",
 				Columns:    []*schema.Column{HiringJobsColumns[16]},
+				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "hiring_jobs_teams_team_job_edges",
+				Columns:    []*schema.Column{HiringJobsColumns[17]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "hiring_jobs_users_hiring_owner",
-				Columns:    []*schema.Column{HiringJobsColumns[17]},
+				Columns:    []*schema.Column{HiringJobsColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -817,8 +824,9 @@ func init() {
 	EntitySkillsTable.ForeignKeys[0].RefTable = CandidatesTable
 	EntitySkillsTable.ForeignKeys[1].RefTable = HiringJobsTable
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
-	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
-	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	HiringJobsTable.ForeignKeys[0].RefTable = HiringTeamsTable
+	HiringJobsTable.ForeignKeys[1].RefTable = TeamsTable
+	HiringJobsTable.ForeignKeys[2].RefTable = UsersTable
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable

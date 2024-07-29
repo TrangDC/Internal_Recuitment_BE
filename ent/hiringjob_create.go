@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/team"
 	"trec/ent/user"
 
@@ -215,6 +216,20 @@ func (hjc *HiringJobCreate) SetNillablePriority(i *int) *HiringJobCreate {
 	return hjc
 }
 
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (hjc *HiringJobCreate) SetHiringTeamID(u uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetHiringTeamID(u)
+	return hjc
+}
+
+// SetNillableHiringTeamID sets the "hiring_team_id" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableHiringTeamID(u *uuid.UUID) *HiringJobCreate {
+	if u != nil {
+		hjc.SetHiringTeamID(*u)
+	}
+	return hjc
+}
+
 // SetID sets the "id" field.
 func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetID(u)
@@ -287,6 +302,25 @@ func (hjc *HiringJobCreate) AddHiringJobSkillEdges(e ...*EntitySkill) *HiringJob
 		ids[i] = e[i].ID
 	}
 	return hjc.AddHiringJobSkillEdgeIDs(ids...)
+}
+
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (hjc *HiringJobCreate) SetHiringTeamEdgeID(id uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetHiringTeamEdgeID(id)
+	return hjc
+}
+
+// SetNillableHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableHiringTeamEdgeID(id *uuid.UUID) *HiringJobCreate {
+	if id != nil {
+		hjc = hjc.SetHiringTeamEdgeID(*id)
+	}
+	return hjc
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (hjc *HiringJobCreate) SetHiringTeamEdge(h *HiringTeam) *HiringJobCreate {
+	return hjc.SetHiringTeamEdgeID(h.ID)
 }
 
 // Mutation returns the HiringJobMutation object of the builder.
@@ -637,6 +671,26 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjc.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.HiringTeamEdgeTable,
+			Columns: []string{hiringjob.HiringTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.HiringTeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
