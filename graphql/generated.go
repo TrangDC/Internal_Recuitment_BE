@@ -578,22 +578,22 @@ type ComplexityRoot struct {
 		CreateCandidateJobFeedback        func(childComplexity int, input ent.NewCandidateJobFeedbackInput, note *string) int
 		CreateEmailTemplate               func(childComplexity int, input ent.NewEmailTemplateInput, note string) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
+		CreateHiringTeam                  func(childComplexity int, input ent.NewHiringTeamInput, note string) int
 		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput) int
 		CreateRole                        func(childComplexity int, input ent.NewRoleInput, note string) int
 		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
 		CreateSkillType                   func(childComplexity int, input ent.NewSkillTypeInput, note string) int
-		CreateTeam                        func(childComplexity int, input ent.NewTeamInput, note string) int
 		DeleteCandidate                   func(childComplexity int, id string, note string) int
 		DeleteCandidateInterview          func(childComplexity int, id string, note *string) int
 		DeleteCandidateJob                func(childComplexity int, id string, note *string) int
 		DeleteCandidateJobFeedback        func(childComplexity int, id string, note *string) int
 		DeleteEmailTemplate               func(childComplexity int, id string, note string) int
 		DeleteHiringJob                   func(childComplexity int, id string, note string) int
+		DeleteHiringTeam                  func(childComplexity int, id string, note string) int
 		DeleteJobPosition                 func(childComplexity int, id string) int
 		DeleteRole                        func(childComplexity int, id string, note string) int
 		DeleteSkill                       func(childComplexity int, id string, note string) int
 		DeleteSkillType                   func(childComplexity int, id string, note string) int
-		DeleteTeam                        func(childComplexity int, id string, note string) int
 		ImportCandidate                   func(childComplexity int, file graphql.Upload) int
 		SetBlackListCandidate             func(childComplexity int, id string, isBlackList bool, note string) int
 		UpdateCandidate                   func(childComplexity int, id string, input ent.UpdateCandidateInput, note string) int
@@ -607,11 +607,11 @@ type ComplexityRoot struct {
 		UpdateEmailTemplateStatus         func(childComplexity int, id string, input ent.UpdateEmailTemplateStatusInput, note string) int
 		UpdateHiringJob                   func(childComplexity int, id string, input ent.UpdateHiringJobInput, note string) int
 		UpdateHiringJobStatus             func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
+		UpdateHiringTeam                  func(childComplexity int, id string, input ent.UpdateHiringTeamInput, note string) int
 		UpdateJobPosition                 func(childComplexity int, id string, input ent.UpdateJobPositionInput) int
 		UpdateRole                        func(childComplexity int, id string, input ent.UpdateRoleInput, note string) int
 		UpdateSkill                       func(childComplexity int, id string, input ent.UpdateSkillInput, note string) int
 		UpdateSkillType                   func(childComplexity int, id string, input ent.UpdateSkillTypeInput, note string) int
-		UpdateTeam                        func(childComplexity int, id string, input ent.UpdateTeamInput, note string) int
 		UpdateUser                        func(childComplexity int, id string, input ent.UpdateUserInput, note string) int
 		UpdateUserStatus                  func(childComplexity int, id string, input ent.UpdateUserStatusInput, note string) int
 		ValidateCandidateInterview        func(childComplexity int, input ent.CandidateInterviewValidateInput) int
@@ -671,12 +671,12 @@ type ComplexityRoot struct {
 		GetAllEmailTemplateKeywords        func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
 		GetAllEmailTemplates               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
 		GetAllHiringJobs                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		GetAllHiringTeams                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		GetAllJobPositions                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
 		GetAllPermissionGroups             func(childComplexity int) int
 		GetAllRoles                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
 		GetAllSkillTypes                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
 		GetAllSkills                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		GetAllTeams                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
 		GetAllUsers                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 		GetAuditTrail                      func(childComplexity int, id string) int
 		GetCandidate                       func(childComplexity int, id string) int
@@ -687,12 +687,12 @@ type ComplexityRoot struct {
 		GetCandidateJobGroupByStatus       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
 		GetEmailTemplate                   func(childComplexity int, id string) int
 		GetHiringJob                       func(childComplexity int, id string) int
+		GetHiringTeam                      func(childComplexity int, id string) int
 		GetJobPosition                     func(childComplexity int, id string) int
 		GetMe                              func(childComplexity int) int
 		GetRole                            func(childComplexity int, id string) int
 		GetSkill                           func(childComplexity int, id string) int
 		GetSkillType                       func(childComplexity int, id string) int
-		GetTeam                            func(childComplexity int, id string) int
 		GetUser                            func(childComplexity int, id string) int
 		ReportApplication                  func(childComplexity int, filter ent.ReportFilter) int
 		ReportApplicationReportTable       func(childComplexity int, filter ent.ReportFilter) int
@@ -702,10 +702,10 @@ type ComplexityRoot struct {
 		ReportCandidateLcc                 func(childComplexity int) int
 		SelectionCandidates                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
 		SelectionHiringJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		SelectionHiringTeams               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		SelectionRole                      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
 		SelectionSkillTypes                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
 		SelectionSkills                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		SelectionTeams                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) int
 		SelectionUsers                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 	}
 
@@ -1116,9 +1116,9 @@ type MutationResolver interface {
 	CreateAttachmentSasurl(ctx context.Context, input ent.AttachmentInput) (*ent.AttachmentResponse, error)
 	UpdateUser(ctx context.Context, id string, input ent.UpdateUserInput, note string) (*ent.UserResponse, error)
 	UpdateUserStatus(ctx context.Context, id string, input ent.UpdateUserStatusInput, note string) (*ent.UserResponse, error)
-	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
-	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
-	DeleteTeam(ctx context.Context, id string, note string) (bool, error)
+	CreateHiringTeam(ctx context.Context, input ent.NewHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
+	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
+	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
 	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
 	DeleteJobPosition(ctx context.Context, id string) (bool, error)
@@ -1169,8 +1169,8 @@ type PermissionGroupResolver interface {
 	Permissions(ctx context.Context, obj *ent.PermissionGroup) ([]*ent.Permission, error)
 }
 type QueryResolver interface {
-	GetTeam(ctx context.Context, id string) (*ent.TeamResponse, error)
-	GetAllTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamResponseGetAll, error)
+	GetHiringTeam(ctx context.Context, id string) (*ent.HiringTeamResponse, error)
+	GetAllHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamResponseGetAll, error)
 	GetUser(ctx context.Context, id string) (*ent.UserResponse, error)
 	GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
@@ -1197,7 +1197,7 @@ type QueryResolver interface {
 	GetSkillType(ctx context.Context, id string) (*ent.SkillTypeResponse, error)
 	GetAllSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeResponseGetAll, error)
 	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error)
-	SelectionTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.TeamFilter, freeWord *ent.TeamFreeWord, orderBy ent.TeamOrderBy) (*ent.TeamSelectionResponseGetAll, error)
+	SelectionHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamSelectionResponseGetAll, error)
 	SelectionHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error)
 	SelectionCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error)
 	SelectionSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error)
@@ -3385,6 +3385,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateHiringJob(childComplexity, args["input"].(ent.NewHiringJobInput), args["note"].(string)), true
 
+	case "Mutation.CreateHiringTeam":
+		if e.complexity.Mutation.CreateHiringTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateHiringTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateHiringTeam(childComplexity, args["input"].(ent.NewHiringTeamInput), args["note"].(string)), true
+
 	case "Mutation.CreateJobPosition":
 		if e.complexity.Mutation.CreateJobPosition == nil {
 			break
@@ -3432,18 +3444,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateSkillType(childComplexity, args["input"].(ent.NewSkillTypeInput), args["note"].(string)), true
-
-	case "Mutation.CreateTeam":
-		if e.complexity.Mutation.CreateTeam == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_CreateTeam_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateTeam(childComplexity, args["input"].(ent.NewTeamInput), args["note"].(string)), true
 
 	case "Mutation.DeleteCandidate":
 		if e.complexity.Mutation.DeleteCandidate == nil {
@@ -3517,6 +3517,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteHiringJob(childComplexity, args["id"].(string), args["note"].(string)), true
 
+	case "Mutation.DeleteHiringTeam":
+		if e.complexity.Mutation.DeleteHiringTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteHiringTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteHiringTeam(childComplexity, args["id"].(string), args["note"].(string)), true
+
 	case "Mutation.DeleteJobPosition":
 		if e.complexity.Mutation.DeleteJobPosition == nil {
 			break
@@ -3564,18 +3576,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteSkillType(childComplexity, args["id"].(string), args["note"].(string)), true
-
-	case "Mutation.DeleteTeam":
-		if e.complexity.Mutation.DeleteTeam == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_DeleteTeam_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.ImportCandidate":
 		if e.complexity.Mutation.ImportCandidate == nil {
@@ -3733,6 +3733,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateHiringJobStatus(childComplexity, args["id"].(string), args["status"].(ent.HiringJobStatus), args["note"].(string)), true
 
+	case "Mutation.UpdateHiringTeam":
+		if e.complexity.Mutation.UpdateHiringTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateHiringTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateHiringTeam(childComplexity, args["id"].(string), args["input"].(ent.UpdateHiringTeamInput), args["note"].(string)), true
+
 	case "Mutation.UpdateJobPosition":
 		if e.complexity.Mutation.UpdateJobPosition == nil {
 			break
@@ -3780,18 +3792,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateSkillType(childComplexity, args["id"].(string), args["input"].(ent.UpdateSkillTypeInput), args["note"].(string)), true
-
-	case "Mutation.UpdateTeam":
-		if e.complexity.Mutation.UpdateTeam == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_UpdateTeam_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateTeam(childComplexity, args["id"].(string), args["input"].(ent.UpdateTeamInput), args["note"].(string)), true
 
 	case "Mutation.UpdateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -4103,6 +4103,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllHiringJobs(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringJobFilter), args["freeWord"].(*ent.HiringJobFreeWord), args["orderBy"].(ent.HiringJobOrderBy)), true
 
+	case "Query.GetAllHiringTeams":
+		if e.complexity.Query.GetAllHiringTeams == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllHiringTeams_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllHiringTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringTeamFilter), args["freeWord"].(*ent.HiringTeamFreeWord), args["orderBy"].(ent.HiringTeamOrderBy)), true
+
 	case "Query.GetAllJobPositions":
 		if e.complexity.Query.GetAllJobPositions == nil {
 			break
@@ -4157,18 +4169,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllSkills(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.SkillFilter), args["freeWord"].(*ent.SkillFreeWord), args["orderBy"].(*ent.SkillOrder)), true
-
-	case "Query.GetAllTeams":
-		if e.complexity.Query.GetAllTeams == nil {
-			break
-		}
-
-		args, err := ec.field_Query_GetAllTeams_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetAllTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.TeamFilter), args["freeWord"].(*ent.TeamFreeWord), args["orderBy"].(ent.TeamOrderBy)), true
 
 	case "Query.GetAllUsers":
 		if e.complexity.Query.GetAllUsers == nil {
@@ -4290,6 +4290,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetHiringJob(childComplexity, args["id"].(string)), true
 
+	case "Query.GetHiringTeam":
+		if e.complexity.Query.GetHiringTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetHiringTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetHiringTeam(childComplexity, args["id"].(string)), true
+
 	case "Query.GetJobPosition":
 		if e.complexity.Query.GetJobPosition == nil {
 			break
@@ -4344,18 +4356,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetSkillType(childComplexity, args["id"].(string)), true
-
-	case "Query.GetTeam":
-		if e.complexity.Query.GetTeam == nil {
-			break
-		}
-
-		args, err := ec.field_Query_GetTeam_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetTeam(childComplexity, args["id"].(string)), true
 
 	case "Query.GetUser":
 		if e.complexity.Query.GetUser == nil {
@@ -4455,6 +4455,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SelectionHiringJobs(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringJobFilter), args["freeWord"].(*ent.HiringJobFreeWord), args["orderBy"].(ent.HiringJobOrderBy)), true
 
+	case "Query.SelectionHiringTeams":
+		if e.complexity.Query.SelectionHiringTeams == nil {
+			break
+		}
+
+		args, err := ec.field_Query_SelectionHiringTeams_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SelectionHiringTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringTeamFilter), args["freeWord"].(*ent.HiringTeamFreeWord), args["orderBy"].(ent.HiringTeamOrderBy)), true
+
 	case "Query.SelectionRole":
 		if e.complexity.Query.SelectionRole == nil {
 			break
@@ -4490,18 +4502,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SelectionSkills(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.SkillFilter), args["freeWord"].(*ent.SkillFreeWord), args["orderBy"].(*ent.SkillOrder)), true
-
-	case "Query.SelectionTeams":
-		if e.complexity.Query.SelectionTeams == nil {
-			break
-		}
-
-		args, err := ec.field_Query_SelectionTeams_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SelectionTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.TeamFilter), args["freeWord"].(*ent.TeamFreeWord), args["orderBy"].(ent.TeamOrderBy)), true
 
 	case "Query.SelectionUsers":
 		if e.complexity.Query.SelectionUsers == nil {
@@ -6886,9 +6886,9 @@ type JobPositionResponseGetAll {
   UpdateUserStatus(id: ID!, input: UpdateUserStatusInput!, note: String!): UserResponse!
 
   # Team
-  CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
-  UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
-  DeleteTeam(id: ID!, note: String!): Boolean!
+  CreateHiringTeam(input: NewHiringTeamInput!, note: String!): HiringTeamResponse!
+  UpdateHiringTeam(id: ID!, input: UpdateHiringTeamInput!, note: String!): HiringTeamResponse!
+  DeleteHiringTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
@@ -6991,9 +6991,9 @@ enum PermissionGroupType {
   function
 }`, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
-  # Team
-  GetTeam(id: ID!): TeamResponse!
-  GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
+	# HiringTeam
+	GetHiringTeam(id: ID!): HiringTeamResponse!
+	GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
 
   # User
   GetUser(id: ID!): UserResponse!
@@ -7042,14 +7042,14 @@ enum PermissionGroupType {
   GetSkillType(id: ID!): SkillTypeResponse!
   GetAllSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeResponseGetAll!
 
-  # Selection
-  SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
-  SelectionTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamSelectionResponseGetAll!
-  SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
-  SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
-  SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
-  SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
-  SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
+	# Selection
+	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
+	SelectionHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamSelectionResponseGetAll!
+	SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
+	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
+	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
+	SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
+	SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
 
   # Role
   GetRole(id: ID!): RoleResponse!
@@ -7848,6 +7848,30 @@ func (ec *executionContext) field_Mutation_CreateHiringJob_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_CreateHiringTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.NewHiringTeamInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewHiringTeamInput2trecᚋentᚐNewHiringTeamInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_CreateJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7918,30 +7942,6 @@ func (ec *executionContext) field_Mutation_CreateSkill_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewSkillInput2trecᚋentᚐNewSkillInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["note"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["note"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_CreateTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.NewTeamInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewTeamInput2trecᚋentᚐNewTeamInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8103,6 +8103,30 @@ func (ec *executionContext) field_Mutation_DeleteHiringJob_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_DeleteHiringTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_DeleteJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8167,30 +8191,6 @@ func (ec *executionContext) field_Mutation_DeleteSkillType_args(ctx context.Cont
 }
 
 func (ec *executionContext) field_Mutation_DeleteSkill_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["note"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["note"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_DeleteTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -8616,6 +8616,39 @@ func (ec *executionContext) field_Mutation_UpdateHiringJob_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_UpdateHiringTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateHiringTeamInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateHiringTeamInput2trecᚋentᚐUpdateHiringTeamInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_UpdateJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8722,39 +8755,6 @@ func (ec *executionContext) field_Mutation_UpdateSkill_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg1, err = ec.unmarshalNUpdateSkillInput2trecᚋentᚐUpdateSkillInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["note"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["note"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_UpdateTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 ent.UpdateTeamInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateTeamInput2trecᚋentᚐUpdateTeamInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9219,6 +9219,48 @@ func (ec *executionContext) field_Query_GetAllHiringJobs_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_GetAllHiringTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.HiringTeamFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOHiringTeamFilter2ᚖtrecᚋentᚐHiringTeamFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.HiringTeamFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOHiringTeamFreeWord2ᚖtrecᚋentᚐHiringTeamFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 ent.HiringTeamOrderBy
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalNHiringTeamOrderBy2trecᚋentᚐHiringTeamOrderBy(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_GetAllJobPositions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9379,48 +9421,6 @@ func (ec *executionContext) field_Query_GetAllSkills_args(ctx context.Context, r
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOSkillOrder2ᚖtrecᚋentᚐSkillOrder(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["orderBy"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_GetAllTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *ent.PaginationInput
-	if tmp, ok := rawArgs["pagination"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pagination"] = arg0
-	var arg1 *ent.TeamFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOTeamFilter2ᚖtrecᚋentᚐTeamFilter(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter"] = arg1
-	var arg2 *ent.TeamFreeWord
-	if tmp, ok := rawArgs["freeWord"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
-		arg2, err = ec.unmarshalOTeamFreeWord2ᚖtrecᚋentᚐTeamFreeWord(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["freeWord"] = arg2
-	var arg3 ent.TeamOrderBy
-	if tmp, ok := rawArgs["orderBy"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg3, err = ec.unmarshalNTeamOrderBy2trecᚋentᚐTeamOrderBy(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9633,6 +9633,21 @@ func (ec *executionContext) field_Query_GetHiringJob_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_GetHiringTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_GetJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9679,21 +9694,6 @@ func (ec *executionContext) field_Query_GetSkillType_args(ctx context.Context, r
 }
 
 func (ec *executionContext) field_Query_GetSkill_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_GetTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -9876,6 +9876,48 @@ func (ec *executionContext) field_Query_SelectionHiringJobs_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_SelectionHiringTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.HiringTeamFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOHiringTeamFilter2ᚖtrecᚋentᚐHiringTeamFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.HiringTeamFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOHiringTeamFreeWord2ᚖtrecᚋentᚐHiringTeamFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 ent.HiringTeamOrderBy
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalNHiringTeamOrderBy2trecᚋentᚐHiringTeamOrderBy(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_SelectionRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9994,48 +10036,6 @@ func (ec *executionContext) field_Query_SelectionSkills_args(ctx context.Context
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOSkillOrder2ᚖtrecᚋentᚐSkillOrder(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["orderBy"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_SelectionTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *ent.PaginationInput
-	if tmp, ok := rawArgs["pagination"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pagination"] = arg0
-	var arg1 *ent.TeamFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalOTeamFilter2ᚖtrecᚋentᚐTeamFilter(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter"] = arg1
-	var arg2 *ent.TeamFreeWord
-	if tmp, ok := rawArgs["freeWord"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
-		arg2, err = ec.unmarshalOTeamFreeWord2ᚖtrecᚋentᚐTeamFreeWord(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["freeWord"] = arg2
-	var arg3 ent.TeamOrderBy
-	if tmp, ok := rawArgs["orderBy"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg3, err = ec.unmarshalNTeamOrderBy2trecᚋentᚐTeamOrderBy(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -24605,8 +24605,8 @@ func (ec *executionContext) fieldContext_Mutation_UpdateUserStatus(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_CreateTeam(ctx, field)
+func (ec *executionContext) _Mutation_CreateHiringTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateHiringTeam(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24619,7 +24619,7 @@ func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["input"].(ent.NewTeamInput), fc.Args["note"].(string))
+		return ec.resolvers.Mutation().CreateHiringTeam(rctx, fc.Args["input"].(ent.NewHiringTeamInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24631,12 +24631,12 @@ func (ec *executionContext) _Mutation_CreateTeam(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.TeamResponse)
+	res := resTmp.(*ent.HiringTeamResponse)
 	fc.Result = res
-	return ec.marshalNTeamResponse2ᚖtrecᚋentᚐTeamResponse(ctx, field.Selections, res)
+	return ec.marshalNHiringTeamResponse2ᚖtrecᚋentᚐHiringTeamResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_CreateTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_CreateHiringTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -24645,9 +24645,9 @@ func (ec *executionContext) fieldContext_Mutation_CreateTeam(ctx context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "data":
-				return ec.fieldContext_TeamResponse_data(ctx, field)
+				return ec.fieldContext_HiringTeamResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TeamResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -24657,15 +24657,15 @@ func (ec *executionContext) fieldContext_Mutation_CreateTeam(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_CreateTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_CreateHiringTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_UpdateTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_UpdateTeam(ctx, field)
+func (ec *executionContext) _Mutation_UpdateHiringTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateHiringTeam(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24678,7 +24678,7 @@ func (ec *executionContext) _Mutation_UpdateTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTeam(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateTeamInput), fc.Args["note"].(string))
+		return ec.resolvers.Mutation().UpdateHiringTeam(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateHiringTeamInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24690,12 +24690,12 @@ func (ec *executionContext) _Mutation_UpdateTeam(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.TeamResponse)
+	res := resTmp.(*ent.HiringTeamResponse)
 	fc.Result = res
-	return ec.marshalNTeamResponse2ᚖtrecᚋentᚐTeamResponse(ctx, field.Selections, res)
+	return ec.marshalNHiringTeamResponse2ᚖtrecᚋentᚐHiringTeamResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_UpdateTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_UpdateHiringTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -24704,9 +24704,9 @@ func (ec *executionContext) fieldContext_Mutation_UpdateTeam(ctx context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "data":
-				return ec.fieldContext_TeamResponse_data(ctx, field)
+				return ec.fieldContext_HiringTeamResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TeamResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -24716,15 +24716,15 @@ func (ec *executionContext) fieldContext_Mutation_UpdateTeam(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_UpdateTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_UpdateHiringTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_DeleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_DeleteTeam(ctx, field)
+func (ec *executionContext) _Mutation_DeleteHiringTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteHiringTeam(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -24737,7 +24737,7 @@ func (ec *executionContext) _Mutation_DeleteTeam(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeam(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
+		return ec.resolvers.Mutation().DeleteHiringTeam(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24754,7 +24754,7 @@ func (ec *executionContext) _Mutation_DeleteTeam(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_DeleteTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_DeleteHiringTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -24771,7 +24771,7 @@ func (ec *executionContext) fieldContext_Mutation_DeleteTeam(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_DeleteTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_DeleteHiringTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -28025,8 +28025,8 @@ func (ec *executionContext) fieldContext_PermissionGroupResponseGetAll_paginatio
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_GetTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetTeam(ctx, field)
+func (ec *executionContext) _Query_GetHiringTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetHiringTeam(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -28039,7 +28039,7 @@ func (ec *executionContext) _Query_GetTeam(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetTeam(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().GetHiringTeam(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28051,12 +28051,12 @@ func (ec *executionContext) _Query_GetTeam(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.TeamResponse)
+	res := resTmp.(*ent.HiringTeamResponse)
 	fc.Result = res
-	return ec.marshalNTeamResponse2ᚖtrecᚋentᚐTeamResponse(ctx, field.Selections, res)
+	return ec.marshalNHiringTeamResponse2ᚖtrecᚋentᚐHiringTeamResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_GetTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_GetHiringTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -28065,9 +28065,9 @@ func (ec *executionContext) fieldContext_Query_GetTeam(ctx context.Context, fiel
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "data":
-				return ec.fieldContext_TeamResponse_data(ctx, field)
+				return ec.fieldContext_HiringTeamResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TeamResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -28077,15 +28077,15 @@ func (ec *executionContext) fieldContext_Query_GetTeam(ctx context.Context, fiel
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_GetTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_GetHiringTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_GetAllTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetAllTeams(ctx, field)
+func (ec *executionContext) _Query_GetAllHiringTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllHiringTeams(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -28098,7 +28098,7 @@ func (ec *executionContext) _Query_GetAllTeams(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllTeams(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.TeamFilter), fc.Args["freeWord"].(*ent.TeamFreeWord), fc.Args["orderBy"].(ent.TeamOrderBy))
+		return ec.resolvers.Query().GetAllHiringTeams(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.HiringTeamFilter), fc.Args["freeWord"].(*ent.HiringTeamFreeWord), fc.Args["orderBy"].(ent.HiringTeamOrderBy))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28110,12 +28110,12 @@ func (ec *executionContext) _Query_GetAllTeams(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.TeamResponseGetAll)
+	res := resTmp.(*ent.HiringTeamResponseGetAll)
 	fc.Result = res
-	return ec.marshalNTeamResponseGetAll2ᚖtrecᚋentᚐTeamResponseGetAll(ctx, field.Selections, res)
+	return ec.marshalNHiringTeamResponseGetAll2ᚖtrecᚋentᚐHiringTeamResponseGetAll(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_GetAllTeams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_GetAllHiringTeams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -28124,11 +28124,11 @@ func (ec *executionContext) fieldContext_Query_GetAllTeams(ctx context.Context, 
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
-				return ec.fieldContext_TeamResponseGetAll_edges(ctx, field)
+				return ec.fieldContext_HiringTeamResponseGetAll_edges(ctx, field)
 			case "pagination":
-				return ec.fieldContext_TeamResponseGetAll_pagination(ctx, field)
+				return ec.fieldContext_HiringTeamResponseGetAll_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TeamResponseGetAll", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamResponseGetAll", field.Name)
 		},
 	}
 	defer func() {
@@ -28138,7 +28138,7 @@ func (ec *executionContext) fieldContext_Query_GetAllTeams(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_GetAllTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_GetAllHiringTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -29694,8 +29694,8 @@ func (ec *executionContext) fieldContext_Query_SelectionUsers(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_SelectionTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_SelectionTeams(ctx, field)
+func (ec *executionContext) _Query_SelectionHiringTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_SelectionHiringTeams(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -29708,7 +29708,7 @@ func (ec *executionContext) _Query_SelectionTeams(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SelectionTeams(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.TeamFilter), fc.Args["freeWord"].(*ent.TeamFreeWord), fc.Args["orderBy"].(ent.TeamOrderBy))
+		return ec.resolvers.Query().SelectionHiringTeams(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.HiringTeamFilter), fc.Args["freeWord"].(*ent.HiringTeamFreeWord), fc.Args["orderBy"].(ent.HiringTeamOrderBy))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29720,12 +29720,12 @@ func (ec *executionContext) _Query_SelectionTeams(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.TeamSelectionResponseGetAll)
+	res := resTmp.(*ent.HiringTeamSelectionResponseGetAll)
 	fc.Result = res
-	return ec.marshalNTeamSelectionResponseGetAll2ᚖtrecᚋentᚐTeamSelectionResponseGetAll(ctx, field.Selections, res)
+	return ec.marshalNHiringTeamSelectionResponseGetAll2ᚖtrecᚋentᚐHiringTeamSelectionResponseGetAll(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_SelectionTeams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_SelectionHiringTeams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -29734,11 +29734,11 @@ func (ec *executionContext) fieldContext_Query_SelectionTeams(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
-				return ec.fieldContext_TeamSelectionResponseGetAll_edges(ctx, field)
+				return ec.fieldContext_HiringTeamSelectionResponseGetAll_edges(ctx, field)
 			case "pagination":
-				return ec.fieldContext_TeamSelectionResponseGetAll_pagination(ctx, field)
+				return ec.fieldContext_HiringTeamSelectionResponseGetAll_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type TeamSelectionResponseGetAll", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamSelectionResponseGetAll", field.Name)
 		},
 	}
 	defer func() {
@@ -29748,7 +29748,7 @@ func (ec *executionContext) fieldContext_Query_SelectionTeams(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_SelectionTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_SelectionHiringTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48024,28 +48024,28 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "CreateTeam":
+		case "CreateHiringTeam":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_CreateTeam(ctx, field)
+				return ec._Mutation_CreateHiringTeam(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "UpdateTeam":
+		case "UpdateHiringTeam":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_UpdateTeam(ctx, field)
+				return ec._Mutation_UpdateHiringTeam(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "DeleteTeam":
+		case "DeleteHiringTeam":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_DeleteTeam(ctx, field)
+				return ec._Mutation_DeleteHiringTeam(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -48779,7 +48779,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "GetTeam":
+		case "GetHiringTeam":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -48788,7 +48788,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_GetTeam(ctx, field)
+				res = ec._Query_GetHiringTeam(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -48802,7 +48802,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "GetAllTeams":
+		case "GetAllHiringTeams":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -48811,7 +48811,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_GetAllTeams(ctx, field)
+				res = ec._Query_GetAllHiringTeams(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -49423,7 +49423,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "SelectionTeams":
+		case "SelectionHiringTeams":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -49432,7 +49432,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_SelectionTeams(ctx, field)
+				res = ec._Query_SelectionHiringTeams(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -53943,6 +53943,11 @@ func (ec *executionContext) marshalNHiringTeamEdge2ᚖtrecᚋentᚐHiringTeamEdg
 	return ec._HiringTeamEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNHiringTeamOrderBy2trecᚋentᚐHiringTeamOrderBy(ctx context.Context, v interface{}) (ent.HiringTeamOrderBy, error) {
+	res, err := ec.unmarshalInputHiringTeamOrderBy(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNHiringTeamOrderByField2trecᚋentᚐHiringTeamOrderByField(ctx context.Context, v interface{}) (ent.HiringTeamOrderByField, error) {
 	var res ent.HiringTeamOrderByField
 	err := res.UnmarshalGQL(v)
@@ -53951,6 +53956,34 @@ func (ec *executionContext) unmarshalNHiringTeamOrderByField2trecᚋentᚐHiring
 
 func (ec *executionContext) marshalNHiringTeamOrderByField2trecᚋentᚐHiringTeamOrderByField(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeamOrderByField) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNHiringTeamResponse2trecᚋentᚐHiringTeamResponse(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeamResponse) graphql.Marshaler {
+	return ec._HiringTeamResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHiringTeamResponse2ᚖtrecᚋentᚐHiringTeamResponse(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringTeamResponseGetAll2trecᚋentᚐHiringTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeamResponseGetAll) graphql.Marshaler {
+	return ec._HiringTeamResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHiringTeamResponseGetAll2ᚖtrecᚋentᚐHiringTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNHiringTeamSelection2ᚖtrecᚋentᚐHiringTeamSelection(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamSelection) graphql.Marshaler {
@@ -54015,6 +54048,20 @@ func (ec *executionContext) marshalNHiringTeamSelectionEdge2ᚖtrecᚋentᚐHiri
 		return graphql.Null
 	}
 	return ec._HiringTeamSelectionEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringTeamSelectionResponseGetAll2trecᚋentᚐHiringTeamSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeamSelectionResponseGetAll) graphql.Marshaler {
+	return ec._HiringTeamSelectionResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHiringTeamSelectionResponseGetAll2ᚖtrecᚋentᚐHiringTeamSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamSelectionResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamSelectionResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNI18nLanguage2trecᚋentᚐI18nLanguage(ctx context.Context, v interface{}) (ent.I18nLanguage, error) {
@@ -54338,6 +54385,11 @@ func (ec *executionContext) unmarshalNNewHiringJobInput2trecᚋentᚐNewHiringJo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewHiringTeamInput2trecᚋentᚐNewHiringTeamInput(ctx context.Context, v interface{}) (ent.NewHiringTeamInput, error) {
+	res, err := ec.unmarshalInputNewHiringTeamInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewJobPositionInput2trecᚋentᚐNewJobPositionInput(ctx context.Context, v interface{}) (ent.NewJobPositionInput, error) {
 	res, err := ec.unmarshalInputNewJobPositionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -54355,11 +54407,6 @@ func (ec *executionContext) unmarshalNNewSkillInput2trecᚋentᚐNewSkillInput(c
 
 func (ec *executionContext) unmarshalNNewSkillTypeInput2trecᚋentᚐNewSkillTypeInput(ctx context.Context, v interface{}) (ent.NewSkillTypeInput, error) {
 	res, err := ec.unmarshalInputNewSkillTypeInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewTeamInput2trecᚋentᚐNewTeamInput(ctx context.Context, v interface{}) (ent.NewTeamInput, error) {
-	res, err := ec.unmarshalInputNewTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -55585,11 +55632,6 @@ func (ec *executionContext) marshalNTeamEdge2ᚖtrecᚋentᚐTeamEdge(ctx contex
 	return ec._TeamEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTeamOrderBy2trecᚋentᚐTeamOrderBy(ctx context.Context, v interface{}) (ent.TeamOrderBy, error) {
-	res, err := ec.unmarshalInputTeamOrderBy(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNTeamOrderByField2trecᚋentᚐTeamOrderByField(ctx context.Context, v interface{}) (ent.TeamOrderByField, error) {
 	var res ent.TeamOrderByField
 	err := res.UnmarshalGQL(v)
@@ -55598,34 +55640,6 @@ func (ec *executionContext) unmarshalNTeamOrderByField2trecᚋentᚐTeamOrderByF
 
 func (ec *executionContext) marshalNTeamOrderByField2trecᚋentᚐTeamOrderByField(ctx context.Context, sel ast.SelectionSet, v ent.TeamOrderByField) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNTeamResponse2trecᚋentᚐTeamResponse(ctx context.Context, sel ast.SelectionSet, v ent.TeamResponse) graphql.Marshaler {
-	return ec._TeamResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTeamResponse2ᚖtrecᚋentᚐTeamResponse(ctx context.Context, sel ast.SelectionSet, v *ent.TeamResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TeamResponse(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTeamResponseGetAll2trecᚋentᚐTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.TeamResponseGetAll) graphql.Marshaler {
-	return ec._TeamResponseGetAll(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTeamResponseGetAll2ᚖtrecᚋentᚐTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.TeamResponseGetAll) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TeamResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTeamSelection2ᚖtrecᚋentᚐTeamSelection(ctx context.Context, sel ast.SelectionSet, v *ent.TeamSelection) graphql.Marshaler {
@@ -55690,20 +55704,6 @@ func (ec *executionContext) marshalNTeamSelectionEdge2ᚖtrecᚋentᚐTeamSelect
 		return graphql.Null
 	}
 	return ec._TeamSelectionEdge(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTeamSelectionResponseGetAll2trecᚋentᚐTeamSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.TeamSelectionResponseGetAll) graphql.Marshaler {
-	return ec._TeamSelectionResponseGetAll(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTeamSelectionResponseGetAll2ᚖtrecᚋentᚐTeamSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.TeamSelectionResponseGetAll) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._TeamSelectionResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
@@ -55771,6 +55771,11 @@ func (ec *executionContext) unmarshalNUpdateHiringJobInput2trecᚋentᚐUpdateHi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateHiringTeamInput2trecᚋentᚐUpdateHiringTeamInput(ctx context.Context, v interface{}) (ent.UpdateHiringTeamInput, error) {
+	res, err := ec.unmarshalInputUpdateHiringTeamInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateJobPositionInput2trecᚋentᚐUpdateJobPositionInput(ctx context.Context, v interface{}) (ent.UpdateJobPositionInput, error) {
 	res, err := ec.unmarshalInputUpdateJobPositionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -55788,11 +55793,6 @@ func (ec *executionContext) unmarshalNUpdateSkillInput2trecᚋentᚐUpdateSkillI
 
 func (ec *executionContext) unmarshalNUpdateSkillTypeInput2trecᚋentᚐUpdateSkillTypeInput(ctx context.Context, v interface{}) (ent.UpdateSkillTypeInput, error) {
 	res, err := ec.unmarshalInputUpdateSkillTypeInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNUpdateTeamInput2trecᚋentᚐUpdateTeamInput(ctx context.Context, v interface{}) (ent.UpdateTeamInput, error) {
-	res, err := ec.unmarshalInputUpdateTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -57400,6 +57400,22 @@ func (ec *executionContext) marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx co
 	return ec._HiringTeam(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOHiringTeamFilter2ᚖtrecᚋentᚐHiringTeamFilter(ctx context.Context, v interface{}) (*ent.HiringTeamFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputHiringTeamFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOHiringTeamFreeWord2ᚖtrecᚋentᚐHiringTeamFreeWord(ctx context.Context, v interface{}) (*ent.HiringTeamFreeWord, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputHiringTeamFreeWord(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
 	if v == nil {
 		return nil, nil
@@ -58007,22 +58023,6 @@ func (ec *executionContext) marshalOTeam2ᚖtrecᚋentᚐTeam(ctx context.Contex
 		return graphql.Null
 	}
 	return ec._Team(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOTeamFilter2ᚖtrecᚋentᚐTeamFilter(ctx context.Context, v interface{}) (*ent.TeamFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputTeamFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOTeamFreeWord2ᚖtrecᚋentᚐTeamFreeWord(ctx context.Context, v interface{}) (*ent.TeamFreeWord, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputTeamFreeWord(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

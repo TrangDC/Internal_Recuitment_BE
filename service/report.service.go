@@ -53,7 +53,7 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 	var page int
 	var perPage int
 	var results []*ent.CandidateConversionRateReportEdge
-	query := svc.repoRegistry.Team().BuildBaseQuery().Where().WithTeamJobEdges(
+	query := svc.repoRegistry.HiringTeam().BuildBaseQuery().WithHiringTeamJobEdges(
 		func(hrjQ *ent.HiringJobQuery) {
 			hrjQ.Where(hiringjob.DeletedAtIsNil()).WithCandidateJobEdges(
 				func(cjQ *ent.CandidateJobQuery) {
@@ -66,7 +66,7 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		page = *pagination.Page
 		perPage = *pagination.PerPage
 	}
-	count, err := svc.repoRegistry.Team().BuildCount(ctx, query)
+	count, err := svc.repoRegistry.HiringTeam().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -90,13 +90,13 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 	if perPage != 0 && page != 0 {
 		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
-	teams, err := svc.repoRegistry.Team().BuildList(ctx, query)
+	hiringTeams, err := svc.repoRegistry.HiringTeam().BuildList(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	for _, team := range teams {
-		candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.TeamJobEdges, func(hrj *ent.HiringJob, index int) *ent.HiringJob {
+	for _, team := range hiringTeams {
+		candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.HiringTeamJobEdges, func(hrj *ent.HiringJob, index int) *ent.HiringJob {
 			return hrj
 		}), func(hrj *ent.HiringJob, index int) []uuid.UUID {
 			return lo.Map(hrj.Edges.CandidateJobEdges, func(cj *ent.CandidateJob, index int) uuid.UUID {

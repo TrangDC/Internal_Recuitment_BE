@@ -18,7 +18,6 @@ type Service interface {
 	Auth() AuthService
 	Storage() StorageService
 	User() UserService
-	Team() TeamService
 	JobPosition() JobPositionService
 	HiringJob() HiringJobService
 	AuditTrail() AuditTrailService
@@ -38,6 +37,7 @@ type Service interface {
 	Email() EmailService
 	Report() ReportService
 	OutgoingEmail() OutgoingEmailService
+	HiringTeam() HiringTeamService
 }
 
 // serviceImpl is the implementation of Service.
@@ -45,7 +45,6 @@ type serviceImpl struct {
 	authService                 AuthService
 	storageService              StorageService
 	userService                 UserService
-	teamService                 TeamService
 	jobPositionService          JobPositionService
 	hiringJobService            HiringJobService
 	auditTrailService           AuditTrailService
@@ -65,6 +64,7 @@ type serviceImpl struct {
 	emailService                EmailService
 	reportService               ReportService
 	outgoingEmailService        OutgoingEmailService
+	hiringTeamService           HiringTeamService
 }
 
 // NewService creates a new Service.
@@ -76,7 +76,6 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		authService:                 NewAuthService(azureADOAuthClient, logger),
 		storageService:              NewStorageService(azureStorage, logger),
 		userService:                 NewUserService(repoRegistry, dtoRegistry, logger),
-		teamService:                 NewTeamService(repoRegistry, dtoRegistry, logger),
 		jobPositionService:          NewJobPositionService(repoRegistry, dtoRegistry, logger),
 		hiringJobService:            NewHiringJobService(repoRegistry, dtoRegistry, logger),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
@@ -96,6 +95,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		emailService:                NewEmailService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		reportService:               NewReportService(repoRegistry, logger),
 		outgoingEmailService:        NewOutgoingEmailService(repoRegistry, logger),
+		hiringTeamService:           NewHiringTeamService(repoRegistry, dtoRegistry, logger),
 	}
 }
 
@@ -112,11 +112,6 @@ func (i serviceImpl) Storage() StorageService {
 // User returns the UserService.
 func (i serviceImpl) User() UserService {
 	return i.userService
-}
-
-// Team returns the TeamService.
-func (i serviceImpl) Team() TeamService {
-	return i.teamService
 }
 
 // JobPosition returns the JobPositionService.
@@ -204,4 +199,8 @@ func (i serviceImpl) Report() ReportService {
 
 func (i serviceImpl) OutgoingEmail() OutgoingEmailService {
 	return i.outgoingEmailService
+}
+
+func (i serviceImpl) HiringTeam() HiringTeamService {
+	return i.hiringTeamService
 }

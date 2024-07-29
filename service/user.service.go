@@ -34,8 +34,8 @@ type UserService interface {
 	GetUser(ctx context.Context, id uuid.UUID) (*ent.UserResponse, error)
 	GetUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
-	UpdateTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error
-	RemoveTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error
+	UpdateHiringTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error
+	RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error
 }
 
 type userSvcImpl struct {
@@ -354,7 +354,7 @@ func (svc *userSvcImpl) GetUsers(ctx context.Context, pagination *ent.Pagination
 	return result, nil
 }
 
-func (svc *userSvcImpl) UpdateTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error {
+func (svc *userSvcImpl) UpdateHiringTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error {
 	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildQuery().Where(user.IDIn(userId...)))
 	if err != nil {
 		return err
@@ -373,7 +373,7 @@ func (svc *userSvcImpl) UpdateTeam(ctx context.Context, teamName string, teamId 
 	return err
 }
 
-func (svc *userSvcImpl) RemoveTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error {
+func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error {
 	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildQuery().Where(user.IDIn(userId...)))
 	if err != nil {
 		return err

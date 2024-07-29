@@ -1,7 +1,7 @@
 type Query {
-  # Team
-  GetTeam(id: ID!): TeamResponse!
-  GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
+	# HiringTeam
+	GetHiringTeam(id: ID!): HiringTeamResponse!
+	GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
 
   # User
   GetUser(id: ID!): UserResponse!
@@ -50,14 +50,14 @@ type Query {
   GetSkillType(id: ID!): SkillTypeResponse!
   GetAllSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeResponseGetAll!
 
-  # Selection
-  SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
-  SelectionTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamSelectionResponseGetAll!
-  SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
-  SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
-  SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
-  SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
-  SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
+	# Selection
+	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
+	SelectionHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamSelectionResponseGetAll!
+	SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
+	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
+	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
+	SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
+	SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
 
   # Role
   GetRole(id: ID!): RoleResponse!
