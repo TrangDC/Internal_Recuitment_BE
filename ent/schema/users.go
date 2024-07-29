@@ -39,6 +39,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("user_permission_edges", EntityPermission.Type),
 		edge.To("role_edges", Role.Type).Through("role_users", UserRole.Type),
 		edge.From("member_of_team_edges", Team.Type).Ref("member_edges").Unique().Field("team_id"),
+		edge.To("hiring_team_edges", HiringTeam.Type).Through("hiring_team_users", HiringTeamManager.Type),
 	}
 }
 

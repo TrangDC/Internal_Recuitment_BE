@@ -40,6 +40,7 @@ type HiringTeam {
   id: ID!
   name: String!
   slug: String!
+  managers: [User!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
   created_at: Time!

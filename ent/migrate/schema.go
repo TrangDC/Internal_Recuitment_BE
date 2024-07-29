@@ -467,6 +467,42 @@ var (
 		Columns:    HiringTeamsColumns,
 		PrimaryKey: []*schema.Column{HiringTeamsColumns[0]},
 	}
+	// HiringTeamManagersColumns holds the columns for the "hiring_team_managers" table.
+	HiringTeamManagersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "hiring_team_id", Type: field.TypeUUID},
+	}
+	// HiringTeamManagersTable holds the schema information for the "hiring_team_managers" table.
+	HiringTeamManagersTable = &schema.Table{
+		Name:       "hiring_team_managers",
+		Columns:    HiringTeamManagersColumns,
+		PrimaryKey: []*schema.Column{HiringTeamManagersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "hiring_team_managers_users_user_edge",
+				Columns:    []*schema.Column{HiringTeamManagersColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "hiring_team_managers_hiring_teams_hiring_team_edge",
+				Columns:    []*schema.Column{HiringTeamManagersColumns[5]},
+				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "hiringteammanager_user_id_hiring_team_id",
+				Unique:  true,
+				Columns: []*schema.Column{HiringTeamManagersColumns[4], HiringTeamManagersColumns[5]},
+			},
+		},
+	}
 	// JobPositionsColumns holds the columns for the "job_positions" table.
 	JobPositionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -741,6 +777,7 @@ var (
 		EntitySkillsTable,
 		HiringJobsTable,
 		HiringTeamsTable,
+		HiringTeamManagersTable,
 		JobPositionsTable,
 		OutgoingEmailsTable,
 		PermissionsTable,
@@ -782,6 +819,8 @@ func init() {
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = TeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable
+	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	SkillsTable.ForeignKeys[0].RefTable = SkillTypesTable

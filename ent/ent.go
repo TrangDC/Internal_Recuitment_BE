@@ -20,6 +20,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -69,6 +70,7 @@ func columnChecker(table string) func(string) error {
 		entityskill.Table:          entityskill.ValidColumn,
 		hiringjob.Table:            hiringjob.ValidColumn,
 		hiringteam.Table:           hiringteam.ValidColumn,
+		hiringteammanager.Table:    hiringteammanager.ValidColumn,
 		jobposition.Table:          jobposition.ValidColumn,
 		outgoingemail.Table:        outgoingemail.ValidColumn,
 		permission.Table:           permission.ValidColumn,

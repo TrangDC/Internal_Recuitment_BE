@@ -20,6 +20,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -1583,7 +1584,7 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ht.ID,
 		Type:   "HiringTeam",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ht.CreatedAt); err != nil {
@@ -1625,6 +1626,97 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "name",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user_edges",
+	}
+	err = ht.QueryUserEdges().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "HiringTeamManager",
+		Name: "user_hiring_teams",
+	}
+	err = ht.QueryUserHiringTeams().
+		Select(hiringteammanager.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (htm *HiringTeamManager) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     htm.ID,
+		Type:   "HiringTeamManager",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(htm.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(htm.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(htm.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(htm.HiringTeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "hiring_team_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(htm.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user_edge",
+	}
+	err = htm.QueryUserEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "HiringTeam",
+		Name: "hiring_team_edge",
+	}
+	err = htm.QueryHiringTeamEdge().
+		Select(hiringteam.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
@@ -2403,7 +2495,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 9),
-		Edges:  make([]*Edge, 14),
+		Edges:  make([]*Edge, 16),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
@@ -2589,32 +2681,52 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[11] = &Edge{
-		Type: "TeamManager",
-		Name: "team_users",
+		Type: "HiringTeam",
+		Name: "hiring_team_edges",
 	}
-	err = u.QueryTeamUsers().
-		Select(teammanager.FieldID).
+	err = u.QueryHiringTeamEdges().
+		Select(hiringteam.FieldID).
 		Scan(ctx, &node.Edges[11].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[12] = &Edge{
-		Type: "CandidateInterviewer",
-		Name: "interview_users",
+		Type: "TeamManager",
+		Name: "team_users",
 	}
-	err = u.QueryInterviewUsers().
-		Select(candidateinterviewer.FieldID).
+	err = u.QueryTeamUsers().
+		Select(teammanager.FieldID).
 		Scan(ctx, &node.Edges[12].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[13] = &Edge{
+		Type: "CandidateInterviewer",
+		Name: "interview_users",
+	}
+	err = u.QueryInterviewUsers().
+		Select(candidateinterviewer.FieldID).
+		Scan(ctx, &node.Edges[13].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[14] = &Edge{
 		Type: "UserRole",
 		Name: "role_users",
 	}
 	err = u.QueryRoleUsers().
 		Select(userrole.FieldID).
-		Scan(ctx, &node.Edges[13].IDs)
+		Scan(ctx, &node.Edges[14].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[15] = &Edge{
+		Type: "HiringTeamManager",
+		Name: "hiring_team_users",
+	}
+	err = u.QueryHiringTeamUsers().
+		Select(hiringteammanager.FieldID).
+		Scan(ctx, &node.Edges[15].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2918,6 +3030,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.HiringTeam.Query().
 			Where(hiringteam.ID(id))
 		query, err := query.CollectFields(ctx, "HiringTeam")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case hiringteammanager.Table:
+		query := c.HiringTeamManager.Query().
+			Where(hiringteammanager.ID(id))
+		query, err := query.CollectFields(ctx, "HiringTeamManager")
 		if err != nil {
 			return nil, err
 		}
@@ -3343,6 +3467,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringTeam.Query().
 			Where(hiringteam.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringTeam")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case hiringteammanager.Table:
+		query := c.HiringTeamManager.Query().
+			Where(hiringteammanager.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "HiringTeamManager")
 		if err != nil {
 			return nil, err
 		}

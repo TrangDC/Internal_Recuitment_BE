@@ -18,6 +18,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -347,6 +348,15 @@ func init() {
 			return nil
 		}
 	}()
+	hiringteammanagerMixin := schema.HiringTeamManager{}.Mixin()
+	hiringteammanagerMixinFields0 := hiringteammanagerMixin[0].Fields()
+	_ = hiringteammanagerMixinFields0
+	hiringteammanagerFields := schema.HiringTeamManager{}.Fields()
+	_ = hiringteammanagerFields
+	// hiringteammanagerDescCreatedAt is the schema descriptor for created_at field.
+	hiringteammanagerDescCreatedAt := hiringteammanagerMixinFields0[1].Descriptor()
+	// hiringteammanager.DefaultCreatedAt holds the default value on creation for the created_at field.
+	hiringteammanager.DefaultCreatedAt = hiringteammanagerDescCreatedAt.Default.(func() time.Time)
 	jobpositionMixin := schema.JobPosition{}.Mixin()
 	jobpositionMixinFields0 := jobpositionMixin[0].Fields()
 	_ = jobpositionMixinFields0

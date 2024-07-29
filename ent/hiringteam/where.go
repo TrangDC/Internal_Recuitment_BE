@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -531,6 +532,62 @@ func NameEqualFold(v string) predicate.HiringTeam {
 func NameContainsFold(v string) predicate.HiringTeam {
 	return predicate.HiringTeam(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// HasUserEdges applies the HasEdge predicate on the "user_edges" edge.
+func HasUserEdges() predicate.HiringTeam {
+	return predicate.HiringTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, UserEdgesTable, UserEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserEdgesWith applies the HasEdge predicate on the "user_edges" edge with a given conditions (other predicates).
+func HasUserEdgesWith(preds ...predicate.User) predicate.HiringTeam {
+	return predicate.HiringTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, UserEdgesTable, UserEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserHiringTeams applies the HasEdge predicate on the "user_hiring_teams" edge.
+func HasUserHiringTeams() predicate.HiringTeam {
+	return predicate.HiringTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserHiringTeamsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserHiringTeamsTable, UserHiringTeamsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserHiringTeamsWith applies the HasEdge predicate on the "user_hiring_teams" edge with a given conditions (other predicates).
+func HasUserHiringTeamsWith(preds ...predicate.HiringTeamManager) predicate.HiringTeam {
+	return predicate.HiringTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserHiringTeamsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, UserHiringTeamsTable, UserHiringTeamsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 
