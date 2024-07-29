@@ -3,6 +3,7 @@ GOARCH :=
 VERSION?="1.0.0"
 COMMIT?=$(shell git rev-parse --short HEAD)
 DATE := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+POSTGRES_URL?="$(POSTGRES_CONNECTION_STRING)"
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
