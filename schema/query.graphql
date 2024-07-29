@@ -1,83 +1,84 @@
 type Query {
-	# Team
-	GetTeam(id: ID!): TeamResponse!
-	GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
+  # Team
+  GetTeam(id: ID!): TeamResponse!
+  GetAllTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamResponseGetAll!
 
-	# User
-	GetUser(id: ID!): UserResponse!
-	GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
-	GetMe: UserResponse!
+  # User
+  GetUser(id: ID!): UserResponse!
+  GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
+  GetMe: UserResponse!
 
-	# JobPosition
-	GetJobPosition(id: ID!): JobPositionResponse!
+  # JobPosition
+  GetJobPosition(id: ID!): JobPositionResponse!
+  GetAllJobPositions(pagination: PaginationInput, filter: JobPositionFilter, freeWord: JobPositionFreeWord, orderBy: JobPositionOrder): JobPositionResponseGetAll!
 
-	# HiringJob
-	GetHiringJob(id: ID!): HiringJobResponse!
-	GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
+  # HiringJob
+  GetHiringJob(id: ID!): HiringJobResponse!
+  GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
 
-	# AuditTrail
-	GetAuditTrail(id: ID!): AuditTrailResponse!
-	GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
+  # AuditTrail
+  GetAuditTrail(id: ID!): AuditTrailResponse!
+  GetAllAuditTrails(pagination: PaginationInput, filter: AuditTrailFilter, freeWord: AuditTrailFreeWord, orderBy: AuditTrailOrder): AuditTrailResponseGetAll!
 
-	# Candidate
-	GetCandidate(id: ID!): CandidateResponse!
-	GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
+  # Candidate
+  GetCandidate(id: ID!): CandidateResponse!
+  GetAllCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateResponseGetAll!
 
-	# CandidateJob
-	GetCandidateJob(id: ID!): CandidateJobResponse!
-	GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
-	GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
-	GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
+  # CandidateJob
+  GetCandidateJob(id: ID!): CandidateJobResponse!
+  GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
+  GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
+  GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
 
-	# CandidateJobFeedback
-	GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
-	GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
+  # CandidateJobFeedback
+  GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
+  GetAllCandidateJobFeedbacks(pagination: PaginationInput, filter: CandidateJobFeedbackFilter!, freeWord: CandidateJobFeedbackFreeWord, orderBy: CandidateJobFeedbackOrder): CandidateJobFeedbackResponseGetAll!
 
-	# CandidateInterview
-	GetCandidateInterview(id: ID!): CandidateInterviewResponse!
-	GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
-	GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
+  # CandidateInterview
+  GetCandidateInterview(id: ID!): CandidateInterviewResponse!
+  GetAllCandidateInterviews(pagination: PaginationInput, filter: CandidateInterviewFilter!, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
+  GetAllCandidateInterview4Calendar(pagination: PaginationInput, filter: CandidateInterviewCalendarFilter, freeWord: CandidateInterviewFreeWord, orderBy: CandidateInterviewOrder): CandidateInterviewResponseGetAll!
 
-	# Export
-	ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
+  # Export
+  ExportSampleCandidate(lang: I18nLanguage!): Base64Response!
 
-	# Skill
-	GetSkill(id: ID!): SkillResponse!
-	GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
+  # Skill
+  GetSkill(id: ID!): SkillResponse!
+  GetAllSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillResponseGetAll!
 
-	# SkillType
-	GetSkillType(id: ID!): SkillTypeResponse!
-	GetAllSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeResponseGetAll!
+  # SkillType
+  GetSkillType(id: ID!): SkillTypeResponse!
+  GetAllSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeResponseGetAll!
 
-	# Selection
-	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
-	SelectionTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamSelectionResponseGetAll!
-	SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
-	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
-	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
-	SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
-	SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
+  # Selection
+  SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
+  SelectionTeams(pagination: PaginationInput, filter: TeamFilter, freeWord: TeamFreeWord, orderBy: TeamOrderBy!): TeamSelectionResponseGetAll!
+  SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
+  SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
+  SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
+  SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
+  SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
 
-	# Role
-	GetRole(id: ID!): RoleResponse!
-	GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
+  # Role
+  GetRole(id: ID!): RoleResponse!
+  GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
 
-	# EmailTemplate
-	GetEmailTemplate(id: ID!): EmailTemplateResponse!
-	GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
-	GetAllEmailTemplateKeywords(filter: EmailTemplateKeywordFilter!): GetEmailTemplateKeywordResponse!
+  # EmailTemplate
+  GetEmailTemplate(id: ID!): EmailTemplateResponse!
+  GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
+  GetAllEmailTemplateKeywords(filter: EmailTemplateKeywordFilter!): GetEmailTemplateKeywordResponse!
 
-	# Permission
-	GetAllPermissionGroups: PermissionGroupResponseGetAll
+  # Permission
+  GetAllPermissionGroups: PermissionGroupResponseGetAll
 
-	# Report
-	# LCC = line circle chart
-	ReportCandidateLCC: ReportCandidateLCCResponse!
-	ReportCandidateColumnChart(filter: ReportFilter!): ReportCandidateColumnChartResponse!
-	ReportApplication(filter: ReportFilter!): ReportApplicationResponse!
-	ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
-	ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
-	ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
+  # Report
+  # LCC = line circle chart
+  ReportCandidateLCC: ReportCandidateLCCResponse!
+  ReportCandidateColumnChart(filter: ReportFilter!): ReportCandidateColumnChartResponse!
+  ReportApplication(filter: ReportFilter!): ReportApplicationResponse!
+  ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
+  ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
+  ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 }
 
 # Path: schema/query.graphql

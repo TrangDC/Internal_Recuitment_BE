@@ -1,3 +1,22 @@
+enum JobPositionOrderField {
+  name
+  description
+  created_at
+}
+
+input JobPositionOrder {
+  direction: OrderDirection!
+  field: JobPositionOrderField!
+}
+
+input JobPositionFilter {
+  name: String
+}
+
+input JobPositionFreeWord {
+  name: String
+}
+
 input NewJobPositionInput {
   name: String!
   description: String!
@@ -19,6 +38,16 @@ type JobPosition {
 
 type JobPositionResponse {
   data: JobPosition!
+}
+
+type JobPositionEdge {
+  node: JobPosition!
+  cursor: Cursor!
+}
+
+type JobPositionResponseGetAll {
+  edges: [JobPositionEdge!]!
+  pagination: Pagination!
 }
 
 # Path: schema/job_position.graphql

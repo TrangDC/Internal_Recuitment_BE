@@ -20,6 +20,8 @@ type JobPositionRepository interface {
 	// query
 	GetJobPosition(ctx context.Context, id uuid.UUID) (*ent.JobPosition, error)
 	BuildQuery() *ent.JobPositionQuery
+	BuildCount(ctx context.Context, query *ent.JobPositionQuery) (int, error)
+	BuildList(ctx context.Context, query *ent.JobPositionQuery) ([]*ent.JobPosition, error)
 
 	// common function
 	ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error)
@@ -46,6 +48,14 @@ func (rps *jobPositionRepoImpl) BuildQuery() *ent.JobPositionQuery {
 
 func (rps *jobPositionRepoImpl) BuildGet(ctx context.Context, query *ent.JobPositionQuery) (*ent.JobPosition, error) {
 	return query.First(ctx)
+}
+
+func (rps *jobPositionRepoImpl) BuildList(ctx context.Context, query *ent.JobPositionQuery) ([]*ent.JobPosition, error) {
+	return query.All(ctx)
+}
+
+func (rps *jobPositionRepoImpl) BuildCount(ctx context.Context, query *ent.JobPositionQuery) (int, error) {
+	return query.Count(ctx)
 }
 
 func (rps *jobPositionRepoImpl) BuildExist(ctx context.Context, query *ent.JobPositionQuery) (bool, error) {
