@@ -22,6 +22,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -63,6 +64,7 @@ const (
 	TypeEntitySkill          = "EntitySkill"
 	TypeHiringJob            = "HiringJob"
 	TypeHiringTeam           = "HiringTeam"
+	TypeHiringTeamManager    = "HiringTeamManager"
 	TypeJobPosition          = "JobPosition"
 	TypeOutgoingEmail        = "OutgoingEmail"
 	TypePermission           = "Permission"
@@ -14287,18 +14289,24 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 // HiringTeamMutation represents an operation that mutates the HiringTeam nodes in the graph.
 type HiringTeamMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	slug          *string
-	name          *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*HiringTeam, error)
-	predicates    []predicate.HiringTeam
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	deleted_at               *time.Time
+	slug                     *string
+	name                     *string
+	clearedFields            map[string]struct{}
+	user_edges               map[uuid.UUID]struct{}
+	removeduser_edges        map[uuid.UUID]struct{}
+	cleareduser_edges        bool
+	user_hiring_teams        map[uuid.UUID]struct{}
+	removeduser_hiring_teams map[uuid.UUID]struct{}
+	cleareduser_hiring_teams bool
+	done                     bool
+	oldValue                 func(context.Context) (*HiringTeam, error)
+	predicates               []predicate.HiringTeam
 }
 
 var _ ent.Mutation = (*HiringTeamMutation)(nil)
@@ -14611,6 +14619,114 @@ func (m *HiringTeamMutation) ResetName() {
 	m.name = nil
 }
 
+// AddUserEdgeIDs adds the "user_edges" edge to the User entity by ids.
+func (m *HiringTeamMutation) AddUserEdgeIDs(ids ...uuid.UUID) {
+	if m.user_edges == nil {
+		m.user_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.user_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserEdges clears the "user_edges" edge to the User entity.
+func (m *HiringTeamMutation) ClearUserEdges() {
+	m.cleareduser_edges = true
+}
+
+// UserEdgesCleared reports if the "user_edges" edge to the User entity was cleared.
+func (m *HiringTeamMutation) UserEdgesCleared() bool {
+	return m.cleareduser_edges
+}
+
+// RemoveUserEdgeIDs removes the "user_edges" edge to the User entity by IDs.
+func (m *HiringTeamMutation) RemoveUserEdgeIDs(ids ...uuid.UUID) {
+	if m.removeduser_edges == nil {
+		m.removeduser_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_edges, ids[i])
+		m.removeduser_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserEdges returns the removed IDs of the "user_edges" edge to the User entity.
+func (m *HiringTeamMutation) RemovedUserEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserEdgesIDs returns the "user_edges" edge IDs in the mutation.
+func (m *HiringTeamMutation) UserEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.user_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserEdges resets all changes to the "user_edges" edge.
+func (m *HiringTeamMutation) ResetUserEdges() {
+	m.user_edges = nil
+	m.cleareduser_edges = false
+	m.removeduser_edges = nil
+}
+
+// AddUserHiringTeamIDs adds the "user_hiring_teams" edge to the HiringTeamManager entity by ids.
+func (m *HiringTeamMutation) AddUserHiringTeamIDs(ids ...uuid.UUID) {
+	if m.user_hiring_teams == nil {
+		m.user_hiring_teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.user_hiring_teams[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserHiringTeams clears the "user_hiring_teams" edge to the HiringTeamManager entity.
+func (m *HiringTeamMutation) ClearUserHiringTeams() {
+	m.cleareduser_hiring_teams = true
+}
+
+// UserHiringTeamsCleared reports if the "user_hiring_teams" edge to the HiringTeamManager entity was cleared.
+func (m *HiringTeamMutation) UserHiringTeamsCleared() bool {
+	return m.cleareduser_hiring_teams
+}
+
+// RemoveUserHiringTeamIDs removes the "user_hiring_teams" edge to the HiringTeamManager entity by IDs.
+func (m *HiringTeamMutation) RemoveUserHiringTeamIDs(ids ...uuid.UUID) {
+	if m.removeduser_hiring_teams == nil {
+		m.removeduser_hiring_teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_hiring_teams, ids[i])
+		m.removeduser_hiring_teams[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserHiringTeams returns the removed IDs of the "user_hiring_teams" edge to the HiringTeamManager entity.
+func (m *HiringTeamMutation) RemovedUserHiringTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_hiring_teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserHiringTeamsIDs returns the "user_hiring_teams" edge IDs in the mutation.
+func (m *HiringTeamMutation) UserHiringTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.user_hiring_teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserHiringTeams resets all changes to the "user_hiring_teams" edge.
+func (m *HiringTeamMutation) ResetUserHiringTeams() {
+	m.user_hiring_teams = nil
+	m.cleareduser_hiring_teams = false
+	m.removeduser_hiring_teams = nil
+}
+
 // Where appends a list predicates to the HiringTeamMutation builder.
 func (m *HiringTeamMutation) Where(ps ...predicate.HiringTeam) {
 	m.predicates = append(m.predicates, ps...)
@@ -14812,50 +14928,810 @@ func (m *HiringTeamMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HiringTeamMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.user_edges != nil {
+		edges = append(edges, hiringteam.EdgeUserEdges)
+	}
+	if m.user_hiring_teams != nil {
+		edges = append(edges, hiringteam.EdgeUserHiringTeams)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *HiringTeamMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case hiringteam.EdgeUserEdges:
+		ids := make([]ent.Value, 0, len(m.user_edges))
+		for id := range m.user_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case hiringteam.EdgeUserHiringTeams:
+		ids := make([]ent.Value, 0, len(m.user_hiring_teams))
+		for id := range m.user_hiring_teams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *HiringTeamMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removeduser_edges != nil {
+		edges = append(edges, hiringteam.EdgeUserEdges)
+	}
+	if m.removeduser_hiring_teams != nil {
+		edges = append(edges, hiringteam.EdgeUserHiringTeams)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *HiringTeamMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case hiringteam.EdgeUserEdges:
+		ids := make([]ent.Value, 0, len(m.removeduser_edges))
+		for id := range m.removeduser_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case hiringteam.EdgeUserHiringTeams:
+		ids := make([]ent.Value, 0, len(m.removeduser_hiring_teams))
+		for id := range m.removeduser_hiring_teams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HiringTeamMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.cleareduser_edges {
+		edges = append(edges, hiringteam.EdgeUserEdges)
+	}
+	if m.cleareduser_hiring_teams {
+		edges = append(edges, hiringteam.EdgeUserHiringTeams)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *HiringTeamMutation) EdgeCleared(name string) bool {
+	switch name {
+	case hiringteam.EdgeUserEdges:
+		return m.cleareduser_edges
+	case hiringteam.EdgeUserHiringTeams:
+		return m.cleareduser_hiring_teams
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *HiringTeamMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown HiringTeam unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *HiringTeamMutation) ResetEdge(name string) error {
+	switch name {
+	case hiringteam.EdgeUserEdges:
+		m.ResetUserEdges()
+		return nil
+	case hiringteam.EdgeUserHiringTeams:
+		m.ResetUserHiringTeams()
+		return nil
+	}
 	return fmt.Errorf("unknown HiringTeam edge %s", name)
+}
+
+// HiringTeamManagerMutation represents an operation that mutates the HiringTeamManager nodes in the graph.
+type HiringTeamManagerMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	clearedFields           map[string]struct{}
+	user_edge               *uuid.UUID
+	cleareduser_edge        bool
+	hiring_team_edge        *uuid.UUID
+	clearedhiring_team_edge bool
+	done                    bool
+	oldValue                func(context.Context) (*HiringTeamManager, error)
+	predicates              []predicate.HiringTeamManager
+}
+
+var _ ent.Mutation = (*HiringTeamManagerMutation)(nil)
+
+// hiringteammanagerOption allows management of the mutation configuration using functional options.
+type hiringteammanagerOption func(*HiringTeamManagerMutation)
+
+// newHiringTeamManagerMutation creates new mutation for the HiringTeamManager entity.
+func newHiringTeamManagerMutation(c config, op Op, opts ...hiringteammanagerOption) *HiringTeamManagerMutation {
+	m := &HiringTeamManagerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeHiringTeamManager,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withHiringTeamManagerID sets the ID field of the mutation.
+func withHiringTeamManagerID(id uuid.UUID) hiringteammanagerOption {
+	return func(m *HiringTeamManagerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *HiringTeamManager
+		)
+		m.oldValue = func(ctx context.Context) (*HiringTeamManager, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().HiringTeamManager.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withHiringTeamManager sets the old HiringTeamManager of the mutation.
+func withHiringTeamManager(node *HiringTeamManager) hiringteammanagerOption {
+	return func(m *HiringTeamManagerMutation) {
+		m.oldValue = func(context.Context) (*HiringTeamManager, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m HiringTeamManagerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m HiringTeamManagerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of HiringTeamManager entities.
+func (m *HiringTeamManagerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *HiringTeamManagerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *HiringTeamManagerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().HiringTeamManager.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *HiringTeamManagerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *HiringTeamManagerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the HiringTeamManager entity.
+// If the HiringTeamManager object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamManagerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *HiringTeamManagerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *HiringTeamManagerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *HiringTeamManagerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the HiringTeamManager entity.
+// If the HiringTeamManager object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamManagerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *HiringTeamManagerMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[hiringteammanager.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *HiringTeamManagerMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[hiringteammanager.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *HiringTeamManagerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, hiringteammanager.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *HiringTeamManagerMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *HiringTeamManagerMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the HiringTeamManager entity.
+// If the HiringTeamManager object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamManagerMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *HiringTeamManagerMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[hiringteammanager.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *HiringTeamManagerMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[hiringteammanager.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *HiringTeamManagerMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, hiringteammanager.FieldDeletedAt)
+}
+
+// SetHiringTeamID sets the "hiring_team_id" field.
+func (m *HiringTeamManagerMutation) SetHiringTeamID(u uuid.UUID) {
+	m.hiring_team_edge = &u
+}
+
+// HiringTeamID returns the value of the "hiring_team_id" field in the mutation.
+func (m *HiringTeamManagerMutation) HiringTeamID() (r uuid.UUID, exists bool) {
+	v := m.hiring_team_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiringTeamID returns the old "hiring_team_id" field's value of the HiringTeamManager entity.
+// If the HiringTeamManager object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamManagerMutation) OldHiringTeamID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiringTeamID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiringTeamID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiringTeamID: %w", err)
+	}
+	return oldValue.HiringTeamID, nil
+}
+
+// ResetHiringTeamID resets all changes to the "hiring_team_id" field.
+func (m *HiringTeamManagerMutation) ResetHiringTeamID() {
+	m.hiring_team_edge = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *HiringTeamManagerMutation) SetUserID(u uuid.UUID) {
+	m.user_edge = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *HiringTeamManagerMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the HiringTeamManager entity.
+// If the HiringTeamManager object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamManagerMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *HiringTeamManagerMutation) ResetUserID() {
+	m.user_edge = nil
+}
+
+// SetUserEdgeID sets the "user_edge" edge to the User entity by id.
+func (m *HiringTeamManagerMutation) SetUserEdgeID(id uuid.UUID) {
+	m.user_edge = &id
+}
+
+// ClearUserEdge clears the "user_edge" edge to the User entity.
+func (m *HiringTeamManagerMutation) ClearUserEdge() {
+	m.cleareduser_edge = true
+}
+
+// UserEdgeCleared reports if the "user_edge" edge to the User entity was cleared.
+func (m *HiringTeamManagerMutation) UserEdgeCleared() bool {
+	return m.cleareduser_edge
+}
+
+// UserEdgeID returns the "user_edge" edge ID in the mutation.
+func (m *HiringTeamManagerMutation) UserEdgeID() (id uuid.UUID, exists bool) {
+	if m.user_edge != nil {
+		return *m.user_edge, true
+	}
+	return
+}
+
+// UserEdgeIDs returns the "user_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserEdgeID instead. It exists only for internal usage by the builders.
+func (m *HiringTeamManagerMutation) UserEdgeIDs() (ids []uuid.UUID) {
+	if id := m.user_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserEdge resets all changes to the "user_edge" edge.
+func (m *HiringTeamManagerMutation) ResetUserEdge() {
+	m.user_edge = nil
+	m.cleareduser_edge = false
+}
+
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by id.
+func (m *HiringTeamManagerMutation) SetHiringTeamEdgeID(id uuid.UUID) {
+	m.hiring_team_edge = &id
+}
+
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (m *HiringTeamManagerMutation) ClearHiringTeamEdge() {
+	m.clearedhiring_team_edge = true
+}
+
+// HiringTeamEdgeCleared reports if the "hiring_team_edge" edge to the HiringTeam entity was cleared.
+func (m *HiringTeamManagerMutation) HiringTeamEdgeCleared() bool {
+	return m.clearedhiring_team_edge
+}
+
+// HiringTeamEdgeID returns the "hiring_team_edge" edge ID in the mutation.
+func (m *HiringTeamManagerMutation) HiringTeamEdgeID() (id uuid.UUID, exists bool) {
+	if m.hiring_team_edge != nil {
+		return *m.hiring_team_edge, true
+	}
+	return
+}
+
+// HiringTeamEdgeIDs returns the "hiring_team_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// HiringTeamEdgeID instead. It exists only for internal usage by the builders.
+func (m *HiringTeamManagerMutation) HiringTeamEdgeIDs() (ids []uuid.UUID) {
+	if id := m.hiring_team_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetHiringTeamEdge resets all changes to the "hiring_team_edge" edge.
+func (m *HiringTeamManagerMutation) ResetHiringTeamEdge() {
+	m.hiring_team_edge = nil
+	m.clearedhiring_team_edge = false
+}
+
+// Where appends a list predicates to the HiringTeamManagerMutation builder.
+func (m *HiringTeamManagerMutation) Where(ps ...predicate.HiringTeamManager) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *HiringTeamManagerMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (HiringTeamManager).
+func (m *HiringTeamManagerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *HiringTeamManagerMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, hiringteammanager.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, hiringteammanager.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, hiringteammanager.FieldDeletedAt)
+	}
+	if m.hiring_team_edge != nil {
+		fields = append(fields, hiringteammanager.FieldHiringTeamID)
+	}
+	if m.user_edge != nil {
+		fields = append(fields, hiringteammanager.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *HiringTeamManagerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case hiringteammanager.FieldCreatedAt:
+		return m.CreatedAt()
+	case hiringteammanager.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case hiringteammanager.FieldDeletedAt:
+		return m.DeletedAt()
+	case hiringteammanager.FieldHiringTeamID:
+		return m.HiringTeamID()
+	case hiringteammanager.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *HiringTeamManagerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case hiringteammanager.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case hiringteammanager.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case hiringteammanager.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case hiringteammanager.FieldHiringTeamID:
+		return m.OldHiringTeamID(ctx)
+	case hiringteammanager.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown HiringTeamManager field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HiringTeamManagerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case hiringteammanager.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case hiringteammanager.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case hiringteammanager.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case hiringteammanager.FieldHiringTeamID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiringTeamID(v)
+		return nil
+	case hiringteammanager.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HiringTeamManager field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *HiringTeamManagerMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *HiringTeamManagerMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HiringTeamManagerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown HiringTeamManager numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *HiringTeamManagerMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(hiringteammanager.FieldUpdatedAt) {
+		fields = append(fields, hiringteammanager.FieldUpdatedAt)
+	}
+	if m.FieldCleared(hiringteammanager.FieldDeletedAt) {
+		fields = append(fields, hiringteammanager.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *HiringTeamManagerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *HiringTeamManagerMutation) ClearField(name string) error {
+	switch name {
+	case hiringteammanager.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case hiringteammanager.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown HiringTeamManager nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *HiringTeamManagerMutation) ResetField(name string) error {
+	switch name {
+	case hiringteammanager.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case hiringteammanager.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case hiringteammanager.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case hiringteammanager.FieldHiringTeamID:
+		m.ResetHiringTeamID()
+		return nil
+	case hiringteammanager.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown HiringTeamManager field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *HiringTeamManagerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user_edge != nil {
+		edges = append(edges, hiringteammanager.EdgeUserEdge)
+	}
+	if m.hiring_team_edge != nil {
+		edges = append(edges, hiringteammanager.EdgeHiringTeamEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *HiringTeamManagerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case hiringteammanager.EdgeUserEdge:
+		if id := m.user_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case hiringteammanager.EdgeHiringTeamEdge:
+		if id := m.hiring_team_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *HiringTeamManagerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *HiringTeamManagerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *HiringTeamManagerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser_edge {
+		edges = append(edges, hiringteammanager.EdgeUserEdge)
+	}
+	if m.clearedhiring_team_edge {
+		edges = append(edges, hiringteammanager.EdgeHiringTeamEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *HiringTeamManagerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case hiringteammanager.EdgeUserEdge:
+		return m.cleareduser_edge
+	case hiringteammanager.EdgeHiringTeamEdge:
+		return m.clearedhiring_team_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *HiringTeamManagerMutation) ClearEdge(name string) error {
+	switch name {
+	case hiringteammanager.EdgeUserEdge:
+		m.ClearUserEdge()
+		return nil
+	case hiringteammanager.EdgeHiringTeamEdge:
+		m.ClearHiringTeamEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown HiringTeamManager unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *HiringTeamManagerMutation) ResetEdge(name string) error {
+	switch name {
+	case hiringteammanager.EdgeUserEdge:
+		m.ResetUserEdge()
+		return nil
+	case hiringteammanager.EdgeHiringTeamEdge:
+		m.ResetHiringTeamEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown HiringTeamManager edge %s", name)
 }
 
 // JobPositionMutation represents an operation that mutates the JobPosition nodes in the graph.
@@ -22692,6 +23568,9 @@ type UserMutation struct {
 	clearedrole_edges                bool
 	member_of_team_edges             *uuid.UUID
 	clearedmember_of_team_edges      bool
+	hiring_team_edges                map[uuid.UUID]struct{}
+	removedhiring_team_edges         map[uuid.UUID]struct{}
+	clearedhiring_team_edges         bool
 	team_users                       map[uuid.UUID]struct{}
 	removedteam_users                map[uuid.UUID]struct{}
 	clearedteam_users                bool
@@ -22701,6 +23580,9 @@ type UserMutation struct {
 	role_users                       map[uuid.UUID]struct{}
 	removedrole_users                map[uuid.UUID]struct{}
 	clearedrole_users                bool
+	hiring_team_users                map[uuid.UUID]struct{}
+	removedhiring_team_users         map[uuid.UUID]struct{}
+	clearedhiring_team_users         bool
 	done                             bool
 	oldValue                         func(context.Context) (*User, error)
 	predicates                       []predicate.User
@@ -23765,6 +24647,60 @@ func (m *UserMutation) ResetMemberOfTeamEdges() {
 	m.clearedmember_of_team_edges = false
 }
 
+// AddHiringTeamEdgeIDs adds the "hiring_team_edges" edge to the HiringTeam entity by ids.
+func (m *UserMutation) AddHiringTeamEdgeIDs(ids ...uuid.UUID) {
+	if m.hiring_team_edges == nil {
+		m.hiring_team_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.hiring_team_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHiringTeamEdges clears the "hiring_team_edges" edge to the HiringTeam entity.
+func (m *UserMutation) ClearHiringTeamEdges() {
+	m.clearedhiring_team_edges = true
+}
+
+// HiringTeamEdgesCleared reports if the "hiring_team_edges" edge to the HiringTeam entity was cleared.
+func (m *UserMutation) HiringTeamEdgesCleared() bool {
+	return m.clearedhiring_team_edges
+}
+
+// RemoveHiringTeamEdgeIDs removes the "hiring_team_edges" edge to the HiringTeam entity by IDs.
+func (m *UserMutation) RemoveHiringTeamEdgeIDs(ids ...uuid.UUID) {
+	if m.removedhiring_team_edges == nil {
+		m.removedhiring_team_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.hiring_team_edges, ids[i])
+		m.removedhiring_team_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHiringTeamEdges returns the removed IDs of the "hiring_team_edges" edge to the HiringTeam entity.
+func (m *UserMutation) RemovedHiringTeamEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedhiring_team_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HiringTeamEdgesIDs returns the "hiring_team_edges" edge IDs in the mutation.
+func (m *UserMutation) HiringTeamEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.hiring_team_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHiringTeamEdges resets all changes to the "hiring_team_edges" edge.
+func (m *UserMutation) ResetHiringTeamEdges() {
+	m.hiring_team_edges = nil
+	m.clearedhiring_team_edges = false
+	m.removedhiring_team_edges = nil
+}
+
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by ids.
 func (m *UserMutation) AddTeamUserIDs(ids ...uuid.UUID) {
 	if m.team_users == nil {
@@ -23925,6 +24861,60 @@ func (m *UserMutation) ResetRoleUsers() {
 	m.role_users = nil
 	m.clearedrole_users = false
 	m.removedrole_users = nil
+}
+
+// AddHiringTeamUserIDs adds the "hiring_team_users" edge to the HiringTeamManager entity by ids.
+func (m *UserMutation) AddHiringTeamUserIDs(ids ...uuid.UUID) {
+	if m.hiring_team_users == nil {
+		m.hiring_team_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.hiring_team_users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHiringTeamUsers clears the "hiring_team_users" edge to the HiringTeamManager entity.
+func (m *UserMutation) ClearHiringTeamUsers() {
+	m.clearedhiring_team_users = true
+}
+
+// HiringTeamUsersCleared reports if the "hiring_team_users" edge to the HiringTeamManager entity was cleared.
+func (m *UserMutation) HiringTeamUsersCleared() bool {
+	return m.clearedhiring_team_users
+}
+
+// RemoveHiringTeamUserIDs removes the "hiring_team_users" edge to the HiringTeamManager entity by IDs.
+func (m *UserMutation) RemoveHiringTeamUserIDs(ids ...uuid.UUID) {
+	if m.removedhiring_team_users == nil {
+		m.removedhiring_team_users = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.hiring_team_users, ids[i])
+		m.removedhiring_team_users[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHiringTeamUsers returns the removed IDs of the "hiring_team_users" edge to the HiringTeamManager entity.
+func (m *UserMutation) RemovedHiringTeamUsersIDs() (ids []uuid.UUID) {
+	for id := range m.removedhiring_team_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HiringTeamUsersIDs returns the "hiring_team_users" edge IDs in the mutation.
+func (m *UserMutation) HiringTeamUsersIDs() (ids []uuid.UUID) {
+	for id := range m.hiring_team_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHiringTeamUsers resets all changes to the "hiring_team_users" edge.
+func (m *UserMutation) ResetHiringTeamUsers() {
+	m.hiring_team_users = nil
+	m.clearedhiring_team_users = false
+	m.removedhiring_team_users = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -24208,7 +25198,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 16)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -24242,6 +25232,9 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.member_of_team_edges != nil {
 		edges = append(edges, user.EdgeMemberOfTeamEdges)
 	}
+	if m.hiring_team_edges != nil {
+		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
 	if m.team_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
 	}
@@ -24250,6 +25243,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.role_users != nil {
 		edges = append(edges, user.EdgeRoleUsers)
+	}
+	if m.hiring_team_users != nil {
+		edges = append(edges, user.EdgeHiringTeamUsers)
 	}
 	return edges
 }
@@ -24322,6 +25318,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.member_of_team_edges; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeHiringTeamEdges:
+		ids := make([]ent.Value, 0, len(m.hiring_team_edges))
+		for id := range m.hiring_team_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.team_users))
 		for id := range m.team_users {
@@ -24340,13 +25342,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeHiringTeamUsers:
+		ids := make([]ent.Value, 0, len(m.hiring_team_users))
+		for id := range m.hiring_team_users {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 16)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -24377,6 +25385,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedrole_edges != nil {
 		edges = append(edges, user.EdgeRoleEdges)
 	}
+	if m.removedhiring_team_edges != nil {
+		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
 	if m.removedteam_users != nil {
 		edges = append(edges, user.EdgeTeamUsers)
 	}
@@ -24385,6 +25396,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedrole_users != nil {
 		edges = append(edges, user.EdgeRoleUsers)
+	}
+	if m.removedhiring_team_users != nil {
+		edges = append(edges, user.EdgeHiringTeamUsers)
 	}
 	return edges
 }
@@ -24453,6 +25467,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeHiringTeamEdges:
+		ids := make([]ent.Value, 0, len(m.removedhiring_team_edges))
+		for id := range m.removedhiring_team_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeTeamUsers:
 		ids := make([]ent.Value, 0, len(m.removedteam_users))
 		for id := range m.removedteam_users {
@@ -24471,13 +25491,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeHiringTeamUsers:
+		ids := make([]ent.Value, 0, len(m.removedhiring_team_users))
+		for id := range m.removedhiring_team_users {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 14)
+	edges := make([]string, 0, 16)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -24511,6 +25537,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedmember_of_team_edges {
 		edges = append(edges, user.EdgeMemberOfTeamEdges)
 	}
+	if m.clearedhiring_team_edges {
+		edges = append(edges, user.EdgeHiringTeamEdges)
+	}
 	if m.clearedteam_users {
 		edges = append(edges, user.EdgeTeamUsers)
 	}
@@ -24519,6 +25548,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedrole_users {
 		edges = append(edges, user.EdgeRoleUsers)
+	}
+	if m.clearedhiring_team_users {
+		edges = append(edges, user.EdgeHiringTeamUsers)
 	}
 	return edges
 }
@@ -24549,12 +25581,16 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedrole_edges
 	case user.EdgeMemberOfTeamEdges:
 		return m.clearedmember_of_team_edges
+	case user.EdgeHiringTeamEdges:
+		return m.clearedhiring_team_edges
 	case user.EdgeTeamUsers:
 		return m.clearedteam_users
 	case user.EdgeInterviewUsers:
 		return m.clearedinterview_users
 	case user.EdgeRoleUsers:
 		return m.clearedrole_users
+	case user.EdgeHiringTeamUsers:
+		return m.clearedhiring_team_users
 	}
 	return false
 }
@@ -24607,6 +25643,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeMemberOfTeamEdges:
 		m.ResetMemberOfTeamEdges()
 		return nil
+	case user.EdgeHiringTeamEdges:
+		m.ResetHiringTeamEdges()
+		return nil
 	case user.EdgeTeamUsers:
 		m.ResetTeamUsers()
 		return nil
@@ -24615,6 +25654,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeRoleUsers:
 		m.ResetRoleUsers()
+		return nil
+	case user.EdgeHiringTeamUsers:
+		m.ResetHiringTeamUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

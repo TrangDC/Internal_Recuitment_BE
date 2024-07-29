@@ -21,8 +21,24 @@ const (
 	FieldSlug = "slug"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// EdgeUserEdges holds the string denoting the user_edges edge name in mutations.
+	EdgeUserEdges = "user_edges"
+	// EdgeUserHiringTeams holds the string denoting the user_hiring_teams edge name in mutations.
+	EdgeUserHiringTeams = "user_hiring_teams"
 	// Table holds the table name of the hiringteam in the database.
 	Table = "hiring_teams"
+	// UserEdgesTable is the table that holds the user_edges relation/edge. The primary key declared below.
+	UserEdgesTable = "hiring_team_managers"
+	// UserEdgesInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserEdgesInverseTable = "users"
+	// UserHiringTeamsTable is the table that holds the user_hiring_teams relation/edge.
+	UserHiringTeamsTable = "hiring_team_managers"
+	// UserHiringTeamsInverseTable is the table name for the HiringTeamManager entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringteammanager" package.
+	UserHiringTeamsInverseTable = "hiring_team_managers"
+	// UserHiringTeamsColumn is the table column denoting the user_hiring_teams relation/edge.
+	UserHiringTeamsColumn = "hiring_team_id"
 )
 
 // Columns holds all SQL columns for hiringteam fields.
@@ -34,6 +50,12 @@ var Columns = []string{
 	FieldSlug,
 	FieldName,
 }
+
+var (
+	// UserEdgesPrimaryKey and UserEdgesColumn2 are the table columns denoting the
+	// primary key for the user_edges relation (M2M).
+	UserEdgesPrimaryKey = []string{"user_id", "hiring_team_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

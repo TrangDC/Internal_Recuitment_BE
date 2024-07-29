@@ -12,7 +12,12 @@ import (
 
 // ID is the resolver for the id field.
 func (r *hiringTeamResolver) ID(ctx context.Context, obj *ent.HiringTeam) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID.String(), nil
+}
+
+// Managers is the resolver for the managers field.
+func (r *hiringTeamResolver) Managers(ctx context.Context, obj *ent.HiringTeam) ([]*ent.User, error) {
+	return obj.Edges.UserEdges, nil
 }
 
 // OpeningRequests is the resolver for the opening_requests field.

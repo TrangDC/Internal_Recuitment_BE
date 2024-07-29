@@ -42,6 +42,7 @@ type hooks struct {
 	EntitySkill          []ent.Hook
 	HiringJob            []ent.Hook
 	HiringTeam           []ent.Hook
+	HiringTeamManager    []ent.Hook
 	JobPosition          []ent.Hook
 	OutgoingEmail        []ent.Hook
 	Permission           []ent.Hook

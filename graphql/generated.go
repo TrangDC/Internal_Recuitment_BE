@@ -504,6 +504,7 @@ type ComplexityRoot struct {
 		DeletedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		IsAbleToDelete  func(childComplexity int) int
+		Managers        func(childComplexity int) int
 		Name            func(childComplexity int) int
 		OpeningRequests func(childComplexity int) int
 		Slug            func(childComplexity int) int
@@ -1080,6 +1081,7 @@ type HiringJobResolver interface {
 type HiringTeamResolver interface {
 	ID(ctx context.Context, obj *ent.HiringTeam) (string, error)
 
+	Managers(ctx context.Context, obj *ent.HiringTeam) ([]*ent.User, error)
 	OpeningRequests(ctx context.Context, obj *ent.HiringTeam) (int, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.HiringTeam) (bool, error)
 }
@@ -3051,6 +3053,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringTeam.IsAbleToDelete(childComplexity), true
+
+	case "HiringTeam.managers":
+		if e.complexity.HiringTeam.Managers == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.Managers(childComplexity), true
 
 	case "HiringTeam.name":
 		if e.complexity.HiringTeam.Name == nil {
@@ -5422,8 +5431,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateEmailTemplateInput,
 		ec.unmarshalInputUpdateEmailTemplateStatusInput,
 		ec.unmarshalInputUpdateHiringJobInput,
-		ec.unmarshalInputUpdateJobPositionInput,
 		ec.unmarshalInputUpdateHiringTeamInput,
+		ec.unmarshalInputUpdateJobPositionInput,
 		ec.unmarshalInputUpdateRoleInput,
 		ec.unmarshalInputUpdateSkillInput,
 		ec.unmarshalInputUpdateSkillTypeInput,
@@ -6628,6 +6637,7 @@ type HiringTeam {
   id: ID!
   name: String!
   slug: String!
+  managers: [User!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
   created_at: Time!
@@ -22705,6 +22715,68 @@ func (ec *executionContext) fieldContext_HiringTeam_slug(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringTeam_managers(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_managers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeam().Managers(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕᚖtrecᚋentᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_managers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "team":
+				return ec.fieldContext_User_team(ctx, field)
+			case "entity_permissions":
+				return ec.fieldContext_User_entity_permissions(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_teams":
+				return ec.fieldContext_User_member_of_teams(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringTeam_opening_requests(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 	if err != nil {
@@ -22967,6 +23039,8 @@ func (ec *executionContext) fieldContext_HiringTeamEdge_node(ctx context.Context
 				return ec.fieldContext_HiringTeam_name(ctx, field)
 			case "slug":
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "managers":
+				return ec.fieldContext_HiringTeam_managers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -23070,6 +23144,8 @@ func (ec *executionContext) fieldContext_HiringTeamResponse_data(ctx context.Con
 				return ec.fieldContext_HiringTeam_name(ctx, field)
 			case "slug":
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "managers":
+				return ec.fieldContext_HiringTeam_managers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -42104,42 +42180,6 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateJobPositionInput(ctx context.Context, obj interface{}) (ent.UpdateJobPositionInput, error) {
-	var it ent.UpdateJobPositionInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "description"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "description":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Context, obj interface{}) (ent.UpdateHiringTeamInput, error) {
 	var it ent.UpdateHiringTeamInput
 	asMap := map[string]interface{}{}
@@ -42167,6 +42207,42 @@ func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
 			it.Members, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateJobPositionInput(ctx context.Context, obj interface{}) (ent.UpdateJobPositionInput, error) {
+	var it ent.UpdateJobPositionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46351,6 +46427,26 @@ func (ec *executionContext) _HiringTeam(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "managers":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeam_managers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "opening_requests":
 			field := field
 

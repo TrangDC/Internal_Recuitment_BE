@@ -27,6 +27,43 @@ type HiringTeam struct {
 	Slug string `json:"slug,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the HiringTeamQuery when eager-loading is set.
+	Edges HiringTeamEdges `json:"edges"`
+}
+
+// HiringTeamEdges holds the relations/edges for other nodes in the graph.
+type HiringTeamEdges struct {
+	// The uniqueness of the user is enforced on the edge schema
+	UserEdges []*User `json:"user_edges,omitempty"`
+	// UserHiringTeams holds the value of the user_hiring_teams edge.
+	UserHiringTeams []*HiringTeamManager `json:"user_hiring_teams,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedUserEdges       map[string][]*User
+	namedUserHiringTeams map[string][]*HiringTeamManager
+}
+
+// UserEdgesOrErr returns the UserEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringTeamEdges) UserEdgesOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.UserEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "user_edges"}
+}
+
+// UserHiringTeamsOrErr returns the UserHiringTeams value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringTeamEdges) UserHiringTeamsOrErr() ([]*HiringTeamManager, error) {
+	if e.loadedTypes[1] {
+		return e.UserHiringTeams, nil
+	}
+	return nil, &NotLoadedError{edge: "user_hiring_teams"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +133,16 @@ func (ht *HiringTeam) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryUserEdges queries the "user_edges" edge of the HiringTeam entity.
+func (ht *HiringTeam) QueryUserEdges() *UserQuery {
+	return (&HiringTeamClient{config: ht.config}).QueryUserEdges(ht)
+}
+
+// QueryUserHiringTeams queries the "user_hiring_teams" edge of the HiringTeam entity.
+func (ht *HiringTeam) QueryUserHiringTeams() *HiringTeamManagerQuery {
+	return (&HiringTeamClient{config: ht.config}).QueryUserHiringTeams(ht)
+}
+
 // Update returns a builder for updating this HiringTeam.
 // Note that you need to call HiringTeam.Unwrap() before calling this method if this HiringTeam
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -135,6 +182,54 @@ func (ht *HiringTeam) String() string {
 	builder.WriteString(ht.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedUserEdges returns the UserEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ht *HiringTeam) NamedUserEdges(name string) ([]*User, error) {
+	if ht.Edges.namedUserEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ht.Edges.namedUserEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ht *HiringTeam) appendNamedUserEdges(name string, edges ...*User) {
+	if ht.Edges.namedUserEdges == nil {
+		ht.Edges.namedUserEdges = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		ht.Edges.namedUserEdges[name] = []*User{}
+	} else {
+		ht.Edges.namedUserEdges[name] = append(ht.Edges.namedUserEdges[name], edges...)
+	}
+}
+
+// NamedUserHiringTeams returns the UserHiringTeams named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ht *HiringTeam) NamedUserHiringTeams(name string) ([]*HiringTeamManager, error) {
+	if ht.Edges.namedUserHiringTeams == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ht.Edges.namedUserHiringTeams[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ht *HiringTeam) appendNamedUserHiringTeams(name string, edges ...*HiringTeamManager) {
+	if ht.Edges.namedUserHiringTeams == nil {
+		ht.Edges.namedUserHiringTeams = make(map[string][]*HiringTeamManager)
+	}
+	if len(edges) == 0 {
+		ht.Edges.namedUserHiringTeams[name] = []*HiringTeamManager{}
+	} else {
+		ht.Edges.namedUserHiringTeams[name] = append(ht.Edges.namedUserHiringTeams[name], edges...)
+	}
 }
 
 // HiringTeams is a parsable slice of HiringTeam.

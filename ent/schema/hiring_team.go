@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,7 +21,10 @@ func (HiringTeam) Fields() []ent.Field {
 
 // Edges of the HiringTeam.
 func (HiringTeam) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("user_edges", User.Type).Ref("hiring_team_edges").Through("user_hiring_teams", HiringTeamManager.Type).
+			Comment("The uniqueness of the user is enforced on the edge schema"),
+	}
 }
 
 func (HiringTeam) Mixin() []ent.Mixin {
