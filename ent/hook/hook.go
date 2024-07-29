@@ -255,6 +255,19 @@ func (f PermissionGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return f(ctx, mv)
 }
 
+// The RecTeamFunc type is an adapter to allow the use of ordinary
+// function as RecTeam mutator.
+type RecTeamFunc func(context.Context, *ent.RecTeamMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RecTeamFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RecTeamMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RecTeamMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)

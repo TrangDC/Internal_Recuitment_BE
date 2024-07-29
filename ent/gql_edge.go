@@ -508,6 +508,26 @@ func (pg *PermissionGroup) PermissionEdges(ctx context.Context) (result []*Permi
 	return result, err
 }
 
+func (rt *RecTeam) RecLeaderEdge(ctx context.Context) (*User, error) {
+	result, err := rt.Edges.RecLeaderEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = rt.QueryRecLeaderEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (rt *RecTeam) RecMemberEdges(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = rt.NamedRecMemberEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = rt.Edges.RecMemberEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = rt.QueryRecMemberEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (r *Role) RolePermissionEdges(ctx context.Context) (result []*EntityPermission, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = r.NamedRolePermissionEdges(graphql.GetFieldContext(ctx).Field.Alias)
@@ -802,6 +822,26 @@ func (u *User) HiringTeamEdges(ctx context.Context) (result []*HiringTeam, err e
 		result, err = u.QueryHiringTeamEdges().All(ctx)
 	}
 	return result, err
+}
+
+func (u *User) LedRecTeams(ctx context.Context) (result []*RecTeam, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedLedRecTeams(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.LedRecTeamsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryLedRecTeams().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) RecTeams(ctx context.Context) (*RecTeam, error) {
+	result, err := u.Edges.RecTeamsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryRecTeams().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (u *User) TeamUsers(ctx context.Context) (result []*TeamManager, err error) {

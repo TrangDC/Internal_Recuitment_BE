@@ -29,6 +29,7 @@ import (
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -86,6 +87,8 @@ type Client struct {
 	Permission *PermissionClient
 	// PermissionGroup is the client for interacting with the PermissionGroup builders.
 	PermissionGroup *PermissionGroupClient
+	// RecTeam is the client for interacting with the RecTeam builders.
+	RecTeam *RecTeamClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Skill is the client for interacting with the Skill builders.
@@ -132,6 +135,7 @@ func (c *Client) init() {
 	c.OutgoingEmail = NewOutgoingEmailClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.PermissionGroup = NewPermissionGroupClient(c.config)
+	c.RecTeam = NewRecTeamClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Skill = NewSkillClient(c.config)
 	c.SkillType = NewSkillTypeClient(c.config)
@@ -191,6 +195,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
+		RecTeam:              NewRecTeamClient(cfg),
 		Role:                 NewRoleClient(cfg),
 		Skill:                NewSkillClient(cfg),
 		SkillType:            NewSkillTypeClient(cfg),
@@ -236,6 +241,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
 		PermissionGroup:      NewPermissionGroupClient(cfg),
+		RecTeam:              NewRecTeamClient(cfg),
 		Role:                 NewRoleClient(cfg),
 		Skill:                NewSkillClient(cfg),
 		SkillType:            NewSkillTypeClient(cfg),
@@ -290,6 +296,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.OutgoingEmail.Use(hooks...)
 	c.Permission.Use(hooks...)
 	c.PermissionGroup.Use(hooks...)
+	c.RecTeam.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Skill.Use(hooks...)
 	c.SkillType.Use(hooks...)
@@ -2841,6 +2848,128 @@ func (c *PermissionGroupClient) Hooks() []Hook {
 	return c.hooks.PermissionGroup
 }
 
+// RecTeamClient is a client for the RecTeam schema.
+type RecTeamClient struct {
+	config
+}
+
+// NewRecTeamClient returns a client for the RecTeam from the given config.
+func NewRecTeamClient(c config) *RecTeamClient {
+	return &RecTeamClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `recteam.Hooks(f(g(h())))`.
+func (c *RecTeamClient) Use(hooks ...Hook) {
+	c.hooks.RecTeam = append(c.hooks.RecTeam, hooks...)
+}
+
+// Create returns a builder for creating a RecTeam entity.
+func (c *RecTeamClient) Create() *RecTeamCreate {
+	mutation := newRecTeamMutation(c.config, OpCreate)
+	return &RecTeamCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RecTeam entities.
+func (c *RecTeamClient) CreateBulk(builders ...*RecTeamCreate) *RecTeamCreateBulk {
+	return &RecTeamCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RecTeam.
+func (c *RecTeamClient) Update() *RecTeamUpdate {
+	mutation := newRecTeamMutation(c.config, OpUpdate)
+	return &RecTeamUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RecTeamClient) UpdateOne(rt *RecTeam) *RecTeamUpdateOne {
+	mutation := newRecTeamMutation(c.config, OpUpdateOne, withRecTeam(rt))
+	return &RecTeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RecTeamClient) UpdateOneID(id uuid.UUID) *RecTeamUpdateOne {
+	mutation := newRecTeamMutation(c.config, OpUpdateOne, withRecTeamID(id))
+	return &RecTeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RecTeam.
+func (c *RecTeamClient) Delete() *RecTeamDelete {
+	mutation := newRecTeamMutation(c.config, OpDelete)
+	return &RecTeamDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RecTeamClient) DeleteOne(rt *RecTeam) *RecTeamDeleteOne {
+	return c.DeleteOneID(rt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RecTeamClient) DeleteOneID(id uuid.UUID) *RecTeamDeleteOne {
+	builder := c.Delete().Where(recteam.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RecTeamDeleteOne{builder}
+}
+
+// Query returns a query builder for RecTeam.
+func (c *RecTeamClient) Query() *RecTeamQuery {
+	return &RecTeamQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a RecTeam entity by its id.
+func (c *RecTeamClient) Get(ctx context.Context, id uuid.UUID) (*RecTeam, error) {
+	return c.Query().Where(recteam.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RecTeamClient) GetX(ctx context.Context, id uuid.UUID) *RecTeam {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRecLeaderEdge queries the rec_leader_edge edge of a RecTeam.
+func (c *RecTeamClient) QueryRecLeaderEdge(rt *RecTeam) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recteam.Table, recteam.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, recteam.RecLeaderEdgeTable, recteam.RecLeaderEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecMemberEdges queries the rec_member_edges edge of a RecTeam.
+func (c *RecTeamClient) QueryRecMemberEdges(rt *RecTeam) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recteam.Table, recteam.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, recteam.RecMemberEdgesTable, recteam.RecMemberEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RecTeamClient) Hooks() []Hook {
+	return c.hooks.RecTeam
+}
+
 // RoleClient is a client for the Role schema.
 type RoleClient struct {
 	config
@@ -3785,6 +3914,38 @@ func (c *UserClient) QueryHiringTeamEdges(u *User) *HiringTeamQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.HiringTeamEdgesTable, user.HiringTeamEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLedRecTeams queries the led_rec_teams edge of a User.
+func (c *UserClient) QueryLedRecTeams(u *User) *RecTeamQuery {
+	query := &RecTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(recteam.Table, recteam.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LedRecTeamsTable, user.LedRecTeamsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecTeams queries the rec_teams edge of a User.
+func (c *UserClient) QueryRecTeams(u *User) *RecTeamQuery {
+	query := &RecTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(recteam.Table, recteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.RecTeamsTable, user.RecTeamsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

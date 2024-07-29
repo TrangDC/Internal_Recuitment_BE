@@ -30,6 +30,8 @@ const (
 	FieldOid = "oid"
 	// FieldTeamID holds the string denoting the team_id field in the database.
 	FieldTeamID = "team_id"
+	// FieldRecTeamID holds the string denoting the rec_team_id field in the database.
+	FieldRecTeamID = "rec_team_id"
 	// FieldLocation holds the string denoting the location field in the database.
 	FieldLocation = "location"
 	// EdgeAuditEdge holds the string denoting the audit_edge edge name in mutations.
@@ -56,6 +58,10 @@ const (
 	EdgeMemberOfTeamEdges = "member_of_team_edges"
 	// EdgeHiringTeamEdges holds the string denoting the hiring_team_edges edge name in mutations.
 	EdgeHiringTeamEdges = "hiring_team_edges"
+	// EdgeLedRecTeams holds the string denoting the led_rec_teams edge name in mutations.
+	EdgeLedRecTeams = "led_rec_teams"
+	// EdgeRecTeams holds the string denoting the rec_teams edge name in mutations.
+	EdgeRecTeams = "rec_teams"
 	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
 	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
@@ -142,6 +148,20 @@ const (
 	// HiringTeamEdgesInverseTable is the table name for the HiringTeam entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
 	HiringTeamEdgesInverseTable = "hiring_teams"
+	// LedRecTeamsTable is the table that holds the led_rec_teams relation/edge.
+	LedRecTeamsTable = "rec_teams"
+	// LedRecTeamsInverseTable is the table name for the RecTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "recteam" package.
+	LedRecTeamsInverseTable = "rec_teams"
+	// LedRecTeamsColumn is the table column denoting the led_rec_teams relation/edge.
+	LedRecTeamsColumn = "leader_id"
+	// RecTeamsTable is the table that holds the rec_teams relation/edge.
+	RecTeamsTable = "users"
+	// RecTeamsInverseTable is the table name for the RecTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "recteam" package.
+	RecTeamsInverseTable = "rec_teams"
+	// RecTeamsColumn is the table column denoting the rec_teams relation/edge.
+	RecTeamsColumn = "rec_team_id"
 	// TeamUsersTable is the table that holds the team_users relation/edge.
 	TeamUsersTable = "team_managers"
 	// TeamUsersInverseTable is the table name for the TeamManager entity.
@@ -183,6 +203,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldOid,
 	FieldTeamID,
+	FieldRecTeamID,
 	FieldLocation,
 }
 

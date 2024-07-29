@@ -29,6 +29,7 @@ import (
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -6240,6 +6241,322 @@ func (pg *PermissionGroup) ToEdge(order *PermissionGroupOrder) *PermissionGroupE
 	return &PermissionGroupEdge{
 		Node:   pg,
 		Cursor: order.Field.toCursor(pg),
+	}
+}
+
+// RecTeamEdge is the edge representation of RecTeam.
+type RecTeamEdge struct {
+	Node   *RecTeam `json:"node"`
+	Cursor Cursor   `json:"cursor"`
+}
+
+// RecTeamConnection is the connection containing edges to RecTeam.
+type RecTeamConnection struct {
+	Edges      []*RecTeamEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
+	TotalCount int            `json:"totalCount"`
+}
+
+func (c *RecTeamConnection) build(nodes []*RecTeam, pager *recteamPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *RecTeam
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *RecTeam {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *RecTeam {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*RecTeamEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &RecTeamEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// RecTeamPaginateOption enables pagination customization.
+type RecTeamPaginateOption func(*recteamPager) error
+
+// WithRecTeamOrder configures pagination ordering.
+func WithRecTeamOrder(order *RecTeamOrder) RecTeamPaginateOption {
+	if order == nil {
+		order = DefaultRecTeamOrder
+	}
+	o := *order
+	return func(pager *recteamPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultRecTeamOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithRecTeamFilter configures pagination filter.
+func WithRecTeamFilter(filter func(*RecTeamQuery) (*RecTeamQuery, error)) RecTeamPaginateOption {
+	return func(pager *recteamPager) error {
+		if filter == nil {
+			return errors.New("RecTeamQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type recteamPager struct {
+	order  *RecTeamOrder
+	filter func(*RecTeamQuery) (*RecTeamQuery, error)
+}
+
+func newRecTeamPager(opts []RecTeamPaginateOption) (*recteamPager, error) {
+	pager := &recteamPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultRecTeamOrder
+	}
+	return pager, nil
+}
+
+func (p *recteamPager) applyFilter(query *RecTeamQuery) (*RecTeamQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *recteamPager) toCursor(rt *RecTeam) Cursor {
+	return p.order.Field.toCursor(rt)
+}
+
+func (p *recteamPager) applyCursors(query *RecTeamQuery, after, before *Cursor) *RecTeamQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultRecTeamOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *recteamPager) applyOrder(query *RecTeamQuery, reverse bool) *RecTeamQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultRecTeamOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultRecTeamOrder.Field.field))
+	}
+	return query
+}
+
+func (p *recteamPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultRecTeamOrder.Field {
+			b.Comma().Ident(DefaultRecTeamOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to RecTeam.
+func (rt *RecTeamQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...RecTeamPaginateOption,
+) (*RecTeamConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newRecTeamPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if rt, err = pager.applyFilter(rt); err != nil {
+		return nil, err
+	}
+	conn := &RecTeamConnection{Edges: []*RecTeamEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = rt.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	rt = pager.applyCursors(rt, after, before)
+	rt = pager.applyOrder(rt, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		rt.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := rt.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := rt.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// RecTeamOrderFieldCreatedAt orders RecTeam by created_at.
+	RecTeamOrderFieldCreatedAt = &RecTeamOrderField{
+		field: recteam.FieldCreatedAt,
+		toCursor: func(rt *RecTeam) Cursor {
+			return Cursor{
+				ID:    rt.ID,
+				Value: rt.CreatedAt,
+			}
+		},
+	}
+	// RecTeamOrderFieldUpdatedAt orders RecTeam by updated_at.
+	RecTeamOrderFieldUpdatedAt = &RecTeamOrderField{
+		field: recteam.FieldUpdatedAt,
+		toCursor: func(rt *RecTeam) Cursor {
+			return Cursor{
+				ID:    rt.ID,
+				Value: rt.UpdatedAt,
+			}
+		},
+	}
+	// RecTeamOrderFieldDeletedAt orders RecTeam by deleted_at.
+	RecTeamOrderFieldDeletedAt = &RecTeamOrderField{
+		field: recteam.FieldDeletedAt,
+		toCursor: func(rt *RecTeam) Cursor {
+			return Cursor{
+				ID:    rt.ID,
+				Value: rt.DeletedAt,
+			}
+		},
+	}
+	// RecTeamOrderFieldName orders RecTeam by name.
+	RecTeamOrderFieldName = &RecTeamOrderField{
+		field: recteam.FieldName,
+		toCursor: func(rt *RecTeam) Cursor {
+			return Cursor{
+				ID:    rt.ID,
+				Value: rt.Name,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RecTeamOrderField) String() string {
+	var str string
+	switch f.field {
+	case recteam.FieldCreatedAt:
+		str = "created_at"
+	case recteam.FieldUpdatedAt:
+		str = "updated_at"
+	case recteam.FieldDeletedAt:
+		str = "deleted_at"
+	case recteam.FieldName:
+		str = "name"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RecTeamOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RecTeamOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RecTeamOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *RecTeamOrderFieldCreatedAt
+	case "updated_at":
+		*f = *RecTeamOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *RecTeamOrderFieldDeletedAt
+	case "name":
+		*f = *RecTeamOrderFieldName
+	default:
+		return fmt.Errorf("%s is not a valid RecTeamOrderField", str)
+	}
+	return nil
+}
+
+// RecTeamOrderField defines the ordering field of RecTeam.
+type RecTeamOrderField struct {
+	field    string
+	toCursor func(*RecTeam) Cursor
+}
+
+// RecTeamOrder defines the ordering of RecTeam.
+type RecTeamOrder struct {
+	Direction OrderDirection     `json:"direction"`
+	Field     *RecTeamOrderField `json:"field"`
+}
+
+// DefaultRecTeamOrder is the default ordering of RecTeam.
+var DefaultRecTeamOrder = &RecTeamOrder{
+	Direction: OrderDirectionAsc,
+	Field: &RecTeamOrderField{
+		field: recteam.FieldID,
+		toCursor: func(rt *RecTeam) Cursor {
+			return Cursor{ID: rt.ID}
+		},
+	},
+}
+
+// ToEdge converts RecTeam into RecTeamEdge.
+func (rt *RecTeam) ToEdge(order *RecTeamOrder) *RecTeamEdge {
+	if order == nil {
+		order = DefaultRecTeamOrder
+	}
+	return &RecTeamEdge{
+		Node:   rt,
+		Cursor: order.Field.toCursor(rt),
 	}
 }
 

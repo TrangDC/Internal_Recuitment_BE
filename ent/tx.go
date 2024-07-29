@@ -52,6 +52,8 @@ type Tx struct {
 	Permission *PermissionClient
 	// PermissionGroup is the client for interacting with the PermissionGroup builders.
 	PermissionGroup *PermissionGroupClient
+	// RecTeam is the client for interacting with the RecTeam builders.
+	RecTeam *RecTeamClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Skill is the client for interacting with the Skill builders.
@@ -216,6 +218,7 @@ func (tx *Tx) init() {
 	tx.OutgoingEmail = NewOutgoingEmailClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.PermissionGroup = NewPermissionGroupClient(tx.config)
+	tx.RecTeam = NewRecTeamClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
 	tx.SkillType = NewSkillTypeClient(tx.config)

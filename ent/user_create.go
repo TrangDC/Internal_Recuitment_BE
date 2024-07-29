@@ -17,6 +17,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteammanager"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/team"
 	"trec/ent/teammanager"
@@ -119,6 +120,20 @@ func (uc *UserCreate) SetTeamID(u uuid.UUID) *UserCreate {
 func (uc *UserCreate) SetNillableTeamID(u *uuid.UUID) *UserCreate {
 	if u != nil {
 		uc.SetTeamID(*u)
+	}
+	return uc
+}
+
+// SetRecTeamID sets the "rec_team_id" field.
+func (uc *UserCreate) SetRecTeamID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetRecTeamID(u)
+	return uc
+}
+
+// SetNillableRecTeamID sets the "rec_team_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableRecTeamID(u *uuid.UUID) *UserCreate {
+	if u != nil {
+		uc.SetRecTeamID(*u)
 	}
 	return uc
 }
@@ -325,6 +340,40 @@ func (uc *UserCreate) AddHiringTeamEdges(h ...*HiringTeam) *UserCreate {
 		ids[i] = h[i].ID
 	}
 	return uc.AddHiringTeamEdgeIDs(ids...)
+}
+
+// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by IDs.
+func (uc *UserCreate) AddLedRecTeamIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddLedRecTeamIDs(ids...)
+	return uc
+}
+
+// AddLedRecTeams adds the "led_rec_teams" edges to the RecTeam entity.
+func (uc *UserCreate) AddLedRecTeams(r ...*RecTeam) *UserCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddLedRecTeamIDs(ids...)
+}
+
+// SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
+func (uc *UserCreate) SetRecTeamsID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetRecTeamsID(id)
+	return uc
+}
+
+// SetNillableRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableRecTeamsID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetRecTeamsID(*id)
+	}
+	return uc
+}
+
+// SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
+func (uc *UserCreate) SetRecTeams(r *RecTeam) *UserCreate {
+	return uc.SetRecTeamsID(r.ID)
 }
 
 // AddTeamUserIDs adds the "team_users" edge to the TeamManager entity by IDs.
@@ -827,6 +876,45 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.LedRecTeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LedRecTeamsTable,
+			Columns: []string{user.LedRecTeamsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RecTeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RecTeamsTable,
+			Columns: []string{user.RecTeamsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RecTeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.TeamUsersIDs(); len(nodes) > 0 {
