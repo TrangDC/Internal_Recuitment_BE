@@ -427,6 +427,46 @@ type HiringJobSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type HiringTeamFilter struct {
+	Name          *string   `json:"name"`
+	ManagerIds    []*string `json:"manager_ids"`
+	ForHiringTeam *bool     `json:"for_hiring_team"`
+	ForOwner      *bool     `json:"for_owner"`
+}
+
+type HiringTeamFreeWord struct {
+	Name *string `json:"name"`
+}
+
+type HiringTeamOrderBy struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     HiringTeamOrderByField `json:"field"`
+}
+
+type HiringTeamResponse struct {
+	Data *HiringTeam `json:"data"`
+}
+
+type HiringTeamResponseGetAll struct {
+	Edges      []*HiringTeamEdge `json:"edges"`
+	Pagination *Pagination       `json:"pagination"`
+}
+
+type HiringTeamSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type HiringTeamSelectionEdge struct {
+	Node   *HiringTeamSelection `json:"node"`
+	Cursor Cursor               `json:"cursor"`
+}
+
+type HiringTeamSelectionResponseGetAll struct {
+	Edges      []*HiringTeamSelectionEdge `json:"edges"`
+	Pagination *Pagination                `json:"pagination"`
+}
+
 type JobPositionResponse struct {
 	Data *JobPosition `json:"data"`
 }
@@ -531,6 +571,11 @@ type NewHiringJobInput struct {
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+}
+
+type NewHiringTeamInput struct {
+	Name    string   `json:"name"`
+	Members []string `json:"members"`
 }
 
 type NewJobPositionInput struct {
@@ -910,6 +955,11 @@ type UpdateHiringJobInput struct {
 type UpdateJobPositionInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type UpdateHiringTeamInput struct {
+	Name    string   `json:"name"`
+	Members []string `json:"members"`
 }
 
 type UpdateRoleInput struct {
@@ -2306,6 +2356,92 @@ func (e *HiringJobStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e HiringJobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HiringTeamOrderByAdditionalField string
+
+const (
+	HiringTeamOrderByAdditionalFieldOpeningRequests HiringTeamOrderByAdditionalField = "opening_requests"
+	HiringTeamOrderByAdditionalFieldNewestApplied   HiringTeamOrderByAdditionalField = "newest_applied"
+)
+
+var AllHiringTeamOrderByAdditionalField = []HiringTeamOrderByAdditionalField{
+	HiringTeamOrderByAdditionalFieldOpeningRequests,
+	HiringTeamOrderByAdditionalFieldNewestApplied,
+}
+
+func (e HiringTeamOrderByAdditionalField) IsValid() bool {
+	switch e {
+	case HiringTeamOrderByAdditionalFieldOpeningRequests, HiringTeamOrderByAdditionalFieldNewestApplied:
+		return true
+	}
+	return false
+}
+
+func (e HiringTeamOrderByAdditionalField) String() string {
+	return string(e)
+}
+
+func (e *HiringTeamOrderByAdditionalField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringTeamOrderByAdditionalField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringTeamOrderByAdditionalField", str)
+	}
+	return nil
+}
+
+func (e HiringTeamOrderByAdditionalField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HiringTeamOrderByField string
+
+const (
+	HiringTeamOrderByFieldName            HiringTeamOrderByField = "name"
+	HiringTeamOrderByFieldCreatedAt       HiringTeamOrderByField = "created_at"
+	HiringTeamOrderByFieldOpeningRequests HiringTeamOrderByField = "opening_requests"
+	HiringTeamOrderByFieldNewestApplied   HiringTeamOrderByField = "newest_applied"
+)
+
+var AllHiringTeamOrderByField = []HiringTeamOrderByField{
+	HiringTeamOrderByFieldName,
+	HiringTeamOrderByFieldCreatedAt,
+	HiringTeamOrderByFieldOpeningRequests,
+	HiringTeamOrderByFieldNewestApplied,
+}
+
+func (e HiringTeamOrderByField) IsValid() bool {
+	switch e {
+	case HiringTeamOrderByFieldName, HiringTeamOrderByFieldCreatedAt, HiringTeamOrderByFieldOpeningRequests, HiringTeamOrderByFieldNewestApplied:
+		return true
+	}
+	return false
+}
+
+func (e HiringTeamOrderByField) String() string {
+	return string(e)
+}
+
+func (e *HiringTeamOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringTeamOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringTeamOrderByField", str)
+	}
+	return nil
+}
+
+func (e HiringTeamOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -23,7 +23,7 @@ func (EmailRoleAttribute) Fields() []ent.Field {
 // Edges of the EmailRoleAttribute
 func (EmailRoleAttribute) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("email_template_edge", Team.Type).Unique().Required().Field("email_template_id"),
+		edge.To("email_template_edge", EmailTemplate.Type).Unique().Required().Field("email_template_id"),
 		edge.To("role_edge", Role.Type).Unique().Required().Field("role_id"),
 	}
 }

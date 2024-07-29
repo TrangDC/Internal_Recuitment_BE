@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/role"
-	"trec/ent/team"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -37,7 +37,7 @@ type EmailRoleAttribute struct {
 // EmailRoleAttributeEdges holds the relations/edges for other nodes in the graph.
 type EmailRoleAttributeEdges struct {
 	// EmailTemplateEdge holds the value of the email_template_edge edge.
-	EmailTemplateEdge *Team `json:"email_template_edge,omitempty"`
+	EmailTemplateEdge *EmailTemplate `json:"email_template_edge,omitempty"`
 	// RoleEdge holds the value of the role_edge edge.
 	RoleEdge *Role `json:"role_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -49,11 +49,11 @@ type EmailRoleAttributeEdges struct {
 
 // EmailTemplateEdgeOrErr returns the EmailTemplateEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EmailRoleAttributeEdges) EmailTemplateEdgeOrErr() (*Team, error) {
+func (e EmailRoleAttributeEdges) EmailTemplateEdgeOrErr() (*EmailTemplate, error) {
 	if e.loadedTypes[0] {
 		if e.EmailTemplateEdge == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: team.Label}
+			return nil, &NotFoundError{label: emailtemplate.Label}
 		}
 		return e.EmailTemplateEdge, nil
 	}
@@ -139,7 +139,7 @@ func (era *EmailRoleAttribute) assignValues(columns []string, values []any) erro
 }
 
 // QueryEmailTemplateEdge queries the "email_template_edge" edge of the EmailRoleAttribute entity.
-func (era *EmailRoleAttribute) QueryEmailTemplateEdge() *TeamQuery {
+func (era *EmailRoleAttribute) QueryEmailTemplateEdge() *EmailTemplateQuery {
 	return (&EmailRoleAttributeClient{config: era.config}).QueryEmailTemplateEdge(era)
 }
 

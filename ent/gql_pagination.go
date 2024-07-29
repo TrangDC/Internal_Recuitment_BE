@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -4342,6 +4343,336 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// HiringTeamEdge is the edge representation of HiringTeam.
+type HiringTeamEdge struct {
+	Node   *HiringTeam `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// HiringTeamConnection is the connection containing edges to HiringTeam.
+type HiringTeamConnection struct {
+	Edges      []*HiringTeamEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *HiringTeamConnection) build(nodes []*HiringTeam, pager *hiringteamPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *HiringTeam
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *HiringTeam {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *HiringTeam {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*HiringTeamEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &HiringTeamEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// HiringTeamPaginateOption enables pagination customization.
+type HiringTeamPaginateOption func(*hiringteamPager) error
+
+// WithHiringTeamOrder configures pagination ordering.
+func WithHiringTeamOrder(order *HiringTeamOrder) HiringTeamPaginateOption {
+	if order == nil {
+		order = DefaultHiringTeamOrder
+	}
+	o := *order
+	return func(pager *hiringteamPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultHiringTeamOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithHiringTeamFilter configures pagination filter.
+func WithHiringTeamFilter(filter func(*HiringTeamQuery) (*HiringTeamQuery, error)) HiringTeamPaginateOption {
+	return func(pager *hiringteamPager) error {
+		if filter == nil {
+			return errors.New("HiringTeamQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type hiringteamPager struct {
+	order  *HiringTeamOrder
+	filter func(*HiringTeamQuery) (*HiringTeamQuery, error)
+}
+
+func newHiringTeamPager(opts []HiringTeamPaginateOption) (*hiringteamPager, error) {
+	pager := &hiringteamPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultHiringTeamOrder
+	}
+	return pager, nil
+}
+
+func (p *hiringteamPager) applyFilter(query *HiringTeamQuery) (*HiringTeamQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *hiringteamPager) toCursor(ht *HiringTeam) Cursor {
+	return p.order.Field.toCursor(ht)
+}
+
+func (p *hiringteamPager) applyCursors(query *HiringTeamQuery, after, before *Cursor) *HiringTeamQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultHiringTeamOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *hiringteamPager) applyOrder(query *HiringTeamQuery, reverse bool) *HiringTeamQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultHiringTeamOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultHiringTeamOrder.Field.field))
+	}
+	return query
+}
+
+func (p *hiringteamPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultHiringTeamOrder.Field {
+			b.Comma().Ident(DefaultHiringTeamOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to HiringTeam.
+func (ht *HiringTeamQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...HiringTeamPaginateOption,
+) (*HiringTeamConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newHiringTeamPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ht, err = pager.applyFilter(ht); err != nil {
+		return nil, err
+	}
+	conn := &HiringTeamConnection{Edges: []*HiringTeamEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ht.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ht = pager.applyCursors(ht, after, before)
+	ht = pager.applyOrder(ht, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ht.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ht.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ht.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// HiringTeamOrderFieldCreatedAt orders HiringTeam by created_at.
+	HiringTeamOrderFieldCreatedAt = &HiringTeamOrderField{
+		field: hiringteam.FieldCreatedAt,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{
+				ID:    ht.ID,
+				Value: ht.CreatedAt,
+			}
+		},
+	}
+	// HiringTeamOrderFieldUpdatedAt orders HiringTeam by updated_at.
+	HiringTeamOrderFieldUpdatedAt = &HiringTeamOrderField{
+		field: hiringteam.FieldUpdatedAt,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{
+				ID:    ht.ID,
+				Value: ht.UpdatedAt,
+			}
+		},
+	}
+	// HiringTeamOrderFieldDeletedAt orders HiringTeam by deleted_at.
+	HiringTeamOrderFieldDeletedAt = &HiringTeamOrderField{
+		field: hiringteam.FieldDeletedAt,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{
+				ID:    ht.ID,
+				Value: ht.DeletedAt,
+			}
+		},
+	}
+	// HiringTeamOrderFieldSlug orders HiringTeam by slug.
+	HiringTeamOrderFieldSlug = &HiringTeamOrderField{
+		field: hiringteam.FieldSlug,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{
+				ID:    ht.ID,
+				Value: ht.Slug,
+			}
+		},
+	}
+	// HiringTeamOrderFieldName orders HiringTeam by name.
+	HiringTeamOrderFieldName = &HiringTeamOrderField{
+		field: hiringteam.FieldName,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{
+				ID:    ht.ID,
+				Value: ht.Name,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f HiringTeamOrderField) String() string {
+	var str string
+	switch f.field {
+	case hiringteam.FieldCreatedAt:
+		str = "created_at"
+	case hiringteam.FieldUpdatedAt:
+		str = "updated_at"
+	case hiringteam.FieldDeletedAt:
+		str = "deleted_at"
+	case hiringteam.FieldSlug:
+		str = "SLUG"
+	case hiringteam.FieldName:
+		str = "name"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f HiringTeamOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *HiringTeamOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("HiringTeamOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *HiringTeamOrderFieldCreatedAt
+	case "updated_at":
+		*f = *HiringTeamOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *HiringTeamOrderFieldDeletedAt
+	case "SLUG":
+		*f = *HiringTeamOrderFieldSlug
+	case "name":
+		*f = *HiringTeamOrderFieldName
+	default:
+		return fmt.Errorf("%s is not a valid HiringTeamOrderField", str)
+	}
+	return nil
+}
+
+// HiringTeamOrderField defines the ordering field of HiringTeam.
+type HiringTeamOrderField struct {
+	field    string
+	toCursor func(*HiringTeam) Cursor
+}
+
+// HiringTeamOrder defines the ordering of HiringTeam.
+type HiringTeamOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *HiringTeamOrderField `json:"field"`
+}
+
+// DefaultHiringTeamOrder is the default ordering of HiringTeam.
+var DefaultHiringTeamOrder = &HiringTeamOrder{
+	Direction: OrderDirectionAsc,
+	Field: &HiringTeamOrderField{
+		field: hiringteam.FieldID,
+		toCursor: func(ht *HiringTeam) Cursor {
+			return Cursor{ID: ht.ID}
+		},
+	},
+}
+
+// ToEdge converts HiringTeam into HiringTeamEdge.
+func (ht *HiringTeam) ToEdge(order *HiringTeamOrder) *HiringTeamEdge {
+	if order == nil {
+		order = DefaultHiringTeamOrder
+	}
+	return &HiringTeamEdge{
+		Node:   ht,
+		Cursor: order.Field.toCursor(ht),
 	}
 }
 

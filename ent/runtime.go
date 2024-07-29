@@ -17,6 +17,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -313,6 +314,39 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[12].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	hiringteamMixin := schema.HiringTeam{}.Mixin()
+	hiringteamMixinFields0 := hiringteamMixin[0].Fields()
+	_ = hiringteamMixinFields0
+	hiringteamMixinFields1 := hiringteamMixin[1].Fields()
+	_ = hiringteamMixinFields1
+	hiringteamFields := schema.HiringTeam{}.Fields()
+	_ = hiringteamFields
+	// hiringteamDescCreatedAt is the schema descriptor for created_at field.
+	hiringteamDescCreatedAt := hiringteamMixinFields0[1].Descriptor()
+	// hiringteam.DefaultCreatedAt holds the default value on creation for the created_at field.
+	hiringteam.DefaultCreatedAt = hiringteamDescCreatedAt.Default.(func() time.Time)
+	// hiringteamDescSlug is the schema descriptor for slug field.
+	hiringteamDescSlug := hiringteamMixinFields1[0].Descriptor()
+	// hiringteam.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	hiringteam.SlugValidator = hiringteamDescSlug.Validators[0].(func(string) error)
+	// hiringteamDescName is the schema descriptor for name field.
+	hiringteamDescName := hiringteamFields[0].Descriptor()
+	// hiringteam.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	hiringteam.NameValidator = func() func(string) error {
+		validators := hiringteamDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	jobpositionMixin := schema.JobPosition{}.Mixin()
 	jobpositionMixinFields0 := jobpositionMixin[0].Fields()
 	_ = jobpositionMixinFields0

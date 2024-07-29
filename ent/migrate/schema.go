@@ -295,9 +295,9 @@ var (
 		PrimaryKey: []*schema.Column{EmailRoleAttributesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "email_role_attributes_teams_email_template_edge",
+				Symbol:     "email_role_attributes_email_templates_email_template_edge",
 				Columns:    []*schema.Column{EmailRoleAttributesColumns[4]},
-				RefColumns: []*schema.Column{TeamsColumns[0]},
+				RefColumns: []*schema.Column{EmailTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
@@ -451,6 +451,21 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// HiringTeamsColumns holds the columns for the "hiring_teams" table.
+	HiringTeamsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 255},
+	}
+	// HiringTeamsTable holds the schema information for the "hiring_teams" table.
+	HiringTeamsTable = &schema.Table{
+		Name:       "hiring_teams",
+		Columns:    HiringTeamsColumns,
+		PrimaryKey: []*schema.Column{HiringTeamsColumns[0]},
 	}
 	// JobPositionsColumns holds the columns for the "job_positions" table.
 	JobPositionsColumns = []*schema.Column{
@@ -725,6 +740,7 @@ var (
 		EntityPermissionsTable,
 		EntitySkillsTable,
 		HiringJobsTable,
+		HiringTeamsTable,
 		JobPositionsTable,
 		OutgoingEmailsTable,
 		PermissionsTable,
@@ -756,7 +772,7 @@ func init() {
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
-	EmailRoleAttributesTable.ForeignKeys[0].RefTable = TeamsTable
+	EmailRoleAttributesTable.ForeignKeys[0].RefTable = EmailTemplatesTable
 	EmailRoleAttributesTable.ForeignKeys[1].RefTable = RolesTable
 	EntityPermissionsTable.ForeignKeys[0].RefTable = PermissionsTable
 	EntityPermissionsTable.ForeignKeys[1].RefTable = RolesTable

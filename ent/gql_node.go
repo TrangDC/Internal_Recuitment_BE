@@ -19,6 +19,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -1047,11 +1048,11 @@ func (era *EmailRoleAttribute) Node(ctx context.Context) (node *Node, err error)
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
-		Type: "Team",
+		Type: "EmailTemplate",
 		Name: "email_template_edge",
 	}
 	err = era.QueryEmailTemplateEdge().
-		Select(team.FieldID).
+		Select(emailtemplate.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
@@ -1573,6 +1574,57 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ht.ID,
+		Type:   "HiringTeam",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ht.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ht.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ht.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ht.Slug); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "slug",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ht.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -2862,6 +2914,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case hiringteam.Table:
+		query := c.HiringTeam.Query().
+			Where(hiringteam.ID(id))
+		query, err := query.CollectFields(ctx, "HiringTeam")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case jobposition.Table:
 		query := c.JobPosition.Query().
 			Where(jobposition.ID(id))
@@ -3263,6 +3327,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringJob.Query().
 			Where(hiringjob.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case hiringteam.Table:
+		query := c.HiringTeam.Query().
+			Where(hiringteam.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "HiringTeam")
 		if err != nil {
 			return nil, err
 		}

@@ -47,6 +47,7 @@ type ResolverRoot interface {
 	EmailTemplate() EmailTemplateResolver
 	EntityPermission() EntityPermissionResolver
 	HiringJob() HiringJobResolver
+	HiringTeam() HiringTeamResolver
 	JobPosition() JobPositionResolver
 	Mutation() MutationResolver
 	Permission() PermissionResolver
@@ -494,6 +495,46 @@ type ComplexityRoot struct {
 	}
 
 	HiringJobSelectionResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
+	HiringTeam struct {
+		CreatedAt       func(childComplexity int) int
+		DeletedAt       func(childComplexity int) int
+		ID              func(childComplexity int) int
+		IsAbleToDelete  func(childComplexity int) int
+		Name            func(childComplexity int) int
+		OpeningRequests func(childComplexity int) int
+		Slug            func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+	}
+
+	HiringTeamEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	HiringTeamResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	HiringTeamResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
+	HiringTeamSelection struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	HiringTeamSelectionEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	HiringTeamSelectionResponseGetAll struct {
 		Edges      func(childComplexity int) int
 		Pagination func(childComplexity int) int
 	}
@@ -1035,6 +1076,12 @@ type HiringJobResolver interface {
 	IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error)
 
 	EntitySkillTypes(ctx context.Context, obj *ent.HiringJob) ([]*ent.EntitySkillType, error)
+}
+type HiringTeamResolver interface {
+	ID(ctx context.Context, obj *ent.HiringTeam) (string, error)
+
+	OpeningRequests(ctx context.Context, obj *ent.HiringTeam) (int, error)
+	IsAbleToDelete(ctx context.Context, obj *ent.HiringTeam) (bool, error)
 }
 type JobPositionResolver interface {
 	ID(ctx context.Context, obj *ent.JobPosition) (string, error)
@@ -2976,6 +3023,139 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJobSelectionResponseGetAll.Pagination(childComplexity), true
+
+	case "HiringTeam.created_at":
+		if e.complexity.HiringTeam.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.CreatedAt(childComplexity), true
+
+	case "HiringTeam.deleted_at":
+		if e.complexity.HiringTeam.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.DeletedAt(childComplexity), true
+
+	case "HiringTeam.id":
+		if e.complexity.HiringTeam.ID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.ID(childComplexity), true
+
+	case "HiringTeam.is_able_to_delete":
+		if e.complexity.HiringTeam.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.IsAbleToDelete(childComplexity), true
+
+	case "HiringTeam.name":
+		if e.complexity.HiringTeam.Name == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.Name(childComplexity), true
+
+	case "HiringTeam.opening_requests":
+		if e.complexity.HiringTeam.OpeningRequests == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.OpeningRequests(childComplexity), true
+
+	case "HiringTeam.slug":
+		if e.complexity.HiringTeam.Slug == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.Slug(childComplexity), true
+
+	case "HiringTeam.updated_at":
+		if e.complexity.HiringTeam.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.UpdatedAt(childComplexity), true
+
+	case "HiringTeamEdge.cursor":
+		if e.complexity.HiringTeamEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamEdge.Cursor(childComplexity), true
+
+	case "HiringTeamEdge.node":
+		if e.complexity.HiringTeamEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamEdge.Node(childComplexity), true
+
+	case "HiringTeamResponse.data":
+		if e.complexity.HiringTeamResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamResponse.Data(childComplexity), true
+
+	case "HiringTeamResponseGetAll.edges":
+		if e.complexity.HiringTeamResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamResponseGetAll.Edges(childComplexity), true
+
+	case "HiringTeamResponseGetAll.pagination":
+		if e.complexity.HiringTeamResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamResponseGetAll.Pagination(childComplexity), true
+
+	case "HiringTeamSelection.id":
+		if e.complexity.HiringTeamSelection.ID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelection.ID(childComplexity), true
+
+	case "HiringTeamSelection.name":
+		if e.complexity.HiringTeamSelection.Name == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelection.Name(childComplexity), true
+
+	case "HiringTeamSelectionEdge.cursor":
+		if e.complexity.HiringTeamSelectionEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelectionEdge.Cursor(childComplexity), true
+
+	case "HiringTeamSelectionEdge.node":
+		if e.complexity.HiringTeamSelectionEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelectionEdge.Node(childComplexity), true
+
+	case "HiringTeamSelectionResponseGetAll.edges":
+		if e.complexity.HiringTeamSelectionResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelectionResponseGetAll.Edges(childComplexity), true
+
+	case "HiringTeamSelectionResponseGetAll.pagination":
+		if e.complexity.HiringTeamSelectionResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamSelectionResponseGetAll.Pagination(childComplexity), true
 
 	case "JobPosition.created_at":
 		if e.complexity.JobPosition.CreatedAt == nil {
@@ -5198,6 +5378,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHiringJobFilter,
 		ec.unmarshalInputHiringJobFreeWord,
 		ec.unmarshalInputHiringJobOrderBy,
+		ec.unmarshalInputHiringTeamFilter,
+		ec.unmarshalInputHiringTeamFreeWord,
+		ec.unmarshalInputHiringTeamOrderBy,
 		ec.unmarshalInputNewAttachmentInput,
 		ec.unmarshalInputNewCandidateInput,
 		ec.unmarshalInputNewCandidateInterview4CalendarInput,
@@ -5207,6 +5390,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewEmailTemplateInput,
 		ec.unmarshalInputNewEntityPermissionInput,
 		ec.unmarshalInputNewHiringJobInput,
+		ec.unmarshalInputNewHiringTeamInput,
 		ec.unmarshalInputNewJobPositionInput,
 		ec.unmarshalInputNewRoleInput,
 		ec.unmarshalInputNewSkillInput,
@@ -5239,6 +5423,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateEmailTemplateStatusInput,
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateJobPositionInput,
+		ec.unmarshalInputUpdateHiringTeamInput,
 		ec.unmarshalInputUpdateRoleInput,
 		ec.unmarshalInputUpdateSkillInput,
 		ec.unmarshalInputUpdateSkillTypeInput,
@@ -6400,6 +6585,86 @@ type HiringJobSelectionResponseGetAll {
 }
 
 # Path: schema/hiring_job.graphql
+`, BuiltIn: false},
+	{Name: "../schema/hiring_team.graphql", Input: `enum HiringTeamOrderByField {
+  name
+  created_at
+  opening_requests
+  newest_applied
+}
+
+enum HiringTeamOrderByAdditionalField {
+  opening_requests
+  newest_applied
+}
+
+input HiringTeamOrderBy {
+  direction: OrderDirection!
+  field: HiringTeamOrderByField!
+}
+
+input HiringTeamFilter {
+  name: String
+  manager_ids: [ID]
+  for_hiring_team: Boolean
+  for_owner: Boolean
+}
+
+input HiringTeamFreeWord {
+  name: String
+}
+
+input NewHiringTeamInput {
+  name: String!
+  members: [ID!]
+}
+
+input UpdateHiringTeamInput {
+  name: String!
+  members: [ID!]
+}
+
+type HiringTeam {
+  id: ID!
+  name: String!
+  slug: String!
+  opening_requests: Int!
+  is_able_to_delete: Boolean!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type HiringTeamResponse {
+  data: HiringTeam
+}
+
+type HiringTeamEdge {
+  node: HiringTeam!
+  cursor: Cursor!
+}
+
+type HiringTeamResponseGetAll {
+  edges: [HiringTeamEdge!]!
+  pagination: Pagination!
+}
+
+type HiringTeamSelection {
+  id: ID!
+  name: String!
+}
+
+type HiringTeamSelectionEdge {
+  node: HiringTeamSelection!
+  cursor: Cursor!
+}
+
+type HiringTeamSelectionResponseGetAll {
+  edges: [HiringTeamSelectionEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/user.graphql
 `, BuiltIn: false},
 	{Name: "../schema/job_position.graphql", Input: `input NewJobPositionInput {
   name: String!
@@ -22290,6 +22555,906 @@ func (ec *executionContext) _HiringJobSelectionResponseGetAll_pagination(ctx con
 func (ec *executionContext) fieldContext_HiringJobSelectionResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "HiringJobSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeam().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_name(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_slug(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_slug(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Slug, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_slug(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_opening_requests(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_opening_requests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeam().OpeningRequests(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_opening_requests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeam().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeam_deleted_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_deleted_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_deleted_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.HiringTeam)
+	fc.Result = res
+	return ec.marshalNHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringTeam_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "opening_requests":
+				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.HiringTeam)
+	fc.Result = res
+	return ec.marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringTeam_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "opening_requests":
+				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringTeamEdge)
+	fc.Result = res
+	return ec.marshalNHiringTeamEdge2ᚕᚖtrecᚋentᚐHiringTeamEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_HiringTeamEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_HiringTeamEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelection_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelection_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelection_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelection_name(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelection_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelection_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelectionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelectionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelectionEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.HiringTeamSelection)
+	fc.Result = res
+	return ec.marshalNHiringTeamSelection2ᚖtrecᚋentᚐHiringTeamSelection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelectionEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelectionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringTeamSelection_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringTeamSelection_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamSelection", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelectionEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelectionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelectionEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelectionEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelectionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelectionResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringTeamSelectionEdge)
+	fc.Result = res
+	return ec.marshalNHiringTeamSelectionEdge2ᚕᚖtrecᚋentᚐHiringTeamSelectionEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_HiringTeamSelectionEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_HiringTeamSelectionEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamSelectionEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamSelectionResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamSelectionResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamSelectionResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamSelectionResponseGetAll",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -38651,6 +39816,122 @@ func (ec *executionContext) unmarshalInputHiringJobOrderBy(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputHiringTeamFilter(ctx context.Context, obj interface{}) (ent.HiringTeamFilter, error) {
+	var it ent.HiringTeamFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "manager_ids", "for_hiring_team", "for_owner"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "manager_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manager_ids"))
+			it.ManagerIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "for_hiring_team":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("for_hiring_team"))
+			it.ForHiringTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "for_owner":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("for_owner"))
+			it.ForOwner, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputHiringTeamFreeWord(ctx context.Context, obj interface{}) (ent.HiringTeamFreeWord, error) {
+	var it ent.HiringTeamFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputHiringTeamOrderBy(ctx context.Context, obj interface{}) (ent.HiringTeamOrderBy, error) {
+	var it ent.HiringTeamOrderBy
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNHiringTeamOrderByField2trecᚋentᚐHiringTeamOrderByField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewAttachmentInput(ctx context.Context, obj interface{}) (ent.NewAttachmentInput, error) {
 	var it ent.NewAttachmentInput
 	asMap := map[string]interface{}{}
@@ -39382,6 +40663,42 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_skill_records"))
 			it.EntitySkillRecords, err = ec.unmarshalOEntitySkillRecordInput2ᚕᚖtrecᚋentᚐEntitySkillRecordInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewHiringTeamInput(ctx context.Context, obj interface{}) (ent.NewHiringTeamInput, error) {
+	var it ent.NewHiringTeamInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "members"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "members":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
+			it.Members, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40814,6 +42131,42 @@ func (ec *executionContext) unmarshalInputUpdateJobPositionInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Context, obj interface{}) (ent.UpdateHiringTeamInput, error) {
+	var it ent.UpdateHiringTeamInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "members"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "members":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
+			it.Members, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44939,6 +46292,319 @@ func (ec *executionContext) _HiringJobSelectionResponseGetAll(ctx context.Contex
 		case "pagination":
 
 			out.Values[i] = ec._HiringJobSelectionResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamImplementors = []string{"HiringTeam"}
+
+func (ec *executionContext) _HiringTeam(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeam) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeam")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeam_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "name":
+
+			out.Values[i] = ec._HiringTeam_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "slug":
+
+			out.Values[i] = ec._HiringTeam_slug(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "opening_requests":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeam_opening_requests(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeam_is_able_to_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_at":
+
+			out.Values[i] = ec._HiringTeam_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._HiringTeam_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "deleted_at":
+
+			out.Values[i] = ec._HiringTeam_deleted_at(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamEdgeImplementors = []string{"HiringTeamEdge"}
+
+func (ec *executionContext) _HiringTeamEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamEdge")
+		case "node":
+
+			out.Values[i] = ec._HiringTeamEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._HiringTeamEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamResponseImplementors = []string{"HiringTeamResponse"}
+
+func (ec *executionContext) _HiringTeamResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamResponse")
+		case "data":
+
+			out.Values[i] = ec._HiringTeamResponse_data(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamResponseGetAllImplementors = []string{"HiringTeamResponseGetAll"}
+
+func (ec *executionContext) _HiringTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._HiringTeamResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._HiringTeamResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamSelectionImplementors = []string{"HiringTeamSelection"}
+
+func (ec *executionContext) _HiringTeamSelection(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamSelection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamSelectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamSelection")
+		case "id":
+
+			out.Values[i] = ec._HiringTeamSelection_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._HiringTeamSelection_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamSelectionEdgeImplementors = []string{"HiringTeamSelectionEdge"}
+
+func (ec *executionContext) _HiringTeamSelectionEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamSelectionEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamSelectionEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamSelectionEdge")
+		case "node":
+
+			out.Values[i] = ec._HiringTeamSelectionEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._HiringTeamSelectionEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamSelectionResponseGetAllImplementors = []string{"HiringTeamSelectionResponseGetAll"}
+
+func (ec *executionContext) _HiringTeamSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamSelectionResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamSelectionResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamSelectionResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._HiringTeamSelectionResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._HiringTeamSelectionResponseGetAll_pagination(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -50840,6 +52506,144 @@ func (ec *executionContext) marshalNHiringJobStatus2trecᚋentᚐHiringJobStatus
 	return v
 }
 
+func (ec *executionContext) marshalNHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeam) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeam(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringTeamEdge2ᚕᚖtrecᚋentᚐHiringTeamEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringTeamEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHiringTeamEdge2ᚖtrecᚋentᚐHiringTeamEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNHiringTeamEdge2ᚖtrecᚋentᚐHiringTeamEdge(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNHiringTeamOrderByField2trecᚋentᚐHiringTeamOrderByField(ctx context.Context, v interface{}) (ent.HiringTeamOrderByField, error) {
+	var res ent.HiringTeamOrderByField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNHiringTeamOrderByField2trecᚋentᚐHiringTeamOrderByField(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeamOrderByField) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNHiringTeamSelection2ᚖtrecᚋentᚐHiringTeamSelection(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamSelection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamSelection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringTeamSelectionEdge2ᚕᚖtrecᚋentᚐHiringTeamSelectionEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringTeamSelectionEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHiringTeamSelectionEdge2ᚖtrecᚋentᚐHiringTeamSelectionEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNHiringTeamSelectionEdge2ᚖtrecᚋentᚐHiringTeamSelectionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamSelectionEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamSelectionEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNI18nLanguage2trecᚋentᚐI18nLanguage(ctx context.Context, v interface{}) (ent.I18nLanguage, error) {
 	var res ent.I18nLanguage
 	err := res.UnmarshalGQL(v)
@@ -54132,6 +55936,13 @@ func (ec *executionContext) marshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobSta
 	return v
 }
 
+func (ec *executionContext) marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeam) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._HiringTeam(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
 	if v == nil {
 		return nil, nil
@@ -54165,6 +55976,38 @@ func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast
 		if e == graphql.Null {
 			return graphql.Null
 		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOID2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOID2ᚖstring(ctx, sel, v[i])
 	}
 
 	return ret
