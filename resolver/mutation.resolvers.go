@@ -46,6 +46,11 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, id string, note strin
 	return true, nil
 }
 
+// CreateJobPosition is the resolver for the CreateJobPosition field.
+func (r *mutationResolver) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error) {
+	return r.serviceRegistry.JobPosition().CreateJobPosition(ctx, input)
+}
+
 // CreateHiringJob is the resolver for the CreateHiringJob field.
 func (r *mutationResolver) CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error) {
 	return r.serviceRegistry.HiringJob().CreateHiringJob(ctx, &input, note)

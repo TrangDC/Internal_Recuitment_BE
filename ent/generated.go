@@ -427,6 +427,10 @@ type HiringJobSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type JobPositionResponse struct {
+	Data *JobPosition `json:"data"`
+}
+
 type JSONFormat struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -527,6 +531,11 @@ type NewHiringJobInput struct {
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+}
+
+type NewJobPositionInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type NewRoleInput struct {

@@ -507,6 +507,10 @@ type ComplexityRoot struct {
 		UpdatedAt   func(childComplexity int) int
 	}
 
+	JobPositionResponse struct {
+		Data func(childComplexity int) int
+	}
+
 	JsonFormat struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -521,6 +525,7 @@ type ComplexityRoot struct {
 		CreateCandidateJobFeedback        func(childComplexity int, input ent.NewCandidateJobFeedbackInput, note *string) int
 		CreateEmailTemplate               func(childComplexity int, input ent.NewEmailTemplateInput, note string) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
+		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput) int
 		CreateRole                        func(childComplexity int, input ent.NewRoleInput, note string) int
 		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
 		CreateSkillType                   func(childComplexity int, input ent.NewSkillTypeInput, note string) int
@@ -1040,6 +1045,7 @@ type MutationResolver interface {
 	CreateTeam(ctx context.Context, input ent.NewTeamInput, note string) (*ent.TeamResponse, error)
 	UpdateTeam(ctx context.Context, id string, input ent.UpdateTeamInput, note string) (*ent.TeamResponse, error)
 	DeleteTeam(ctx context.Context, id string, note string) (bool, error)
+	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
 	CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string, note string) (bool, error)
@@ -3011,6 +3017,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.JobPosition.UpdatedAt(childComplexity), true
 
+	case "JobPositionResponse.data":
+		if e.complexity.JobPositionResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.JobPositionResponse.Data(childComplexity), true
+
 	case "JsonFormat.key":
 		if e.complexity.JsonFormat.Key == nil {
 			break
@@ -3120,6 +3133,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateHiringJob(childComplexity, args["input"].(ent.NewHiringJobInput), args["note"].(string)), true
+
+	case "Mutation.CreateJobPosition":
+		if e.complexity.Mutation.CreateJobPosition == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateJobPosition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateJobPosition(childComplexity, args["input"].(ent.NewJobPositionInput)), true
 
 	case "Mutation.CreateRole":
 		if e.complexity.Mutation.CreateRole == nil {
@@ -5168,6 +5193,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewEmailTemplateInput,
 		ec.unmarshalInputNewEntityPermissionInput,
 		ec.unmarshalInputNewHiringJobInput,
+		ec.unmarshalInputNewJobPositionInput,
 		ec.unmarshalInputNewRoleInput,
 		ec.unmarshalInputNewSkillInput,
 		ec.unmarshalInputNewSkillTypeInput,
@@ -6360,13 +6386,22 @@ type HiringJobSelectionResponseGetAll {
 
 # Path: schema/hiring_job.graphql
 `, BuiltIn: false},
-	{Name: "../schema/job_position.graphql", Input: `type JobPosition {
-    id: ID!
-    name: String!
-    description: String
-    created_at: Time!
-    updated_at: Time!
-    deleted_at: Time
+	{Name: "../schema/job_position.graphql", Input: `input NewJobPositionInput {
+  name: String!
+  description: String!
+}
+
+type JobPosition {
+  id: ID!
+  name: String!
+  description: String
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type JobPositionResponse {
+  data: JobPosition!
 }
 
 # Path: schema/job_position.graphql`, BuiltIn: false},
@@ -6382,6 +6417,9 @@ type HiringJobSelectionResponseGetAll {
   CreateTeam(input: NewTeamInput!, note: String!): TeamResponse!
   UpdateTeam(id: ID!, input: UpdateTeamInput!, note: String!): TeamResponse!
   DeleteTeam(id: ID!, note: String!): Boolean!
+
+  # JobPosition
+  CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
 
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!, note: String!): HiringJobResponse!
@@ -7318,6 +7356,21 @@ func (ec *executionContext) field_Mutation_CreateHiringJob_args(ctx context.Cont
 		}
 	}
 	args["note"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.NewJobPositionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewJobPositionInput2trecᚋentᚐNewJobPositionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -22468,6 +22521,64 @@ func (ec *executionContext) fieldContext_JobPosition_deleted_at(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _JobPositionResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.JobPosition)
+	fc.Result = res
+	return ec.marshalNJobPosition2ᚖtrecᚋentᚐJobPosition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_JobPosition_id(ctx, field)
+			case "name":
+				return ec.fieldContext_JobPosition_name(ctx, field)
+			case "description":
+				return ec.fieldContext_JobPosition_description(ctx, field)
+			case "created_at":
+				return ec.fieldContext_JobPosition_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_JobPosition_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_JobPosition_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobPosition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JsonFormat_key(ctx context.Context, field graphql.CollectedField, obj *ent.JSONFormat) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_JsonFormat_key(ctx, field)
 	if err != nil {
@@ -22906,6 +23017,65 @@ func (ec *executionContext) fieldContext_Mutation_DeleteTeam(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_DeleteTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateJobPosition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateJobPosition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateJobPosition(rctx, fc.Args["input"].(ent.NewJobPositionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.JobPositionResponse)
+	fc.Result = res
+	return ec.marshalNJobPositionResponse2ᚖtrecᚋentᚐJobPositionResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateJobPosition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_JobPositionResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobPositionResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateJobPosition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -39117,6 +39287,42 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewJobPositionInput(ctx context.Context, obj interface{}) (ent.NewJobPositionInput, error) {
+	var it ent.NewJobPositionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewRoleInput(ctx context.Context, obj interface{}) (ent.NewRoleInput, error) {
 	var it ent.NewRoleInput
 	asMap := map[string]interface{}{}
@@ -44678,6 +44884,34 @@ func (ec *executionContext) _JobPosition(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var jobPositionResponseImplementors = []string{"JobPositionResponse"}
+
+func (ec *executionContext) _JobPositionResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.JobPositionResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobPositionResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobPositionResponse")
+		case "data":
+
+			out.Values[i] = ec._JobPositionResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var jsonFormatImplementors = []string{"JsonFormat"}
 
 func (ec *executionContext) _JsonFormat(ctx context.Context, sel ast.SelectionSet, obj *ent.JSONFormat) graphql.Marshaler {
@@ -44781,6 +45015,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_DeleteTeam(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "CreateJobPosition":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateJobPosition(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -50535,6 +50778,30 @@ func (ec *executionContext) marshalNJSON2string(ctx context.Context, sel ast.Sel
 	return res
 }
 
+func (ec *executionContext) marshalNJobPosition2ᚖtrecᚋentᚐJobPosition(ctx context.Context, sel ast.SelectionSet, v *ent.JobPosition) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobPosition(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobPositionResponse2trecᚋentᚐJobPositionResponse(ctx context.Context, sel ast.SelectionSet, v ent.JobPositionResponse) graphql.Marshaler {
+	return ec._JobPositionResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobPositionResponse2ᚖtrecᚋentᚐJobPositionResponse(ctx context.Context, sel ast.SelectionSet, v *ent.JobPositionResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobPositionResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNJsonFormat2ᚕᚖtrecᚋentᚐJSONFormatᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.JSONFormat) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -50658,6 +50925,11 @@ func (ec *executionContext) unmarshalNNewEntityPermissionInput2ᚖtrecᚋentᚐN
 
 func (ec *executionContext) unmarshalNNewHiringJobInput2trecᚋentᚐNewHiringJobInput(ctx context.Context, v interface{}) (ent.NewHiringJobInput, error) {
 	res, err := ec.unmarshalInputNewHiringJobInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewJobPositionInput2trecᚋentᚐNewJobPositionInput(ctx context.Context, v interface{}) (ent.NewJobPositionInput, error) {
+	res, err := ec.unmarshalInputNewJobPositionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

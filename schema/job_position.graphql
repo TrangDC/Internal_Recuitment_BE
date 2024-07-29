@@ -1,10 +1,19 @@
+input NewJobPositionInput {
+  name: String!
+  description: String!
+}
+
 type JobPosition {
-    id: ID!
-    name: String!
-    description: String
-    created_at: Time!
-    updated_at: Time!
-    deleted_at: Time
+  id: ID!
+  name: String!
+  description: String
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type JobPositionResponse {
+  data: JobPosition!
 }
 
 # Path: schema/job_position.graphql
