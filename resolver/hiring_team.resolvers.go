@@ -5,9 +5,11 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
+	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
+
+	"github.com/samber/lo"
 )
 
 // ID is the resolver for the id field.
@@ -22,12 +24,18 @@ func (r *hiringTeamResolver) Managers(ctx context.Context, obj *ent.HiringTeam) 
 
 // OpeningRequests is the resolver for the opening_requests field.
 func (r *hiringTeamResolver) OpeningRequests(ctx context.Context, obj *ent.HiringTeam) (int, error) {
-	panic(fmt.Errorf("not implemented: OpeningRequests - opening_requests"))
+	total := lo.Filter(obj.Edges.HiringTeamJobEdges, func(record *ent.HiringJob, index int) bool {
+		return record.Status == hiringjob.StatusOpened
+	})
+	return len(total), nil
 }
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *hiringTeamResolver) IsAbleToDelete(ctx context.Context, obj *ent.HiringTeam) (bool, error) {
-	panic(fmt.Errorf("not implemented: IsAbleToDelete - is_able_to_delete"))
+	if len(obj.Edges.HiringTeamJobEdges) > 0 {
+		return false, nil
+	}
+	return true, nil
 }
 
 // HiringTeam returns graphql1.HiringTeamResolver implementation.

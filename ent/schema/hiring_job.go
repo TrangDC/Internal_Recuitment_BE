@@ -29,6 +29,7 @@ func (HiringJob) Fields() []ent.Field {
 		field.Enum("currency").Values("vnd", "usd", "jpy"),
 		field.Time("last_apply_date").Optional().Annotations(entgql.OrderField("last_apply_date")),
 		field.Int("priority").Default(4).Annotations(entgql.OrderField("priority")),
+		field.UUID("hiring_team_id", uuid.UUID{}).Optional(),
 	}
 }
 
@@ -39,6 +40,7 @@ func (HiringJob) Edges() []ent.Edge {
 		edge.From("team_edge", Team.Type).Ref("team_job_edges").Unique().Field("team_id"),
 		edge.To("candidate_job_edges", CandidateJob.Type),
 		edge.To("hiring_job_skill_edges", EntitySkill.Type),
+		edge.From("hiring_team_edge", HiringTeam.Type).Ref("hiring_team_job_edges").Unique().Field("hiring_team_id"),
 	}
 }
 

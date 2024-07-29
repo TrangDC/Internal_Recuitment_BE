@@ -2120,6 +2120,22 @@ func (c *HiringJobClient) QueryHiringJobSkillEdges(hj *HiringJob) *EntitySkillQu
 	return query
 }
 
+// QueryHiringTeamEdge queries the hiring_team_edge edge of a HiringJob.
+func (c *HiringJobClient) QueryHiringTeamEdge(hj *HiringJob) *HiringTeamQuery {
+	query := &HiringTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.HiringTeamEdgeTable, hiringjob.HiringTeamEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
@@ -2219,6 +2235,22 @@ func (c *HiringTeamClient) QueryUserEdges(ht *HiringTeam) *UserQuery {
 			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, hiringteam.UserEdgesTable, hiringteam.UserEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringTeamJobEdges queries the hiring_team_job_edges edge of a HiringTeam.
+func (c *HiringTeamClient) QueryHiringTeamJobEdges(ht *HiringTeam) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ht.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringteam.HiringTeamJobEdgesTable, hiringteam.HiringTeamJobEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
 		return fromV, nil

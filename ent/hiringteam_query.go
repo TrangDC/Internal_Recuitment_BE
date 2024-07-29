@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteammanager"
 	"trec/ent/predicate"
@@ -21,18 +22,20 @@ import (
 // HiringTeamQuery is the builder for querying HiringTeam entities.
 type HiringTeamQuery struct {
 	config
-	limit                    *int
-	offset                   *int
-	unique                   *bool
-	order                    []OrderFunc
-	fields                   []string
-	predicates               []predicate.HiringTeam
-	withUserEdges            *UserQuery
-	withUserHiringTeams      *HiringTeamManagerQuery
-	modifiers                []func(*sql.Selector)
-	loadTotal                []func(context.Context, []*HiringTeam) error
-	withNamedUserEdges       map[string]*UserQuery
-	withNamedUserHiringTeams map[string]*HiringTeamManagerQuery
+	limit                       *int
+	offset                      *int
+	unique                      *bool
+	order                       []OrderFunc
+	fields                      []string
+	predicates                  []predicate.HiringTeam
+	withUserEdges               *UserQuery
+	withHiringTeamJobEdges      *HiringJobQuery
+	withUserHiringTeams         *HiringTeamManagerQuery
+	modifiers                   []func(*sql.Selector)
+	loadTotal                   []func(context.Context, []*HiringTeam) error
+	withNamedUserEdges          map[string]*UserQuery
+	withNamedHiringTeamJobEdges map[string]*HiringJobQuery
+	withNamedUserHiringTeams    map[string]*HiringTeamManagerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,6 +87,28 @@ func (htq *HiringTeamQuery) QueryUserEdges() *UserQuery {
 			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, hiringteam.UserEdgesTable, hiringteam.UserEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(htq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringTeamJobEdges chains the current query on the "hiring_team_job_edges" edge.
+func (htq *HiringTeamQuery) QueryHiringTeamJobEdges() *HiringJobQuery {
+	query := &HiringJobQuery{config: htq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := htq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := htq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, selector),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringteam.HiringTeamJobEdgesTable, hiringteam.HiringTeamJobEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(htq.driver.Dialect(), step)
 		return fromU, nil
@@ -289,13 +314,14 @@ func (htq *HiringTeamQuery) Clone() *HiringTeamQuery {
 		return nil
 	}
 	return &HiringTeamQuery{
-		config:              htq.config,
-		limit:               htq.limit,
-		offset:              htq.offset,
-		order:               append([]OrderFunc{}, htq.order...),
-		predicates:          append([]predicate.HiringTeam{}, htq.predicates...),
-		withUserEdges:       htq.withUserEdges.Clone(),
-		withUserHiringTeams: htq.withUserHiringTeams.Clone(),
+		config:                 htq.config,
+		limit:                  htq.limit,
+		offset:                 htq.offset,
+		order:                  append([]OrderFunc{}, htq.order...),
+		predicates:             append([]predicate.HiringTeam{}, htq.predicates...),
+		withUserEdges:          htq.withUserEdges.Clone(),
+		withHiringTeamJobEdges: htq.withHiringTeamJobEdges.Clone(),
+		withUserHiringTeams:    htq.withUserHiringTeams.Clone(),
 		// clone intermediate query.
 		sql:    htq.sql.Clone(),
 		path:   htq.path,
@@ -311,6 +337,17 @@ func (htq *HiringTeamQuery) WithUserEdges(opts ...func(*UserQuery)) *HiringTeamQ
 		opt(query)
 	}
 	htq.withUserEdges = query
+	return htq
+}
+
+// WithHiringTeamJobEdges tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_team_job_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithHiringTeamJobEdges(opts ...func(*HiringJobQuery)) *HiringTeamQuery {
+	query := &HiringJobQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	htq.withHiringTeamJobEdges = query
 	return htq
 }
 
@@ -398,8 +435,9 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*HiringTeam{}
 		_spec       = htq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			htq.withUserEdges != nil,
+			htq.withHiringTeamJobEdges != nil,
 			htq.withUserHiringTeams != nil,
 		}
 	)
@@ -431,6 +469,13 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := htq.withHiringTeamJobEdges; query != nil {
+		if err := htq.loadHiringTeamJobEdges(ctx, query, nodes,
+			func(n *HiringTeam) { n.Edges.HiringTeamJobEdges = []*HiringJob{} },
+			func(n *HiringTeam, e *HiringJob) { n.Edges.HiringTeamJobEdges = append(n.Edges.HiringTeamJobEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := htq.withUserHiringTeams; query != nil {
 		if err := htq.loadUserHiringTeams(ctx, query, nodes,
 			func(n *HiringTeam) { n.Edges.UserHiringTeams = []*HiringTeamManager{} },
@@ -444,6 +489,13 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := htq.loadUserEdges(ctx, query, nodes,
 			func(n *HiringTeam) { n.appendNamedUserEdges(name) },
 			func(n *HiringTeam, e *User) { n.appendNamedUserEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range htq.withNamedHiringTeamJobEdges {
+		if err := htq.loadHiringTeamJobEdges(ctx, query, nodes,
+			func(n *HiringTeam) { n.appendNamedHiringTeamJobEdges(name) },
+			func(n *HiringTeam, e *HiringJob) { n.appendNamedHiringTeamJobEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -517,6 +569,33 @@ func (htq *HiringTeamQuery) loadUserEdges(ctx context.Context, query *UserQuery,
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (htq *HiringTeamQuery) loadHiringTeamJobEdges(ctx context.Context, query *HiringJobQuery, nodes []*HiringTeam, init func(*HiringTeam), assign func(*HiringTeam, *HiringJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HiringTeam)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(hiringteam.HiringTeamJobEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.HiringTeamID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "hiring_team_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -662,6 +741,20 @@ func (htq *HiringTeamQuery) WithNamedUserEdges(name string, opts ...func(*UserQu
 		htq.withNamedUserEdges = make(map[string]*UserQuery)
 	}
 	htq.withNamedUserEdges[name] = query
+	return htq
+}
+
+// WithNamedHiringTeamJobEdges tells the query-builder to eager-load the nodes that are connected to the "hiring_team_job_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithNamedHiringTeamJobEdges(name string, opts ...func(*HiringJobQuery)) *HiringTeamQuery {
+	query := &HiringJobQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if htq.withNamedHiringTeamJobEdges == nil {
+		htq.withNamedHiringTeamJobEdges = make(map[string]*HiringJobQuery)
+	}
+	htq.withNamedHiringTeamJobEdges[name] = query
 	return htq
 }
 

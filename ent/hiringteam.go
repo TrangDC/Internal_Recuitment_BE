@@ -36,16 +36,19 @@ type HiringTeam struct {
 type HiringTeamEdges struct {
 	// The uniqueness of the user is enforced on the edge schema
 	UserEdges []*User `json:"user_edges,omitempty"`
+	// HiringTeamJobEdges holds the value of the hiring_team_job_edges edge.
+	HiringTeamJobEdges []*HiringJob `json:"hiring_team_job_edges,omitempty"`
 	// UserHiringTeams holds the value of the user_hiring_teams edge.
 	UserHiringTeams []*HiringTeamManager `json:"user_hiring_teams,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
-	namedUserEdges       map[string][]*User
-	namedUserHiringTeams map[string][]*HiringTeamManager
+	namedUserEdges          map[string][]*User
+	namedHiringTeamJobEdges map[string][]*HiringJob
+	namedUserHiringTeams    map[string][]*HiringTeamManager
 }
 
 // UserEdgesOrErr returns the UserEdges value or an error if the edge
@@ -57,10 +60,19 @@ func (e HiringTeamEdges) UserEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "user_edges"}
 }
 
+// HiringTeamJobEdgesOrErr returns the HiringTeamJobEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringTeamEdges) HiringTeamJobEdgesOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[1] {
+		return e.HiringTeamJobEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_team_job_edges"}
+}
+
 // UserHiringTeamsOrErr returns the UserHiringTeams value or an error if the edge
 // was not loaded in eager-loading.
 func (e HiringTeamEdges) UserHiringTeamsOrErr() ([]*HiringTeamManager, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.UserHiringTeams, nil
 	}
 	return nil, &NotLoadedError{edge: "user_hiring_teams"}
@@ -138,6 +150,11 @@ func (ht *HiringTeam) QueryUserEdges() *UserQuery {
 	return (&HiringTeamClient{config: ht.config}).QueryUserEdges(ht)
 }
 
+// QueryHiringTeamJobEdges queries the "hiring_team_job_edges" edge of the HiringTeam entity.
+func (ht *HiringTeam) QueryHiringTeamJobEdges() *HiringJobQuery {
+	return (&HiringTeamClient{config: ht.config}).QueryHiringTeamJobEdges(ht)
+}
+
 // QueryUserHiringTeams queries the "user_hiring_teams" edge of the HiringTeam entity.
 func (ht *HiringTeam) QueryUserHiringTeams() *HiringTeamManagerQuery {
 	return (&HiringTeamClient{config: ht.config}).QueryUserHiringTeams(ht)
@@ -205,6 +222,30 @@ func (ht *HiringTeam) appendNamedUserEdges(name string, edges ...*User) {
 		ht.Edges.namedUserEdges[name] = []*User{}
 	} else {
 		ht.Edges.namedUserEdges[name] = append(ht.Edges.namedUserEdges[name], edges...)
+	}
+}
+
+// NamedHiringTeamJobEdges returns the HiringTeamJobEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ht *HiringTeam) NamedHiringTeamJobEdges(name string) ([]*HiringJob, error) {
+	if ht.Edges.namedHiringTeamJobEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ht.Edges.namedHiringTeamJobEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ht *HiringTeam) appendNamedHiringTeamJobEdges(name string, edges ...*HiringJob) {
+	if ht.Edges.namedHiringTeamJobEdges == nil {
+		ht.Edges.namedHiringTeamJobEdges = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		ht.Edges.namedHiringTeamJobEdges[name] = []*HiringJob{}
+	} else {
+		ht.Edges.namedHiringTeamJobEdges[name] = append(ht.Edges.namedHiringTeamJobEdges[name], edges...)
 	}
 }
 

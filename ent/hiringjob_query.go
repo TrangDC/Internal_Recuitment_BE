@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/predicate"
 	"trec/ent/team"
 	"trec/ent/user"
@@ -33,6 +34,7 @@ type HiringJobQuery struct {
 	withTeamEdge                 *TeamQuery
 	withCandidateJobEdges        *CandidateJobQuery
 	withHiringJobSkillEdges      *EntitySkillQuery
+	withHiringTeamEdge           *HiringTeamQuery
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*HiringJob) error
 	withNamedCandidateJobEdges   map[string]*CandidateJobQuery
@@ -154,6 +156,28 @@ func (hjq *HiringJobQuery) QueryHiringJobSkillEdges() *EntitySkillQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(entityskill.Table, entityskill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobSkillEdgesTable, hiringjob.HiringJobSkillEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringTeamEdge chains the current query on the "hiring_team_edge" edge.
+func (hjq *HiringJobQuery) QueryHiringTeamEdge() *HiringTeamQuery {
+	query := &HiringTeamQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.HiringTeamEdgeTable, hiringjob.HiringTeamEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -346,6 +370,7 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		withTeamEdge:            hjq.withTeamEdge.Clone(),
 		withCandidateJobEdges:   hjq.withCandidateJobEdges.Clone(),
 		withHiringJobSkillEdges: hjq.withHiringJobSkillEdges.Clone(),
+		withHiringTeamEdge:      hjq.withHiringTeamEdge.Clone(),
 		// clone intermediate query.
 		sql:    hjq.sql.Clone(),
 		path:   hjq.path,
@@ -394,6 +419,17 @@ func (hjq *HiringJobQuery) WithHiringJobSkillEdges(opts ...func(*EntitySkillQuer
 		opt(query)
 	}
 	hjq.withHiringJobSkillEdges = query
+	return hjq
+}
+
+// WithHiringTeamEdge tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_team_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithHiringTeamEdge(opts ...func(*HiringTeamQuery)) *HiringJobQuery {
+	query := &HiringTeamQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withHiringTeamEdge = query
 	return hjq
 }
 
@@ -470,11 +506,12 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			hjq.withOwnerEdge != nil,
 			hjq.withTeamEdge != nil,
 			hjq.withCandidateJobEdges != nil,
 			hjq.withHiringJobSkillEdges != nil,
+			hjq.withHiringTeamEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -523,6 +560,12 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 			func(n *HiringJob, e *EntitySkill) {
 				n.Edges.HiringJobSkillEdges = append(n.Edges.HiringJobSkillEdges, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := hjq.withHiringTeamEdge; query != nil {
+		if err := hjq.loadHiringTeamEdge(ctx, query, nodes, nil,
+			func(n *HiringJob, e *HiringTeam) { n.Edges.HiringTeamEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -651,6 +694,32 @@ func (hjq *HiringJobQuery) loadHiringJobSkillEdges(ctx context.Context, query *E
 			return fmt.Errorf(`unexpected foreign-key "entity_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (hjq *HiringJobQuery) loadHiringTeamEdge(ctx context.Context, query *HiringTeamQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *HiringTeam)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*HiringJob)
+	for i := range nodes {
+		fk := nodes[i].HiringTeamID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(hiringteam.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "hiring_team_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

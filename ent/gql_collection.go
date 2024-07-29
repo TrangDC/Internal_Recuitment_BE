@@ -1293,6 +1293,16 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 			hj.WithNamedHiringJobSkillEdges(alias, func(wq *EntitySkillQuery) {
 				*wq = *query
 			})
+		case "hiringTeamEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withHiringTeamEdge = query
 		}
 	}
 	return nil
@@ -1372,6 +1382,18 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 				return err
 			}
 			ht.WithNamedUserEdges(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "hiringTeamJobEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: ht.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ht.WithNamedHiringTeamJobEdges(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "userHiringTeams":
