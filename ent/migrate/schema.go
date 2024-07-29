@@ -517,7 +517,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 	}
 	// JobPositionsTable holds the schema information for the "job_positions" table.
 	JobPositionsTable = &schema.Table{
