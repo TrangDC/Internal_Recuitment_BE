@@ -45,6 +45,9 @@ type EntitySkill func(*sql.Selector)
 // HiringJob is the predicate function for hiringjob builders.
 type HiringJob func(*sql.Selector)
 
+// HiringTeam is the predicate function for hiringteam builders.
+type HiringTeam func(*sql.Selector)
+
 // JobPosition is the predicate function for jobposition builders.
 type JobPosition func(*sql.Selector)
 

@@ -29,9 +29,9 @@ const (
 	Table = "email_role_attributes"
 	// EmailTemplateEdgeTable is the table that holds the email_template_edge relation/edge.
 	EmailTemplateEdgeTable = "email_role_attributes"
-	// EmailTemplateEdgeInverseTable is the table name for the Team entity.
-	// It exists in this package in order to avoid circular dependency with the "team" package.
-	EmailTemplateEdgeInverseTable = "teams"
+	// EmailTemplateEdgeInverseTable is the table name for the EmailTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "emailtemplate" package.
+	EmailTemplateEdgeInverseTable = "email_templates"
 	// EmailTemplateEdgeColumn is the table column denoting the email_template_edge relation/edge.
 	EmailTemplateEdgeColumn = "email_template_id"
 	// RoleEdgeTable is the table that holds the role_edge relation/edge.

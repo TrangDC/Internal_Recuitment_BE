@@ -1,0 +1,79 @@
+enum HiringTeamOrderByField {
+  name
+  created_at
+  opening_requests
+  newest_applied
+}
+
+enum HiringTeamOrderByAdditionalField {
+  opening_requests
+  newest_applied
+}
+
+input HiringTeamOrderBy {
+  direction: OrderDirection!
+  field: HiringTeamOrderByField!
+}
+
+input HiringTeamFilter {
+  name: String
+  manager_ids: [ID]
+  for_hiring_team: Boolean
+  for_owner: Boolean
+}
+
+input HiringTeamFreeWord {
+  name: String
+}
+
+input NewHiringTeamInput {
+  name: String!
+  members: [ID!]
+}
+
+input UpdateHiringTeamInput {
+  name: String!
+  members: [ID!]
+}
+
+type HiringTeam {
+  id: ID!
+  name: String!
+  slug: String!
+  opening_requests: Int!
+  is_able_to_delete: Boolean!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
+}
+
+type HiringTeamResponse {
+  data: HiringTeam
+}
+
+type HiringTeamEdge {
+  node: HiringTeam!
+  cursor: Cursor!
+}
+
+type HiringTeamResponseGetAll {
+  edges: [HiringTeamEdge!]!
+  pagination: Pagination!
+}
+
+type HiringTeamSelection {
+  id: ID!
+  name: String!
+}
+
+type HiringTeamSelectionEdge {
+  node: HiringTeamSelection!
+  cursor: Cursor!
+}
+
+type HiringTeamSelectionResponseGetAll {
+  edges: [HiringTeamSelectionEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/user.graphql

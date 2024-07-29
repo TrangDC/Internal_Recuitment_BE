@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/predicate"
 	"trec/ent/role"
-	"trec/ent/team"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,7 +26,7 @@ type EmailRoleAttributeQuery struct {
 	order                 []OrderFunc
 	fields                []string
 	predicates            []predicate.EmailRoleAttribute
-	withEmailTemplateEdge *TeamQuery
+	withEmailTemplateEdge *EmailTemplateQuery
 	withRoleEdge          *RoleQuery
 	modifiers             []func(*sql.Selector)
 	loadTotal             []func(context.Context, []*EmailRoleAttribute) error
@@ -67,8 +67,8 @@ func (eraq *EmailRoleAttributeQuery) Order(o ...OrderFunc) *EmailRoleAttributeQu
 }
 
 // QueryEmailTemplateEdge chains the current query on the "email_template_edge" edge.
-func (eraq *EmailRoleAttributeQuery) QueryEmailTemplateEdge() *TeamQuery {
-	query := &TeamQuery{config: eraq.config}
+func (eraq *EmailRoleAttributeQuery) QueryEmailTemplateEdge() *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: eraq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := eraq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -79,7 +79,7 @@ func (eraq *EmailRoleAttributeQuery) QueryEmailTemplateEdge() *TeamQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(emailroleattribute.Table, emailroleattribute.FieldID, selector),
-			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, emailroleattribute.EmailTemplateEdgeTable, emailroleattribute.EmailTemplateEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(eraq.driver.Dialect(), step)
@@ -302,8 +302,8 @@ func (eraq *EmailRoleAttributeQuery) Clone() *EmailRoleAttributeQuery {
 
 // WithEmailTemplateEdge tells the query-builder to eager-load the nodes that are connected to
 // the "email_template_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (eraq *EmailRoleAttributeQuery) WithEmailTemplateEdge(opts ...func(*TeamQuery)) *EmailRoleAttributeQuery {
-	query := &TeamQuery{config: eraq.config}
+func (eraq *EmailRoleAttributeQuery) WithEmailTemplateEdge(opts ...func(*EmailTemplateQuery)) *EmailRoleAttributeQuery {
+	query := &EmailTemplateQuery{config: eraq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -423,7 +423,7 @@ func (eraq *EmailRoleAttributeQuery) sqlAll(ctx context.Context, hooks ...queryH
 	}
 	if query := eraq.withEmailTemplateEdge; query != nil {
 		if err := eraq.loadEmailTemplateEdge(ctx, query, nodes, nil,
-			func(n *EmailRoleAttribute, e *Team) { n.Edges.EmailTemplateEdge = e }); err != nil {
+			func(n *EmailRoleAttribute, e *EmailTemplate) { n.Edges.EmailTemplateEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -441,7 +441,7 @@ func (eraq *EmailRoleAttributeQuery) sqlAll(ctx context.Context, hooks ...queryH
 	return nodes, nil
 }
 
-func (eraq *EmailRoleAttributeQuery) loadEmailTemplateEdge(ctx context.Context, query *TeamQuery, nodes []*EmailRoleAttribute, init func(*EmailRoleAttribute), assign func(*EmailRoleAttribute, *Team)) error {
+func (eraq *EmailRoleAttributeQuery) loadEmailTemplateEdge(ctx context.Context, query *EmailTemplateQuery, nodes []*EmailRoleAttribute, init func(*EmailRoleAttribute), assign func(*EmailRoleAttribute, *EmailTemplate)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*EmailRoleAttribute)
 	for i := range nodes {
@@ -451,7 +451,7 @@ func (eraq *EmailRoleAttributeQuery) loadEmailTemplateEdge(ctx context.Context, 
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(team.IDIn(ids...))
+	query.Where(emailtemplate.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

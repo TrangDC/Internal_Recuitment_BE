@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
 	"trec/ent/permission"
@@ -72,6 +73,8 @@ type Client struct {
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// HiringTeam is the client for interacting with the HiringTeam builders.
+	HiringTeam *HiringTeamClient
 	// JobPosition is the client for interacting with the JobPosition builders.
 	JobPosition *JobPositionClient
 	// OutgoingEmail is the client for interacting with the OutgoingEmail builders.
@@ -120,6 +123,7 @@ func (c *Client) init() {
 	c.EntityPermission = NewEntityPermissionClient(c.config)
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
+	c.HiringTeam = NewHiringTeamClient(c.config)
 	c.JobPosition = NewJobPositionClient(c.config)
 	c.OutgoingEmail = NewOutgoingEmailClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
@@ -177,6 +181,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		HiringTeam:           NewHiringTeamClient(cfg),
 		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
@@ -220,6 +225,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		HiringTeam:           NewHiringTeamClient(cfg),
 		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
 		Permission:           NewPermissionClient(cfg),
@@ -272,6 +278,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.EntityPermission.Use(hooks...)
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
+	c.HiringTeam.Use(hooks...)
 	c.JobPosition.Use(hooks...)
 	c.OutgoingEmail.Use(hooks...)
 	c.Permission.Use(hooks...)
@@ -1523,13 +1530,13 @@ func (c *EmailRoleAttributeClient) GetX(ctx context.Context, id uuid.UUID) *Emai
 }
 
 // QueryEmailTemplateEdge queries the email_template_edge edge of a EmailRoleAttribute.
-func (c *EmailRoleAttributeClient) QueryEmailTemplateEdge(era *EmailRoleAttribute) *TeamQuery {
-	query := &TeamQuery{config: c.config}
+func (c *EmailRoleAttributeClient) QueryEmailTemplateEdge(era *EmailRoleAttribute) *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := era.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(emailroleattribute.Table, emailroleattribute.FieldID, id),
-			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, emailroleattribute.EmailTemplateEdgeTable, emailroleattribute.EmailTemplateEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(era.driver.Dialect(), step)
@@ -2109,6 +2116,96 @@ func (c *HiringJobClient) QueryHiringJobSkillEdges(hj *HiringJob) *EntitySkillQu
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
+}
+
+// HiringTeamClient is a client for the HiringTeam schema.
+type HiringTeamClient struct {
+	config
+}
+
+// NewHiringTeamClient returns a client for the HiringTeam from the given config.
+func NewHiringTeamClient(c config) *HiringTeamClient {
+	return &HiringTeamClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hiringteam.Hooks(f(g(h())))`.
+func (c *HiringTeamClient) Use(hooks ...Hook) {
+	c.hooks.HiringTeam = append(c.hooks.HiringTeam, hooks...)
+}
+
+// Create returns a builder for creating a HiringTeam entity.
+func (c *HiringTeamClient) Create() *HiringTeamCreate {
+	mutation := newHiringTeamMutation(c.config, OpCreate)
+	return &HiringTeamCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HiringTeam entities.
+func (c *HiringTeamClient) CreateBulk(builders ...*HiringTeamCreate) *HiringTeamCreateBulk {
+	return &HiringTeamCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HiringTeam.
+func (c *HiringTeamClient) Update() *HiringTeamUpdate {
+	mutation := newHiringTeamMutation(c.config, OpUpdate)
+	return &HiringTeamUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HiringTeamClient) UpdateOne(ht *HiringTeam) *HiringTeamUpdateOne {
+	mutation := newHiringTeamMutation(c.config, OpUpdateOne, withHiringTeam(ht))
+	return &HiringTeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HiringTeamClient) UpdateOneID(id uuid.UUID) *HiringTeamUpdateOne {
+	mutation := newHiringTeamMutation(c.config, OpUpdateOne, withHiringTeamID(id))
+	return &HiringTeamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HiringTeam.
+func (c *HiringTeamClient) Delete() *HiringTeamDelete {
+	mutation := newHiringTeamMutation(c.config, OpDelete)
+	return &HiringTeamDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HiringTeamClient) DeleteOne(ht *HiringTeam) *HiringTeamDeleteOne {
+	return c.DeleteOneID(ht.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HiringTeamClient) DeleteOneID(id uuid.UUID) *HiringTeamDeleteOne {
+	builder := c.Delete().Where(hiringteam.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HiringTeamDeleteOne{builder}
+}
+
+// Query returns a query builder for HiringTeam.
+func (c *HiringTeamClient) Query() *HiringTeamQuery {
+	return &HiringTeamQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a HiringTeam entity by its id.
+func (c *HiringTeamClient) Get(ctx context.Context, id uuid.UUID) (*HiringTeam, error) {
+	return c.Query().Where(hiringteam.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HiringTeamClient) GetX(ctx context.Context, id uuid.UUID) *HiringTeam {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *HiringTeamClient) Hooks() []Hook {
+	return c.hooks.HiringTeam
 }
 
 // JobPositionClient is a client for the JobPosition schema.

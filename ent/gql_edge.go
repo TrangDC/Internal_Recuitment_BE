@@ -268,7 +268,7 @@ func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJo
 	return result, MaskNotFound(err)
 }
 
-func (era *EmailRoleAttribute) EmailTemplateEdge(ctx context.Context) (*Team, error) {
+func (era *EmailRoleAttribute) EmailTemplateEdge(ctx context.Context) (*EmailTemplate, error) {
 	result, err := era.Edges.EmailTemplateEdgeOrErr()
 	if IsNotLoaded(err) {
 		result, err = era.QueryEmailTemplateEdge().Only(ctx)

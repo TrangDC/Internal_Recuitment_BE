@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/role"
-	"trec/ent/team"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -83,15 +83,15 @@ func (erac *EmailRoleAttributeCreate) SetID(u uuid.UUID) *EmailRoleAttributeCrea
 	return erac
 }
 
-// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the Team entity by ID.
+// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the EmailTemplate entity by ID.
 func (erac *EmailRoleAttributeCreate) SetEmailTemplateEdgeID(id uuid.UUID) *EmailRoleAttributeCreate {
 	erac.mutation.SetEmailTemplateEdgeID(id)
 	return erac
 }
 
-// SetEmailTemplateEdge sets the "email_template_edge" edge to the Team entity.
-func (erac *EmailRoleAttributeCreate) SetEmailTemplateEdge(t *Team) *EmailRoleAttributeCreate {
-	return erac.SetEmailTemplateEdgeID(t.ID)
+// SetEmailTemplateEdge sets the "email_template_edge" edge to the EmailTemplate entity.
+func (erac *EmailRoleAttributeCreate) SetEmailTemplateEdge(e *EmailTemplate) *EmailRoleAttributeCreate {
+	return erac.SetEmailTemplateEdgeID(e.ID)
 }
 
 // SetRoleEdgeID sets the "role_edge" edge to the Role entity by ID.
@@ -263,7 +263,7 @@ func (erac *EmailRoleAttributeCreate) createSpec() (*EmailRoleAttribute, *sqlgra
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: team.FieldID,
+					Column: emailtemplate.FieldID,
 				},
 			},
 		}

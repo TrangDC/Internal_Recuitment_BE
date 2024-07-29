@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/emailroleattribute"
+	"trec/ent/emailtemplate"
 	"trec/ent/predicate"
 	"trec/ent/role"
-	"trec/ent/team"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -83,15 +83,15 @@ func (erau *EmailRoleAttributeUpdate) SetRoleID(u uuid.UUID) *EmailRoleAttribute
 	return erau
 }
 
-// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the Team entity by ID.
+// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the EmailTemplate entity by ID.
 func (erau *EmailRoleAttributeUpdate) SetEmailTemplateEdgeID(id uuid.UUID) *EmailRoleAttributeUpdate {
 	erau.mutation.SetEmailTemplateEdgeID(id)
 	return erau
 }
 
-// SetEmailTemplateEdge sets the "email_template_edge" edge to the Team entity.
-func (erau *EmailRoleAttributeUpdate) SetEmailTemplateEdge(t *Team) *EmailRoleAttributeUpdate {
-	return erau.SetEmailTemplateEdgeID(t.ID)
+// SetEmailTemplateEdge sets the "email_template_edge" edge to the EmailTemplate entity.
+func (erau *EmailRoleAttributeUpdate) SetEmailTemplateEdge(e *EmailTemplate) *EmailRoleAttributeUpdate {
+	return erau.SetEmailTemplateEdgeID(e.ID)
 }
 
 // SetRoleEdgeID sets the "role_edge" edge to the Role entity by ID.
@@ -110,7 +110,7 @@ func (erau *EmailRoleAttributeUpdate) Mutation() *EmailRoleAttributeMutation {
 	return erau.mutation
 }
 
-// ClearEmailTemplateEdge clears the "email_template_edge" edge to the Team entity.
+// ClearEmailTemplateEdge clears the "email_template_edge" edge to the EmailTemplate entity.
 func (erau *EmailRoleAttributeUpdate) ClearEmailTemplateEdge() *EmailRoleAttributeUpdate {
 	erau.mutation.ClearEmailTemplateEdge()
 	return erau
@@ -233,7 +233,7 @@ func (erau *EmailRoleAttributeUpdate) sqlSave(ctx context.Context) (n int, err e
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: team.FieldID,
+					Column: emailtemplate.FieldID,
 				},
 			},
 		}
@@ -249,7 +249,7 @@ func (erau *EmailRoleAttributeUpdate) sqlSave(ctx context.Context) (n int, err e
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: team.FieldID,
+					Column: emailtemplate.FieldID,
 				},
 			},
 		}
@@ -364,15 +364,15 @@ func (erauo *EmailRoleAttributeUpdateOne) SetRoleID(u uuid.UUID) *EmailRoleAttri
 	return erauo
 }
 
-// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the Team entity by ID.
+// SetEmailTemplateEdgeID sets the "email_template_edge" edge to the EmailTemplate entity by ID.
 func (erauo *EmailRoleAttributeUpdateOne) SetEmailTemplateEdgeID(id uuid.UUID) *EmailRoleAttributeUpdateOne {
 	erauo.mutation.SetEmailTemplateEdgeID(id)
 	return erauo
 }
 
-// SetEmailTemplateEdge sets the "email_template_edge" edge to the Team entity.
-func (erauo *EmailRoleAttributeUpdateOne) SetEmailTemplateEdge(t *Team) *EmailRoleAttributeUpdateOne {
-	return erauo.SetEmailTemplateEdgeID(t.ID)
+// SetEmailTemplateEdge sets the "email_template_edge" edge to the EmailTemplate entity.
+func (erauo *EmailRoleAttributeUpdateOne) SetEmailTemplateEdge(e *EmailTemplate) *EmailRoleAttributeUpdateOne {
+	return erauo.SetEmailTemplateEdgeID(e.ID)
 }
 
 // SetRoleEdgeID sets the "role_edge" edge to the Role entity by ID.
@@ -391,7 +391,7 @@ func (erauo *EmailRoleAttributeUpdateOne) Mutation() *EmailRoleAttributeMutation
 	return erauo.mutation
 }
 
-// ClearEmailTemplateEdge clears the "email_template_edge" edge to the Team entity.
+// ClearEmailTemplateEdge clears the "email_template_edge" edge to the EmailTemplate entity.
 func (erauo *EmailRoleAttributeUpdateOne) ClearEmailTemplateEdge() *EmailRoleAttributeUpdateOne {
 	erauo.mutation.ClearEmailTemplateEdge()
 	return erauo
@@ -544,7 +544,7 @@ func (erauo *EmailRoleAttributeUpdateOne) sqlSave(ctx context.Context) (_node *E
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: team.FieldID,
+					Column: emailtemplate.FieldID,
 				},
 			},
 		}
@@ -560,7 +560,7 @@ func (erauo *EmailRoleAttributeUpdateOne) sqlSave(ctx context.Context) (_node *E
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: team.FieldID,
+					Column: emailtemplate.FieldID,
 				},
 			},
 		}

@@ -422,7 +422,7 @@ func HasEmailTemplateEdge() predicate.EmailRoleAttribute {
 }
 
 // HasEmailTemplateEdgeWith applies the HasEdge predicate on the "email_template_edge" edge with a given conditions (other predicates).
-func HasEmailTemplateEdgeWith(preds ...predicate.Team) predicate.EmailRoleAttribute {
+func HasEmailTemplateEdgeWith(preds ...predicate.EmailTemplate) predicate.EmailRoleAttribute {
 	return predicate.EmailRoleAttribute(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),

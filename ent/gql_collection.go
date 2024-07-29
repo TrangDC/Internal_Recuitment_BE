@@ -873,7 +873,7 @@ func (era *EmailRoleAttributeQuery) collectField(ctx context.Context, op *graphq
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TeamQuery{config: era.config}
+				query = &EmailTemplateQuery{config: era.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -1340,6 +1340,71 @@ func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs 
 		case *HiringJobOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithHiringJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ht *HiringTeamQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringTeamQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ht, nil
+	}
+	if err := ht.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ht, nil
+}
+
+func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type hiringteamPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []HiringTeamPaginateOption
+}
+
+func newHiringTeamPaginateArgs(rv map[string]interface{}) *hiringteamPaginateArgs {
+	args := &hiringteamPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &HiringTeamOrder{Field: &HiringTeamOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithHiringTeamOrder(order))
+			}
+		case *HiringTeamOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithHiringTeamOrder(v))
 			}
 		}
 	}
