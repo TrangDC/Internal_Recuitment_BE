@@ -156,6 +156,11 @@ func (r *queryResolver) SelectionHiringTeams(ctx context.Context, pagination *en
 	return r.serviceRegistry.HiringTeam().Selections(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// SelectionJobPositions is the resolver for the SelectionJobPositions field.
+func (r *queryResolver) SelectionJobPositions(ctx context.Context, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) (*ent.JobPositionSelectionResponseGetAll, error) {
+	return r.serviceRegistry.JobPosition().Selections(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // SelectionHiringJobs is the resolver for the SelectionHiringJobs field.
 func (r *queryResolver) SelectionHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error) {
 	return r.serviceRegistry.HiringJob().Selections(ctx, pagination, freeWord, filter, orderBy)

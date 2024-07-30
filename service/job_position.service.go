@@ -26,6 +26,8 @@ type JobPositionService interface {
 	GetJobPosition(ctx context.Context, jobPositionId uuid.UUID) (*ent.JobPositionResponse, error)
 	GetJobPositions(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.JobPositionFreeWord,
 		filter *ent.JobPositionFilter, orderBy *ent.JobPositionOrder) (*ent.JobPositionResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.JobPositionFreeWord,
+		filter *ent.JobPositionFilter, orderBy *ent.JobPositionOrder) (*ent.JobPositionSelectionResponseGetAll, error)
 }
 
 type jobPositionSvcImpl struct {
@@ -142,6 +144,35 @@ func (svc *jobPositionSvcImpl) GetJobPositions(ctx context.Context, pagination *
 		}
 	})
 	return &ent.JobPositionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}, nil
+}
+
+func (svc *jobPositionSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.JobPositionFreeWord,
+	filter *ent.JobPositionFilter, orderBy *ent.JobPositionOrder) (*ent.JobPositionSelectionResponseGetAll, error) {
+	var edges []*ent.JobPositionSelectionEdge
+	jobPositions, count, page, perPage, err := svc.getAllJobPosition(ctx, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = lo.Map(jobPositions, func(entity *ent.JobPosition, index int) *ent.JobPositionSelectionEdge {
+		return &ent.JobPositionSelectionEdge{
+			Node: &ent.JobPositionSelection{
+				ID:   entity.ID.String(),
+				Name: entity.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: entity.ID.String(),
+			},
+		}
+	})
+	return &ent.JobPositionSelectionResponseGetAll{
 		Edges: edges,
 		Pagination: &ent.Pagination{
 			Total:   count,
