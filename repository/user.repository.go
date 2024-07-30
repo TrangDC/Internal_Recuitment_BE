@@ -9,6 +9,7 @@ import (
 	"trec/ent/hiringteam"
 	"trec/ent/permission"
 	"trec/ent/permissiongroup"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/user"
 
@@ -75,7 +76,9 @@ func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 		}).
 		WithRoleEdges(func(query *ent.RoleQuery) {
 			query.Where(role.DeletedAtIsNil())
-		})
+		}).WithRecTeams(func(query *ent.RecTeamQuery) {
+		query.Where(recteam.DeletedAtIsNil())
+	})
 }
 
 func (rps *userRepoImpl) BuildBaseQuery() *ent.UserQuery {

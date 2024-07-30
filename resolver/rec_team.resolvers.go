@@ -5,19 +5,23 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
 
 // ID is the resolver for the id field.
 func (r *recTeamResolver) ID(ctx context.Context, obj *ent.RecTeam) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID.String(), nil
+}
+
+// LeaderID is the resolver for the leader_id field.
+func (r *recTeamResolver) LeaderID(ctx context.Context, obj *ent.RecTeam) (string, error) {
+	return obj.LeaderID.String(), nil
 }
 
 // Leader is the resolver for the leader field.
 func (r *recTeamResolver) Leader(ctx context.Context, obj *ent.RecTeam) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Leader - leader"))
+	return obj.Edges.RecLeaderEdge, nil
 }
 
 // RecTeam returns graphql1.RecTeamResolver implementation.

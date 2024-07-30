@@ -618,6 +618,12 @@ type NewJobPositionInput struct {
 	Description string `json:"description"`
 }
 
+type NewRecTeamInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	LeaderID    string `json:"leader_id"`
+}
+
 type NewRoleInput struct {
 	Name              string                      `json:"name"`
 	Description       *string                     `json:"description"`
@@ -662,6 +668,10 @@ type PermissionGroupResponse struct {
 type PermissionGroupResponseGetAll struct {
 	Edges      []*PermissionGroupEdge `json:"edges"`
 	Pagination *Pagination            `json:"pagination"`
+}
+
+type RecTeamResponse struct {
+	Data *RecTeam `json:"data"`
 }
 
 type RecruitmentReportResponse struct {

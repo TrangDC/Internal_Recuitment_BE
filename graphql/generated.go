@@ -605,7 +605,8 @@ type ComplexityRoot struct {
 		CreateEmailTemplate               func(childComplexity int, input ent.NewEmailTemplateInput, note string) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
 		CreateHiringTeam                  func(childComplexity int, input ent.NewHiringTeamInput, note string) int
-		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput, note string) int
+		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput) int
+		CreateRecTeam                     func(childComplexity int, input ent.NewRecTeamInput, note string) int
 		CreateRole                        func(childComplexity int, input ent.NewRoleInput, note string) int
 		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
 		CreateSkillType                   func(childComplexity int, input ent.NewSkillTypeInput, note string) int
@@ -742,8 +743,13 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Leader      func(childComplexity int) int
+		LeaderID    func(childComplexity int) int
 		Name        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
+	}
+
+	RecTeamResponse struct {
+		Data func(childComplexity int) int
 	}
 
 	RecruitmentReportResponse struct {
@@ -952,6 +958,7 @@ type ComplexityRoot struct {
 		HiringTeam         func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		MemberOfHiringTeam func(childComplexity int) int
+		MemberOfRecTeam    func(childComplexity int) int
 		Name               func(childComplexity int) int
 		Roles              func(childComplexity int) int
 		Status             func(childComplexity int) int
@@ -1112,9 +1119,10 @@ type MutationResolver interface {
 	CreateHiringTeam(ctx context.Context, input ent.NewHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
-	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
-	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
-	DeleteJobPosition(ctx context.Context, id string, note string) (bool, error)
+	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error)
+	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
+	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
+	DeleteJobPosition(ctx context.Context, id string) (bool, error)
 	CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string, note string) (bool, error)
@@ -1213,6 +1221,7 @@ type QueryResolver interface {
 type RecTeamResolver interface {
 	ID(ctx context.Context, obj *ent.RecTeam) (string, error)
 
+	LeaderID(ctx context.Context, obj *ent.RecTeam) (string, error)
 	Leader(ctx context.Context, obj *ent.RecTeam) (*ent.User, error)
 }
 type RoleResolver interface {
@@ -1236,6 +1245,7 @@ type UserResolver interface {
 	EntityPermissions(ctx context.Context, obj *ent.User) ([]*ent.EntityPermission, error)
 	Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, error)
 	MemberOfHiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error)
+	MemberOfRecTeam(ctx context.Context, obj *ent.User) (*ent.RecTeam, error)
 }
 
 type executableSchema struct {
@@ -3494,6 +3504,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateJobPosition(childComplexity, args["input"].(ent.NewJobPositionInput), args["note"].(string)), true
 
+	case "Mutation.CreateRecTeam":
+		if e.complexity.Mutation.CreateRecTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateRecTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateRecTeam(childComplexity, args["input"].(ent.NewRecTeamInput), args["note"].(string)), true
+
 	case "Mutation.CreateRole":
 		if e.complexity.Mutation.CreateRole == nil {
 			break
@@ -4647,6 +4669,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RecTeam.Leader(childComplexity), true
 
+	case "RecTeam.leader_id":
+		if e.complexity.RecTeam.LeaderID == nil {
+			break
+		}
+
+		return e.complexity.RecTeam.LeaderID(childComplexity), true
+
 	case "RecTeam.name":
 		if e.complexity.RecTeam.Name == nil {
 			break
@@ -4660,6 +4689,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RecTeam.UpdatedAt(childComplexity), true
+
+	case "RecTeamResponse.data":
+		if e.complexity.RecTeamResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.RecTeamResponse.Data(childComplexity), true
 
 	case "RecruitmentReportResponse.data":
 		if e.complexity.RecruitmentReportResponse.Data == nil {
@@ -5340,6 +5376,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.MemberOfHiringTeam(childComplexity), true
 
+	case "User.member_of_rec_team":
+		if e.complexity.User.MemberOfRecTeam == nil {
+			break
+		}
+
+		return e.complexity.User.MemberOfRecTeam(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -5507,6 +5550,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewHiringJobInput,
 		ec.unmarshalInputNewHiringTeamInput,
 		ec.unmarshalInputNewJobPositionInput,
+		ec.unmarshalInputNewRecTeamInput,
 		ec.unmarshalInputNewRoleInput,
 		ec.unmarshalInputNewSkillInput,
 		ec.unmarshalInputNewSkillTypeInput,
@@ -6878,6 +6922,9 @@ type JobPositionSelectionResponseGetAll {
   UpdateHiringTeam(id: ID!, input: UpdateHiringTeamInput!, note: String!): HiringTeamResponse!
   DeleteHiringTeam(id: ID!, note: String!): Boolean!
 
+  # RecTeam
+  CreateRecTeam(input: NewRecTeamInput!, note: String!): RecTeamResponse!
+
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!, note: String!): JobPositionResponse!
   UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!, note: String!): JobPositionResponse!
@@ -7064,14 +7111,25 @@ enum PermissionGroupType {
 
 # Path: schema/query.graphql
 `, BuiltIn: false},
-	{Name: "../schema/rec_team.graphql", Input: `type RecTeam {
+	{Name: "../schema/rec_team.graphql", Input: `input NewRecTeamInput {
+    name: String!
+    description: String!
+    leader_id: ID!
+}
+
+type RecTeam {
     id: ID!
     name: String!
     description: String!
+    leader_id: ID!
     leader: User!
     created_at: Time!
     updated_at: Time!
     deleted_at: Time
+}
+
+type RecTeamResponse {
+    data: RecTeam
 }`, BuiltIn: false},
 	{Name: "../schema/report.graphql", Input: `enum ReportFilterPeriod {
   all
@@ -7488,6 +7546,7 @@ type User {
   entity_permissions: [EntityPermission!]!
   roles: [Role!]!
   member_of_hiring_team: HiringTeam
+  member_of_rec_team: RecTeam
 }
 
 type UserSelectionEdge {
@@ -7787,6 +7846,30 @@ func (ec *executionContext) field_Mutation_CreateJobPosition_args(ctx context.Co
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewJobPositionInput2trecᚋentᚐNewJobPositionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_CreateRecTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.NewRecTeamInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewRecTeamInput2trecᚋentᚐNewRecTeamInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11471,6 +11554,8 @@ func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Cont
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -13177,6 +13262,8 @@ func (ec *executionContext) fieldContext_Candidate_reference_user(ctx context.Co
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14223,6 +14310,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14404,6 +14493,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Co
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -15648,6 +15739,8 @@ func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context,
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -16394,6 +16487,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -21815,6 +21910,8 @@ func (ec *executionContext) fieldContext_HiringJob_user(ctx context.Context, fie
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -23014,6 +23111,8 @@ func (ec *executionContext) fieldContext_HiringTeam_managers(ctx context.Context
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -25419,6 +25518,65 @@ func (ec *executionContext) fieldContext_Mutation_DeleteHiringTeam(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_DeleteHiringTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_CreateRecTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateRecTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateRecTeam(rctx, fc.Args["input"].(ent.NewRecTeamInput), fc.Args["note"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeamResponse)
+	fc.Result = res
+	return ec.marshalNRecTeamResponse2ᚖtrecᚋentᚐRecTeamResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateRecTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_RecTeamResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeamResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -31709,6 +31867,50 @@ func (ec *executionContext) fieldContext_RecTeam_description(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _RecTeam_leader_id(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeam_leader_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.RecTeam().LeaderID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeam_leader_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RecTeam_leader(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeam) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RecTeam_leader(ctx, field)
 	if err != nil {
@@ -31764,6 +31966,8 @@ func (ec *executionContext) fieldContext_RecTeam_leader(ctx context.Context, fie
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -31895,6 +32099,65 @@ func (ec *executionContext) fieldContext_RecTeam_deleted_at(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecTeamResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeamResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeam)
+	fc.Result = res
+	return ec.marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeamResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeamResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_RecTeam_name(ctx, field)
+			case "description":
+				return ec.fieldContext_RecTeam_description(ctx, field)
+			case "leader_id":
+				return ec.fieldContext_RecTeam_leader_id(ctx, field)
+			case "leader":
+				return ec.fieldContext_RecTeam_leader(ctx, field)
+			case "created_at":
+				return ec.fieldContext_RecTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_RecTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_RecTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeam", field.Name)
 		},
 	}
 	return fc, nil
@@ -36735,6 +36998,65 @@ func (ec *executionContext) fieldContext_User_member_of_hiring_team(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _User_member_of_rec_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_member_of_rec_team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().MemberOfRecTeam(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeam)
+	fc.Result = res
+	return ec.marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_member_of_rec_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_RecTeam_name(ctx, field)
+			case "description":
+				return ec.fieldContext_RecTeam_description(ctx, field)
+			case "leader_id":
+				return ec.fieldContext_RecTeam_leader_id(ctx, field)
+			case "leader":
+				return ec.fieldContext_RecTeam_leader(ctx, field)
+			case "created_at":
+				return ec.fieldContext_RecTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_RecTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_RecTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UserEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserEdge_node(ctx, field)
 	if err != nil {
@@ -36790,6 +37112,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -36893,6 +37217,8 @@ func (ec *executionContext) fieldContext_UserResponse_data(ctx context.Context, 
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -41668,6 +41994,50 @@ func (ec *executionContext) unmarshalInputNewJobPositionInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewRecTeamInput(ctx context.Context, obj interface{}) (ent.NewRecTeamInput, error) {
+	var it ent.NewRecTeamInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "leader_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "leader_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("leader_id"))
+			it.LeaderID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47910,6 +48280,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "CreateRecTeam":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateRecTeam(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "CreateJobPosition":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -49783,6 +50162,26 @@ func (ec *executionContext) _RecTeam(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "leader_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RecTeam_leader_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "leader":
 			field := field
 
@@ -49820,6 +50219,31 @@ func (ec *executionContext) _RecTeam(ctx context.Context, sel ast.SelectionSet, 
 		case "deleted_at":
 
 			out.Values[i] = ec._RecTeam_deleted_at(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var recTeamResponseImplementors = []string{"RecTeamResponse"}
+
+func (ec *executionContext) _RecTeamResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.RecTeamResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, recTeamResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RecTeamResponse")
+		case "data":
+
+			out.Values[i] = ec._RecTeamResponse_data(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -51402,6 +51826,23 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_member_of_hiring_team(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "member_of_rec_team":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_member_of_rec_team(ctx, field, obj)
 				return res
 			}
 
@@ -54102,6 +54543,11 @@ func (ec *executionContext) unmarshalNNewJobPositionInput2trecᚋentᚐNewJobPos
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewRecTeamInput2trecᚋentᚐNewRecTeamInput(ctx context.Context, v interface{}) (ent.NewRecTeamInput, error) {
+	res, err := ec.unmarshalInputNewRecTeamInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewRoleInput2trecᚋentᚐNewRoleInput(ctx context.Context, v interface{}) (ent.NewRoleInput, error) {
 	res, err := ec.unmarshalInputNewRoleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -54267,6 +54713,20 @@ func (ec *executionContext) unmarshalNPermissionGroupType2trecᚋentᚐPermissio
 
 func (ec *executionContext) marshalNPermissionGroupType2trecᚋentᚐPermissionGroupType(ctx context.Context, sel ast.SelectionSet, v ent.PermissionGroupType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNRecTeamResponse2trecᚋentᚐRecTeamResponse(ctx context.Context, sel ast.SelectionSet, v ent.RecTeamResponse) graphql.Marshaler {
+	return ec._RecTeamResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRecTeamResponse2ᚖtrecᚋentᚐRecTeamResponse(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeamResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RecTeamResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReportApplication2ᚕᚖtrecᚋentᚐReportApplication(ctx context.Context, sel ast.SelectionSet, v []*ent.ReportApplication) graphql.Marshaler {
@@ -57322,6 +57782,13 @@ func (ec *executionContext) marshalOPermissionGroupResponseGetAll2ᚖtrecᚋent�
 		return graphql.Null
 	}
 	return ec._PermissionGroupResponseGetAll(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeam) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RecTeam(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOReportApplication2ᚖtrecᚋentᚐReportApplication(ctx context.Context, sel ast.SelectionSet, v *ent.ReportApplication) graphql.Marshaler {

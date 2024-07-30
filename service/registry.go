@@ -38,6 +38,7 @@ type Service interface {
 	Report() ReportService
 	OutgoingEmail() OutgoingEmailService
 	HiringTeam() HiringTeamService
+	RecTeam() RecTeamService
 }
 
 // serviceImpl is the implementation of Service.
@@ -65,6 +66,7 @@ type serviceImpl struct {
 	reportService               ReportService
 	outgoingEmailService        OutgoingEmailService
 	hiringTeamService           HiringTeamService
+	recTeamService           		RecTeamService
 }
 
 // NewService creates a new Service.
@@ -96,6 +98,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		reportService:               NewReportService(repoRegistry, logger),
 		outgoingEmailService:        NewOutgoingEmailService(repoRegistry, logger),
 		hiringTeamService:           NewHiringTeamService(repoRegistry, dtoRegistry, logger),
+		recTeamService:              NewRecTeamService(repoRegistry, dtoRegistry, logger),
 	}
 }
 
@@ -203,4 +206,8 @@ func (i serviceImpl) OutgoingEmail() OutgoingEmailService {
 
 func (i serviceImpl) HiringTeam() HiringTeamService {
 	return i.hiringTeamService
+}
+
+func (i serviceImpl) RecTeam() RecTeamService {
+  return i.recTeamService
 }
