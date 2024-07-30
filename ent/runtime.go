@@ -18,6 +18,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
@@ -347,6 +348,19 @@ func init() {
 			return nil
 		}
 	}()
+	hiringteamapproverMixin := schema.HiringTeamApprover{}.Mixin()
+	hiringteamapproverMixinFields0 := hiringteamapproverMixin[0].Fields()
+	_ = hiringteamapproverMixinFields0
+	hiringteamapproverFields := schema.HiringTeamApprover{}.Fields()
+	_ = hiringteamapproverFields
+	// hiringteamapproverDescCreatedAt is the schema descriptor for created_at field.
+	hiringteamapproverDescCreatedAt := hiringteamapproverMixinFields0[1].Descriptor()
+	// hiringteamapprover.DefaultCreatedAt holds the default value on creation for the created_at field.
+	hiringteamapprover.DefaultCreatedAt = hiringteamapproverDescCreatedAt.Default.(func() time.Time)
+	// hiringteamapproverDescOrderID is the schema descriptor for order_id field.
+	hiringteamapproverDescOrderID := hiringteamapproverFields[2].Descriptor()
+	// hiringteamapprover.OrderIDValidator is a validator for the "order_id" field. It is called by the builders before save.
+	hiringteamapprover.OrderIDValidator = hiringteamapproverDescOrderID.Validators[0].(func(int) error)
 	hiringteammanagerMixin := schema.HiringTeamManager{}.Mixin()
 	hiringteammanagerMixinFields0 := hiringteammanagerMixin[0].Fields()
 	_ = hiringteammanagerMixinFields0

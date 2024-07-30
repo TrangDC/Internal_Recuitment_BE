@@ -29,11 +29,13 @@ input HiringTeamFreeWord {
 input NewHiringTeamInput {
   name: String!
   members: [ID!]
+  approvers: [HiringTeamApproverInput!]!
 }
 
 input UpdateHiringTeamInput {
   name: String!
   members: [ID!]
+  approvers: [HiringTeamApproverInput!]!
 }
 
 type HiringTeam {
@@ -41,6 +43,7 @@ type HiringTeam {
   name: String!
   slug: String!
   managers: [User!]!
+  approvers: [HiringTeamApprover!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
   created_at: Time!

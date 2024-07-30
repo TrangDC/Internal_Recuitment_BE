@@ -58,18 +58,10 @@ func (svc *hiringTeamSvcImpl) CreateHiringTeam(ctx context.Context, input ent.Ne
 	if !payload.ForAll {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	errString, err := svc.repoRegistry.HiringTeam().ValidName(ctx, uuid.Nil, input.Name)
-	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
 	})
-	errString, err = svc.repoRegistry.HiringTeam().ValidUserInAnotherHiringTeam(ctx, uuid.Nil, memberIds)
+	errString, err := svc.repoRegistry.HiringTeam().ValidInput(ctx, uuid.Nil, input.Name, memberIds, len(input.Approvers))
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -117,20 +109,12 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 	if !svc.validPermissionUpdate(payload, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	errString, err := svc.repoRegistry.HiringTeam().ValidName(ctx, hiringTeamID, input.Name)
-	if err != nil {
-		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
-	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	if len(input.Members) != 0 {
 		memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
 			return uuid.MustParse(member)
 		})
 	}
-	errString, err = svc.repoRegistry.HiringTeam().ValidUserInAnotherHiringTeam(ctx, hiringTeamID, memberIds)
+	errString, err := svc.repoRegistry.HiringTeam().ValidInput(ctx, hiringTeamID, input.Name, memberIds, len(input.Approvers))
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)

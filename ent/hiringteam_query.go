@@ -9,6 +9,7 @@ import (
 	"math"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -22,22 +23,26 @@ import (
 // HiringTeamQuery is the builder for querying HiringTeam entities.
 type HiringTeamQuery struct {
 	config
-	limit                       *int
-	offset                      *int
-	unique                      *bool
-	order                       []OrderFunc
-	fields                      []string
-	predicates                  []predicate.HiringTeam
-	withUserEdges               *UserQuery
-	withHiringTeamJobEdges      *HiringJobQuery
-	withHiringMemberEdges       *UserQuery
-	withUserHiringTeams         *HiringTeamManagerQuery
-	modifiers                   []func(*sql.Selector)
-	loadTotal                   []func(context.Context, []*HiringTeam) error
-	withNamedUserEdges          map[string]*UserQuery
-	withNamedHiringTeamJobEdges map[string]*HiringJobQuery
-	withNamedHiringMemberEdges  map[string]*UserQuery
-	withNamedUserHiringTeams    map[string]*HiringTeamManagerQuery
+	limit                        *int
+	offset                       *int
+	unique                       *bool
+	order                        []OrderFunc
+	fields                       []string
+	predicates                   []predicate.HiringTeam
+	withUserEdges                *UserQuery
+	withHiringTeamJobEdges       *HiringJobQuery
+	withHiringMemberEdges        *UserQuery
+	withApproversUsers           *UserQuery
+	withUserHiringTeams          *HiringTeamManagerQuery
+	withHiringTeamApprovers      *HiringTeamApproverQuery
+	modifiers                    []func(*sql.Selector)
+	loadTotal                    []func(context.Context, []*HiringTeam) error
+	withNamedUserEdges           map[string]*UserQuery
+	withNamedHiringTeamJobEdges  map[string]*HiringJobQuery
+	withNamedHiringMemberEdges   map[string]*UserQuery
+	withNamedApproversUsers      map[string]*UserQuery
+	withNamedUserHiringTeams     map[string]*HiringTeamManagerQuery
+	withNamedHiringTeamApprovers map[string]*HiringTeamApproverQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -140,6 +145,28 @@ func (htq *HiringTeamQuery) QueryHiringMemberEdges() *UserQuery {
 	return query
 }
 
+// QueryApproversUsers chains the current query on the "approvers_users" edge.
+func (htq *HiringTeamQuery) QueryApproversUsers() *UserQuery {
+	query := &UserQuery{config: htq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := htq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := htq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, hiringteam.ApproversUsersTable, hiringteam.ApproversUsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(htq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryUserHiringTeams chains the current query on the "user_hiring_teams" edge.
 func (htq *HiringTeamQuery) QueryUserHiringTeams() *HiringTeamManagerQuery {
 	query := &HiringTeamManagerQuery{config: htq.config}
@@ -155,6 +182,28 @@ func (htq *HiringTeamQuery) QueryUserHiringTeams() *HiringTeamManagerQuery {
 			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, selector),
 			sqlgraph.To(hiringteammanager.Table, hiringteammanager.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.UserHiringTeamsTable, hiringteam.UserHiringTeamsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(htq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringTeamApprovers chains the current query on the "hiring_team_approvers" edge.
+func (htq *HiringTeamQuery) QueryHiringTeamApprovers() *HiringTeamApproverQuery {
+	query := &HiringTeamApproverQuery{config: htq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := htq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := htq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, selector),
+			sqlgraph.To(hiringteamapprover.Table, hiringteamapprover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.HiringTeamApproversTable, hiringteam.HiringTeamApproversColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(htq.driver.Dialect(), step)
 		return fromU, nil
@@ -338,15 +387,17 @@ func (htq *HiringTeamQuery) Clone() *HiringTeamQuery {
 		return nil
 	}
 	return &HiringTeamQuery{
-		config:                 htq.config,
-		limit:                  htq.limit,
-		offset:                 htq.offset,
-		order:                  append([]OrderFunc{}, htq.order...),
-		predicates:             append([]predicate.HiringTeam{}, htq.predicates...),
-		withUserEdges:          htq.withUserEdges.Clone(),
-		withHiringTeamJobEdges: htq.withHiringTeamJobEdges.Clone(),
-		withHiringMemberEdges:  htq.withHiringMemberEdges.Clone(),
-		withUserHiringTeams:    htq.withUserHiringTeams.Clone(),
+		config:                  htq.config,
+		limit:                   htq.limit,
+		offset:                  htq.offset,
+		order:                   append([]OrderFunc{}, htq.order...),
+		predicates:              append([]predicate.HiringTeam{}, htq.predicates...),
+		withUserEdges:           htq.withUserEdges.Clone(),
+		withHiringTeamJobEdges:  htq.withHiringTeamJobEdges.Clone(),
+		withHiringMemberEdges:   htq.withHiringMemberEdges.Clone(),
+		withApproversUsers:      htq.withApproversUsers.Clone(),
+		withUserHiringTeams:     htq.withUserHiringTeams.Clone(),
+		withHiringTeamApprovers: htq.withHiringTeamApprovers.Clone(),
 		// clone intermediate query.
 		sql:    htq.sql.Clone(),
 		path:   htq.path,
@@ -387,6 +438,17 @@ func (htq *HiringTeamQuery) WithHiringMemberEdges(opts ...func(*UserQuery)) *Hir
 	return htq
 }
 
+// WithApproversUsers tells the query-builder to eager-load the nodes that are connected to
+// the "approvers_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithApproversUsers(opts ...func(*UserQuery)) *HiringTeamQuery {
+	query := &UserQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	htq.withApproversUsers = query
+	return htq
+}
+
 // WithUserHiringTeams tells the query-builder to eager-load the nodes that are connected to
 // the "user_hiring_teams" edge. The optional arguments are used to configure the query builder of the edge.
 func (htq *HiringTeamQuery) WithUserHiringTeams(opts ...func(*HiringTeamManagerQuery)) *HiringTeamQuery {
@@ -395,6 +457,17 @@ func (htq *HiringTeamQuery) WithUserHiringTeams(opts ...func(*HiringTeamManagerQ
 		opt(query)
 	}
 	htq.withUserHiringTeams = query
+	return htq
+}
+
+// WithHiringTeamApprovers tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_team_approvers" edge. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithHiringTeamApprovers(opts ...func(*HiringTeamApproverQuery)) *HiringTeamQuery {
+	query := &HiringTeamApproverQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	htq.withHiringTeamApprovers = query
 	return htq
 }
 
@@ -471,11 +544,13 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*HiringTeam{}
 		_spec       = htq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [6]bool{
 			htq.withUserEdges != nil,
 			htq.withHiringTeamJobEdges != nil,
 			htq.withHiringMemberEdges != nil,
+			htq.withApproversUsers != nil,
 			htq.withUserHiringTeams != nil,
+			htq.withHiringTeamApprovers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -520,11 +595,27 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := htq.withApproversUsers; query != nil {
+		if err := htq.loadApproversUsers(ctx, query, nodes,
+			func(n *HiringTeam) { n.Edges.ApproversUsers = []*User{} },
+			func(n *HiringTeam, e *User) { n.Edges.ApproversUsers = append(n.Edges.ApproversUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := htq.withUserHiringTeams; query != nil {
 		if err := htq.loadUserHiringTeams(ctx, query, nodes,
 			func(n *HiringTeam) { n.Edges.UserHiringTeams = []*HiringTeamManager{} },
 			func(n *HiringTeam, e *HiringTeamManager) {
 				n.Edges.UserHiringTeams = append(n.Edges.UserHiringTeams, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := htq.withHiringTeamApprovers; query != nil {
+		if err := htq.loadHiringTeamApprovers(ctx, query, nodes,
+			func(n *HiringTeam) { n.Edges.HiringTeamApprovers = []*HiringTeamApprover{} },
+			func(n *HiringTeam, e *HiringTeamApprover) {
+				n.Edges.HiringTeamApprovers = append(n.Edges.HiringTeamApprovers, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -550,10 +641,24 @@ func (htq *HiringTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	for name, query := range htq.withNamedApproversUsers {
+		if err := htq.loadApproversUsers(ctx, query, nodes,
+			func(n *HiringTeam) { n.appendNamedApproversUsers(name) },
+			func(n *HiringTeam, e *User) { n.appendNamedApproversUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range htq.withNamedUserHiringTeams {
 		if err := htq.loadUserHiringTeams(ctx, query, nodes,
 			func(n *HiringTeam) { n.appendNamedUserHiringTeams(name) },
 			func(n *HiringTeam, e *HiringTeamManager) { n.appendNamedUserHiringTeams(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range htq.withNamedHiringTeamApprovers {
+		if err := htq.loadHiringTeamApprovers(ctx, query, nodes,
+			func(n *HiringTeam) { n.appendNamedHiringTeamApprovers(name) },
+			func(n *HiringTeam, e *HiringTeamApprover) { n.appendNamedHiringTeamApprovers(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -677,6 +782,64 @@ func (htq *HiringTeamQuery) loadHiringMemberEdges(ctx context.Context, query *Us
 	}
 	return nil
 }
+func (htq *HiringTeamQuery) loadApproversUsers(ctx context.Context, query *UserQuery, nodes []*HiringTeam, init func(*HiringTeam), assign func(*HiringTeam, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*HiringTeam)
+	nids := make(map[uuid.UUID]map[*HiringTeam]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(hiringteam.ApproversUsersTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(hiringteam.ApproversUsersPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(hiringteam.ApproversUsersPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(hiringteam.ApproversUsersPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(uuid.UUID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*uuid.UUID)
+			inValue := *values[1].(*uuid.UUID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*HiringTeam]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "approvers_users" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (htq *HiringTeamQuery) loadUserHiringTeams(ctx context.Context, query *HiringTeamManagerQuery, nodes []*HiringTeam, init func(*HiringTeam), assign func(*HiringTeam, *HiringTeamManager)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*HiringTeam)
@@ -689,6 +852,33 @@ func (htq *HiringTeamQuery) loadUserHiringTeams(ctx context.Context, query *Hiri
 	}
 	query.Where(predicate.HiringTeamManager(func(s *sql.Selector) {
 		s.Where(sql.InValues(hiringteam.UserHiringTeamsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.HiringTeamID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "hiring_team_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (htq *HiringTeamQuery) loadHiringTeamApprovers(ctx context.Context, query *HiringTeamApproverQuery, nodes []*HiringTeam, init func(*HiringTeam), assign func(*HiringTeam, *HiringTeamApprover)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HiringTeam)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringTeamApprover(func(s *sql.Selector) {
+		s.Where(sql.InValues(hiringteam.HiringTeamApproversColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -850,6 +1040,20 @@ func (htq *HiringTeamQuery) WithNamedHiringMemberEdges(name string, opts ...func
 	return htq
 }
 
+// WithNamedApproversUsers tells the query-builder to eager-load the nodes that are connected to the "approvers_users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithNamedApproversUsers(name string, opts ...func(*UserQuery)) *HiringTeamQuery {
+	query := &UserQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if htq.withNamedApproversUsers == nil {
+		htq.withNamedApproversUsers = make(map[string]*UserQuery)
+	}
+	htq.withNamedApproversUsers[name] = query
+	return htq
+}
+
 // WithNamedUserHiringTeams tells the query-builder to eager-load the nodes that are connected to the "user_hiring_teams"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
 func (htq *HiringTeamQuery) WithNamedUserHiringTeams(name string, opts ...func(*HiringTeamManagerQuery)) *HiringTeamQuery {
@@ -861,6 +1065,20 @@ func (htq *HiringTeamQuery) WithNamedUserHiringTeams(name string, opts ...func(*
 		htq.withNamedUserHiringTeams = make(map[string]*HiringTeamManagerQuery)
 	}
 	htq.withNamedUserHiringTeams[name] = query
+	return htq
+}
+
+// WithNamedHiringTeamApprovers tells the query-builder to eager-load the nodes that are connected to the "hiring_team_approvers"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (htq *HiringTeamQuery) WithNamedHiringTeamApprovers(name string, opts ...func(*HiringTeamApproverQuery)) *HiringTeamQuery {
+	query := &HiringTeamApproverQuery{config: htq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if htq.withNamedHiringTeamApprovers == nil {
+		htq.withNamedHiringTeamApprovers = make(map[string]*HiringTeamApproverQuery)
+	}
+	htq.withNamedHiringTeamApprovers[name] = query
 	return htq
 }
 

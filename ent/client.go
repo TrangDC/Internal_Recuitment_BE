@@ -24,6 +24,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
@@ -75,6 +76,8 @@ type Client struct {
 	HiringJob *HiringJobClient
 	// HiringTeam is the client for interacting with the HiringTeam builders.
 	HiringTeam *HiringTeamClient
+	// HiringTeamApprover is the client for interacting with the HiringTeamApprover builders.
+	HiringTeamApprover *HiringTeamApproverClient
 	// HiringTeamManager is the client for interacting with the HiringTeamManager builders.
 	HiringTeamManager *HiringTeamManagerClient
 	// JobPosition is the client for interacting with the JobPosition builders.
@@ -124,6 +127,7 @@ func (c *Client) init() {
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
 	c.HiringTeam = NewHiringTeamClient(c.config)
+	c.HiringTeamApprover = NewHiringTeamApproverClient(c.config)
 	c.HiringTeamManager = NewHiringTeamManagerClient(c.config)
 	c.JobPosition = NewJobPositionClient(c.config)
 	c.OutgoingEmail = NewOutgoingEmailClient(c.config)
@@ -182,6 +186,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		HiringTeam:           NewHiringTeamClient(cfg),
+		HiringTeamApprover:   NewHiringTeamApproverClient(cfg),
 		HiringTeamManager:    NewHiringTeamManagerClient(cfg),
 		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
@@ -226,6 +231,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
 		HiringTeam:           NewHiringTeamClient(cfg),
+		HiringTeamApprover:   NewHiringTeamApproverClient(cfg),
 		HiringTeamManager:    NewHiringTeamManagerClient(cfg),
 		JobPosition:          NewJobPositionClient(cfg),
 		OutgoingEmail:        NewOutgoingEmailClient(cfg),
@@ -279,6 +285,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
 	c.HiringTeam.Use(hooks...)
+	c.HiringTeamApprover.Use(hooks...)
 	c.HiringTeamManager.Use(hooks...)
 	c.JobPosition.Use(hooks...)
 	c.OutgoingEmail.Use(hooks...)
@@ -2251,6 +2258,22 @@ func (c *HiringTeamClient) QueryHiringMemberEdges(ht *HiringTeam) *UserQuery {
 	return query
 }
 
+// QueryApproversUsers queries the approvers_users edge of a HiringTeam.
+func (c *HiringTeamClient) QueryApproversUsers(ht *HiringTeam) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ht.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, hiringteam.ApproversUsersTable, hiringteam.ApproversUsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryUserHiringTeams queries the user_hiring_teams edge of a HiringTeam.
 func (c *HiringTeamClient) QueryUserHiringTeams(ht *HiringTeam) *HiringTeamManagerQuery {
 	query := &HiringTeamManagerQuery{config: c.config}
@@ -2267,9 +2290,147 @@ func (c *HiringTeamClient) QueryUserHiringTeams(ht *HiringTeam) *HiringTeamManag
 	return query
 }
 
+// QueryHiringTeamApprovers queries the hiring_team_approvers edge of a HiringTeam.
+func (c *HiringTeamClient) QueryHiringTeamApprovers(ht *HiringTeam) *HiringTeamApproverQuery {
+	query := &HiringTeamApproverQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ht.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
+			sqlgraph.To(hiringteamapprover.Table, hiringteamapprover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.HiringTeamApproversTable, hiringteam.HiringTeamApproversColumn),
+		)
+		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HiringTeamClient) Hooks() []Hook {
 	return c.hooks.HiringTeam
+}
+
+// HiringTeamApproverClient is a client for the HiringTeamApprover schema.
+type HiringTeamApproverClient struct {
+	config
+}
+
+// NewHiringTeamApproverClient returns a client for the HiringTeamApprover from the given config.
+func NewHiringTeamApproverClient(c config) *HiringTeamApproverClient {
+	return &HiringTeamApproverClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hiringteamapprover.Hooks(f(g(h())))`.
+func (c *HiringTeamApproverClient) Use(hooks ...Hook) {
+	c.hooks.HiringTeamApprover = append(c.hooks.HiringTeamApprover, hooks...)
+}
+
+// Create returns a builder for creating a HiringTeamApprover entity.
+func (c *HiringTeamApproverClient) Create() *HiringTeamApproverCreate {
+	mutation := newHiringTeamApproverMutation(c.config, OpCreate)
+	return &HiringTeamApproverCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HiringTeamApprover entities.
+func (c *HiringTeamApproverClient) CreateBulk(builders ...*HiringTeamApproverCreate) *HiringTeamApproverCreateBulk {
+	return &HiringTeamApproverCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HiringTeamApprover.
+func (c *HiringTeamApproverClient) Update() *HiringTeamApproverUpdate {
+	mutation := newHiringTeamApproverMutation(c.config, OpUpdate)
+	return &HiringTeamApproverUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HiringTeamApproverClient) UpdateOne(hta *HiringTeamApprover) *HiringTeamApproverUpdateOne {
+	mutation := newHiringTeamApproverMutation(c.config, OpUpdateOne, withHiringTeamApprover(hta))
+	return &HiringTeamApproverUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HiringTeamApproverClient) UpdateOneID(id uuid.UUID) *HiringTeamApproverUpdateOne {
+	mutation := newHiringTeamApproverMutation(c.config, OpUpdateOne, withHiringTeamApproverID(id))
+	return &HiringTeamApproverUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HiringTeamApprover.
+func (c *HiringTeamApproverClient) Delete() *HiringTeamApproverDelete {
+	mutation := newHiringTeamApproverMutation(c.config, OpDelete)
+	return &HiringTeamApproverDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HiringTeamApproverClient) DeleteOne(hta *HiringTeamApprover) *HiringTeamApproverDeleteOne {
+	return c.DeleteOneID(hta.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HiringTeamApproverClient) DeleteOneID(id uuid.UUID) *HiringTeamApproverDeleteOne {
+	builder := c.Delete().Where(hiringteamapprover.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HiringTeamApproverDeleteOne{builder}
+}
+
+// Query returns a query builder for HiringTeamApprover.
+func (c *HiringTeamApproverClient) Query() *HiringTeamApproverQuery {
+	return &HiringTeamApproverQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a HiringTeamApprover entity by its id.
+func (c *HiringTeamApproverClient) Get(ctx context.Context, id uuid.UUID) (*HiringTeamApprover, error) {
+	return c.Query().Where(hiringteamapprover.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HiringTeamApproverClient) GetX(ctx context.Context, id uuid.UUID) *HiringTeamApprover {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a HiringTeamApprover.
+func (c *HiringTeamApproverClient) QueryUser(hta *HiringTeamApprover) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hta.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.UserTable, hiringteamapprover.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(hta.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringTeam queries the hiring_team edge of a HiringTeamApprover.
+func (c *HiringTeamApproverClient) QueryHiringTeam(hta *HiringTeamApprover) *HiringTeamQuery {
+	query := &HiringTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hta.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, id),
+			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.HiringTeamTable, hiringteamapprover.HiringTeamColumn),
+		)
+		fromV = sqlgraph.Neighbors(hta.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *HiringTeamApproverClient) Hooks() []Hook {
+	return c.hooks.HiringTeamApprover
 }
 
 // HiringTeamManagerClient is a client for the HiringTeamManager schema.
@@ -3647,6 +3808,22 @@ func (c *UserClient) QueryMemberOfHiringTeamEdges(u *User) *HiringTeamQuery {
 	return query
 }
 
+// QueryApproversHiringTeams queries the approvers_hiring_teams edge of a User.
+func (c *UserClient) QueryApproversHiringTeams(u *User) *HiringTeamQuery {
+	query := &HiringTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.ApproversHiringTeamsTable, user.ApproversHiringTeamsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryInterviewUsers queries the interview_users edge of a User.
 func (c *UserClient) QueryInterviewUsers(u *User) *CandidateInterviewerQuery {
 	query := &CandidateInterviewerQuery{config: c.config}
@@ -3688,6 +3865,22 @@ func (c *UserClient) QueryHiringTeamUsers(u *User) *HiringTeamManagerQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(hiringteammanager.Table, hiringteammanager.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.HiringTeamUsersTable, user.HiringTeamUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHiringTeamApprovers queries the hiring_team_approvers edge of a User.
+func (c *UserClient) QueryHiringTeamApprovers(u *User) *HiringTeamApproverQuery {
+	query := &HiringTeamApproverQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(hiringteamapprover.Table, hiringteamapprover.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.HiringTeamApproversTable, user.HiringTeamApproversColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -467,6 +467,43 @@ var (
 		Columns:    HiringTeamsColumns,
 		PrimaryKey: []*schema.Column{HiringTeamsColumns[0]},
 	}
+	// HiringTeamApproversColumns holds the columns for the "hiring_team_approvers" table.
+	HiringTeamApproversColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "order_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "hiring_team_id", Type: field.TypeUUID},
+	}
+	// HiringTeamApproversTable holds the schema information for the "hiring_team_approvers" table.
+	HiringTeamApproversTable = &schema.Table{
+		Name:       "hiring_team_approvers",
+		Columns:    HiringTeamApproversColumns,
+		PrimaryKey: []*schema.Column{HiringTeamApproversColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "hiring_team_approvers_users_user",
+				Columns:    []*schema.Column{HiringTeamApproversColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "hiring_team_approvers_hiring_teams_hiring_team",
+				Columns:    []*schema.Column{HiringTeamApproversColumns[6]},
+				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "hiringteamapprover_hiring_team_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{HiringTeamApproversColumns[6], HiringTeamApproversColumns[5]},
+			},
+		},
+	}
 	// HiringTeamManagersColumns holds the columns for the "hiring_team_managers" table.
 	HiringTeamManagersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -757,6 +794,7 @@ var (
 		EntitySkillsTable,
 		HiringJobsTable,
 		HiringTeamsTable,
+		HiringTeamApproversTable,
 		HiringTeamManagersTable,
 		JobPositionsTable,
 		OutgoingEmailsTable,
@@ -798,6 +836,8 @@ func init() {
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = HiringTeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	HiringTeamApproversTable.ForeignKeys[0].RefTable = UsersTable
+	HiringTeamApproversTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable

@@ -60,12 +60,16 @@ const (
 	EdgeRecTeams = "rec_teams"
 	// EdgeMemberOfHiringTeamEdges holds the string denoting the member_of_hiring_team_edges edge name in mutations.
 	EdgeMemberOfHiringTeamEdges = "member_of_hiring_team_edges"
+	// EdgeApproversHiringTeams holds the string denoting the approvers_hiring_teams edge name in mutations.
+	EdgeApproversHiringTeams = "approvers_hiring_teams"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
 	EdgeRoleUsers = "role_users"
 	// EdgeHiringTeamUsers holds the string denoting the hiring_team_users edge name in mutations.
 	EdgeHiringTeamUsers = "hiring_team_users"
+	// EdgeHiringTeamApprovers holds the string denoting the hiring_team_approvers edge name in mutations.
+	EdgeHiringTeamApprovers = "hiring_team_approvers"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// AuditEdgeTable is the table that holds the audit_edge relation/edge.
@@ -153,6 +157,11 @@ const (
 	MemberOfHiringTeamEdgesInverseTable = "hiring_teams"
 	// MemberOfHiringTeamEdgesColumn is the table column denoting the member_of_hiring_team_edges relation/edge.
 	MemberOfHiringTeamEdgesColumn = "hiring_team_id"
+	// ApproversHiringTeamsTable is the table that holds the approvers_hiring_teams relation/edge. The primary key declared below.
+	ApproversHiringTeamsTable = "hiring_team_approvers"
+	// ApproversHiringTeamsInverseTable is the table name for the HiringTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
+	ApproversHiringTeamsInverseTable = "hiring_teams"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.
@@ -174,6 +183,13 @@ const (
 	HiringTeamUsersInverseTable = "hiring_team_managers"
 	// HiringTeamUsersColumn is the table column denoting the hiring_team_users relation/edge.
 	HiringTeamUsersColumn = "user_id"
+	// HiringTeamApproversTable is the table that holds the hiring_team_approvers relation/edge.
+	HiringTeamApproversTable = "hiring_team_approvers"
+	// HiringTeamApproversInverseTable is the table name for the HiringTeamApprover entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringteamapprover" package.
+	HiringTeamApproversInverseTable = "hiring_team_approvers"
+	// HiringTeamApproversColumn is the table column denoting the hiring_team_approvers relation/edge.
+	HiringTeamApproversColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -201,6 +217,9 @@ var (
 	// HiringTeamEdgesPrimaryKey and HiringTeamEdgesColumn2 are the table columns denoting the
 	// primary key for the hiring_team_edges relation (M2M).
 	HiringTeamEdgesPrimaryKey = []string{"user_id", "hiring_team_id"}
+	// ApproversHiringTeamsPrimaryKey and ApproversHiringTeamsColumn2 are the table columns denoting the
+	// primary key for the approvers_hiring_teams relation (M2M).
+	ApproversHiringTeamsPrimaryKey = []string{"hiring_team_id", "user_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

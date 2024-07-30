@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/user"
 
@@ -129,6 +130,21 @@ func (htc *HiringTeamCreate) AddHiringMemberEdges(u ...*User) *HiringTeamCreate 
 	return htc.AddHiringMemberEdgeIDs(ids...)
 }
 
+// AddApproversUserIDs adds the "approvers_users" edge to the User entity by IDs.
+func (htc *HiringTeamCreate) AddApproversUserIDs(ids ...uuid.UUID) *HiringTeamCreate {
+	htc.mutation.AddApproversUserIDs(ids...)
+	return htc
+}
+
+// AddApproversUsers adds the "approvers_users" edges to the User entity.
+func (htc *HiringTeamCreate) AddApproversUsers(u ...*User) *HiringTeamCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return htc.AddApproversUserIDs(ids...)
+}
+
 // AddUserHiringTeamIDs adds the "user_hiring_teams" edge to the HiringTeamManager entity by IDs.
 func (htc *HiringTeamCreate) AddUserHiringTeamIDs(ids ...uuid.UUID) *HiringTeamCreate {
 	htc.mutation.AddUserHiringTeamIDs(ids...)
@@ -142,6 +158,21 @@ func (htc *HiringTeamCreate) AddUserHiringTeams(h ...*HiringTeamManager) *Hiring
 		ids[i] = h[i].ID
 	}
 	return htc.AddUserHiringTeamIDs(ids...)
+}
+
+// AddHiringTeamApproverIDs adds the "hiring_team_approvers" edge to the HiringTeamApprover entity by IDs.
+func (htc *HiringTeamCreate) AddHiringTeamApproverIDs(ids ...uuid.UUID) *HiringTeamCreate {
+	htc.mutation.AddHiringTeamApproverIDs(ids...)
+	return htc
+}
+
+// AddHiringTeamApprovers adds the "hiring_team_approvers" edges to the HiringTeamApprover entity.
+func (htc *HiringTeamCreate) AddHiringTeamApprovers(h ...*HiringTeamApprover) *HiringTeamCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return htc.AddHiringTeamApproverIDs(ids...)
 }
 
 // Mutation returns the HiringTeamMutation object of the builder.
@@ -365,6 +396,29 @@ func (htc *HiringTeamCreate) createSpec() (*HiringTeam, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := htc.mutation.ApproversUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   hiringteam.ApproversUsersTable,
+			Columns: hiringteam.ApproversUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringTeamApproverCreate{config: htc.config, mutation: newHiringTeamApproverMutation(htc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := htc.mutation.UserHiringTeamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -376,6 +430,25 @@ func (htc *HiringTeamCreate) createSpec() (*HiringTeam, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringteammanager.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := htc.mutation.HiringTeamApproversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   hiringteam.HiringTeamApproversTable,
+			Columns: []string{hiringteam.HiringTeamApproversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteamapprover.FieldID,
 				},
 			},
 		}

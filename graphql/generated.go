@@ -48,6 +48,7 @@ type ResolverRoot interface {
 	EntityPermission() EntityPermissionResolver
 	HiringJob() HiringJobResolver
 	HiringTeam() HiringTeamResolver
+	HiringTeamApprover() HiringTeamApproverResolver
 	JobPosition() JobPositionResolver
 	Mutation() MutationResolver
 	Permission() PermissionResolver
@@ -500,6 +501,7 @@ type ComplexityRoot struct {
 	}
 
 	HiringTeam struct {
+		Approvers       func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
 		DeletedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -509,6 +511,16 @@ type ComplexityRoot struct {
 		OpeningRequests func(childComplexity int) int
 		Slug            func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
+	}
+
+	HiringTeamApprover struct {
+		CreatedAt    func(childComplexity int) int
+		HiringTeamID func(childComplexity int) int
+		ID           func(childComplexity int) int
+		OrderID      func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+		User         func(childComplexity int) int
+		UserID       func(childComplexity int) int
 	}
 
 	HiringTeamEdge struct {
@@ -1080,8 +1092,15 @@ type HiringTeamResolver interface {
 	ID(ctx context.Context, obj *ent.HiringTeam) (string, error)
 
 	Managers(ctx context.Context, obj *ent.HiringTeam) ([]*ent.User, error)
+	Approvers(ctx context.Context, obj *ent.HiringTeam) ([]*ent.HiringTeamApprover, error)
 	OpeningRequests(ctx context.Context, obj *ent.HiringTeam) (int, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.HiringTeam) (bool, error)
+}
+type HiringTeamApproverResolver interface {
+	ID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
+	UserID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
+
+	HiringTeamID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
 }
 type JobPositionResolver interface {
 	ID(ctx context.Context, obj *ent.JobPosition) (string, error)
@@ -3026,6 +3045,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJobSelectionResponseGetAll.Pagination(childComplexity), true
 
+	case "HiringTeam.approvers":
+		if e.complexity.HiringTeam.Approvers == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.Approvers(childComplexity), true
+
 	case "HiringTeam.created_at":
 		if e.complexity.HiringTeam.CreatedAt == nil {
 			break
@@ -3088,6 +3114,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringTeam.UpdatedAt(childComplexity), true
+
+	case "HiringTeamApprover.created_at":
+		if e.complexity.HiringTeamApprover.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.CreatedAt(childComplexity), true
+
+	case "HiringTeamApprover.hiring_team_id":
+		if e.complexity.HiringTeamApprover.HiringTeamID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.HiringTeamID(childComplexity), true
+
+	case "HiringTeamApprover.id":
+		if e.complexity.HiringTeamApprover.ID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.ID(childComplexity), true
+
+	case "HiringTeamApprover.order_id":
+		if e.complexity.HiringTeamApprover.OrderID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.OrderID(childComplexity), true
+
+	case "HiringTeamApprover.updated_at":
+		if e.complexity.HiringTeamApprover.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.UpdatedAt(childComplexity), true
+
+	case "HiringTeamApprover.user":
+		if e.complexity.HiringTeamApprover.User == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.User(childComplexity), true
+
+	case "HiringTeamApprover.user_id":
+		if e.complexity.HiringTeamApprover.UserID == nil {
+			break
+		}
+
+		return e.complexity.HiringTeamApprover.UserID(childComplexity), true
 
 	case "HiringTeamEdge.cursor":
 		if e.complexity.HiringTeamEdge.Cursor == nil {
@@ -5414,6 +5489,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputHiringJobFilter,
 		ec.unmarshalInputHiringJobFreeWord,
 		ec.unmarshalInputHiringJobOrderBy,
+		ec.unmarshalInputHiringTeamApproverInput,
 		ec.unmarshalInputHiringTeamFilter,
 		ec.unmarshalInputHiringTeamFreeWord,
 		ec.unmarshalInputHiringTeamOrderBy,
@@ -6651,11 +6727,13 @@ input HiringTeamFreeWord {
 input NewHiringTeamInput {
   name: String!
   members: [ID!]
+  approvers: [HiringTeamApproverInput!]!
 }
 
 input UpdateHiringTeamInput {
   name: String!
   members: [ID!]
+  approvers: [HiringTeamApproverInput!]!
 }
 
 type HiringTeam {
@@ -6663,6 +6741,7 @@ type HiringTeam {
   name: String!
   slug: String!
   managers: [User!]!
+  approvers: [HiringTeamApprover!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
   created_at: Time!
@@ -6700,6 +6779,22 @@ type HiringTeamSelectionResponseGetAll {
 }
 
 # Path: schema/user.graphql
+`, BuiltIn: false},
+	{Name: "../schema/hiring_team_approver.graphql", Input: `type HiringTeamApprover {
+  id: ID!
+  user_id: ID!
+  user: User
+  hiring_team_id: ID!
+  order_id: Int!
+  created_at: Time!
+  updated_at: Time
+}
+
+input HiringTeamApproverInput {
+  id: ID!
+  user_id: ID!
+  order_id: Int!
+}
 `, BuiltIn: false},
 	{Name: "../schema/job_position.graphql", Input: `enum JobPositionOrderField {
   name
@@ -21618,6 +21713,8 @@ func (ec *executionContext) fieldContext_HiringJob_hiring_team(ctx context.Conte
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
 			case "managers":
 				return ec.fieldContext_HiringTeam_managers(ctx, field)
+			case "approvers":
+				return ec.fieldContext_HiringTeam_approvers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -22896,6 +22993,66 @@ func (ec *executionContext) fieldContext_HiringTeam_managers(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringTeam_approvers(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_approvers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeam().Approvers(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringTeamApprover)
+	fc.Result = res
+	return ec.marshalNHiringTeamApprover2ᚕᚖtrecᚋentᚐHiringTeamApproverᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_approvers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringTeamApprover_id(ctx, field)
+			case "user_id":
+				return ec.fieldContext_HiringTeamApprover_user_id(ctx, field)
+			case "user":
+				return ec.fieldContext_HiringTeamApprover_user(ctx, field)
+			case "hiring_team_id":
+				return ec.fieldContext_HiringTeamApprover_hiring_team_id(ctx, field)
+			case "order_id":
+				return ec.fieldContext_HiringTeamApprover_order_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringTeamApprover_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringTeamApprover_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeamApprover", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringTeam_opening_requests(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 	if err != nil {
@@ -23113,6 +23270,326 @@ func (ec *executionContext) fieldContext_HiringTeam_deleted_at(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringTeamApprover_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeamApprover().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_user_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_user_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeamApprover().UserID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_user_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_user(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
+			case "entity_permissions":
+				return ec.fieldContext_User_entity_permissions(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_hiring_team_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_hiring_team_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringTeamApprover().HiringTeamID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_hiring_team_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringTeamApprover_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamApprover) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeamApprover_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeamApprover_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeamApprover",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringTeamEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeamEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringTeamEdge_node(ctx, field)
 	if err != nil {
@@ -23160,6 +23637,8 @@ func (ec *executionContext) fieldContext_HiringTeamEdge_node(ctx context.Context
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
 			case "managers":
 				return ec.fieldContext_HiringTeam_managers(ctx, field)
+			case "approvers":
+				return ec.fieldContext_HiringTeam_approvers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -23265,6 +23744,8 @@ func (ec *executionContext) fieldContext_HiringTeamResponse_data(ctx context.Con
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
 			case "managers":
 				return ec.fieldContext_HiringTeam_managers(ctx, field)
+			case "approvers":
+				return ec.fieldContext_HiringTeam_approvers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -36034,6 +36515,8 @@ func (ec *executionContext) fieldContext_User_hiring_team(ctx context.Context, f
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
 			case "managers":
 				return ec.fieldContext_HiringTeam_managers(ctx, field)
+			case "approvers":
+				return ec.fieldContext_HiringTeam_approvers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -36205,6 +36688,8 @@ func (ec *executionContext) fieldContext_User_member_of_hiring_team(ctx context.
 				return ec.fieldContext_HiringTeam_slug(ctx, field)
 			case "managers":
 				return ec.fieldContext_HiringTeam_managers(ctx, field)
+			case "approvers":
+				return ec.fieldContext_HiringTeam_approvers(ctx, field)
 			case "opening_requests":
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
@@ -40092,6 +40577,50 @@ func (ec *executionContext) unmarshalInputHiringJobOrderBy(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputHiringTeamApproverInput(ctx context.Context, obj interface{}) (ent.HiringTeamApproverInput, error) {
+	var it ent.HiringTeamApproverInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "user_id", "order_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "order_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
+			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputHiringTeamFilter(ctx context.Context, obj interface{}) (ent.HiringTeamFilter, error) {
 	var it ent.HiringTeamFilter
 	asMap := map[string]interface{}{}
@@ -41047,7 +41576,7 @@ func (ec *executionContext) unmarshalInputNewHiringTeamInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "members"}
+	fieldsInOrder := [...]string{"name", "members", "approvers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41067,6 +41596,14 @@ func (ec *executionContext) unmarshalInputNewHiringTeamInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
 			it.Members, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "approvers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approvers"))
+			it.Approvers, err = ec.unmarshalNHiringTeamApproverInput2ᚕᚖtrecᚋentᚐHiringTeamApproverInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42335,7 +42872,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "members"}
+	fieldsInOrder := [...]string{"name", "members", "approvers"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42355,6 +42892,14 @@ func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
 			it.Members, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "approvers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approvers"))
+			it.Approvers, err = ec.unmarshalNHiringTeamApproverInput2ᚕᚖtrecᚋentᚐHiringTeamApproverInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46551,6 +47096,26 @@ func (ec *executionContext) _HiringTeam(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
+		case "approvers":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeam_approvers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "opening_requests":
 			field := field
 
@@ -46608,6 +47173,122 @@ func (ec *executionContext) _HiringTeam(ctx context.Context, sel ast.SelectionSe
 		case "deleted_at":
 
 			out.Values[i] = ec._HiringTeam_deleted_at(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringTeamApproverImplementors = []string{"HiringTeamApprover"}
+
+func (ec *executionContext) _HiringTeamApprover(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringTeamApprover) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringTeamApproverImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringTeamApprover")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeamApprover_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "user_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeamApprover_user_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeamApprover_user(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "hiring_team_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringTeamApprover_hiring_team_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "order_id":
+
+			out.Values[i] = ec._HiringTeamApprover_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "created_at":
+
+			out.Values[i] = ec._HiringTeamApprover_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._HiringTeamApprover_updated_at(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -52731,6 +53412,82 @@ func (ec *executionContext) marshalNHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx co
 		return graphql.Null
 	}
 	return ec._HiringTeam(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringTeamApprover2ᚕᚖtrecᚋentᚐHiringTeamApproverᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringTeamApprover) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHiringTeamApprover2ᚖtrecᚋentᚐHiringTeamApprover(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNHiringTeamApprover2ᚖtrecᚋentᚐHiringTeamApprover(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeamApprover) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringTeamApprover(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNHiringTeamApproverInput2ᚕᚖtrecᚋentᚐHiringTeamApproverInputᚄ(ctx context.Context, v interface{}) ([]*ent.HiringTeamApproverInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*ent.HiringTeamApproverInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNHiringTeamApproverInput2ᚖtrecᚋentᚐHiringTeamApproverInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNHiringTeamApproverInput2ᚖtrecᚋentᚐHiringTeamApproverInput(ctx context.Context, v interface{}) (*ent.HiringTeamApproverInput, error) {
+	res, err := ec.unmarshalInputHiringTeamApproverInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNHiringTeamEdge2ᚕᚖtrecᚋentᚐHiringTeamEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringTeamEdge) graphql.Marshaler {

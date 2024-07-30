@@ -42,6 +42,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("led_rec_teams", RecTeam.Type).Annotations(),
 		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
 		edge.From("member_of_hiring_team_edges", HiringTeam.Type).Ref("hiring_member_edges").Unique().Field("hiring_team_id"),
+		edge.From("approvers_hiring_teams", HiringTeam.Type).Ref("approvers_users").Through("hiring_team_approvers", HiringTeamApprover.Type),
 	}
 }
 
