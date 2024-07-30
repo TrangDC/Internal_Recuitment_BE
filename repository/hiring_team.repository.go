@@ -12,6 +12,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -34,8 +35,7 @@ type HiringTeamRepository interface {
 	BuildGetOne(ctx context.Context, query *ent.HiringTeamQuery) (*ent.HiringTeam, error)
 
 	// common function
-	ValidName(ctx context.Context, hiringTeamID uuid.UUID, name string) (error, error)
-	ValidUserInAnotherHiringTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) (error, error)
+	ValidInput(ctx context.Context, hiringTeamID uuid.UUID, name string, memberIds []uuid.UUID, approverCount int) (error, error)
 }
 
 type hiringTeamRepoImpl struct {
@@ -71,6 +71,9 @@ func (rps *hiringTeamRepoImpl) BuildQuery() *ent.HiringTeamQuery {
 		}).
 		WithHiringMemberEdges(func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
+		}).
+		WithHiringTeamApprovers(func(query *ent.HiringTeamApproverQuery) {
+			query.WithUser().Order(ent.Asc(hiringteamapprover.FieldOrderID))
 		})
 }
 
@@ -156,32 +159,27 @@ func (rps *hiringTeamRepoImpl) GetHiringTeam(ctx context.Context, id uuid.UUID) 
 }
 
 // common function
-func (rps *hiringTeamRepoImpl) ValidName(ctx context.Context, hiringTeamID uuid.UUID, name string) (error, error) {
-	query := rps.BuildQuery().Where(hiringteam.NameEqualFold(strings.TrimSpace(name)))
+func (rps *hiringTeamRepoImpl) ValidInput(ctx context.Context, hiringTeamID uuid.UUID, name string, memberIds []uuid.UUID, approverCount int) (error, error) {
+	query := rps.BuildQuery()
 	if hiringTeamID != uuid.Nil {
 		query = query.Where(hiringteam.IDNEQ(hiringTeamID))
 	}
-	isExist, err := rps.BuildExist(ctx, query)
+	nameExist, err := rps.BuildExist(ctx, query.Clone().Where(hiringteam.NameEqualFold(strings.TrimSpace(name))))
 	if err != nil {
 		return nil, err
 	}
-	if isExist {
+	if nameExist {
 		return fmt.Errorf("model.hiring_teams.validation.name_exist"), nil
 	}
-	return nil, nil
-}
-
-func (rps *hiringTeamRepoImpl) ValidUserInAnotherHiringTeam(ctx context.Context, id uuid.UUID, memberIds []uuid.UUID) (error, error) {
-	query := rps.BuildQuery().Where(hiringteam.HasUserEdgesWith(user.IDIn(memberIds...)), hiringteam.HasUserHiringTeamsWith(hiringteammanager.DeletedAtIsNil()))
-	if id != uuid.Nil {
-		query = query.Where(hiringteam.IDNEQ(id))
-	}
-	isExist, err := rps.BuildExist(ctx, query)
+	userInAnotherTeam, err := rps.BuildExist(ctx, query.Clone().Where(hiringteam.HasUserEdgesWith(user.IDIn(memberIds...)), hiringteam.HasUserHiringTeamsWith(hiringteammanager.DeletedAtIsNil())))
 	if err != nil {
 		return nil, err
 	}
-	if isExist {
+	if userInAnotherTeam {
 		return fmt.Errorf("model.hiring_teams.validation.user_in_another_hiring_team"), nil
+	}
+	if approverCount == 0 {
+		return fmt.Errorf("model.hiring_teams.validation.empty_approver_list"), nil
 	}
 	return nil, nil
 }

@@ -1,0 +1,15 @@
+type HiringTeamApprover {
+  id: ID!
+  user_id: ID!
+  user: User
+  hiring_team_id: ID!
+  order_id: Int!
+  created_at: Time!
+  updated_at: Time
+}
+
+input HiringTeamApproverInput {
+  id: ID!
+  user_id: ID!
+  order_id: Int!
+}

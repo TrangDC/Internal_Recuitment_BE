@@ -24,6 +24,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
@@ -4673,6 +4674,308 @@ func (ht *HiringTeam) ToEdge(order *HiringTeamOrder) *HiringTeamEdge {
 	return &HiringTeamEdge{
 		Node:   ht,
 		Cursor: order.Field.toCursor(ht),
+	}
+}
+
+// HiringTeamApproverEdge is the edge representation of HiringTeamApprover.
+type HiringTeamApproverEdge struct {
+	Node   *HiringTeamApprover `json:"node"`
+	Cursor Cursor              `json:"cursor"`
+}
+
+// HiringTeamApproverConnection is the connection containing edges to HiringTeamApprover.
+type HiringTeamApproverConnection struct {
+	Edges      []*HiringTeamApproverEdge `json:"edges"`
+	PageInfo   PageInfo                  `json:"pageInfo"`
+	TotalCount int                       `json:"totalCount"`
+}
+
+func (c *HiringTeamApproverConnection) build(nodes []*HiringTeamApprover, pager *hiringteamapproverPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *HiringTeamApprover
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *HiringTeamApprover {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *HiringTeamApprover {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*HiringTeamApproverEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &HiringTeamApproverEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// HiringTeamApproverPaginateOption enables pagination customization.
+type HiringTeamApproverPaginateOption func(*hiringteamapproverPager) error
+
+// WithHiringTeamApproverOrder configures pagination ordering.
+func WithHiringTeamApproverOrder(order *HiringTeamApproverOrder) HiringTeamApproverPaginateOption {
+	if order == nil {
+		order = DefaultHiringTeamApproverOrder
+	}
+	o := *order
+	return func(pager *hiringteamapproverPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultHiringTeamApproverOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithHiringTeamApproverFilter configures pagination filter.
+func WithHiringTeamApproverFilter(filter func(*HiringTeamApproverQuery) (*HiringTeamApproverQuery, error)) HiringTeamApproverPaginateOption {
+	return func(pager *hiringteamapproverPager) error {
+		if filter == nil {
+			return errors.New("HiringTeamApproverQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type hiringteamapproverPager struct {
+	order  *HiringTeamApproverOrder
+	filter func(*HiringTeamApproverQuery) (*HiringTeamApproverQuery, error)
+}
+
+func newHiringTeamApproverPager(opts []HiringTeamApproverPaginateOption) (*hiringteamapproverPager, error) {
+	pager := &hiringteamapproverPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultHiringTeamApproverOrder
+	}
+	return pager, nil
+}
+
+func (p *hiringteamapproverPager) applyFilter(query *HiringTeamApproverQuery) (*HiringTeamApproverQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *hiringteamapproverPager) toCursor(hta *HiringTeamApprover) Cursor {
+	return p.order.Field.toCursor(hta)
+}
+
+func (p *hiringteamapproverPager) applyCursors(query *HiringTeamApproverQuery, after, before *Cursor) *HiringTeamApproverQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultHiringTeamApproverOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *hiringteamapproverPager) applyOrder(query *HiringTeamApproverQuery, reverse bool) *HiringTeamApproverQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultHiringTeamApproverOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultHiringTeamApproverOrder.Field.field))
+	}
+	return query
+}
+
+func (p *hiringteamapproverPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultHiringTeamApproverOrder.Field {
+			b.Comma().Ident(DefaultHiringTeamApproverOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to HiringTeamApprover.
+func (hta *HiringTeamApproverQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...HiringTeamApproverPaginateOption,
+) (*HiringTeamApproverConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newHiringTeamApproverPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if hta, err = pager.applyFilter(hta); err != nil {
+		return nil, err
+	}
+	conn := &HiringTeamApproverConnection{Edges: []*HiringTeamApproverEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = hta.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	hta = pager.applyCursors(hta, after, before)
+	hta = pager.applyOrder(hta, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		hta.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := hta.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := hta.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// HiringTeamApproverOrderFieldCreatedAt orders HiringTeamApprover by created_at.
+	HiringTeamApproverOrderFieldCreatedAt = &HiringTeamApproverOrderField{
+		field: hiringteamapprover.FieldCreatedAt,
+		toCursor: func(hta *HiringTeamApprover) Cursor {
+			return Cursor{
+				ID:    hta.ID,
+				Value: hta.CreatedAt,
+			}
+		},
+	}
+	// HiringTeamApproverOrderFieldUpdatedAt orders HiringTeamApprover by updated_at.
+	HiringTeamApproverOrderFieldUpdatedAt = &HiringTeamApproverOrderField{
+		field: hiringteamapprover.FieldUpdatedAt,
+		toCursor: func(hta *HiringTeamApprover) Cursor {
+			return Cursor{
+				ID:    hta.ID,
+				Value: hta.UpdatedAt,
+			}
+		},
+	}
+	// HiringTeamApproverOrderFieldDeletedAt orders HiringTeamApprover by deleted_at.
+	HiringTeamApproverOrderFieldDeletedAt = &HiringTeamApproverOrderField{
+		field: hiringteamapprover.FieldDeletedAt,
+		toCursor: func(hta *HiringTeamApprover) Cursor {
+			return Cursor{
+				ID:    hta.ID,
+				Value: hta.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f HiringTeamApproverOrderField) String() string {
+	var str string
+	switch f.field {
+	case hiringteamapprover.FieldCreatedAt:
+		str = "created_at"
+	case hiringteamapprover.FieldUpdatedAt:
+		str = "updated_at"
+	case hiringteamapprover.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f HiringTeamApproverOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *HiringTeamApproverOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("HiringTeamApproverOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *HiringTeamApproverOrderFieldCreatedAt
+	case "updated_at":
+		*f = *HiringTeamApproverOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *HiringTeamApproverOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid HiringTeamApproverOrderField", str)
+	}
+	return nil
+}
+
+// HiringTeamApproverOrderField defines the ordering field of HiringTeamApprover.
+type HiringTeamApproverOrderField struct {
+	field    string
+	toCursor func(*HiringTeamApprover) Cursor
+}
+
+// HiringTeamApproverOrder defines the ordering of HiringTeamApprover.
+type HiringTeamApproverOrder struct {
+	Direction OrderDirection                `json:"direction"`
+	Field     *HiringTeamApproverOrderField `json:"field"`
+}
+
+// DefaultHiringTeamApproverOrder is the default ordering of HiringTeamApprover.
+var DefaultHiringTeamApproverOrder = &HiringTeamApproverOrder{
+	Direction: OrderDirectionAsc,
+	Field: &HiringTeamApproverOrderField{
+		field: hiringteamapprover.FieldID,
+		toCursor: func(hta *HiringTeamApprover) Cursor {
+			return Cursor{ID: hta.ID}
+		},
+	},
+}
+
+// ToEdge converts HiringTeamApprover into HiringTeamApproverEdge.
+func (hta *HiringTeamApprover) ToEdge(order *HiringTeamApproverOrder) *HiringTeamApproverEdge {
+	if order == nil {
+		order = DefaultHiringTeamApproverOrder
+	}
+	return &HiringTeamApproverEdge{
+		Node:   hta,
+		Cursor: order.Field.toCursor(hta),
 	}
 }
 

@@ -427,6 +427,12 @@ type HiringJobSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type HiringTeamApproverInput struct {
+	ID      string `json:"id"`
+	UserID  string `json:"user_id"`
+	OrderID int    `json:"order_id"`
+}
+
 type HiringTeamFilter struct {
 	Name          *string   `json:"name"`
 	ManagerIds    []*string `json:"manager_ids"`
@@ -602,8 +608,9 @@ type NewHiringJobInput struct {
 }
 
 type NewHiringTeamInput struct {
-	Name    string   `json:"name"`
-	Members []string `json:"members"`
+	Name      string                     `json:"name"`
+	Members   []string                   `json:"members"`
+	Approvers []*HiringTeamApproverInput `json:"approvers"`
 }
 
 type NewJobPositionInput struct {
@@ -937,8 +944,9 @@ type UpdateHiringJobInput struct {
 }
 
 type UpdateHiringTeamInput struct {
-	Name    string   `json:"name"`
-	Members []string `json:"members"`
+	Name      string                     `json:"name"`
+	Members   []string                   `json:"members"`
+	Approvers []*HiringTeamApproverInput `json:"approvers"`
 }
 
 type UpdateJobPositionInput struct {

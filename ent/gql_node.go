@@ -20,6 +20,7 @@ import (
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/jobposition"
 	"trec/ent/outgoingemail"
@@ -1583,7 +1584,7 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ht.ID,
 		Type:   "HiringTeam",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 4),
+		Edges:  make([]*Edge, 6),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ht.CreatedAt); err != nil {
@@ -1657,12 +1658,111 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[3] = &Edge{
+		Type: "User",
+		Name: "approvers_users",
+	}
+	err = ht.QueryApproversUsers().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[3].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
 		Type: "HiringTeamManager",
 		Name: "user_hiring_teams",
 	}
 	err = ht.QueryUserHiringTeams().
 		Select(hiringteammanager.FieldID).
-		Scan(ctx, &node.Edges[3].IDs)
+		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		Type: "HiringTeamApprover",
+		Name: "hiring_team_approvers",
+	}
+	err = ht.QueryHiringTeamApprovers().
+		Select(hiringteamapprover.FieldID).
+		Scan(ctx, &node.Edges[5].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (hta *HiringTeamApprover) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     hta.ID,
+		Type:   "HiringTeamApprover",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(hta.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hta.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hta.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hta.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hta.HiringTeamID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "hiring_team_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hta.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user",
+	}
+	err = hta.QueryUser().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "HiringTeam",
+		Name: "hiring_team",
+	}
+	err = hta.QueryHiringTeam().
+		Select(hiringteam.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2431,7 +2531,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 16),
+		Edges:  make([]*Edge, 18),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
@@ -2645,32 +2745,52 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[13] = &Edge{
-		Type: "CandidateInterviewer",
-		Name: "interview_users",
+		Type: "HiringTeam",
+		Name: "approvers_hiring_teams",
 	}
-	err = u.QueryInterviewUsers().
-		Select(candidateinterviewer.FieldID).
+	err = u.QueryApproversHiringTeams().
+		Select(hiringteam.FieldID).
 		Scan(ctx, &node.Edges[13].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[14] = &Edge{
-		Type: "UserRole",
-		Name: "role_users",
+		Type: "CandidateInterviewer",
+		Name: "interview_users",
 	}
-	err = u.QueryRoleUsers().
-		Select(userrole.FieldID).
+	err = u.QueryInterviewUsers().
+		Select(candidateinterviewer.FieldID).
 		Scan(ctx, &node.Edges[14].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[15] = &Edge{
+		Type: "UserRole",
+		Name: "role_users",
+	}
+	err = u.QueryRoleUsers().
+		Select(userrole.FieldID).
+		Scan(ctx, &node.Edges[15].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[16] = &Edge{
 		Type: "HiringTeamManager",
 		Name: "hiring_team_users",
 	}
 	err = u.QueryHiringTeamUsers().
 		Select(hiringteammanager.FieldID).
-		Scan(ctx, &node.Edges[15].IDs)
+		Scan(ctx, &node.Edges[16].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[17] = &Edge{
+		Type: "HiringTeamApprover",
+		Name: "hiring_team_approvers",
+	}
+	err = u.QueryHiringTeamApprovers().
+		Select(hiringteamapprover.FieldID).
+		Scan(ctx, &node.Edges[17].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2974,6 +3094,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 		query := c.HiringTeam.Query().
 			Where(hiringteam.ID(id))
 		query, err := query.CollectFields(ctx, "HiringTeam")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case hiringteamapprover.Table:
+		query := c.HiringTeamApprover.Query().
+			Where(hiringteamapprover.ID(id))
+		query, err := query.CollectFields(ctx, "HiringTeamApprover")
 		if err != nil {
 			return nil, err
 		}
@@ -3399,6 +3531,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringTeam.Query().
 			Where(hiringteam.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringTeam")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case hiringteamapprover.Table:
+		query := c.HiringTeamApprover.Query().
+			Where(hiringteamapprover.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "HiringTeamApprover")
 		if err != nil {
 			return nil, err
 		}

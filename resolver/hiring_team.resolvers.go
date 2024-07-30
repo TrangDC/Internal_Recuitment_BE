@@ -22,6 +22,11 @@ func (r *hiringTeamResolver) Managers(ctx context.Context, obj *ent.HiringTeam) 
 	return obj.Edges.UserEdges, nil
 }
 
+// Approvers is the resolver for the approvers field.
+func (r *hiringTeamResolver) Approvers(ctx context.Context, obj *ent.HiringTeam) ([]*ent.HiringTeamApprover, error) {
+	return obj.Edges.HiringTeamApprovers, nil
+}
+
 // OpeningRequests is the resolver for the opening_requests field.
 func (r *hiringTeamResolver) OpeningRequests(ctx context.Context, obj *ent.HiringTeam) (int, error) {
 	total := lo.Filter(obj.Edges.HiringTeamJobEdges, func(record *ent.HiringJob, index int) bool {

@@ -32,6 +32,7 @@ type Repository interface {
 	OutgoingEmail() OutgoingEmailRepository
 	Report() ReportRepository
 	HiringTeam() HiringTeamRepository
+	HiringTeamApprover() HiringTeamApproverRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -63,6 +64,7 @@ type RepoImpl struct {
 	outgoingEmail        OutgoingEmailRepository
 	report               ReportRepository
 	hiringTeam           HiringTeamRepository
+	hiringTeamApprover   HiringTeamApproverRepository
 }
 
 // NewRepository creates new repository registry
@@ -91,6 +93,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		outgoingEmail:        NewOutgoingEmailRepository(entClient),
 		report:               NewReportRepository(entClient),
 		hiringTeam:           NewHiringTeamRepository(entClient),
+		hiringTeamApprover:   NewHiringTeamApproverRepository(entClient),
 	}
 }
 
@@ -182,6 +185,10 @@ func (r *RepoImpl) HiringTeam() HiringTeamRepository {
 	return r.hiringTeam
 }
 
+func (r *RepoImpl) HiringTeamApprover() HiringTeamApproverRepository {
+	return r.hiringTeamApprover
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -224,6 +231,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		emailTemplate:        NewEmailTemplateRepository(tx.Client()),
 		outgoingEmail:        NewOutgoingEmailRepository(tx.Client()),
 		hiringTeam:           NewHiringTeamRepository(tx.Client()),
+		hiringTeamApprover:   NewHiringTeamApproverRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

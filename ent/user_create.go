@@ -16,6 +16,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
 	"trec/ent/recteam"
 	"trec/ent/role"
@@ -359,6 +360,21 @@ func (uc *UserCreate) SetMemberOfHiringTeamEdges(h *HiringTeam) *UserCreate {
 	return uc.SetMemberOfHiringTeamEdgesID(h.ID)
 }
 
+// AddApproversHiringTeamIDs adds the "approvers_hiring_teams" edge to the HiringTeam entity by IDs.
+func (uc *UserCreate) AddApproversHiringTeamIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddApproversHiringTeamIDs(ids...)
+	return uc
+}
+
+// AddApproversHiringTeams adds the "approvers_hiring_teams" edges to the HiringTeam entity.
+func (uc *UserCreate) AddApproversHiringTeams(h ...*HiringTeam) *UserCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddApproversHiringTeamIDs(ids...)
+}
+
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
 func (uc *UserCreate) AddInterviewUserIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddInterviewUserIDs(ids...)
@@ -402,6 +418,21 @@ func (uc *UserCreate) AddHiringTeamUsers(h ...*HiringTeamManager) *UserCreate {
 		ids[i] = h[i].ID
 	}
 	return uc.AddHiringTeamUserIDs(ids...)
+}
+
+// AddHiringTeamApproverIDs adds the "hiring_team_approvers" edge to the HiringTeamApprover entity by IDs.
+func (uc *UserCreate) AddHiringTeamApproverIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddHiringTeamApproverIDs(ids...)
+	return uc
+}
+
+// AddHiringTeamApprovers adds the "hiring_team_approvers" edges to the HiringTeamApprover entity.
+func (uc *UserCreate) AddHiringTeamApprovers(h ...*HiringTeamApprover) *UserCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddHiringTeamApproverIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -862,6 +893,29 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node.HiringTeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := uc.mutation.ApproversHiringTeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.ApproversHiringTeamsTable,
+			Columns: user.ApproversHiringTeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringTeamApproverCreate{config: uc.config, mutation: newHiringTeamApproverMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := uc.mutation.InterviewUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -911,6 +965,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringteammanager.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.HiringTeamApproversIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.HiringTeamApproversTable,
+			Columns: []string{user.HiringTeamApproversColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringteamapprover.FieldID,
 				},
 			},
 		}

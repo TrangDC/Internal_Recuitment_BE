@@ -432,6 +432,18 @@ func (ht *HiringTeam) HiringMemberEdges(ctx context.Context) (result []*User, er
 	return result, err
 }
 
+func (ht *HiringTeam) ApproversUsers(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ht.NamedApproversUsers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ht.Edges.ApproversUsersOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ht.QueryApproversUsers().All(ctx)
+	}
+	return result, err
+}
+
 func (ht *HiringTeam) UserHiringTeams(ctx context.Context) (result []*HiringTeamManager, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ht.NamedUserHiringTeams(graphql.GetFieldContext(ctx).Field.Alias)
@@ -440,6 +452,34 @@ func (ht *HiringTeam) UserHiringTeams(ctx context.Context) (result []*HiringTeam
 	}
 	if IsNotLoaded(err) {
 		result, err = ht.QueryUserHiringTeams().All(ctx)
+	}
+	return result, err
+}
+
+func (ht *HiringTeam) HiringTeamApprovers(ctx context.Context) (result []*HiringTeamApprover, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ht.NamedHiringTeamApprovers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ht.Edges.HiringTeamApproversOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ht.QueryHiringTeamApprovers().All(ctx)
+	}
+	return result, err
+}
+
+func (hta *HiringTeamApprover) User(ctx context.Context) (*User, error) {
+	result, err := hta.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = hta.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (hta *HiringTeamApprover) HiringTeam(ctx context.Context) (*HiringTeam, error) {
+	result, err := hta.Edges.HiringTeamOrErr()
+	if IsNotLoaded(err) {
+		result, err = hta.QueryHiringTeam().Only(ctx)
 	}
 	return result, err
 }
@@ -772,6 +812,18 @@ func (u *User) MemberOfHiringTeamEdges(ctx context.Context) (*HiringTeam, error)
 	return result, MaskNotFound(err)
 }
 
+func (u *User) ApproversHiringTeams(ctx context.Context) (result []*HiringTeam, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedApproversHiringTeams(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.ApproversHiringTeamsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryApproversHiringTeams().All(ctx)
+	}
+	return result, err
+}
+
 func (u *User) InterviewUsers(ctx context.Context) (result []*CandidateInterviewer, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedInterviewUsers(graphql.GetFieldContext(ctx).Field.Alias)
@@ -804,6 +856,18 @@ func (u *User) HiringTeamUsers(ctx context.Context) (result []*HiringTeamManager
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryHiringTeamUsers().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) HiringTeamApprovers(ctx context.Context) (result []*HiringTeamApprover, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedHiringTeamApprovers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.HiringTeamApproversOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryHiringTeamApprovers().All(ctx)
 	}
 	return result, err
 }

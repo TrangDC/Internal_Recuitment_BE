@@ -1398,6 +1398,18 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 			ht.WithNamedHiringMemberEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "approversUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: ht.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ht.WithNamedApproversUsers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
 		case "userHiringTeams":
 			var (
 				alias = field.Alias
@@ -1408,6 +1420,18 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 				return err
 			}
 			ht.WithNamedUserHiringTeams(alias, func(wq *HiringTeamManagerQuery) {
+				*wq = *query
+			})
+		case "hiringTeamApprovers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamApproverQuery{config: ht.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ht.WithNamedHiringTeamApprovers(alias, func(wq *HiringTeamApproverQuery) {
 				*wq = *query
 			})
 		}
@@ -1457,6 +1481,95 @@ func newHiringTeamPaginateArgs(rv map[string]interface{}) *hiringteamPaginateArg
 		case *HiringTeamOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithHiringTeamOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (hta *HiringTeamApproverQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringTeamApproverQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return hta, nil
+	}
+	if err := hta.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return hta, nil
+}
+
+func (hta *HiringTeamApproverQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: hta.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hta.withUser = query
+		case "hiringTeam":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamQuery{config: hta.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hta.withHiringTeam = query
+		}
+	}
+	return nil
+}
+
+type hiringteamapproverPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []HiringTeamApproverPaginateOption
+}
+
+func newHiringTeamApproverPaginateArgs(rv map[string]interface{}) *hiringteamapproverPaginateArgs {
+	args := &hiringteamapproverPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &HiringTeamApproverOrder{Field: &HiringTeamApproverOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithHiringTeamApproverOrder(order))
+			}
+		case *HiringTeamApproverOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithHiringTeamApproverOrder(v))
 			}
 		}
 	}
@@ -2436,6 +2549,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.withMemberOfHiringTeamEdges = query
+		case "approversHiringTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedApproversHiringTeams(alias, func(wq *HiringTeamQuery) {
+				*wq = *query
+			})
 		case "interviewUsers":
 			var (
 				alias = field.Alias
@@ -2470,6 +2595,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedHiringTeamUsers(alias, func(wq *HiringTeamManagerQuery) {
+				*wq = *query
+			})
+		case "hiringTeamApprovers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamApproverQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedHiringTeamApprovers(alias, func(wq *HiringTeamApproverQuery) {
 				*wq = *query
 			})
 		}

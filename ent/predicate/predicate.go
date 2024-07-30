@@ -48,6 +48,9 @@ type HiringJob func(*sql.Selector)
 // HiringTeam is the predicate function for hiringteam builders.
 type HiringTeam func(*sql.Selector)
 
+// HiringTeamApprover is the predicate function for hiringteamapprover builders.
+type HiringTeamApprover func(*sql.Selector)
+
 // HiringTeamManager is the predicate function for hiringteammanager builders.
 type HiringTeamManager func(*sql.Selector)
 
