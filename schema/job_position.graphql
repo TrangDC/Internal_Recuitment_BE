@@ -50,4 +50,19 @@ type JobPositionResponseGetAll {
   pagination: Pagination!
 }
 
+type JobPositionSelection {
+  id: ID!
+  name: String!
+}
+
+type JobPositionSelectionEdge {
+  node: JobPositionSelection!
+  cursor: Cursor!
+}
+
+type JobPositionSelectionResponseGetAll {
+  edges: [JobPositionSelectionEdge!]!
+  pagination: Pagination!
+}
+
 # Path: schema/job_position.graphql

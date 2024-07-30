@@ -563,6 +563,21 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	JobPositionSelection struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	JobPositionSelectionEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	JobPositionSelectionResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	JsonFormat struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -702,6 +717,7 @@ type ComplexityRoot struct {
 		SelectionCandidates                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
 		SelectionHiringJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
 		SelectionHiringTeams               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
+		SelectionJobPositions              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
 		SelectionRole                      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
 		SelectionSkillTypes                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
 		SelectionSkills                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
@@ -1156,6 +1172,7 @@ type QueryResolver interface {
 	GetAllSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeResponseGetAll, error)
 	SelectionUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserSelectionResponseGetAll, error)
 	SelectionHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamSelectionResponseGetAll, error)
+	SelectionJobPositions(ctx context.Context, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) (*ent.JobPositionSelectionResponseGetAll, error)
 	SelectionHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error)
 	SelectionCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateSelectionResponseGetAll, error)
 	SelectionSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error)
@@ -3226,6 +3243,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.JobPositionResponseGetAll.Pagination(childComplexity), true
 
+	case "JobPositionSelection.id":
+		if e.complexity.JobPositionSelection.ID == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelection.ID(childComplexity), true
+
+	case "JobPositionSelection.name":
+		if e.complexity.JobPositionSelection.Name == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelection.Name(childComplexity), true
+
+	case "JobPositionSelectionEdge.cursor":
+		if e.complexity.JobPositionSelectionEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelectionEdge.Cursor(childComplexity), true
+
+	case "JobPositionSelectionEdge.node":
+		if e.complexity.JobPositionSelectionEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelectionEdge.Node(childComplexity), true
+
+	case "JobPositionSelectionResponseGetAll.edges":
+		if e.complexity.JobPositionSelectionResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelectionResponseGetAll.Edges(childComplexity), true
+
+	case "JobPositionSelectionResponseGetAll.pagination":
+		if e.complexity.JobPositionSelectionResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.JobPositionSelectionResponseGetAll.Pagination(childComplexity), true
+
 	case "JsonFormat.key":
 		if e.complexity.JsonFormat.Key == nil {
 			break
@@ -4417,6 +4476,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SelectionHiringTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringTeamFilter), args["freeWord"].(*ent.HiringTeamFreeWord), args["orderBy"].(ent.HiringTeamOrderBy)), true
+
+	case "Query.SelectionJobPositions":
+		if e.complexity.Query.SelectionJobPositions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_SelectionJobPositions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SelectionJobPositions(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.JobPositionFilter), args["freeWord"].(*ent.JobPositionFreeWord), args["orderBy"].(*ent.JobPositionOrder)), true
 
 	case "Query.SelectionRole":
 		if e.complexity.Query.SelectionRole == nil {
@@ -6682,6 +6753,21 @@ type JobPositionResponseGetAll {
   pagination: Pagination!
 }
 
+type JobPositionSelection {
+  id: ID!
+  name: String!
+}
+
+type JobPositionSelectionEdge {
+  node: JobPositionSelection!
+  cursor: Cursor!
+}
+
+type JobPositionSelectionResponseGetAll {
+  edges: [JobPositionSelectionEdge!]!
+  pagination: Pagination!
+}
+
 # Path: schema/job_position.graphql`, BuiltIn: false},
 	{Name: "../schema/mutation.graphql", Input: `type Mutation {
   #Attachment
@@ -6797,9 +6883,9 @@ enum PermissionGroupType {
   function
 }`, BuiltIn: false},
 	{Name: "../schema/query.graphql", Input: `type Query {
-	# HiringTeam
-	GetHiringTeam(id: ID!): HiringTeamResponse!
-	GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
+  # HiringTeam
+  GetHiringTeam(id: ID!): HiringTeamResponse!
+  GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
 
   # User
   GetUser(id: ID!): UserResponse!
@@ -6848,14 +6934,15 @@ enum PermissionGroupType {
   GetSkillType(id: ID!): SkillTypeResponse!
   GetAllSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeResponseGetAll!
 
-	# Selection
-	SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
-	SelectionHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamSelectionResponseGetAll!
-	SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
-	SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
-	SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
-	SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
-	SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
+  # Selection
+  SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
+  SelectionHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamSelectionResponseGetAll!
+  SelectionJobPositions(pagination: PaginationInput, filter: JobPositionFilter, freeWord: JobPositionFreeWord, orderBy: JobPositionOrder): JobPositionSelectionResponseGetAll!
+  SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
+  SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
+  SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
+  SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
+  SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
 
   # Role
   GetRole(id: ID!): RoleResponse!
@@ -9635,6 +9722,48 @@ func (ec *executionContext) field_Query_SelectionHiringTeams_args(ctx context.Co
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalNHiringTeamOrderBy2trecᚋentᚐHiringTeamOrderBy(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_SelectionJobPositions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.JobPositionFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOJobPositionFilter2ᚖtrecᚋentᚐJobPositionFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.JobPositionFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOJobPositionFreeWord2ᚖtrecᚋentᚐJobPositionFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.JobPositionOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalOJobPositionOrder2ᚖtrecᚋentᚐJobPositionOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -24059,6 +24188,290 @@ func (ec *executionContext) fieldContext_JobPositionResponseGetAll_pagination(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _JobPositionSelection_id(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelection_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelection_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobPositionSelection_name(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelection_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelection_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobPositionSelectionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelectionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelectionEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.JobPositionSelection)
+	fc.Result = res
+	return ec.marshalNJobPositionSelection2ᚖtrecᚋentᚐJobPositionSelection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelectionEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelectionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_JobPositionSelection_id(ctx, field)
+			case "name":
+				return ec.fieldContext_JobPositionSelection_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobPositionSelection", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobPositionSelectionEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelectionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelectionEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelectionEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelectionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobPositionSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelectionResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.JobPositionSelectionEdge)
+	fc.Result = res
+	return ec.marshalNJobPositionSelectionEdge2ᚕᚖtrecᚋentᚐJobPositionSelectionEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_JobPositionSelectionEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_JobPositionSelectionEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobPositionSelectionEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobPositionSelectionResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.JobPositionSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobPositionSelectionResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobPositionSelectionResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobPositionSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JsonFormat_key(ctx context.Context, field graphql.CollectedField, obj *ent.JSONFormat) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_JsonFormat_key(ctx, field)
 	if err != nil {
@@ -29474,6 +29887,67 @@ func (ec *executionContext) fieldContext_Query_SelectionHiringTeams(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_SelectionHiringTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_SelectionJobPositions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_SelectionJobPositions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SelectionJobPositions(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.JobPositionFilter), fc.Args["freeWord"].(*ent.JobPositionFreeWord), fc.Args["orderBy"].(*ent.JobPositionOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.JobPositionSelectionResponseGetAll)
+	fc.Result = res
+	return ec.marshalNJobPositionSelectionResponseGetAll2ᚖtrecᚋentᚐJobPositionSelectionResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_SelectionJobPositions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_JobPositionSelectionResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_JobPositionSelectionResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobPositionSelectionResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_SelectionJobPositions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -46514,6 +46988,111 @@ func (ec *executionContext) _JobPositionResponseGetAll(ctx context.Context, sel 
 	return out
 }
 
+var jobPositionSelectionImplementors = []string{"JobPositionSelection"}
+
+func (ec *executionContext) _JobPositionSelection(ctx context.Context, sel ast.SelectionSet, obj *ent.JobPositionSelection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobPositionSelectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobPositionSelection")
+		case "id":
+
+			out.Values[i] = ec._JobPositionSelection_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._JobPositionSelection_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var jobPositionSelectionEdgeImplementors = []string{"JobPositionSelectionEdge"}
+
+func (ec *executionContext) _JobPositionSelectionEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.JobPositionSelectionEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobPositionSelectionEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobPositionSelectionEdge")
+		case "node":
+
+			out.Values[i] = ec._JobPositionSelectionEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._JobPositionSelectionEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var jobPositionSelectionResponseGetAllImplementors = []string{"JobPositionSelectionResponseGetAll"}
+
+func (ec *executionContext) _JobPositionSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.JobPositionSelectionResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobPositionSelectionResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobPositionSelectionResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._JobPositionSelectionResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._JobPositionSelectionResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var jsonFormatImplementors = []string{"JsonFormat"}
 
 func (ec *executionContext) _JsonFormat(ctx context.Context, sel ast.SelectionSet, obj *ent.JSONFormat) graphql.Marshaler {
@@ -48004,6 +48583,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_SelectionHiringTeams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "SelectionJobPositions":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_SelectionJobPositions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -52499,6 +53101,84 @@ func (ec *executionContext) marshalNJobPositionResponseGetAll2ᚖtrecᚋentᚐJo
 		return graphql.Null
 	}
 	return ec._JobPositionResponseGetAll(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobPositionSelection2ᚖtrecᚋentᚐJobPositionSelection(ctx context.Context, sel ast.SelectionSet, v *ent.JobPositionSelection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobPositionSelection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobPositionSelectionEdge2ᚕᚖtrecᚋentᚐJobPositionSelectionEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.JobPositionSelectionEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNJobPositionSelectionEdge2ᚖtrecᚋentᚐJobPositionSelectionEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNJobPositionSelectionEdge2ᚖtrecᚋentᚐJobPositionSelectionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.JobPositionSelectionEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobPositionSelectionEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNJobPositionSelectionResponseGetAll2trecᚋentᚐJobPositionSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.JobPositionSelectionResponseGetAll) graphql.Marshaler {
+	return ec._JobPositionSelectionResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobPositionSelectionResponseGetAll2ᚖtrecᚋentᚐJobPositionSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.JobPositionSelectionResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobPositionSelectionResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNJsonFormat2ᚕᚖtrecᚋentᚐJSONFormatᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.JSONFormat) graphql.Marshaler {

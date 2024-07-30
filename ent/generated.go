@@ -484,6 +484,21 @@ type JobPositionResponseGetAll struct {
 	Pagination *Pagination        `json:"pagination"`
 }
 
+type JobPositionSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type JobPositionSelectionEdge struct {
+	Node   *JobPositionSelection `json:"node"`
+	Cursor Cursor                `json:"cursor"`
+}
+
+type JobPositionSelectionResponseGetAll struct {
+	Edges      []*JobPositionSelectionEdge `json:"edges"`
+	Pagination *Pagination                 `json:"pagination"`
+}
+
 type JSONFormat struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
