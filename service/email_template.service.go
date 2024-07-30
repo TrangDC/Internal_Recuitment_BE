@@ -261,7 +261,7 @@ func (svc *emailtemplateSvcImpl) GetEmailTemplates(ctx context.Context, paginati
 func (svc *emailtemplateSvcImpl) GetAllEmailTemplateKeyword(filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error) {
 	result := &ent.EmailTemplateKeyword{
 		General:      models.GeneralEmailTpKeywordJson,
-		Team:         models.TeamEmailTpKeywordJson,
+		HiringTeam:   models.HiringTeamEmailTpKeywordJson,
 		HiringJob:    models.HiringJobEmailTpKeywordJson,
 		Candidate:    models.CandidateEmailTpKeywordJson,
 		CandidateJob: models.CandidateAppEmailTpKeywordJson,

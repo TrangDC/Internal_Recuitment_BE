@@ -60,10 +60,6 @@ type Tx struct {
 	Skill *SkillClient
 	// SkillType is the client for interacting with the SkillType builders.
 	SkillType *SkillTypeClient
-	// Team is the client for interacting with the Team builders.
-	Team *TeamClient
-	// TeamManager is the client for interacting with the TeamManager builders.
-	TeamManager *TeamManagerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserRole is the client for interacting with the UserRole builders.
@@ -222,8 +218,6 @@ func (tx *Tx) init() {
 	tx.Role = NewRoleClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
 	tx.SkillType = NewSkillTypeClient(tx.config)
-	tx.Team = NewTeamClient(tx.config)
-	tx.TeamManager = NewTeamManagerClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserRole = NewUserRoleClient(tx.config)
 }

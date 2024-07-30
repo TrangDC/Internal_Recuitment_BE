@@ -38,8 +38,6 @@ const (
 	EdgeAuditEdge = "audit_edge"
 	// EdgeHiringOwner holds the string denoting the hiring_owner edge name in mutations.
 	EdgeHiringOwner = "hiring_owner"
-	// EdgeTeamEdges holds the string denoting the team_edges edge name in mutations.
-	EdgeTeamEdges = "team_edges"
 	// EdgeCandidateJobFeedback holds the string denoting the candidate_job_feedback edge name in mutations.
 	EdgeCandidateJobFeedback = "candidate_job_feedback"
 	// EdgeInterviewEdges holds the string denoting the interview_edges edge name in mutations.
@@ -62,8 +60,6 @@ const (
 	EdgeRecTeams = "rec_teams"
 	// EdgeMemberOfHiringTeamEdges holds the string denoting the member_of_hiring_team_edges edge name in mutations.
 	EdgeMemberOfHiringTeamEdges = "member_of_hiring_team_edges"
-	// EdgeTeamUsers holds the string denoting the team_users edge name in mutations.
-	EdgeTeamUsers = "team_users"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
@@ -86,11 +82,6 @@ const (
 	HiringOwnerInverseTable = "hiring_jobs"
 	// HiringOwnerColumn is the table column denoting the hiring_owner relation/edge.
 	HiringOwnerColumn = "created_by"
-	// TeamEdgesTable is the table that holds the team_edges relation/edge. The primary key declared below.
-	TeamEdgesTable = "team_managers"
-	// TeamEdgesInverseTable is the table name for the Team entity.
-	// It exists in this package in order to avoid circular dependency with the "team" package.
-	TeamEdgesInverseTable = "teams"
 	// CandidateJobFeedbackTable is the table that holds the candidate_job_feedback relation/edge.
 	CandidateJobFeedbackTable = "candidate_job_feedbacks"
 	// CandidateJobFeedbackInverseTable is the table name for the CandidateJobFeedback entity.
@@ -162,13 +153,6 @@ const (
 	MemberOfHiringTeamEdgesInverseTable = "hiring_teams"
 	// MemberOfHiringTeamEdgesColumn is the table column denoting the member_of_hiring_team_edges relation/edge.
 	MemberOfHiringTeamEdgesColumn = "hiring_team_id"
-	// TeamUsersTable is the table that holds the team_users relation/edge.
-	TeamUsersTable = "team_managers"
-	// TeamUsersInverseTable is the table name for the TeamManager entity.
-	// It exists in this package in order to avoid circular dependency with the "teammanager" package.
-	TeamUsersInverseTable = "team_managers"
-	// TeamUsersColumn is the table column denoting the team_users relation/edge.
-	TeamUsersColumn = "user_id"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.
@@ -208,9 +192,6 @@ var Columns = []string{
 }
 
 var (
-	// TeamEdgesPrimaryKey and TeamEdgesColumn2 are the table columns denoting the
-	// primary key for the team_edges relation (M2M).
-	TeamEdgesPrimaryKey = []string{"user_id", "team_id"}
 	// InterviewEdgesPrimaryKey and InterviewEdgesColumn2 are the table columns denoting the
 	// primary key for the interview_edges relation (M2M).
 	InterviewEdgesPrimaryKey = []string{"user_id", "candidate_interview_id"}

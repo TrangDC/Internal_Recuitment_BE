@@ -84,12 +84,12 @@ type Base64Response struct {
 }
 
 type CandidateConversionRateReport struct {
-	ID           string `json:"id"`
-	TeamName     string `json:"team_name"`
-	Applied      int    `json:"applied"`
-	Interviewing int    `json:"interviewing"`
-	Offering     int    `json:"offering"`
-	Hired        int    `json:"hired"`
+	ID             string `json:"id"`
+	HiringTeamName string `json:"hiring_team_name"`
+	Applied        int    `json:"applied"`
+	Interviewing   int    `json:"interviewing"`
+	Offering       int    `json:"offering"`
+	Hired          int    `json:"hired"`
 }
 
 type CandidateConversionRateReportEdge struct {
@@ -135,7 +135,7 @@ type CandidateInterviewCalendarFilter struct {
 	Interviewer       []string   `json:"interviewer"`
 	FromDate          *time.Time `json:"from_date"`
 	ToDate            *time.Time `json:"to_date"`
-	TeamID            *string    `json:"team_id"`
+	HiringTeamID      *string    `json:"hiring_team_id"`
 	HiringJobID       *string    `json:"hiring_job_id"`
 	InterviewDateFrom *time.Time `json:"interview_date_from"`
 	InterviewDateTo   *time.Time `json:"interview_date_to"`
@@ -216,7 +216,7 @@ type CandidateJobFilter struct {
 	Status       *CandidateJobStatus        `json:"status"`
 	FromDate     *time.Time                 `json:"from_date"`
 	ToDate       *time.Time                 `json:"to_date"`
-	TeamID       *string                    `json:"team_id"`
+	HiringTeamID *string                    `json:"hiring_team_id"`
 	HiringJobID  *string                    `json:"hiring_job_id"`
 	CandidateID  string                     `json:"candidate_id"`
 	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
@@ -253,7 +253,7 @@ type CandidateJobGroupByStatus struct {
 
 type CandidateJobGroupByStatusFilter struct {
 	HiringJobID  []string       `json:"hiring_job_id"`
-	TeamID       []string       `json:"team_id"`
+	HiringTeamID []string       `json:"hiring_team_id"`
 	Priority     []int          `json:"priority"`
 	SkillID      []string       `json:"skill_id"`
 	FromDate     *time.Time     `json:"from_date"`
@@ -335,7 +335,7 @@ type EmailTemplateFreeWord struct {
 
 type EmailTemplateKeyword struct {
 	General      []*JSONFormat `json:"general"`
-	Team         []*JSONFormat `json:"team"`
+	HiringTeam   []*JSONFormat `json:"hiringTeam"`
 	HiringJob    []*JSONFormat `json:"hiringJob"`
 	Candidate    []*JSONFormat `json:"candidate"`
 	CandidateJob []*JSONFormat `json:"candidateJob"`
@@ -613,11 +613,6 @@ type NewSkillTypeInput struct {
 	Description string `json:"description"`
 }
 
-type NewTeamInput struct {
-	Name    string   `json:"name"`
-	Members []string `json:"members"`
-}
-
 type NewUserInput struct {
 	Name              string                      `json:"name"`
 	WorkEmail         string                      `json:"work_email"`
@@ -842,45 +837,6 @@ type SkillTypeSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
-type TeamFilter struct {
-	Name     *string `json:"name"`
-	ForTeam  *bool   `json:"for_team"`
-	ForOwner *bool   `json:"for_owner"`
-}
-
-type TeamFreeWord struct {
-	Name *string `json:"name"`
-}
-
-type TeamOrderBy struct {
-	Direction OrderDirection   `json:"direction"`
-	Field     TeamOrderByField `json:"field"`
-}
-
-type TeamResponse struct {
-	Data *Team `json:"data"`
-}
-
-type TeamResponseGetAll struct {
-	Edges      []*TeamEdge `json:"edges"`
-	Pagination *Pagination `json:"pagination"`
-}
-
-type TeamSelection struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type TeamSelectionEdge struct {
-	Node   *TeamSelection `json:"node"`
-	Cursor Cursor         `json:"cursor"`
-}
-
-type TeamSelectionResponseGetAll struct {
-	Edges      []*TeamSelectionEdge `json:"edges"`
-	Pagination *Pagination          `json:"pagination"`
-}
-
 type UpdateCandidateAttachment struct {
 	Attachments []*NewAttachmentInput `json:"attachments"`
 }
@@ -990,11 +946,6 @@ type UpdateSkillInput struct {
 type UpdateSkillTypeInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-}
-
-type UpdateTeamInput struct {
-	Name    string   `json:"name"`
-	Members []string `json:"members"`
 }
 
 type UpdateUserInput struct {
@@ -2685,18 +2636,18 @@ func (e ReportFilterPeriod) MarshalGQL(w io.Writer) {
 type ReportOrderByField string
 
 const (
-	ReportOrderByFieldTeamName      ReportOrderByField = "team_name"
-	ReportOrderByFieldTeamCreatedAt ReportOrderByField = "team_created_at"
+	ReportOrderByFieldHiringTeamName      ReportOrderByField = "hiring_team_name"
+	ReportOrderByFieldHiringTeamCreatedAt ReportOrderByField = "hiring_team_created_at"
 )
 
 var AllReportOrderByField = []ReportOrderByField{
-	ReportOrderByFieldTeamName,
-	ReportOrderByFieldTeamCreatedAt,
+	ReportOrderByFieldHiringTeamName,
+	ReportOrderByFieldHiringTeamCreatedAt,
 }
 
 func (e ReportOrderByField) IsValid() bool {
 	switch e {
-	case ReportOrderByFieldTeamName, ReportOrderByFieldTeamCreatedAt:
+	case ReportOrderByFieldHiringTeamName, ReportOrderByFieldHiringTeamCreatedAt:
 		return true
 	}
 	return false
@@ -2765,92 +2716,6 @@ func (e *SalaryTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SalaryTypeEnum) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TeamOrderByAdditionalField string
-
-const (
-	TeamOrderByAdditionalFieldOpeningRequests TeamOrderByAdditionalField = "opening_requests"
-	TeamOrderByAdditionalFieldNewestApplied   TeamOrderByAdditionalField = "newest_applied"
-)
-
-var AllTeamOrderByAdditionalField = []TeamOrderByAdditionalField{
-	TeamOrderByAdditionalFieldOpeningRequests,
-	TeamOrderByAdditionalFieldNewestApplied,
-}
-
-func (e TeamOrderByAdditionalField) IsValid() bool {
-	switch e {
-	case TeamOrderByAdditionalFieldOpeningRequests, TeamOrderByAdditionalFieldNewestApplied:
-		return true
-	}
-	return false
-}
-
-func (e TeamOrderByAdditionalField) String() string {
-	return string(e)
-}
-
-func (e *TeamOrderByAdditionalField) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TeamOrderByAdditionalField(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TeamOrderByAdditionalField", str)
-	}
-	return nil
-}
-
-func (e TeamOrderByAdditionalField) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TeamOrderByField string
-
-const (
-	TeamOrderByFieldName            TeamOrderByField = "name"
-	TeamOrderByFieldCreatedAt       TeamOrderByField = "created_at"
-	TeamOrderByFieldOpeningRequests TeamOrderByField = "opening_requests"
-	TeamOrderByFieldNewestApplied   TeamOrderByField = "newest_applied"
-)
-
-var AllTeamOrderByField = []TeamOrderByField{
-	TeamOrderByFieldName,
-	TeamOrderByFieldCreatedAt,
-	TeamOrderByFieldOpeningRequests,
-	TeamOrderByFieldNewestApplied,
-}
-
-func (e TeamOrderByField) IsValid() bool {
-	switch e {
-	case TeamOrderByFieldName, TeamOrderByFieldCreatedAt, TeamOrderByFieldOpeningRequests, TeamOrderByFieldNewestApplied:
-		return true
-	}
-	return false
-}
-
-func (e TeamOrderByField) String() string {
-	return string(e)
-}
-
-func (e *TeamOrderByField) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TeamOrderByField(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TeamOrderByField", str)
-	}
-	return nil
-}
-
-func (e TeamOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

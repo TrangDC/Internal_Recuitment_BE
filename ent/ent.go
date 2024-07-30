@@ -29,8 +29,6 @@ import (
 	"trec/ent/role"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
-	"trec/ent/team"
-	"trec/ent/teammanager"
 	"trec/ent/user"
 	"trec/ent/userrole"
 
@@ -80,8 +78,6 @@ func columnChecker(table string) func(string) error {
 		role.Table:                 role.ValidColumn,
 		skill.Table:                skill.ValidColumn,
 		skilltype.Table:            skilltype.ValidColumn,
-		team.Table:                 team.ValidColumn,
-		teammanager.Table:          teammanager.ValidColumn,
 		user.Table:                 user.ValidColumn,
 		userrole.Table:             userrole.ValidColumn,
 	}

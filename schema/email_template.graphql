@@ -124,7 +124,7 @@ type EmailTemplateResponseGetAll {
 
 type EmailTemplateKeyword {
   general: [JsonFormat!]!
-  team: [JsonFormat!]!
+  hiringTeam: [JsonFormat!]!
   hiringJob: [JsonFormat!]!
   candidate: [JsonFormat!]!
   candidateJob: [JsonFormat!]!

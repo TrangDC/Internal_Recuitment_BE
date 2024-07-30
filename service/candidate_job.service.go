@@ -684,10 +684,10 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 	if input.Status != nil {
 		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
 	}
-	if input.TeamID != nil {
+	if input.HiringTeamID != nil {
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
 			hiringjob.HasHiringTeamEdgeWith(
-				hiringteam.IDEQ(uuid.MustParse(*input.TeamID)),
+				hiringteam.IDEQ(uuid.MustParse(*input.HiringTeamID)),
 			),
 		))
 	}
@@ -745,8 +745,8 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		})
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
 	}
-	if input.TeamID != nil {
-		hiringTeamIds := lo.Map(input.TeamID, func(id string, index int) uuid.UUID {
+	if input.HiringTeamID != nil {
+		hiringTeamIds := lo.Map(input.HiringTeamID, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(

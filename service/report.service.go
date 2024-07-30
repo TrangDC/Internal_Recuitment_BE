@@ -8,7 +8,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/hiringjob"
-	"trec/ent/team"
+	"trec/ent/hiringteam"
 	"trec/internal/util"
 	"trec/repository"
 
@@ -72,13 +72,13 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	if orderBy == nil {
-		query = query.Order(ent.Desc(team.FieldCreatedAt))
+		query = query.Order(ent.Desc(hiringteam.FieldCreatedAt))
 	} else {
 		fieldName := "created_at"
 		switch orderBy.Field {
-		case ent.ReportOrderByFieldTeamCreatedAt:
+		case ent.ReportOrderByFieldHiringTeamCreatedAt:
 			fieldName = "created_at"
-		case ent.ReportOrderByFieldTeamName:
+		case ent.ReportOrderByFieldHiringTeamName:
 			fieldName = "name"
 		}
 		if orderBy.Direction == ent.OrderDirectionAsc {

@@ -7,8 +7,8 @@ enum ReportFilterPeriod {
 }
 
 enum ReportOrderByField {
-  team_name
-  team_created_at
+  hiring_team_name
+  hiring_team_created_at
 }
 
 input ReportOrderBy {
@@ -70,7 +70,7 @@ type ReportCandidateConversionRateChartResponse {
 
 type CandidateConversionRateReport {
   id: ID!
-  team_name: String!
+  hiring_team_name: String!
   applied: Int!
   interviewing: Int!
   offering: Int!
