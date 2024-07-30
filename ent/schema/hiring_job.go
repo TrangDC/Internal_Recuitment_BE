@@ -16,7 +16,7 @@ type HiringJob struct {
 // Fields of the HiringJob. NOTE : Part of the public API ( ultimately exposed to end job
 func (HiringJob) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
+		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.Text("description").NotEmpty(),
 		field.Int("amount").Default(0).Annotations(entgql.OrderField("amount")),
 		field.Enum("status").Values("draft", "opened", "closed").Default("opened"),

@@ -16,7 +16,7 @@ type Attachment struct {
 func (Attachment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("document_id", uuid.UUID{}).Unique(),
-		field.String("document_name").MaxLen(255),
+		field.String("document_name").MaxLen(256),
 		field.Enum("relation_type").Values("candidate_jobs", "candidate_job_feedbacks", "candidates"),
 		field.UUID("relation_id", uuid.UUID{}).Optional(),
 	}

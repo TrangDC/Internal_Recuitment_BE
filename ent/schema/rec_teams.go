@@ -16,7 +16,7 @@ type RecTeam struct {
 // Fields of the RecTeam. NOTE : Part of the public API ( ultimately exposed to end team
 func (RecTeam) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
+		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.String("description").MaxLen(512).Optional(),
 		field.UUID("leader_id", uuid.UUID{}).Annotations(),
 	}
@@ -26,7 +26,7 @@ func (RecTeam) Fields() []ent.Field {
 func (RecTeam) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("rec_leader_edge", User.Type).Ref("led_rec_teams").Unique().Required().Field("leader_id"),
-        edge.To("rec_member_edges", User.Type),
+		edge.To("rec_member_edges", User.Type),
 	}
 }
 

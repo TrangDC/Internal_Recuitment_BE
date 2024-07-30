@@ -15,7 +15,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
-		{Name: "document_name", Type: field.TypeString, Size: 255},
+		{Name: "document_name", Type: field.TypeString, Size: 256},
 		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -84,17 +84,17 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "phone", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 256},
+		{Name: "phone", Type: field.TypeString, Size: 256},
 		{Name: "dob", Type: field.TypeTime, Nullable: true},
 		{Name: "is_blacklist", Type: field.TypeBool, Default: false},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 		{Name: "reference_type", Type: field.TypeEnum, Enums: []string{"eb", "rec", "hiring_platform", "reference", "headhunt"}, Default: "eb"},
-		{Name: "reference_value", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "reference_value", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
-		{Name: "country", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "country", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
@@ -117,7 +117,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "title", Type: field.TypeString, Size: 256},
 		{Name: "candidate_job_status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff"}, Default: "applied"},
 		{Name: "interview_date", Type: field.TypeTime, Nullable: true},
 		{Name: "start_from", Type: field.TypeTime, Nullable: true},
@@ -325,7 +325,7 @@ var (
 		{Name: "send_to", Type: field.TypeJSON},
 		{Name: "cc", Type: field.TypeJSON},
 		{Name: "bcc", Type: field.TypeJSON},
-		{Name: "subject", Type: field.TypeString, Size: 255},
+		{Name: "subject", Type: field.TypeString, Size: 256},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
@@ -418,7 +418,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "amount", Type: field.TypeInt, Default: 0},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "opened", "closed"}, Default: "opened"},
@@ -459,7 +459,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 	}
 	// HiringTeamsTable holds the schema information for the "hiring_teams" table.
 	HiringTeamsTable = &schema.Table{
@@ -509,7 +509,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 	}
 	// JobPositionsTable holds the schema information for the "job_positions" table.
@@ -599,7 +599,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "leader_id", Type: field.TypeUUID},
 	}
@@ -638,7 +638,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "skill_type_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -662,7 +662,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 	}
 	// SkillTypesTable holds the schema information for the "skill_types" table.
@@ -677,11 +677,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "work_email", Type: field.TypeString, Size: 255},
+		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "work_email", Type: field.TypeString, Size: 256},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
-		{Name: "oid", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "location", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "oid", Type: field.TypeString, Unique: true, Size: 256},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "hiring_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "rec_team_id", Type: field.TypeUUID, Nullable: true},
 	}

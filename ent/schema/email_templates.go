@@ -18,7 +18,7 @@ func (EmailTemplate) Fields() []ent.Field {
 		field.JSON("send_to", []string{"interviewer", "job_request", "team_manager", "team_member", "role", "candidate"}),
 		field.JSON("cc", []string{}),
 		field.JSON("bcc", []string{}),
-		field.String("subject").MaxLen(255).NotEmpty(),
+		field.String("subject").MaxLen(256).NotEmpty(),
 		field.Text("content").NotEmpty(),
 		field.Text("signature").Optional(),
 		field.Enum("status").Values("active", "inactive").Default("active"),
