@@ -1976,24 +1976,24 @@ func (e EmailTemplateApplicationEventEnum) MarshalGQL(w io.Writer) {
 type EmailTemplateApplicationSendToEnum string
 
 const (
-	EmailTemplateApplicationSendToEnumJobRequest  EmailTemplateApplicationSendToEnum = "job_request"
-	EmailTemplateApplicationSendToEnumTeamManager EmailTemplateApplicationSendToEnum = "team_manager"
-	EmailTemplateApplicationSendToEnumTeamMember  EmailTemplateApplicationSendToEnum = "team_member"
-	EmailTemplateApplicationSendToEnumRole        EmailTemplateApplicationSendToEnum = "role"
-	EmailTemplateApplicationSendToEnumCandidate   EmailTemplateApplicationSendToEnum = "candidate"
+	EmailTemplateApplicationSendToEnumJobRequest        EmailTemplateApplicationSendToEnum = "job_request"
+	EmailTemplateApplicationSendToEnumHiringTeamManager EmailTemplateApplicationSendToEnum = "hiring_team_manager"
+	EmailTemplateApplicationSendToEnumHiringTeamMember  EmailTemplateApplicationSendToEnum = "hiring_team_member"
+	EmailTemplateApplicationSendToEnumRole              EmailTemplateApplicationSendToEnum = "role"
+	EmailTemplateApplicationSendToEnumCandidate         EmailTemplateApplicationSendToEnum = "candidate"
 )
 
 var AllEmailTemplateApplicationSendToEnum = []EmailTemplateApplicationSendToEnum{
 	EmailTemplateApplicationSendToEnumJobRequest,
-	EmailTemplateApplicationSendToEnumTeamManager,
-	EmailTemplateApplicationSendToEnumTeamMember,
+	EmailTemplateApplicationSendToEnumHiringTeamManager,
+	EmailTemplateApplicationSendToEnumHiringTeamMember,
 	EmailTemplateApplicationSendToEnumRole,
 	EmailTemplateApplicationSendToEnumCandidate,
 }
 
 func (e EmailTemplateApplicationSendToEnum) IsValid() bool {
 	switch e {
-	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumTeamManager, EmailTemplateApplicationSendToEnumTeamMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
+	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumHiringTeamManager, EmailTemplateApplicationSendToEnumHiringTeamMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
 		return true
 	}
 	return false
@@ -2115,26 +2115,26 @@ func (e EmailTemplateInterviewEventEnum) MarshalGQL(w io.Writer) {
 type EmailTemplateSendTo string
 
 const (
-	EmailTemplateSendToInterviewer EmailTemplateSendTo = "interviewer"
-	EmailTemplateSendToJobRequest  EmailTemplateSendTo = "job_request"
-	EmailTemplateSendToTeamManager EmailTemplateSendTo = "team_manager"
-	EmailTemplateSendToTeamMember  EmailTemplateSendTo = "team_member"
-	EmailTemplateSendToRole        EmailTemplateSendTo = "role"
-	EmailTemplateSendToCandidate   EmailTemplateSendTo = "candidate"
+	EmailTemplateSendToInterviewer       EmailTemplateSendTo = "interviewer"
+	EmailTemplateSendToJobRequest        EmailTemplateSendTo = "job_request"
+	EmailTemplateSendToHiringTeamManager EmailTemplateSendTo = "hiring_team_manager"
+	EmailTemplateSendToHiringTeamMember  EmailTemplateSendTo = "hiring_team_member"
+	EmailTemplateSendToRole              EmailTemplateSendTo = "role"
+	EmailTemplateSendToCandidate         EmailTemplateSendTo = "candidate"
 )
 
 var AllEmailTemplateSendTo = []EmailTemplateSendTo{
 	EmailTemplateSendToInterviewer,
 	EmailTemplateSendToJobRequest,
-	EmailTemplateSendToTeamManager,
-	EmailTemplateSendToTeamMember,
+	EmailTemplateSendToHiringTeamManager,
+	EmailTemplateSendToHiringTeamMember,
 	EmailTemplateSendToRole,
 	EmailTemplateSendToCandidate,
 }
 
 func (e EmailTemplateSendTo) IsValid() bool {
 	switch e {
-	case EmailTemplateSendToInterviewer, EmailTemplateSendToJobRequest, EmailTemplateSendToTeamManager, EmailTemplateSendToTeamMember, EmailTemplateSendToRole, EmailTemplateSendToCandidate:
+	case EmailTemplateSendToInterviewer, EmailTemplateSendToJobRequest, EmailTemplateSendToHiringTeamManager, EmailTemplateSendToHiringTeamMember, EmailTemplateSendToRole, EmailTemplateSendToCandidate:
 		return true
 	}
 	return false

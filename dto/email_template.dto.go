@@ -190,10 +190,10 @@ func (d emailTemplateDtoImpl) sentToI18n(input string) string {
 		return "model.email_templates.send_to_enum.interviewer"
 	case ent.EmailTemplateSendToJobRequest.String():
 		return "model.email_templates.send_to_enum.job_request"
-	case ent.EmailTemplateSendToTeamManager.String():
-		return "model.email_templates.send_to_enum.team_manager"
-	case ent.EmailTemplateSendToTeamMember.String():
-		return "model.email_templates.send_to_enum.team_member"
+	case ent.EmailTemplateSendToHiringTeamManager.String():
+		return "model.email_templates.send_to_enum.hiring_team_manager"
+	case ent.EmailTemplateSendToHiringTeamMember.String():
+		return "model.email_templates.send_to_enum.hiring_team_member"
 	}
 	return ""
 }

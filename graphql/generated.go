@@ -6346,16 +6346,16 @@ enum EmailTemplateStatus {
 enum EmailTemplateSendTo {
   interviewer
   job_request
-  team_manager
-  team_member
+  hiring_team_manager
+  hiring_team_member
   role
   candidate
 }
 
 enum EmailTemplateApplicationSendToEnum {
   job_request
-  team_manager
-  team_member
+  hiring_team_manager
+  hiring_team_member
   role
   candidate
 }
