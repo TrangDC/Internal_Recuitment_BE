@@ -34,18 +34,20 @@ type HiringTeamService interface {
 }
 
 type hiringTeamSvcImpl struct {
-	userSvcImpl  UserService
-	repoRegistry repository.Repository
-	dtoRegistry  dto.Dto
-	logger       *zap.Logger
+	userSvcImpl               UserService
+	hiringTeamApproverSvcImpl HiringTeamApproverService
+	repoRegistry              repository.Repository
+	dtoRegistry               dto.Dto
+	logger                    *zap.Logger
 }
 
 func NewHiringTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) HiringTeamService {
 	return &hiringTeamSvcImpl{
-		userSvcImpl:  NewUserService(repoRegistry, dtoRegistry, logger),
-		repoRegistry: repoRegistry,
-		dtoRegistry:  dtoRegistry,
-		logger:       logger,
+		userSvcImpl:               NewUserService(repoRegistry, dtoRegistry, logger),
+		hiringTeamApproverSvcImpl: NewHiringTeamApproverService(repoRegistry, logger),
+		repoRegistry:              repoRegistry,
+		dtoRegistry:               dtoRegistry,
+		logger:                    logger,
 	}
 }
 
@@ -75,7 +77,10 @@ func (svc *hiringTeamSvcImpl) CreateHiringTeam(ctx context.Context, input ent.Ne
 			return err
 		}
 		err := svc.userSvcImpl.UpdateHiringTeam(ctx, result.Name, result.ID, memberIds, note)
-		return err
+		if err != nil {
+			return err
+		}
+		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, input.Approvers, result.ID, make([]*ent.HiringTeamApprover, 0))
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -129,7 +134,10 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 			return err
 		}
 		err = svc.userSvcImpl.UpdateHiringTeam(ctx, result.Name, result.ID, newMemberIds, note)
-		return err
+		if err != nil {
+			return err
+		}
+		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, input.Approvers, hiringTeamID, record.Edges.HiringTeamApprovers)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
