@@ -85,6 +85,26 @@ func (htu *HiringTeamUpdate) SetName(s string) *HiringTeamUpdate {
 	return htu
 }
 
+// SetDescription sets the "description" field.
+func (htu *HiringTeamUpdate) SetDescription(s string) *HiringTeamUpdate {
+	htu.mutation.SetDescription(s)
+	return htu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (htu *HiringTeamUpdate) SetNillableDescription(s *string) *HiringTeamUpdate {
+	if s != nil {
+		htu.SetDescription(*s)
+	}
+	return htu
+}
+
+// ClearDescription clears the value of the "description" field.
+func (htu *HiringTeamUpdate) ClearDescription() *HiringTeamUpdate {
+	htu.mutation.ClearDescription()
+	return htu
+}
+
 // AddUserEdgeIDs adds the "user_edges" edge to the User entity by IDs.
 func (htu *HiringTeamUpdate) AddUserEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdate {
 	htu.mutation.AddUserEdgeIDs(ids...)
@@ -378,6 +398,11 @@ func (htu *HiringTeamUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.name": %w`, err)}
 		}
 	}
+	if v, ok := htu.mutation.Description(); ok {
+		if err := hiringteam.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.description": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -416,6 +441,12 @@ func (htu *HiringTeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := htu.mutation.Name(); ok {
 		_spec.SetField(hiringteam.FieldName, field.TypeString, value)
+	}
+	if value, ok := htu.mutation.Description(); ok {
+		_spec.SetField(hiringteam.FieldDescription, field.TypeString, value)
+	}
+	if htu.mutation.DescriptionCleared() {
+		_spec.ClearField(hiringteam.FieldDescription, field.TypeString)
 	}
 	if htu.mutation.UserEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -836,6 +867,26 @@ func (htuo *HiringTeamUpdateOne) SetName(s string) *HiringTeamUpdateOne {
 	return htuo
 }
 
+// SetDescription sets the "description" field.
+func (htuo *HiringTeamUpdateOne) SetDescription(s string) *HiringTeamUpdateOne {
+	htuo.mutation.SetDescription(s)
+	return htuo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (htuo *HiringTeamUpdateOne) SetNillableDescription(s *string) *HiringTeamUpdateOne {
+	if s != nil {
+		htuo.SetDescription(*s)
+	}
+	return htuo
+}
+
+// ClearDescription clears the value of the "description" field.
+func (htuo *HiringTeamUpdateOne) ClearDescription() *HiringTeamUpdateOne {
+	htuo.mutation.ClearDescription()
+	return htuo
+}
+
 // AddUserEdgeIDs adds the "user_edges" edge to the User entity by IDs.
 func (htuo *HiringTeamUpdateOne) AddUserEdgeIDs(ids ...uuid.UUID) *HiringTeamUpdateOne {
 	htuo.mutation.AddUserEdgeIDs(ids...)
@@ -1142,6 +1193,11 @@ func (htuo *HiringTeamUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.name": %w`, err)}
 		}
 	}
+	if v, ok := htuo.mutation.Description(); ok {
+		if err := hiringteam.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.description": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1197,6 +1253,12 @@ func (htuo *HiringTeamUpdateOne) sqlSave(ctx context.Context) (_node *HiringTeam
 	}
 	if value, ok := htuo.mutation.Name(); ok {
 		_spec.SetField(hiringteam.FieldName, field.TypeString, value)
+	}
+	if value, ok := htuo.mutation.Description(); ok {
+		_spec.SetField(hiringteam.FieldDescription, field.TypeString, value)
+	}
+	if htuo.mutation.DescriptionCleared() {
+		_spec.ClearField(hiringteam.FieldDescription, field.TypeString)
 	}
 	if htuo.mutation.UserEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

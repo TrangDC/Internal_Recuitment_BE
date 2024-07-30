@@ -504,6 +504,7 @@ type ComplexityRoot struct {
 		Approvers       func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
 		DeletedAt       func(childComplexity int) int
+		Description     func(childComplexity int) int
 		ID              func(childComplexity int) int
 		IsAbleToDelete  func(childComplexity int) int
 		Managers        func(childComplexity int) int
@@ -3077,6 +3078,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringTeam.DeletedAt(childComplexity), true
+
+	case "HiringTeam.description":
+		if e.complexity.HiringTeam.Description == nil {
+			break
+		}
+
+		return e.complexity.HiringTeam.Description(childComplexity), true
 
 	case "HiringTeam.id":
 		if e.complexity.HiringTeam.ID == nil {
@@ -6787,12 +6795,14 @@ input NewHiringTeamInput {
   name: String!
   members: [ID!]
   approvers: [HiringTeamApproverInput!]!
+  description: String!
 }
 
 input UpdateHiringTeamInput {
   name: String!
   members: [ID!]
   approvers: [HiringTeamApproverInput!]!
+  description: String!
 }
 
 type HiringTeam {
@@ -6803,6 +6813,7 @@ type HiringTeam {
   approvers: [HiringTeamApprover!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
+  description: String!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -21881,6 +21892,8 @@ func (ec *executionContext) fieldContext_HiringJob_hiring_team(ctx context.Conte
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringTeam_description(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
@@ -23307,6 +23320,50 @@ func (ec *executionContext) fieldContext_HiringTeam_is_able_to_delete(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringTeam_description(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringTeam_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringTeam_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringTeam",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringTeam_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringTeam) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringTeam_created_at(ctx, field)
 	if err != nil {
@@ -23811,6 +23868,8 @@ func (ec *executionContext) fieldContext_HiringTeamEdge_node(ctx context.Context
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringTeam_description(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
@@ -23918,6 +23977,8 @@ func (ec *executionContext) fieldContext_HiringTeamResponse_data(ctx context.Con
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringTeam_description(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
@@ -36908,6 +36969,8 @@ func (ec *executionContext) fieldContext_User_hiring_team(ctx context.Context, f
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringTeam_description(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
@@ -37081,6 +37144,8 @@ func (ec *executionContext) fieldContext_User_member_of_hiring_team(ctx context.
 				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
 				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringTeam_description(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
@@ -42026,7 +42091,7 @@ func (ec *executionContext) unmarshalInputNewHiringTeamInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "members", "approvers"}
+	fieldsInOrder := [...]string{"name", "members", "approvers", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42054,6 +42119,14 @@ func (ec *executionContext) unmarshalInputNewHiringTeamInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approvers"))
 			it.Approvers, err = ec.unmarshalNHiringTeamApproverInput2ᚕᚖtrecᚋentᚐHiringTeamApproverInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43366,7 +43439,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "members", "approvers"}
+	fieldsInOrder := [...]string{"name", "members", "approvers", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43394,6 +43467,14 @@ func (ec *executionContext) unmarshalInputUpdateHiringTeamInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approvers"))
 			it.Approvers, err = ec.unmarshalNHiringTeamApproverInput2ᚕᚖtrecᚋentᚐHiringTeamApproverInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47650,6 +47731,13 @@ func (ec *executionContext) _HiringTeam(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
+		case "description":
+
+			out.Values[i] = ec._HiringTeam_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._HiringTeam_created_at(ctx, field, obj)

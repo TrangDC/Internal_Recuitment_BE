@@ -141,6 +141,8 @@ func (d hiringTeamDtoImpl) formatFieldI18n(input string) string {
 	switch input {
 	case "Name":
 		return "model.hiring_teams.name"
+	case "Description":
+		return "model.hiring_teams.description"
 	}
 	return ""
 }

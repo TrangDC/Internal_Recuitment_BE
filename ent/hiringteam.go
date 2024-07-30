@@ -27,6 +27,8 @@ type HiringTeam struct {
 	Slug string `json:"slug,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringTeamQuery when eager-loading is set.
 	Edges HiringTeamEdges `json:"edges"`
@@ -119,7 +121,7 @@ func (*HiringTeam) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case hiringteam.FieldSlug, hiringteam.FieldName:
+		case hiringteam.FieldSlug, hiringteam.FieldName, hiringteam.FieldDescription:
 			values[i] = new(sql.NullString)
 		case hiringteam.FieldCreatedAt, hiringteam.FieldUpdatedAt, hiringteam.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -175,6 +177,12 @@ func (ht *HiringTeam) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				ht.Name = value.String
+			}
+		case hiringteam.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				ht.Description = value.String
 			}
 		}
 	}
@@ -248,6 +256,9 @@ func (ht *HiringTeam) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ht.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(ht.Description)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -113,6 +113,7 @@ func (rps *hiringTeamRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *e
 func (rps *hiringTeamRepoImpl) CreateHiringTeam(ctx context.Context, input ent.NewHiringTeamInput, memberIds []uuid.UUID) (*ent.HiringTeam, error) {
 	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
+		SetDescription(input.Description).
 		AddUserEdgeIDs(memberIds...)
 	return create.Save(ctx)
 }
@@ -120,6 +121,7 @@ func (rps *hiringTeamRepoImpl) CreateHiringTeam(ctx context.Context, input ent.N
 func (rps *hiringTeamRepoImpl) UpdateHiringTeam(ctx context.Context, record *ent.HiringTeam, input ent.UpdateHiringTeamInput, newMemberIds []uuid.UUID, removeMemberIds []uuid.UUID) (*ent.HiringTeam, error) {
 	update := rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).SetSlug(util.SlugGeneration(input.Name)).
+		SetDescription(input.Description).
 		AddUserEdgeIDs(newMemberIds...).RemoveUserEdgeIDs(removeMemberIds...)
 	return rps.BuildSaveUpdateOne(ctx, update)
 }

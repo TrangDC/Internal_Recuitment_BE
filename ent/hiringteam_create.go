@@ -79,6 +79,20 @@ func (htc *HiringTeamCreate) SetName(s string) *HiringTeamCreate {
 	return htc
 }
 
+// SetDescription sets the "description" field.
+func (htc *HiringTeamCreate) SetDescription(s string) *HiringTeamCreate {
+	htc.mutation.SetDescription(s)
+	return htc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (htc *HiringTeamCreate) SetNillableDescription(s *string) *HiringTeamCreate {
+	if s != nil {
+		htc.SetDescription(*s)
+	}
+	return htc
+}
+
 // SetID sets the "id" field.
 func (htc *HiringTeamCreate) SetID(u uuid.UUID) *HiringTeamCreate {
 	htc.mutation.SetID(u)
@@ -279,6 +293,11 @@ func (htc *HiringTeamCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.name": %w`, err)}
 		}
 	}
+	if v, ok := htc.mutation.Description(); ok {
+		if err := hiringteam.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringTeam.description": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -334,6 +353,10 @@ func (htc *HiringTeamCreate) createSpec() (*HiringTeam, *sqlgraph.CreateSpec) {
 	if value, ok := htc.mutation.Name(); ok {
 		_spec.SetField(hiringteam.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := htc.mutation.Description(); ok {
+		_spec.SetField(hiringteam.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if nodes := htc.mutation.UserEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

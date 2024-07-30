@@ -348,6 +348,10 @@ func init() {
 			return nil
 		}
 	}()
+	// hiringteamDescDescription is the schema descriptor for description field.
+	hiringteamDescDescription := hiringteamFields[1].Descriptor()
+	// hiringteam.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	hiringteam.DescriptionValidator = hiringteamDescDescription.Validators[0].(func(string) error)
 	hiringteamapproverMixin := schema.HiringTeamApprover{}.Mixin()
 	hiringteamapproverMixinFields0 := hiringteamapproverMixin[0].Fields()
 	_ = hiringteamapproverMixinFields0
