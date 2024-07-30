@@ -16,7 +16,7 @@ type Role struct {
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Annotations(entgql.OrderField("name")),
-		field.String("description").Annotations(entgql.OrderField("DESCRIPTION")),
+		field.String("description").MaxLen(512).Annotations(entgql.OrderField("DESCRIPTION")),
 	}
 }
 

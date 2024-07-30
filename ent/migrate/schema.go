@@ -93,7 +93,7 @@ var (
 		{Name: "reference_type", Type: field.TypeEnum, Enums: []string{"eb", "rec", "hiring_platform", "reference", "headhunt"}, Default: "eb"},
 		{Name: "reference_value", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
-		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "country", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
@@ -624,7 +624,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 512},
 	}
 	// RolesTable holds the schema information for the "roles" table.
 	RolesTable = &schema.Table{
@@ -639,7 +639,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "skill_type_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
@@ -663,7 +663,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "description", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 	}
 	// SkillTypesTable holds the schema information for the "skill_types" table.
 	SkillTypesTable = &schema.Table{

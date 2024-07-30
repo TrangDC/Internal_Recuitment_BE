@@ -255,6 +255,11 @@ func (rc *RoleCreate) check() error {
 	if _, ok := rc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Role.description"`)}
 	}
+	if v, ok := rc.mutation.Description(); ok {
+		if err := role.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Role.description": %w`, err)}
+		}
+	}
 	return nil
 }
 
