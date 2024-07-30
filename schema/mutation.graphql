@@ -12,9 +12,9 @@ type Mutation {
   DeleteHiringTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition
-  CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
-  UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!): JobPositionResponse!
-  DeleteJobPosition(id: ID!): Boolean!
+  CreateJobPosition(input: NewJobPositionInput!, note: String!): JobPositionResponse!
+  UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!, note: String!): JobPositionResponse!
+  DeleteJobPosition(id: ID!, note: String!): Boolean!
 
   # Department
 

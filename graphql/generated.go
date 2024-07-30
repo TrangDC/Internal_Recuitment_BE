@@ -605,7 +605,7 @@ type ComplexityRoot struct {
 		CreateEmailTemplate               func(childComplexity int, input ent.NewEmailTemplateInput, note string) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
 		CreateHiringTeam                  func(childComplexity int, input ent.NewHiringTeamInput, note string) int
-		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput) int
+		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput, note string) int
 		CreateRole                        func(childComplexity int, input ent.NewRoleInput, note string) int
 		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
 		CreateSkillType                   func(childComplexity int, input ent.NewSkillTypeInput, note string) int
@@ -616,7 +616,7 @@ type ComplexityRoot struct {
 		DeleteEmailTemplate               func(childComplexity int, id string, note string) int
 		DeleteHiringJob                   func(childComplexity int, id string, note string) int
 		DeleteHiringTeam                  func(childComplexity int, id string, note string) int
-		DeleteJobPosition                 func(childComplexity int, id string) int
+		DeleteJobPosition                 func(childComplexity int, id string, note string) int
 		DeleteRole                        func(childComplexity int, id string, note string) int
 		DeleteSkill                       func(childComplexity int, id string, note string) int
 		DeleteSkillType                   func(childComplexity int, id string, note string) int
@@ -634,7 +634,7 @@ type ComplexityRoot struct {
 		UpdateHiringJob                   func(childComplexity int, id string, input ent.UpdateHiringJobInput, note string) int
 		UpdateHiringJobStatus             func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
 		UpdateHiringTeam                  func(childComplexity int, id string, input ent.UpdateHiringTeamInput, note string) int
-		UpdateJobPosition                 func(childComplexity int, id string, input ent.UpdateJobPositionInput) int
+		UpdateJobPosition                 func(childComplexity int, id string, input ent.UpdateJobPositionInput, note string) int
 		UpdateRole                        func(childComplexity int, id string, input ent.UpdateRoleInput, note string) int
 		UpdateSkill                       func(childComplexity int, id string, input ent.UpdateSkillInput, note string) int
 		UpdateSkillType                   func(childComplexity int, id string, input ent.UpdateSkillTypeInput, note string) int
@@ -1112,9 +1112,9 @@ type MutationResolver interface {
 	CreateHiringTeam(ctx context.Context, input ent.NewHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
-	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
-	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
-	DeleteJobPosition(ctx context.Context, id string) (bool, error)
+	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	DeleteJobPosition(ctx context.Context, id string, note string) (bool, error)
 	CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string, note string) (bool, error)
@@ -3492,7 +3492,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateJobPosition(childComplexity, args["input"].(ent.NewJobPositionInput)), true
+		return e.complexity.Mutation.CreateJobPosition(childComplexity, args["input"].(ent.NewJobPositionInput), args["note"].(string)), true
 
 	case "Mutation.CreateRole":
 		if e.complexity.Mutation.CreateRole == nil {
@@ -3624,7 +3624,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteJobPosition(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteJobPosition(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.DeleteRole":
 		if e.complexity.Mutation.DeleteRole == nil {
@@ -3840,7 +3840,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateJobPosition(childComplexity, args["id"].(string), args["input"].(ent.UpdateJobPositionInput)), true
+		return e.complexity.Mutation.UpdateJobPosition(childComplexity, args["id"].(string), args["input"].(ent.UpdateJobPositionInput), args["note"].(string)), true
 
 	case "Mutation.UpdateRole":
 		if e.complexity.Mutation.UpdateRole == nil {
@@ -6307,8 +6307,8 @@ scalar Upload
 scalar JSON
 
 enum OrderDirection {
-    ASC
-    DESC
+  ASC
+  DESC
 }
 
 type PageInfo {
@@ -6359,6 +6359,7 @@ type Base64Response {
 
 enum projectModule {
   hiring_teams
+  job_positions
   hiring_jobs
   candidates
   skills
@@ -6878,9 +6879,9 @@ type JobPositionSelectionResponseGetAll {
   DeleteHiringTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition
-  CreateJobPosition(input: NewJobPositionInput!): JobPositionResponse!
-  UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!): JobPositionResponse!
-  DeleteJobPosition(id: ID!): Boolean!
+  CreateJobPosition(input: NewJobPositionInput!, note: String!): JobPositionResponse!
+  UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!, note: String!): JobPositionResponse!
+  DeleteJobPosition(id: ID!, note: String!): Boolean!
 
   # Department
 
@@ -7791,6 +7792,15 @@ func (ec *executionContext) field_Mutation_CreateJobPosition_args(ctx context.Co
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -8046,6 +8056,15 @@ func (ec *executionContext) field_Mutation_DeleteJobPosition_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -8577,6 +8596,15 @@ func (ec *executionContext) field_Mutation_UpdateJobPosition_args(ctx context.Co
 		}
 	}
 	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
 	return args, nil
 }
 
@@ -25411,7 +25439,7 @@ func (ec *executionContext) _Mutation_CreateJobPosition(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateJobPosition(rctx, fc.Args["input"].(ent.NewJobPositionInput))
+		return ec.resolvers.Mutation().CreateJobPosition(rctx, fc.Args["input"].(ent.NewJobPositionInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25470,7 +25498,7 @@ func (ec *executionContext) _Mutation_UpdateJobPosition(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateJobPosition(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateJobPositionInput))
+		return ec.resolvers.Mutation().UpdateJobPosition(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateJobPositionInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25529,7 +25557,7 @@ func (ec *executionContext) _Mutation_DeleteJobPosition(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteJobPosition(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteJobPosition(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

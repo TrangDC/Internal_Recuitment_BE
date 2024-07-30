@@ -47,18 +47,18 @@ func (r *mutationResolver) DeleteHiringTeam(ctx context.Context, id string, note
 }
 
 // CreateJobPosition is the resolver for the CreateJobPosition field.
-func (r *mutationResolver) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error) {
-	return r.serviceRegistry.JobPosition().CreateJobPosition(ctx, input)
+func (r *mutationResolver) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error) {
+	return r.serviceRegistry.JobPosition().CreateJobPosition(ctx, input, note)
 }
 
 // UpdateJobPosition is the resolver for the UpdateJobPosition field.
-func (r *mutationResolver) UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error) {
-	return r.serviceRegistry.JobPosition().UpdateJobPosition(ctx, uuid.MustParse(id), input)
+func (r *mutationResolver) UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error) {
+	return r.serviceRegistry.JobPosition().UpdateJobPosition(ctx, uuid.MustParse(id), input, note)
 }
 
 // DeleteJobPosition is the resolver for the DeleteJobPosition field.
-func (r *mutationResolver) DeleteJobPosition(ctx context.Context, id string) (bool, error) {
-	err := r.serviceRegistry.JobPosition().DeleteJobPosition(ctx, uuid.MustParse(id))
+func (r *mutationResolver) DeleteJobPosition(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.JobPosition().DeleteJobPosition(ctx, uuid.MustParse(id), note)
 	if err != nil {
 		return false, err
 	}

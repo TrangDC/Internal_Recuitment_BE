@@ -10,8 +10,8 @@ scalar Upload
 scalar JSON
 
 enum OrderDirection {
-    ASC
-    DESC
+  ASC
+  DESC
 }
 
 type PageInfo {
@@ -62,6 +62,7 @@ type Base64Response {
 
 enum projectModule {
   hiring_teams
+  job_positions
   hiring_jobs
   candidates
   skills
