@@ -7,6 +7,7 @@ import (
 	"strings"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/jobposition"
 	"trec/ent/predicate"
 	"trec/internal/util"
@@ -18,9 +19,9 @@ import (
 
 type JobPositionService interface {
 	// mutation
-	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
-	UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
-	DeleteJobPosition(ctx context.Context, jobPositionId uuid.UUID) error
+	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	DeleteJobPosition(ctx context.Context, jobPositionId uuid.UUID, note string) error
 
 	// query
 	GetJobPosition(ctx context.Context, jobPositionId uuid.UUID) (*ent.JobPositionResponse, error)
@@ -45,7 +46,7 @@ func NewJobPositionService(repoRegistry repository.Repository, dtoRegistry dto.D
 }
 
 // mutation
-func (svc *jobPositionSvcImpl) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error) {
+func (svc *jobPositionSvcImpl) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error) {
 	var result *ent.JobPosition
 	errString, err := svc.repoRegistry.JobPosition().ValidName(ctx, uuid.Nil, input.Name)
 	if err != nil {
@@ -64,12 +65,20 @@ func (svc *jobPositionSvcImpl) CreateJobPosition(ctx context.Context, input ent.
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.JobPosition().GetJobPosition(ctx, result.ID)
+	jsonString, err := svc.dtoRegistry.JobPosition().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleJobPositions, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.JobPositionResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *jobPositionSvcImpl) UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error) {
+func (svc *jobPositionSvcImpl) UpdateJobPosition(ctx context.Context, jobPositionId uuid.UUID, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error) {
 	var result *ent.JobPosition
 	record, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	if err != nil {
@@ -93,12 +102,20 @@ func (svc *jobPositionSvcImpl) UpdateJobPosition(ctx context.Context, jobPositio
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
+	jsonString, err := svc.dtoRegistry.JobPosition().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, jobPositionId, audittrail.ModuleJobPositions, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.JobPositionResponse{
 		Data: result,
 	}, nil
 }
 
-func (svc *jobPositionSvcImpl) DeleteJobPosition(ctx context.Context, jobPositionId uuid.UUID) error {
+func (svc *jobPositionSvcImpl) DeleteJobPosition(ctx context.Context, jobPositionId uuid.UUID, note string) error {
 	jobPositionRecord, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -111,6 +128,14 @@ func (svc *jobPositionSvcImpl) DeleteJobPosition(ctx context.Context, jobPositio
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.JobPosition().AuditTrailDelete(jobPositionRecord)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, jobPositionId, audittrail.ModuleSkillTypes, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }

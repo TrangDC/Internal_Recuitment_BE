@@ -18,6 +18,7 @@ type Dto interface {
 	CandidateJob() CandidateJobDto
 	CandidateInterview() CandidateInterviewDto
 	CandidateJobFeedback() CandidateJobFeedbackDto
+	JobPosition() JobPositionDto
 	HiringJob() HiringJobDto
 	Skill() SkillDto
 	EntitySkill() EntitySkillDto
@@ -35,6 +36,7 @@ type dtoImpl struct {
 	candidateJobDto         CandidateJobDto
 	candidateInterviewDto   CandidateInterviewDto
 	candidateJobFeedbackDto CandidateJobFeedbackDto
+	jobPositionDto          JobPositionDto
 	hiringJobDto            HiringJobDto
 	skillDto                SkillDto
 	entitySkillDto          EntitySkillDto
@@ -53,6 +55,7 @@ func NewDto() Dto {
 		candidateJobDto:         NewCandidateJobDto(),
 		candidateInterviewDto:   NewCandidateInterviewDto(),
 		candidateJobFeedbackDto: NewCandidateJobFeedbackDto(),
+		jobPositionDto:          NewJobPositionDto(),
 		hiringJobDto:            NewHiringJobDto(),
 		skillDto:                NewSkillDto(),
 		entitySkillDto:          NewEntitySkillDto(),
@@ -69,6 +72,7 @@ const (
 	CandidateJobI18n         = "model.candidate_jobs.model_name"
 	CandidateInterviewI18n   = "model.candidate_interviews.model_name"
 	CandidateJobFeedbackI18n = "model.candidate_job_feedbacks.model_name"
+	JobPositionI18n          = "model.job_positions.model_name"
 	HiringJobI18n            = "model.hiring_jobs.model_name"
 	SkillI18n                = "model.skills.model_name"
 	SkillTypeI18n            = "model.skill_types.model_name"
@@ -96,6 +100,10 @@ func (i dtoImpl) CandidateInterview() CandidateInterviewDto {
 
 func (i dtoImpl) CandidateJobFeedback() CandidateJobFeedbackDto {
 	return i.candidateJobFeedbackDto
+}
+
+func (i dtoImpl) JobPosition() JobPositionDto {
+	return i.jobPositionDto
 }
 
 func (i dtoImpl) HiringJob() HiringJobDto {
