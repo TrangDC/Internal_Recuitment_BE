@@ -16,7 +16,7 @@ type CandidateInterview struct {
 // Fields of the CandidateInterview. NOTE : Part of the public API ( ultimately exposed to end job
 func (CandidateInterview) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("title").MaxLen(255).Annotations(entgql.OrderField("title")),
+		field.String("title").MaxLen(256).Annotations(entgql.OrderField("title")),
 		field.Enum("candidate_job_status").Values("applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff").Default("applied"),
 		field.UUID("candidate_job_id", uuid.UUID{}).Optional(),
 		field.Time("interview_date").Optional(),

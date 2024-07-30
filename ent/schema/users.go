@@ -16,12 +16,12 @@ type User struct {
 // Fields of the User. NOTE : Part of the public API ( ultimately exposed to end users
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").MaxLen(255).NotEmpty().Annotations(entgql.OrderField("name")),
-		field.String("work_email").MaxLen(255).Annotations(entgql.OrderField("work_email")),
+		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
+		field.String("work_email").MaxLen(256).Annotations(entgql.OrderField("work_email")),
 		field.Enum("status").Values("active", "inactive").Default("active"),
-		field.String("oid").Unique().MaxLen(255),
+		field.String("oid").Unique().MaxLen(256),
 		field.UUID("rec_team_id", uuid.UUID{}).Unique().Optional(),
-		field.String("location").MaxLen(255).Optional(),
+		field.String("location").MaxLen(256).Optional(),
 		field.UUID("hiring_team_id", uuid.UUID{}).Unique().Optional(),
 	}
 }
