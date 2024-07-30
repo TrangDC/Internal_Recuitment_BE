@@ -605,7 +605,7 @@ type ComplexityRoot struct {
 		CreateEmailTemplate               func(childComplexity int, input ent.NewEmailTemplateInput, note string) int
 		CreateHiringJob                   func(childComplexity int, input ent.NewHiringJobInput, note string) int
 		CreateHiringTeam                  func(childComplexity int, input ent.NewHiringTeamInput, note string) int
-		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput) int
+		CreateJobPosition                 func(childComplexity int, input ent.NewJobPositionInput, note string) int
 		CreateRecTeam                     func(childComplexity int, input ent.NewRecTeamInput, note string) int
 		CreateRole                        func(childComplexity int, input ent.NewRoleInput, note string) int
 		CreateSkill                       func(childComplexity int, input ent.NewSkillInput, note string) int
@@ -1120,9 +1120,9 @@ type MutationResolver interface {
 	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error)
-	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput) (*ent.JobPositionResponse, error)
-	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput) (*ent.JobPositionResponse, error)
-	DeleteJobPosition(ctx context.Context, id string) (bool, error)
+	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
+	DeleteJobPosition(ctx context.Context, id string, note string) (bool, error)
 	CreateHiringJob(ctx context.Context, input ent.NewHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	UpdateHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error)
 	DeleteHiringJob(ctx context.Context, id string, note string) (bool, error)
@@ -23537,6 +23537,8 @@ func (ec *executionContext) fieldContext_HiringTeamApprover_user(ctx context.Con
 				return ec.fieldContext_User_roles(ctx, field)
 			case "member_of_hiring_team":
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
