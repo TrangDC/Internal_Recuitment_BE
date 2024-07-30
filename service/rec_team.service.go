@@ -34,7 +34,7 @@ func NewRecTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, 
 
 func (s *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error) {
 	var result *ent.RecTeam
-	errString, err := s.repoRegistry.RecTeam().ValidName(ctx, uuid.Nil, input.Name)
+	errString, err := s.repoRegistry.RecTeam().ValidInput(ctx, uuid.Nil, input.Name, uuid.MustParse(input.LeaderID))
 	if err != nil {
 		s.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -42,12 +42,6 @@ func (s *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeam
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-
-	err = s.repoRegistry.RecTeam().IsLeaderInAnotherRecTeam(ctx, uuid.MustParse(input.LeaderID))
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-
 	err = s.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.RecTeam().CreateRecTeam(ctx, input)
 		return err

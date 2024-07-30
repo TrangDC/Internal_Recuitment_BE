@@ -26,8 +26,7 @@ type RecTeamRepository interface {
 	DeleteRelationRecTeam(ctx context.Context, recTeamId uuid.UUID) error
 
 	// common function
-	ValidName(ctx context.Context, recTeamId uuid.UUID, name string) (error, error)
-	IsLeaderInAnotherRecTeam(ctx context.Context, leaderID uuid.UUID) (error)
+	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, leaderID uuid.UUID) (error, error)
 }
 
 type recTeamRepoImpl struct {
@@ -105,28 +104,29 @@ func (rps *recTeamRepoImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.
 }
 
 // common function
-func (rps *recTeamRepoImpl) ValidName(ctx context.Context, recTeamId uuid.UUID, name string) (error, error) {
+func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, leaderID uuid.UUID) (error, error) {
 	query := rps.BuildQuery().Where(recteam.NameEqualFold(strings.TrimSpace(name)))
-	if recTeamId != uuid.Nil {
-		query = query.Where(recteam.IDNEQ(recTeamId))
+	if recTeamID != uuid.Nil {
+			query = query.Where(recteam.IDNEQ(recTeamID))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 	if isExist {
-		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
+			return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
 	}
-	return nil, nil
-}
 
-func (rps *recTeamRepoImpl) IsLeaderInAnotherRecTeam(ctx context.Context, leaderID uuid.UUID) error {
-	count, _ := rps.BuildQuery().Where(recteam.LeaderID(leaderID)).Count(ctx)
-	
-	if count > 0 {
-		return fmt.Errorf("model.rec_teams.validation.is_leader_in_another_rec_team")
+	query = rps.BuildQuery().Where(recteam.LeaderID(leaderID))
+	isExist, err = rps.BuildExist(ctx, query)
+	if err != nil {
+			return nil, err
 	}
-	return nil
+	if isExist {
+			return fmt.Errorf("model.rec_teams.validation.is_leader_in_another_rec_team"), nil
+	}
+
+	return nil, nil
 }
 
 
