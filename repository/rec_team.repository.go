@@ -26,7 +26,7 @@ type RecTeamRepository interface {
 	DeleteRelationRecTeam(ctx context.Context, recTeamId uuid.UUID) error
 
 	// common function
-	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, leaderID uuid.UUID) (error, error)
+	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, userID uuid.UUID) (error, error)
 }
 
 type recTeamRepoImpl struct {
@@ -94,7 +94,8 @@ func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecT
 	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
+		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID)).
+		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
 	return create.Save(ctx)
 }
 
@@ -104,7 +105,7 @@ func (rps *recTeamRepoImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.
 }
 
 // common function
-func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, leaderID uuid.UUID) (error, error) {
+func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, userID uuid.UUID) (error, error) {
 	query := rps.BuildQuery().Where(recteam.NameEqualFold(strings.TrimSpace(name)))
 	if recTeamID != uuid.Nil {
 		query = query.Where(recteam.IDNEQ(recTeamID))
@@ -116,13 +117,13 @@ func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID,
 	if isExist {
 		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
 	}
-	query = rps.BuildQuery().Where(recteam.LeaderID(leaderID))
+	query = rps.BuildQuery().Where(recteam.HasRecMemberEdgesWith(user.ID(userID)), recteam.HasRecLeaderEdgeWith(user.ID(userID)))
 	isExist, err = rps.BuildExist(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	if isExist {
-		return fmt.Errorf("model.rec_teams.validation.is_leader_in_another_rec_team"), nil
+		return fmt.Errorf("model.rec_teams.validation.is_in_another_rec_team"), nil
 	}
 	return nil, nil
 }
