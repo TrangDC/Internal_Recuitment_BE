@@ -32,8 +32,6 @@ const (
 	FieldStatus = "status"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
-	// FieldTeamID holds the string denoting the team_id field in the database.
-	FieldTeamID = "team_id"
 	// FieldLocation holds the string denoting the location field in the database.
 	FieldLocation = "location"
 	// FieldSalaryType holds the string denoting the salary_type field in the database.
@@ -52,8 +50,6 @@ const (
 	FieldHiringTeamID = "hiring_team_id"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
-	// EdgeTeamEdge holds the string denoting the team_edge edge name in mutations.
-	EdgeTeamEdge = "team_edge"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// EdgeHiringJobSkillEdges holds the string denoting the hiring_job_skill_edges edge name in mutations.
@@ -69,13 +65,6 @@ const (
 	OwnerEdgeInverseTable = "users"
 	// OwnerEdgeColumn is the table column denoting the owner_edge relation/edge.
 	OwnerEdgeColumn = "created_by"
-	// TeamEdgeTable is the table that holds the team_edge relation/edge.
-	TeamEdgeTable = "hiring_jobs"
-	// TeamEdgeInverseTable is the table name for the Team entity.
-	// It exists in this package in order to avoid circular dependency with the "team" package.
-	TeamEdgeInverseTable = "teams"
-	// TeamEdgeColumn is the table column denoting the team_edge relation/edge.
-	TeamEdgeColumn = "team_id"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
 	CandidateJobEdgesTable = "candidate_jobs"
 	// CandidateJobEdgesInverseTable is the table name for the CandidateJob entity.
@@ -111,7 +100,6 @@ var Columns = []string{
 	FieldAmount,
 	FieldStatus,
 	FieldCreatedBy,
-	FieldTeamID,
 	FieldLocation,
 	FieldSalaryType,
 	FieldSalaryFrom,

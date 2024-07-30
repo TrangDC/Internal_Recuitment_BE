@@ -1,5 +1,5 @@
 id,title,parent_id,group_type,order_id
-5aca9e88-1fb8-4e27-a59d-ed1318380ee9,model.permisson_groups.teams.model_name,,function,1
+5aca9e88-1fb8-4e27-a59d-ed1318380ee9,model.permisson_groups.hiring_teams.model_name,,function,1
 a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,model.permisson_groups.hiring_jobs.model_name,,function,2
 142ac74d-8c1c-463f-9eba-90365a269775,model.permisson_groups.candidates.model_name,,function,3
 b9893d47-819f-4bdf-9cb1-dce3664bd960,model.permisson_groups.candidate_jobs.model_name,,function,4

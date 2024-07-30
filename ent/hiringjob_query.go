@@ -12,7 +12,6 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/predicate"
-	"trec/ent/team"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,7 +30,6 @@ type HiringJobQuery struct {
 	fields                       []string
 	predicates                   []predicate.HiringJob
 	withOwnerEdge                *UserQuery
-	withTeamEdge                 *TeamQuery
 	withCandidateJobEdges        *CandidateJobQuery
 	withHiringJobSkillEdges      *EntitySkillQuery
 	withHiringTeamEdge           *HiringTeamQuery
@@ -90,28 +88,6 @@ func (hjq *HiringJobQuery) QueryOwnerEdge() *UserQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.OwnerEdgeTable, hiringjob.OwnerEdgeColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryTeamEdge chains the current query on the "team_edge" edge.
-func (hjq *HiringJobQuery) QueryTeamEdge() *TeamQuery {
-	query := &TeamQuery{config: hjq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := hjq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := hjq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
-			sqlgraph.To(team.Table, team.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.TeamEdgeTable, hiringjob.TeamEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -367,7 +343,6 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		order:                   append([]OrderFunc{}, hjq.order...),
 		predicates:              append([]predicate.HiringJob{}, hjq.predicates...),
 		withOwnerEdge:           hjq.withOwnerEdge.Clone(),
-		withTeamEdge:            hjq.withTeamEdge.Clone(),
 		withCandidateJobEdges:   hjq.withCandidateJobEdges.Clone(),
 		withHiringJobSkillEdges: hjq.withHiringJobSkillEdges.Clone(),
 		withHiringTeamEdge:      hjq.withHiringTeamEdge.Clone(),
@@ -386,17 +361,6 @@ func (hjq *HiringJobQuery) WithOwnerEdge(opts ...func(*UserQuery)) *HiringJobQue
 		opt(query)
 	}
 	hjq.withOwnerEdge = query
-	return hjq
-}
-
-// WithTeamEdge tells the query-builder to eager-load the nodes that are connected to
-// the "team_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (hjq *HiringJobQuery) WithTeamEdge(opts ...func(*TeamQuery)) *HiringJobQuery {
-	query := &TeamQuery{config: hjq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	hjq.withTeamEdge = query
 	return hjq
 }
 
@@ -506,9 +470,8 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [4]bool{
 			hjq.withOwnerEdge != nil,
-			hjq.withTeamEdge != nil,
 			hjq.withCandidateJobEdges != nil,
 			hjq.withHiringJobSkillEdges != nil,
 			hjq.withHiringTeamEdge != nil,
@@ -538,12 +501,6 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	if query := hjq.withOwnerEdge; query != nil {
 		if err := hjq.loadOwnerEdge(ctx, query, nodes, nil,
 			func(n *HiringJob, e *User) { n.Edges.OwnerEdge = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := hjq.withTeamEdge; query != nil {
-		if err := hjq.loadTeamEdge(ctx, query, nodes, nil,
-			func(n *HiringJob, e *Team) { n.Edges.TeamEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -610,32 +567,6 @@ func (hjq *HiringJobQuery) loadOwnerEdge(ctx context.Context, query *UserQuery, 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "created_by" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (hjq *HiringJobQuery) loadTeamEdge(ctx context.Context, query *TeamQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *Team)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*HiringJob)
-	for i := range nodes {
-		fk := nodes[i].TeamID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	query.Where(team.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "team_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

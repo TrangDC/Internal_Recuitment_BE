@@ -36,19 +36,16 @@ type Team struct {
 type TeamEdges struct {
 	// The uniqueness of the user is enforced on the edge schema
 	UserEdges []*User `json:"user_edges,omitempty"`
-	// TeamJobEdges holds the value of the team_job_edges edge.
-	TeamJobEdges []*HiringJob `json:"team_job_edges,omitempty"`
 	// UserTeams holds the value of the user_teams edge.
 	UserTeams []*TeamManager `json:"user_teams,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [2]map[string]int
 
-	namedUserEdges    map[string][]*User
-	namedTeamJobEdges map[string][]*HiringJob
-	namedUserTeams    map[string][]*TeamManager
+	namedUserEdges map[string][]*User
+	namedUserTeams map[string][]*TeamManager
 }
 
 // UserEdgesOrErr returns the UserEdges value or an error if the edge
@@ -60,19 +57,10 @@ func (e TeamEdges) UserEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "user_edges"}
 }
 
-// TeamJobEdgesOrErr returns the TeamJobEdges value or an error if the edge
-// was not loaded in eager-loading.
-func (e TeamEdges) TeamJobEdgesOrErr() ([]*HiringJob, error) {
-	if e.loadedTypes[1] {
-		return e.TeamJobEdges, nil
-	}
-	return nil, &NotLoadedError{edge: "team_job_edges"}
-}
-
 // UserTeamsOrErr returns the UserTeams value or an error if the edge
 // was not loaded in eager-loading.
 func (e TeamEdges) UserTeamsOrErr() ([]*TeamManager, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.UserTeams, nil
 	}
 	return nil, &NotLoadedError{edge: "user_teams"}
@@ -150,11 +138,6 @@ func (t *Team) QueryUserEdges() *UserQuery {
 	return (&TeamClient{config: t.config}).QueryUserEdges(t)
 }
 
-// QueryTeamJobEdges queries the "team_job_edges" edge of the Team entity.
-func (t *Team) QueryTeamJobEdges() *HiringJobQuery {
-	return (&TeamClient{config: t.config}).QueryTeamJobEdges(t)
-}
-
 // QueryUserTeams queries the "user_teams" edge of the Team entity.
 func (t *Team) QueryUserTeams() *TeamManagerQuery {
 	return (&TeamClient{config: t.config}).QueryUserTeams(t)
@@ -222,30 +205,6 @@ func (t *Team) appendNamedUserEdges(name string, edges ...*User) {
 		t.Edges.namedUserEdges[name] = []*User{}
 	} else {
 		t.Edges.namedUserEdges[name] = append(t.Edges.namedUserEdges[name], edges...)
-	}
-}
-
-// NamedTeamJobEdges returns the TeamJobEdges named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (t *Team) NamedTeamJobEdges(name string) ([]*HiringJob, error) {
-	if t.Edges.namedTeamJobEdges == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := t.Edges.namedTeamJobEdges[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (t *Team) appendNamedTeamJobEdges(name string, edges ...*HiringJob) {
-	if t.Edges.namedTeamJobEdges == nil {
-		t.Edges.namedTeamJobEdges = make(map[string][]*HiringJob)
-	}
-	if len(edges) == 0 {
-		t.Edges.namedTeamJobEdges[name] = []*HiringJob{}
-	} else {
-		t.Edges.namedTeamJobEdges[name] = append(t.Edges.namedTeamJobEdges[name], edges...)
 	}
 }
 

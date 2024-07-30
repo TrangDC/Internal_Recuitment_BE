@@ -47,14 +47,14 @@ input HiringJobOrderBy {
 
 input HiringJobFilter {
   name: String
-  team_ids: [ID!]
+  hiring_team_ids: [ID!]
   status: HiringJobStatus
   priority: Int
   location: [LocationEnum]
   skill_ids: [ID!]
   created_by_ids: [ID!]
   for_owner: Boolean
-  for_team: Boolean
+  for_hiring_team: Boolean
 }
 
 input HiringJobFreeWord {
@@ -71,7 +71,7 @@ input NewHiringJobInput {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team_id: ID!
+  hiring_team_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
@@ -86,7 +86,7 @@ input UpdateHiringJobInput {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team_id: ID!
+  hiring_team_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
@@ -103,7 +103,7 @@ type HiringJob {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team: Team!
+  hiring_team: HiringTeam!
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!

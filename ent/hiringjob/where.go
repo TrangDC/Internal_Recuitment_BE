@@ -138,13 +138,6 @@ func CreatedBy(v uuid.UUID) predicate.HiringJob {
 	})
 }
 
-// TeamID applies equality check predicate on the "team_id" field. It's identical to TeamIDEQ.
-func TeamID(v uuid.UUID) predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTeamID), v))
-	})
-}
-
 // SalaryFrom applies equality check predicate on the "salary_from" field. It's identical to SalaryFromEQ.
 func SalaryFrom(v int) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -847,56 +840,6 @@ func CreatedByNotNil() predicate.HiringJob {
 	})
 }
 
-// TeamIDEQ applies the EQ predicate on the "team_id" field.
-func TeamIDEQ(v uuid.UUID) predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTeamID), v))
-	})
-}
-
-// TeamIDNEQ applies the NEQ predicate on the "team_id" field.
-func TeamIDNEQ(v uuid.UUID) predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTeamID), v))
-	})
-}
-
-// TeamIDIn applies the In predicate on the "team_id" field.
-func TeamIDIn(vs ...uuid.UUID) predicate.HiringJob {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTeamID), v...))
-	})
-}
-
-// TeamIDNotIn applies the NotIn predicate on the "team_id" field.
-func TeamIDNotIn(vs ...uuid.UUID) predicate.HiringJob {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTeamID), v...))
-	})
-}
-
-// TeamIDIsNil applies the IsNil predicate on the "team_id" field.
-func TeamIDIsNil() predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldTeamID)))
-	})
-}
-
-// TeamIDNotNil applies the NotNil predicate on the "team_id" field.
-func TeamIDNotNil() predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldTeamID)))
-	})
-}
-
 // LocationEQ applies the EQ predicate on the "location" field.
 func LocationEQ(v Location) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -1344,34 +1287,6 @@ func HasOwnerEdgeWith(preds ...predicate.User) predicate.HiringJob {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(OwnerEdgeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, OwnerEdgeTable, OwnerEdgeColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasTeamEdge applies the HasEdge predicate on the "team_edge" edge.
-func HasTeamEdge() predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TeamEdgeTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TeamEdgeTable, TeamEdgeColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasTeamEdgeWith applies the HasEdge predicate on the "team_edge" edge with a given conditions (other predicates).
-func HasTeamEdgeWith(preds ...predicate.Team) predicate.HiringJob {
-	return predicate.HiringJob(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TeamEdgeInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TeamEdgeTable, TeamEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

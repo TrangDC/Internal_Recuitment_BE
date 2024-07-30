@@ -6,10 +6,7 @@ package resolver
 import (
 	"context"
 	"trec/ent"
-	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
-
-	"github.com/samber/lo"
 )
 
 // ID is the resolver for the id field.
@@ -24,17 +21,11 @@ func (r *teamResolver) Members(ctx context.Context, obj *ent.Team) ([]*ent.User,
 
 // OpeningRequests is the resolver for the opening_requests field.
 func (r *teamResolver) OpeningRequests(ctx context.Context, obj *ent.Team) (int, error) {
-	total := lo.Filter(obj.Edges.TeamJobEdges, func(record *ent.HiringJob, index int) bool {
-		return record.Status == hiringjob.StatusOpened
-	})
-	return len(total), nil
+	return 0, nil
 }
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *teamResolver) IsAbleToDelete(ctx context.Context, obj *ent.Team) (bool, error) {
-	if len(obj.Edges.TeamJobEdges) > 0 {
-		return false, nil
-	}
 	return true, nil
 }
 

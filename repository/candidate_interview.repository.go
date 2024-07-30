@@ -82,7 +82,7 @@ func (rps *candidateInterviewRepoImpl) BuildQuery() *ent.CandidateInterviewQuery
 		func(query *ent.CandidateJobQuery) {
 			query.Where(candidatejob.DeletedAtIsNil()).WithCandidateEdge().WithHiringJobEdge(
 				func(query *ent.HiringJobQuery) {
-					query.Where(hiringjob.DeletedAtIsNil()).WithTeamEdge()
+					query.Where(hiringjob.DeletedAtIsNil()).WithHiringTeamEdge()
 				},
 			)
 		},

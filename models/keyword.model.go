@@ -6,9 +6,9 @@ var GeneralEmailTpKeyword = []string{
 	"gl:receiver_name",
 }
 
-var TeamEmailTpKeyword = []string{
-	"tm:name",
-	"tm:manager_name",
+var HiringTeamEmailTpKeyword = []string{
+	"hrtm:name",
+	"hrtm:manager_name",
 }
 
 var HiringJobEmailTpKeyword = []string{
@@ -50,7 +50,7 @@ var InterviewEmailTpKeyword = []string{
 }
 
 var LinkEmailTpCandidateKeyword = []string{
-	"lk:team",
+	"lk:hiring_team",
 	"lk:job",
 	"lk:candidate",
 	"lk:candidate_job_application",
@@ -61,8 +61,8 @@ var LinkEmailTpInterviewKeyword = []string{
 
 var AllEmailTPKeyword = map[string]string{
 	"{{ gl:receiver_name }}":             "",
-	"{{ tm:name }}":                      "",
-	"{{ tm:manager_name }}":              "",
+	"{{ hrtm:name }}":                    "",
+	"{{ hrtm:manager_name }}":            "",
 	"{{ hrjb:name }}":                    "",
 	"{{ hrjb:skill_name }}":              "",
 	"{{ hrjb:location }}":                "",
@@ -89,7 +89,7 @@ var AllEmailTPKeyword = map[string]string{
 	"{{ intv:date }}":                    "",
 	"{{ intv:time }}":                    "",
 	"{{ intv:location }}":                "",
-	"{{ lk:team }}":                      "",
+	"{{ lk:hiring_team }}":               "",
 	"{{ lk:job }}":                       "",
 	"{{ lk:candidate }}":                 "",
 	"{{ lk:candidate_job_application }}": "",
@@ -99,7 +99,7 @@ var AllEmailTPKeyword = map[string]string{
 var EmailTpApplicationSubjectKeyword = append(
 	append(
 		append(
-			append(GeneralEmailTpKeyword, TeamEmailTpKeyword...),
+			append(GeneralEmailTpKeyword, HiringTeamEmailTpKeyword...),
 			HiringJobEmailTpKeyword...),
 		CandidateEmailTpKeyword...),
 	CandidateAppEmailTpKeyword...)
@@ -118,8 +118,8 @@ var GeneralEmailTpKeywordJson = []*ent.JSONFormat{
 }
 
 var TeamEmailTpKeywordJson = []*ent.JSONFormat{
-	{Key: "tm:name", Value: "Team name"},
-	{Key: "tm:manager_name", Value: "Team Manager"},
+	{Key: "hrtm:name", Value: "Hiring Team name"},
+	{Key: "hrtm:manager_name", Value: "Hiring Team Manager"},
 }
 
 var HiringJobEmailTpKeywordJson = []*ent.JSONFormat{
@@ -161,7 +161,7 @@ var InterviewEmailTpKeywordJson = []*ent.JSONFormat{
 }
 
 var LinkEmailTpKeywordCandidateJson = []*ent.JSONFormat{
-	{Key: "lk:team", Value: "Link To Team"},
+	{Key: "lk:hiring_team", Value: "Link To Hiring Team"},
 	{Key: "lk:job", Value: "Link To Job"},
 	{Key: "lk:candidate", Value: "Link To Candidate"},
 	{Key: "lk:candidate_job_application", Value: "Link To Application"},
@@ -172,7 +172,7 @@ var LinkEmailTpKeywordInterviewJson = []*ent.JSONFormat{
 
 var EmailTpErrorString = map[string]string{
 	"gl":   "model.email_template.validation.gl.keyword_invalid",
-	"tm":   "model.email_template.validation.tm.keyword_invalid",
+	"hrtm": "model.email_template.validation.hrtm.keyword_invalid",
 	"hrjb": "model.email_template.validation.hrjb.keyword_invalid",
 	"cdjb": "model.email_template.validation.cdjb.keyword_invalid",
 	"intv": "model.email_template.validation.intv.keyword_invalid",

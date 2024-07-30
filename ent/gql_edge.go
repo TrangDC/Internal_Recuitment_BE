@@ -364,14 +364,6 @@ func (hj *HiringJob) OwnerEdge(ctx context.Context) (*User, error) {
 	return result, MaskNotFound(err)
 }
 
-func (hj *HiringJob) TeamEdge(ctx context.Context) (*Team, error) {
-	result, err := hj.Edges.TeamEdgeOrErr()
-	if IsNotLoaded(err) {
-		result, err = hj.QueryTeamEdge().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
 func (hj *HiringJob) CandidateJobEdges(ctx context.Context) (result []*CandidateJob, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = hj.NamedCandidateJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
@@ -640,18 +632,6 @@ func (t *Team) UserEdges(ctx context.Context) (result []*User, err error) {
 	}
 	if IsNotLoaded(err) {
 		result, err = t.QueryUserEdges().All(ctx)
-	}
-	return result, err
-}
-
-func (t *Team) TeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedTeamJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = t.Edges.TeamJobEdgesOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = t.QueryTeamJobEdges().All(ctx)
 	}
 	return result, err
 }

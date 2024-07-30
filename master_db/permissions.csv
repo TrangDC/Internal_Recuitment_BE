@@ -1,8 +1,8 @@
 id,title,group_id,for_owner,for_team,for_all,operation_name,parent_id,order_id
-7d42a893-fdc7-493f-b72b-5b87eee56d48,model.permissions.teams.view,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,TRUE,TRUE,TRUE,"GetTeam,GetAllTeams",,1
-675c373e-537d-42c6-a323-2a3101eb720b,model.permissions.teams.create,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,FALSE,FALSE,TRUE,CreateTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,2
-203937da-f438-4936-90ff-de2cff379fc3,model.permissions.teams.update,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,TRUE,TRUE,TRUE,UpdateTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,3
-baba66e7-1dba-434e-a951-28cfdc671f91,model.permissions.teams.delete,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,FALSE,FALSE,TRUE,DeleteTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,4
+7d42a893-fdc7-493f-b72b-5b87eee56d48,model.permissions.hiring_teams.view,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,TRUE,TRUE,TRUE,"GetHiringTeam,GetAllHiringTeams",,1
+675c373e-537d-42c6-a323-2a3101eb720b,model.permissions.hiring_teams.create,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,FALSE,FALSE,TRUE,CreateHiringTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,2
+203937da-f438-4936-90ff-de2cff379fc3,model.permissions.hiring_teams.update,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,TRUE,TRUE,TRUE,UpdateHiringTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,3
+baba66e7-1dba-434e-a951-28cfdc671f91,model.permissions.hiring_teams.delete,5aca9e88-1fb8-4e27-a59d-ed1318380ee9,FALSE,FALSE,TRUE,DeleteHiringTeam,7d42a893-fdc7-493f-b72b-5b87eee56d48,4
 19375f3b-b652-4252-bba2-978aab0d0e09,model.permissions.hiring_jobs.view,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,FALSE,TRUE,TRUE,"GetHiringJob,GetAllHiringJobs",,5
 40da93ed-a521-45da-a14f-5586342ead4c,model.permissions.hiring_jobs.create,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,FALSE,TRUE,TRUE,CreateHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,6
 19593cf7-ce1c-4a57-aec3-1931161910ce,model.permissions.hiring_jobs.edit,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,FALSE,TRUE,TRUE,UpdateHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,7

@@ -305,15 +305,15 @@ func init() {
 	// hiringjob.DefaultAmount holds the default value on creation for the amount field.
 	hiringjob.DefaultAmount = hiringjobDescAmount.Default.(int)
 	// hiringjobDescSalaryFrom is the schema descriptor for salary_from field.
-	hiringjobDescSalaryFrom := hiringjobFields[8].Descriptor()
+	hiringjobDescSalaryFrom := hiringjobFields[7].Descriptor()
 	// hiringjob.DefaultSalaryFrom holds the default value on creation for the salary_from field.
 	hiringjob.DefaultSalaryFrom = hiringjobDescSalaryFrom.Default.(int)
 	// hiringjobDescSalaryTo is the schema descriptor for salary_to field.
-	hiringjobDescSalaryTo := hiringjobFields[9].Descriptor()
+	hiringjobDescSalaryTo := hiringjobFields[8].Descriptor()
 	// hiringjob.DefaultSalaryTo holds the default value on creation for the salary_to field.
 	hiringjob.DefaultSalaryTo = hiringjobDescSalaryTo.Default.(int)
 	// hiringjobDescPriority is the schema descriptor for priority field.
-	hiringjobDescPriority := hiringjobFields[12].Descriptor()
+	hiringjobDescPriority := hiringjobFields[11].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
 	hiringteamMixin := schema.HiringTeam{}.Mixin()

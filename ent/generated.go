@@ -383,15 +383,15 @@ type GetEmailTemplateKeywordResponse struct {
 }
 
 type HiringJobFilter struct {
-	Name         *string          `json:"name"`
-	TeamIds      []string         `json:"team_ids"`
-	Status       *HiringJobStatus `json:"status"`
-	Priority     *int             `json:"priority"`
-	Location     []*LocationEnum  `json:"location"`
-	SkillIds     []string         `json:"skill_ids"`
-	CreatedByIds []string         `json:"created_by_ids"`
-	ForOwner     *bool            `json:"for_owner"`
-	ForTeam      *bool            `json:"for_team"`
+	Name          *string          `json:"name"`
+	HiringTeamIds []string         `json:"hiring_team_ids"`
+	Status        *HiringJobStatus `json:"status"`
+	Priority      *int             `json:"priority"`
+	Location      []*LocationEnum  `json:"location"`
+	SkillIds      []string         `json:"skill_ids"`
+	CreatedByIds  []string         `json:"created_by_ids"`
+	ForOwner      *bool            `json:"for_owner"`
+	ForHiringTeam *bool            `json:"for_hiring_team"`
 }
 
 type HiringJobFreeWord struct {
@@ -580,7 +580,7 @@ type NewHiringJobInput struct {
 	SalaryFrom         int                       `json:"salary_from"`
 	SalaryTo           int                       `json:"salary_to"`
 	Currency           CurrencyEnum              `json:"currency"`
-	TeamID             string                    `json:"team_id"`
+	HiringTeamID       string                    `json:"hiring_team_id"`
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
@@ -959,7 +959,7 @@ type UpdateHiringJobInput struct {
 	SalaryFrom         int                       `json:"salary_from"`
 	SalaryTo           int                       `json:"salary_to"`
 	Currency           CurrencyEnum              `json:"currency"`
-	TeamID             string                    `json:"team_id"`
+	HiringTeamID       string                    `json:"hiring_team_id"`
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`

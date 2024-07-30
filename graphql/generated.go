@@ -454,6 +454,7 @@ type ComplexityRoot struct {
 		DeletedAt                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		EntitySkillTypes         func(childComplexity int) int
+		HiringTeam               func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		IsAbleToClose            func(childComplexity int) int
 		IsAbleToDelete           func(childComplexity int) int
@@ -465,7 +466,6 @@ type ComplexityRoot struct {
 		SalaryType               func(childComplexity int) int
 		Slug                     func(childComplexity int) int
 		Status                   func(childComplexity int) int
-		Team                     func(childComplexity int) int
 		TotalCandidatesRecruited func(childComplexity int) int
 		UpdatedAt                func(childComplexity int) int
 		User                     func(childComplexity int) int
@@ -1093,7 +1093,7 @@ type HiringJobResolver interface {
 	SalaryType(ctx context.Context, obj *ent.HiringJob) (ent.SalaryTypeEnum, error)
 
 	Currency(ctx context.Context, obj *ent.HiringJob) (ent.CurrencyEnum, error)
-	Team(ctx context.Context, obj *ent.HiringJob) (*ent.Team, error)
+	HiringTeam(ctx context.Context, obj *ent.HiringJob) (*ent.HiringTeam, error)
 	User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error)
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
 	TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error)
@@ -2876,6 +2876,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJob.EntitySkillTypes(childComplexity), true
 
+	case "HiringJob.hiring_team":
+		if e.complexity.HiringJob.HiringTeam == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.HiringTeam(childComplexity), true
+
 	case "HiringJob.id":
 		if e.complexity.HiringJob.ID == nil {
 			break
@@ -2952,13 +2959,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.Status(childComplexity), true
-
-	case "HiringJob.team":
-		if e.complexity.HiringJob.Team == nil {
-			break
-		}
-
-		return e.complexity.HiringJob.Team(childComplexity), true
 
 	case "HiringJob.total_candidates_recruited":
 		if e.complexity.HiringJob.TotalCandidatesRecruited == nil {
@@ -6643,14 +6643,14 @@ input HiringJobOrderBy {
 
 input HiringJobFilter {
   name: String
-  team_ids: [ID!]
+  hiring_team_ids: [ID!]
   status: HiringJobStatus
   priority: Int
   location: [LocationEnum]
   skill_ids: [ID!]
   created_by_ids: [ID!]
   for_owner: Boolean
-  for_team: Boolean
+  for_hiring_team: Boolean
 }
 
 input HiringJobFreeWord {
@@ -6667,7 +6667,7 @@ input NewHiringJobInput {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team_id: ID!
+  hiring_team_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
@@ -6682,7 +6682,7 @@ input UpdateHiringJobInput {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team_id: ID!
+  hiring_team_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
@@ -6699,7 +6699,7 @@ type HiringJob {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  team: Team!
+  hiring_team: HiringTeam!
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!
@@ -15589,8 +15589,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_salary_to(ctx, field)
 			case "currency":
 				return ec.fieldContext_HiringJob_currency(ctx, field)
-			case "team":
-				return ec.fieldContext_HiringJob_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
 			case "user":
 				return ec.fieldContext_HiringJob_user(ctx, field)
 			case "status":
@@ -21716,8 +21716,8 @@ func (ec *executionContext) fieldContext_HiringJob_currency(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _HiringJob_team(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HiringJob_team(ctx, field)
+func (ec *executionContext) _HiringJob_hiring_team(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_hiring_team(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -21730,7 +21730,7 @@ func (ec *executionContext) _HiringJob_team(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HiringJob().Team(rctx, obj)
+		return ec.resolvers.HiringJob().HiringTeam(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21742,12 +21742,12 @@ func (ec *executionContext) _HiringJob_team(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Team)
+	res := resTmp.(*ent.HiringTeam)
 	fc.Result = res
-	return ec.marshalNTeam2ᚖtrecᚋentᚐTeam(ctx, field.Selections, res)
+	return ec.marshalNHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_HiringJob_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_HiringJob_hiring_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "HiringJob",
 		Field:      field,
@@ -21756,25 +21756,25 @@ func (ec *executionContext) fieldContext_HiringJob_team(ctx context.Context, fie
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Team_id(ctx, field)
+				return ec.fieldContext_HiringTeam_id(ctx, field)
 			case "name":
-				return ec.fieldContext_Team_name(ctx, field)
+				return ec.fieldContext_HiringTeam_name(ctx, field)
 			case "slug":
-				return ec.fieldContext_Team_slug(ctx, field)
-			case "members":
-				return ec.fieldContext_Team_members(ctx, field)
+				return ec.fieldContext_HiringTeam_slug(ctx, field)
+			case "managers":
+				return ec.fieldContext_HiringTeam_managers(ctx, field)
 			case "opening_requests":
-				return ec.fieldContext_Team_opening_requests(ctx, field)
+				return ec.fieldContext_HiringTeam_opening_requests(ctx, field)
 			case "is_able_to_delete":
-				return ec.fieldContext_Team_is_able_to_delete(ctx, field)
+				return ec.fieldContext_HiringTeam_is_able_to_delete(ctx, field)
 			case "created_at":
-				return ec.fieldContext_Team_created_at(ctx, field)
+				return ec.fieldContext_HiringTeam_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_Team_updated_at(ctx, field)
+				return ec.fieldContext_HiringTeam_updated_at(ctx, field)
 			case "deleted_at":
-				return ec.fieldContext_Team_deleted_at(ctx, field)
+				return ec.fieldContext_HiringTeam_deleted_at(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Team", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type HiringTeam", field.Name)
 		},
 	}
 	return fc, nil
@@ -22303,8 +22303,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_salary_to(ctx, field)
 			case "currency":
 				return ec.fieldContext_HiringJob_currency(ctx, field)
-			case "team":
-				return ec.fieldContext_HiringJob_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
 			case "user":
 				return ec.fieldContext_HiringJob_user(ctx, field)
 			case "status":
@@ -22432,8 +22432,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_salary_to(ctx, field)
 			case "currency":
 				return ec.fieldContext_HiringJob_currency(ctx, field)
-			case "team":
-				return ec.fieldContext_HiringJob_team(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
 			case "user":
 				return ec.fieldContext_HiringJob_user(ctx, field)
 			case "status":
@@ -40709,7 +40709,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "team_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_team"}
+	fieldsInOrder := [...]string{"name", "hiring_team_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -40724,11 +40724,11 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "team_ids":
+		case "hiring_team_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_ids"))
-			it.TeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_ids"))
+			it.HiringTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40780,11 +40780,11 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "for_team":
+		case "for_hiring_team":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("for_team"))
-			it.ForTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("for_hiring_team"))
+			it.ForHiringTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41689,7 +41689,7 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by", "priority", "entity_skill_records"}
+	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "created_by", "priority", "entity_skill_records"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41768,11 +41768,11 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "team_id":
+		case "hiring_team_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
-			it.TeamID, err = ec.unmarshalNID2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
+			it.HiringTeamID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43129,7 +43129,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "team_id", "created_by", "priority", "entity_skill_records"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "created_by", "priority", "entity_skill_records"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43200,11 +43200,11 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "team_id":
+		case "hiring_team_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("team_id"))
-			it.TeamID, err = ec.unmarshalNID2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
+			it.HiringTeamID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47060,7 +47060,7 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
-		case "team":
+		case "hiring_team":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -47069,7 +47069,7 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._HiringJob_team(ctx, field, obj)
+				res = ec._HiringJob_hiring_team(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -53870,6 +53870,10 @@ func (ec *executionContext) marshalNHiringJobStatus2trecᚋentᚐHiringJobStatus
 	return v
 }
 
+func (ec *executionContext) marshalNHiringTeam2trecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeam) graphql.Marshaler {
+	return ec._HiringTeam(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeam) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -55553,10 +55557,6 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNTeam2trecᚋentᚐTeam(ctx context.Context, sel ast.SelectionSet, v ent.Team) graphql.Marshaler {
-	return ec._Team(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNTeam2ᚖtrecᚋentᚐTeam(ctx context.Context, sel ast.SelectionSet, v *ent.Team) graphql.Marshaler {
