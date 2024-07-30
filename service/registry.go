@@ -66,7 +66,7 @@ type serviceImpl struct {
 	reportService               ReportService
 	outgoingEmailService        OutgoingEmailService
 	hiringTeamService           HiringTeamService
-	recTeamService           		RecTeamService
+	recTeamService              RecTeamService
 }
 
 // NewService creates a new Service.
@@ -209,5 +209,5 @@ func (i serviceImpl) HiringTeam() HiringTeamService {
 }
 
 func (i serviceImpl) RecTeam() RecTeamService {
-  return i.recTeamService
+	return i.recTeamService
 }

@@ -193,7 +193,7 @@ func (r *RepoImpl) HiringTeamApprover() HiringTeamApproverRepository {
 }
 
 func (r *RepoImpl) RecTeam() RecTeamRepository {
-  return r.recTeam
+	return r.recTeam
 }
 
 // DoInTx executes the given function in a transaction.

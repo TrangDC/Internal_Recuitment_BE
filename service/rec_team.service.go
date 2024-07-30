@@ -18,7 +18,6 @@ type RecTeamService interface {
 }
 
 type recTeamSvcImpl struct {
-	userSvcImpl  UserService
 	repoRegistry repository.Repository
 	dtoRegistry  dto.Dto
 	logger       *zap.Logger

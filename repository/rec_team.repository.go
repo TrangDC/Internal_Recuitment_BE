@@ -107,26 +107,22 @@ func (rps *recTeamRepoImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.
 func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, leaderID uuid.UUID) (error, error) {
 	query := rps.BuildQuery().Where(recteam.NameEqualFold(strings.TrimSpace(name)))
 	if recTeamID != uuid.Nil {
-			query = query.Where(recteam.IDNEQ(recTeamID))
+		query = query.Where(recteam.IDNEQ(recTeamID))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	if isExist {
-			return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
+		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
 	}
-
 	query = rps.BuildQuery().Where(recteam.LeaderID(leaderID))
 	isExist, err = rps.BuildExist(ctx, query)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	if isExist {
-			return fmt.Errorf("model.rec_teams.validation.is_leader_in_another_rec_team"), nil
+		return fmt.Errorf("model.rec_teams.validation.is_leader_in_another_rec_team"), nil
 	}
-
 	return nil, nil
 }
-
-
