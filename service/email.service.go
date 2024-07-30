@@ -53,6 +53,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 		})
 		subject := strings.ReplaceAll(template.Subject, "{{ gl:receiver_name }}", user.Name)
 		content := strings.ReplaceAll(template.Content, "{{ gl:receiver_name }}", user.Name)
+		signature := strings.ReplaceAll(template.Signature, "{{ gl:receiver_name }}", user.Name)
 		if groupModule.Interview != nil {
 			interviewDate, timeZone := dto.ConvertTimeZone(groupModule.Interview.InterviewDate, user.Location)
 			inteviewStartTime, _ := dto.ConvertTimeZone(groupModule.Interview.StartFrom, user.Location)
@@ -69,6 +70,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 		for key, value := range keywords {
 			subject = strings.ReplaceAll(subject, key, value)
 			content = strings.ReplaceAll(content, key, value)
+			signature = strings.ReplaceAll(signature, key, value)
 		}
 		message := models.MessageInput{
 			ID:        template.ID,
@@ -77,7 +79,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 			Bcc:       template.Bcc,
 			Subject:   subject,
 			Content:   content,
-			Signature: template.Signature,
+			Signature: signature,
 		}
 		messages = append(messages, message)
 	}
@@ -111,12 +113,12 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 		case ent.EmailTemplateSendToJobRequest:
 			requestId := groupModule.HiringJob.CreatedBy
 			sendToIds = append(sendToIds, requestId)
-		case ent.EmailTemplateSendToTeamManager:
+		case ent.EmailTemplateSendToHiringTeamManager:
 			managerIds := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) uuid.UUID {
 				return entity.ID
 			})
 			sendToIds = append(sendToIds, managerIds...)
-		case ent.EmailTemplateSendToTeamMember:
+		case ent.EmailTemplateSendToHiringTeamMember:
 			memberIds := lo.Map(groupModule.HiringTeam.Edges.HiringMemberEdges, func(entity *ent.User, index int) uuid.UUID {
 				return entity.ID
 			})

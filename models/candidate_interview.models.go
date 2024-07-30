@@ -13,7 +13,7 @@ type CandidateInterviewFilter struct {
 	Interviewer       []string   `json:"interviewer"`
 	FromDate          *time.Time `json:"from_date"`
 	ToDate            *time.Time `json:"to_date"`
-	TeamId            *string    `json:"team_id"`
+	HiringTeamId      *string    `json:"hiring_team_id"`
 	HiringJobId       *string    `json:"hiring_job_id"`
 	InterviewDateFrom *time.Time `json:"interview_date_from"`
 	InterviewDateTo   *time.Time `json:"interview_date_to"`

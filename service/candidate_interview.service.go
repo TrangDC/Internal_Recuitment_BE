@@ -708,11 +708,11 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 		})
 		candidateInterviewQuery.Where(candidateinterview.HasInterviewerEdgesWith(user.IDIn(userIds...)))
 	}
-	if input.TeamId != nil {
+	if input.HiringTeamId != nil {
 		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(
 			candidatejob.HasHiringJobEdgeWith(
 				hiringjob.HasHiringTeamEdgeWith(
-					hiringteam.IDEQ(uuid.MustParse(*input.TeamId)),
+					hiringteam.IDEQ(uuid.MustParse(*input.HiringTeamId)),
 				),
 			),
 		))
