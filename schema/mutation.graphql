@@ -11,6 +11,9 @@ type Mutation {
   UpdateHiringTeam(id: ID!, input: UpdateHiringTeamInput!, note: String!): HiringTeamResponse!
   DeleteHiringTeam(id: ID!, note: String!): Boolean!
 
+  # RecTeam
+  CreateRecTeam(input: NewRecTeamInput!, note: String!): RecTeamResponse!
+
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!, note: String!): JobPositionResponse!
   UpdateJobPosition(id: ID!, input: UpdateJobPositionInput!, note: String!): JobPositionResponse!

@@ -28,6 +28,7 @@ type User {
   entity_permissions: [EntityPermission!]!
   roles: [Role!]!
   member_of_hiring_team: HiringTeam
+  member_of_rec_team: RecTeam
 }
 
 type UserSelectionEdge {

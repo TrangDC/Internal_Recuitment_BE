@@ -42,6 +42,11 @@ func (r *userResolver) MemberOfHiringTeam(ctx context.Context, obj *ent.User) (*
 	return obj.Edges.MemberOfHiringTeamEdges, nil
 }
 
+// MemberOfRecTeam is the resolver for the member_of_rec_team field.
+func (r *userResolver) MemberOfRecTeam(ctx context.Context, obj *ent.User) (*ent.RecTeam, error) {
+	return obj.Edges.RecTeams, nil
+}
+
 // User returns graphql1.UserResolver implementation.
 func (r *Resolver) User() graphql1.UserResolver { return &userResolver{r} }
 
