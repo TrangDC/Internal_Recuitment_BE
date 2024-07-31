@@ -47,3 +47,7 @@ f6377c80-7e10-4ad7-8aea-f7fc5287e1fd,model.permissions.email_templates.update,1f
 5907c384-ccda-486c-8ad0-06234b9479db,model.permissions.email_templates.update_status,1f52be18-5692-41fe-ac72-51f7f916aa66,FALSE,FALSE,TRUE,UpdateEmailTemplateStatus,1fbc6505-a361-40bc-ae6b-5ce00d85a8b2,46
 0d263cd5-7e50-4ed0-8681-020717461d1c,model.permissions.email_templates.delete,1f52be18-5692-41fe-ac72-51f7f916aa66,FALSE,FALSE,TRUE,DeleteEmailTemplate,1fbc6505-a361-40bc-ae6b-5ce00d85a8b2,47
 a51952f5-4133-4b11-921a-a8789e765f30,model.permissions.report.view,a4f64ea4-eec8-4268-8677-2951ca453b35,FALSE,FALSE,TRUE,"ReportCandidateLCC,ReportCandidateColumnChart,ReportApplication,ReportApplicationReportTable,ReportCandidateConversionRateChart,ReportCandidateConversionRateTable",,48
+646926e9-ea40-41d2-a6b8-bf415e82d0b0,model.permissions.job_positions.view,67a6e74c-7d2b-4e36-86e5-a9988692e88f,FALSE,FALSE,TRUE,"GetJobPosition,GetAllJobPositions",,49
+e09cde12-a22a-4f0f-80fc-7f061db3dc28,model.permissions.job_positions.create,67a6e74c-7d2b-4e36-86e5-a9988692e88f,FALSE,FALSE,TRUE,CreateJobPosition,646926e9-ea40-41d2-a6b8-bf415e82d0b0,50
+793a3fed-b621-48e9-ad5b-d38dd2ca9154,model.permissions.job_positions.update,67a6e74c-7d2b-4e36-86e5-a9988692e88f,FALSE,FALSE,TRUE,UpdateJobPosition,646926e9-ea40-41d2-a6b8-bf415e82d0b0,51
+c2b763fd-4883-48cc-815d-50978315f8ad,model.permissions.job_positions.delete,67a6e74c-7d2b-4e36-86e5-a9988692e88f,FALSE,FALSE,TRUE,DeleteJobPosition,646926e9-ea40-41d2-a6b8-bf415e82d0b0,52
