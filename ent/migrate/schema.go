@@ -460,6 +460,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "slug", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 	}
 	// HiringTeamsTable holds the schema information for the "hiring_teams" table.
 	HiringTeamsTable = &schema.Table{

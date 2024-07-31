@@ -14297,6 +14297,7 @@ type HiringTeamMutation struct {
 	deleted_at                   *time.Time
 	slug                         *string
 	name                         *string
+	description                  *string
 	clearedFields                map[string]struct{}
 	user_edges                   map[uuid.UUID]struct{}
 	removeduser_edges            map[uuid.UUID]struct{}
@@ -14629,6 +14630,55 @@ func (m *HiringTeamMutation) OldName(ctx context.Context) (v string, err error) 
 // ResetName resets all changes to the "name" field.
 func (m *HiringTeamMutation) ResetName() {
 	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *HiringTeamMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *HiringTeamMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the HiringTeam entity.
+// If the HiringTeam object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringTeamMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *HiringTeamMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[hiringteam.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *HiringTeamMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[hiringteam.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *HiringTeamMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, hiringteam.FieldDescription)
 }
 
 // AddUserEdgeIDs adds the "user_edges" edge to the User entity by ids.
@@ -14974,7 +15024,7 @@ func (m *HiringTeamMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringTeamMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, hiringteam.FieldCreatedAt)
 	}
@@ -14989,6 +15039,9 @@ func (m *HiringTeamMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, hiringteam.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, hiringteam.FieldDescription)
 	}
 	return fields
 }
@@ -15008,6 +15061,8 @@ func (m *HiringTeamMutation) Field(name string) (ent.Value, bool) {
 		return m.Slug()
 	case hiringteam.FieldName:
 		return m.Name()
+	case hiringteam.FieldDescription:
+		return m.Description()
 	}
 	return nil, false
 }
@@ -15027,6 +15082,8 @@ func (m *HiringTeamMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldSlug(ctx)
 	case hiringteam.FieldName:
 		return m.OldName(ctx)
+	case hiringteam.FieldDescription:
+		return m.OldDescription(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringTeam field %s", name)
 }
@@ -15071,6 +15128,13 @@ func (m *HiringTeamMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
+	case hiringteam.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringTeam field %s", name)
 }
@@ -15107,6 +15171,9 @@ func (m *HiringTeamMutation) ClearedFields() []string {
 	if m.FieldCleared(hiringteam.FieldDeletedAt) {
 		fields = append(fields, hiringteam.FieldDeletedAt)
 	}
+	if m.FieldCleared(hiringteam.FieldDescription) {
+		fields = append(fields, hiringteam.FieldDescription)
+	}
 	return fields
 }
 
@@ -15126,6 +15193,9 @@ func (m *HiringTeamMutation) ClearField(name string) error {
 		return nil
 	case hiringteam.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case hiringteam.FieldDescription:
+		m.ClearDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringTeam nullable field %s", name)
@@ -15149,6 +15219,9 @@ func (m *HiringTeamMutation) ResetField(name string) error {
 		return nil
 	case hiringteam.FieldName:
 		m.ResetName()
+		return nil
+	case hiringteam.FieldDescription:
+		m.ResetDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringTeam field %s", name)

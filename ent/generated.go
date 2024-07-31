@@ -608,9 +608,10 @@ type NewHiringJobInput struct {
 }
 
 type NewHiringTeamInput struct {
-	Name      string                     `json:"name"`
-	Members   []string                   `json:"members"`
-	Approvers []*HiringTeamApproverInput `json:"approvers"`
+	Name        string                     `json:"name"`
+	Members     []string                   `json:"members"`
+	Approvers   []*HiringTeamApproverInput `json:"approvers"`
+	Description string                     `json:"description"`
 }
 
 type NewJobPositionInput struct {
@@ -954,9 +955,10 @@ type UpdateHiringJobInput struct {
 }
 
 type UpdateHiringTeamInput struct {
-	Name      string                     `json:"name"`
-	Members   []string                   `json:"members"`
-	Approvers []*HiringTeamApproverInput `json:"approvers"`
+	Name        string                     `json:"name"`
+	Members     []string                   `json:"members"`
+	Approvers   []*HiringTeamApproverInput `json:"approvers"`
+	Description string                     `json:"description"`
 }
 
 type UpdateJobPositionInput struct {

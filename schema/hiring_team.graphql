@@ -30,12 +30,14 @@ input NewHiringTeamInput {
   name: String!
   members: [ID!]
   approvers: [HiringTeamApproverInput!]!
+  description: String!
 }
 
 input UpdateHiringTeamInput {
   name: String!
   members: [ID!]
   approvers: [HiringTeamApproverInput!]!
+  description: String!
 }
 
 type HiringTeam {
@@ -46,6 +48,7 @@ type HiringTeam {
   approvers: [HiringTeamApprover!]!
   opening_requests: Int!
   is_able_to_delete: Boolean!
+  description: String!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

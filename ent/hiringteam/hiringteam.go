@@ -21,6 +21,8 @@ const (
 	FieldSlug = "slug"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
 	// EdgeUserEdges holds the string denoting the user_edges edge name in mutations.
 	EdgeUserEdges = "user_edges"
 	// EdgeHiringTeamJobEdges holds the string denoting the hiring_team_job_edges edge name in mutations.
@@ -83,6 +85,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldSlug,
 	FieldName,
+	FieldDescription,
 }
 
 var (
@@ -111,4 +114,6 @@ var (
 	SlugValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
 )

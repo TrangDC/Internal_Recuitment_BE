@@ -16,6 +16,7 @@ type HiringTeam struct {
 func (HiringTeam) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
+		field.String("description").MaxLen(512).Optional(),
 	}
 }
 
