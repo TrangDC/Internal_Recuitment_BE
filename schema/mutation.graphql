@@ -13,6 +13,7 @@ type Mutation {
 
   # RecTeam
   CreateRecTeam(input: NewRecTeamInput!, note: String!): RecTeamResponse!
+  UpdateRecTeam(id: ID!, input: UpdateRecTeamInput!, note: String!): RecTeamResponse!
   DeleteRecTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition

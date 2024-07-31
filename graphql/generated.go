@@ -641,6 +641,7 @@ type ComplexityRoot struct {
 		UpdateHiringJobStatus             func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
 		UpdateHiringTeam                  func(childComplexity int, id string, input ent.UpdateHiringTeamInput, note string) int
 		UpdateJobPosition                 func(childComplexity int, id string, input ent.UpdateJobPositionInput, note string) int
+		UpdateRecTeam                     func(childComplexity int, id string, input ent.UpdateRecTeamInput, note string) int
 		UpdateRole                        func(childComplexity int, id string, input ent.UpdateRoleInput, note string) int
 		UpdateSkill                       func(childComplexity int, id string, input ent.UpdateSkillInput, note string) int
 		UpdateSkillType                   func(childComplexity int, id string, input ent.UpdateSkillTypeInput, note string) int
@@ -1129,6 +1130,7 @@ type MutationResolver interface {
 	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error)
+	UpdateRecTeam(ctx context.Context, id string, input ent.UpdateRecTeamInput, note string) (*ent.RecTeamResponse, error)
 	DeleteRecTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
 	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
@@ -3914,6 +3916,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateJobPosition(childComplexity, args["id"].(string), args["input"].(ent.UpdateJobPositionInput), args["note"].(string)), true
 
+	case "Mutation.UpdateRecTeam":
+		if e.complexity.Mutation.UpdateRecTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateRecTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateRecTeam(childComplexity, args["id"].(string), args["input"].(ent.UpdateRecTeamInput), args["note"].(string)), true
+
 	case "Mutation.UpdateRole":
 		if e.complexity.Mutation.UpdateRole == nil {
 			break
@@ -5629,6 +5643,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateHiringJobInput,
 		ec.unmarshalInputUpdateHiringTeamInput,
 		ec.unmarshalInputUpdateJobPositionInput,
+		ec.unmarshalInputUpdateRecTeamInput,
 		ec.unmarshalInputUpdateRoleInput,
 		ec.unmarshalInputUpdateSkillInput,
 		ec.unmarshalInputUpdateSkillTypeInput,
@@ -6982,6 +6997,7 @@ type JobPositionSelectionResponseGetAll {
 
   # RecTeam
   CreateRecTeam(input: NewRecTeamInput!, note: String!): RecTeamResponse!
+  UpdateRecTeam(id: ID!, input: UpdateRecTeamInput!, note: String!): RecTeamResponse!
   DeleteRecTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition
@@ -7171,6 +7187,12 @@ enum PermissionGroupType {
 # Path: schema/query.graphql
 `, BuiltIn: false},
 	{Name: "../schema/rec_team.graphql", Input: `input NewRecTeamInput {
+    name: String!
+    description: String!
+    leader_id: ID!
+}
+
+input UpdateRecTeamInput {
     name: String!
     description: String!
     leader_id: ID!
@@ -8757,6 +8779,39 @@ func (ec *executionContext) field_Mutation_UpdateJobPosition_args(ctx context.Co
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg1, err = ec.unmarshalNUpdateJobPositionInput2trecᚋentᚐUpdateJobPositionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateRecTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateRecTeamInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateRecTeamInput2trecᚋentᚐUpdateRecTeamInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -25876,6 +25931,65 @@ func (ec *executionContext) fieldContext_Mutation_CreateRecTeam(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_CreateRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateRecTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateRecTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateRecTeam(rctx, fc.Args["id"].(string), fc.Args["input"].(ent.UpdateRecTeamInput), fc.Args["note"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeamResponse)
+	fc.Result = res
+	return ec.marshalNRecTeamResponse2ᚖtrecᚋentᚐRecTeamResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateRecTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_RecTeamResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeamResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -43733,6 +43847,50 @@ func (ec *executionContext) unmarshalInputUpdateJobPositionInput(ctx context.Con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateRecTeamInput(ctx context.Context, obj interface{}) (ent.UpdateRecTeamInput, error) {
+	var it ent.UpdateRecTeamInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "leader_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "leader_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("leader_id"))
+			it.LeaderID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateRoleInput(ctx context.Context, obj interface{}) (ent.UpdateRoleInput, error) {
 	var it ent.UpdateRoleInput
 	asMap := map[string]interface{}{}
@@ -48741,6 +48899,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_CreateRecTeam(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateRecTeam":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateRecTeam(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -56273,6 +56440,11 @@ func (ec *executionContext) unmarshalNUpdateHiringTeamInput2trecᚋentᚐUpdateH
 
 func (ec *executionContext) unmarshalNUpdateJobPositionInput2trecᚋentᚐUpdateJobPositionInput(ctx context.Context, v interface{}) (ent.UpdateJobPositionInput, error) {
 	res, err := ec.unmarshalInputUpdateJobPositionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateRecTeamInput2trecᚋentᚐUpdateRecTeamInput(ctx context.Context, v interface{}) (ent.UpdateRecTeamInput, error) {
+	res, err := ec.unmarshalInputUpdateRecTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
