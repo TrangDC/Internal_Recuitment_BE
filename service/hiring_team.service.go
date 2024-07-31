@@ -80,7 +80,7 @@ func (svc *hiringTeamSvcImpl) CreateHiringTeam(ctx context.Context, input ent.Ne
 		if err != nil {
 			return err
 		}
-		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, input.Approvers, result.ID, make([]*ent.HiringTeamApprover, 0))
+		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, repoRegistry, input.Approvers, result.ID, make([]*ent.HiringTeamApprover, 0))
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -137,7 +137,7 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 		if err != nil {
 			return err
 		}
-		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, input.Approvers, hiringTeamID, record.Edges.HiringTeamApprovers)
+		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, repoRegistry, input.Approvers, hiringTeamID, record.Edges.HiringTeamApprovers)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())

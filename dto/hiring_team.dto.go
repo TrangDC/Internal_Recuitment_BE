@@ -75,6 +75,7 @@ func (d hiringTeamDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringTeam, newRecord
 		}
 	}
 	entity = d.teamMemberAuditTrailUpdate(oldRecord, newRecord, entity)
+	entity = d.teamApproverAuditTrailUpdate(oldRecord.Edges.HiringTeamApprovers, newRecord.Edges.HiringTeamApprovers, entity)
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
@@ -98,6 +99,7 @@ func (d hiringTeamDtoImpl) recordAudit(record *ent.HiringTeam) []interface{} {
 		})
 	}
 	entity = d.teamMemberAuditTrail(record, entity)
+	entity = d.teamApproverAuditTrail(record.Edges.HiringTeamApprovers, entity)
 	return entity
 }
 
@@ -134,6 +136,49 @@ func (d hiringTeamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.HiringTeam,
 			},
 		})
 	}
+	return atInterface
+}
+
+func (d hiringTeamDtoImpl) teamApproverAuditTrail(teamApprovers []*ent.HiringTeamApprover, atInterface []interface{}) []interface{} {
+	teamApproversAuditTrail := lo.Map(teamApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
+		return models.HiringTeamApproverAuditTrail{
+			Name:    approver.Edges.User.Name,
+			OrderID: approver.OrderID,
+		}
+	})
+	auditTrailJSON, _ := json.Marshal(teamApproversAuditTrail)
+	atInterface = append(atInterface, models.AuditTrailCreateDelete{
+		Field: "model.hiring_teams.approvers",
+		Value: string(auditTrailJSON),
+	})
+	return atInterface
+}
+
+func (d hiringTeamDtoImpl) teamApproverAuditTrailUpdate(oldApprovers []*ent.HiringTeamApprover, newApprovers []*ent.HiringTeamApprover, atInterface []interface{}) []interface{} {
+	if len(oldApprovers) == len(newApprovers) && reflect.DeepEqual(oldApprovers, newApprovers) {
+		return atInterface
+	}
+	oldApproversAuditTrail := lo.Map(oldApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
+		return models.HiringTeamApproverAuditTrail{
+			Name:    approver.Edges.User.Name,
+			OrderID: approver.OrderID,
+		}
+	})
+	newApproversAuditTrail := lo.Map(newApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
+		return models.HiringTeamApproverAuditTrail{
+			Name:    approver.Edges.User.Name,
+			OrderID: approver.OrderID,
+		}
+	})
+	oldApproversJSON, _ := json.Marshal(oldApproversAuditTrail)
+	newApproversJSON, _ := json.Marshal(newApproversAuditTrail)
+	atInterface = append(atInterface, models.AuditTrailUpdate{
+		Field: "model.hiring_teams.approvers",
+		Value: models.ValueChange{
+			OldValue: string(oldApproversJSON),
+			NewValue: string(newApproversJSON),
+		},
+	})
 	return atInterface
 }
 
