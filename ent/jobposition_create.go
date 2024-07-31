@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/hiringjob"
 	"trec/ent/jobposition"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -87,6 +88,21 @@ func (jpc *JobPositionCreate) SetNillableDescription(s *string) *JobPositionCrea
 func (jpc *JobPositionCreate) SetID(u uuid.UUID) *JobPositionCreate {
 	jpc.mutation.SetID(u)
 	return jpc
+}
+
+// AddHiringJobPositionEdgeIDs adds the "hiring_job_position_edges" edge to the HiringJob entity by IDs.
+func (jpc *JobPositionCreate) AddHiringJobPositionEdgeIDs(ids ...uuid.UUID) *JobPositionCreate {
+	jpc.mutation.AddHiringJobPositionEdgeIDs(ids...)
+	return jpc
+}
+
+// AddHiringJobPositionEdges adds the "hiring_job_position_edges" edges to the HiringJob entity.
+func (jpc *JobPositionCreate) AddHiringJobPositionEdges(h ...*HiringJob) *JobPositionCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return jpc.AddHiringJobPositionEdgeIDs(ids...)
 }
 
 // Mutation returns the JobPositionMutation object of the builder.
@@ -245,6 +261,25 @@ func (jpc *JobPositionCreate) createSpec() (*JobPosition, *sqlgraph.CreateSpec) 
 	if value, ok := jpc.mutation.Description(); ok {
 		_spec.SetField(jobposition.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if nodes := jpc.mutation.HiringJobPositionEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

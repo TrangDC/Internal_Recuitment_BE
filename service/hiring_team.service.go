@@ -168,7 +168,7 @@ func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
 	if len(team.Edges.HiringTeamJobEdges) != 0 {
-		return util.WrapGQLError(ctx, "model.hiring_teams.validation.cannot_delete_team", http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return util.WrapGQLError(ctx, "model.hiring_teams.validation.hiring_job_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	memberIds := lo.Map(team.Edges.UserEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID

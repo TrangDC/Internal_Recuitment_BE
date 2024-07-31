@@ -4,8 +4,10 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/hiringjob"
 	"trec/ent/jobposition"
 	"trec/ent/predicate"
 
@@ -18,14 +20,16 @@ import (
 // JobPositionQuery is the builder for querying JobPosition entities.
 type JobPositionQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.JobPosition
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*JobPosition) error
+	limit                           *int
+	offset                          *int
+	unique                          *bool
+	order                           []OrderFunc
+	fields                          []string
+	predicates                      []predicate.JobPosition
+	withHiringJobPositionEdges      *HiringJobQuery
+	modifiers                       []func(*sql.Selector)
+	loadTotal                       []func(context.Context, []*JobPosition) error
+	withNamedHiringJobPositionEdges map[string]*HiringJobQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +64,28 @@ func (jpq *JobPositionQuery) Unique(unique bool) *JobPositionQuery {
 func (jpq *JobPositionQuery) Order(o ...OrderFunc) *JobPositionQuery {
 	jpq.order = append(jpq.order, o...)
 	return jpq
+}
+
+// QueryHiringJobPositionEdges chains the current query on the "hiring_job_position_edges" edge.
+func (jpq *JobPositionQuery) QueryHiringJobPositionEdges() *HiringJobQuery {
+	query := &HiringJobQuery{config: jpq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := jpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := jpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobposition.Table, jobposition.FieldID, selector),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, jobposition.HiringJobPositionEdgesTable, jobposition.HiringJobPositionEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(jpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first JobPosition entity from the query.
@@ -238,16 +264,28 @@ func (jpq *JobPositionQuery) Clone() *JobPositionQuery {
 		return nil
 	}
 	return &JobPositionQuery{
-		config:     jpq.config,
-		limit:      jpq.limit,
-		offset:     jpq.offset,
-		order:      append([]OrderFunc{}, jpq.order...),
-		predicates: append([]predicate.JobPosition{}, jpq.predicates...),
+		config:                     jpq.config,
+		limit:                      jpq.limit,
+		offset:                     jpq.offset,
+		order:                      append([]OrderFunc{}, jpq.order...),
+		predicates:                 append([]predicate.JobPosition{}, jpq.predicates...),
+		withHiringJobPositionEdges: jpq.withHiringJobPositionEdges.Clone(),
 		// clone intermediate query.
 		sql:    jpq.sql.Clone(),
 		path:   jpq.path,
 		unique: jpq.unique,
 	}
+}
+
+// WithHiringJobPositionEdges tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_job_position_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (jpq *JobPositionQuery) WithHiringJobPositionEdges(opts ...func(*HiringJobQuery)) *JobPositionQuery {
+	query := &HiringJobQuery{config: jpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	jpq.withHiringJobPositionEdges = query
+	return jpq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +359,11 @@ func (jpq *JobPositionQuery) prepareQuery(ctx context.Context) error {
 
 func (jpq *JobPositionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JobPosition, error) {
 	var (
-		nodes = []*JobPosition{}
-		_spec = jpq.querySpec()
+		nodes       = []*JobPosition{}
+		_spec       = jpq.querySpec()
+		loadedTypes = [1]bool{
+			jpq.withHiringJobPositionEdges != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JobPosition).scanValues(nil, columns)
@@ -330,6 +371,7 @@ func (jpq *JobPositionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &JobPosition{config: jpq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(jpq.modifiers) > 0 {
@@ -344,12 +386,56 @@ func (jpq *JobPositionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := jpq.withHiringJobPositionEdges; query != nil {
+		if err := jpq.loadHiringJobPositionEdges(ctx, query, nodes,
+			func(n *JobPosition) { n.Edges.HiringJobPositionEdges = []*HiringJob{} },
+			func(n *JobPosition, e *HiringJob) {
+				n.Edges.HiringJobPositionEdges = append(n.Edges.HiringJobPositionEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range jpq.withNamedHiringJobPositionEdges {
+		if err := jpq.loadHiringJobPositionEdges(ctx, query, nodes,
+			func(n *JobPosition) { n.appendNamedHiringJobPositionEdges(name) },
+			func(n *JobPosition, e *HiringJob) { n.appendNamedHiringJobPositionEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range jpq.loadTotal {
 		if err := jpq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (jpq *JobPositionQuery) loadHiringJobPositionEdges(ctx context.Context, query *HiringJobQuery, nodes []*JobPosition, init func(*JobPosition), assign func(*JobPosition, *HiringJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*JobPosition)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(jobposition.HiringJobPositionEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.JobPositionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "job_position_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (jpq *JobPositionQuery) sqlCount(ctx context.Context) (int, error) {
@@ -453,6 +539,20 @@ func (jpq *JobPositionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedHiringJobPositionEdges tells the query-builder to eager-load the nodes that are connected to the "hiring_job_position_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (jpq *JobPositionQuery) WithNamedHiringJobPositionEdges(name string, opts ...func(*HiringJobQuery)) *JobPositionQuery {
+	query := &HiringJobQuery{config: jpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if jpq.withNamedHiringJobPositionEdges == nil {
+		jpq.withNamedHiringJobPositionEdges = make(map[string]*HiringJobQuery)
+	}
+	jpq.withNamedHiringJobPositionEdges[name] = query
+	return jpq
 }
 
 // JobPositionGroupBy is the group-by builder for JobPosition entities.

@@ -605,6 +605,7 @@ type NewHiringJobInput struct {
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+	JobPositionID      string                    `json:"job_position_id"`
 }
 
 type NewHiringTeamInput struct {
@@ -952,6 +953,7 @@ type UpdateHiringJobInput struct {
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
+	JobPositionID      string                    `json:"job_position_id"`
 }
 
 type UpdateHiringTeamInput struct {

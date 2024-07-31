@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -545,6 +546,34 @@ func DescriptionEqualFold(v string) predicate.JobPosition {
 func DescriptionContainsFold(v string) predicate.JobPosition {
 	return predicate.JobPosition(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
+	})
+}
+
+// HasHiringJobPositionEdges applies the HasEdge predicate on the "hiring_job_position_edges" edge.
+func HasHiringJobPositionEdges() predicate.JobPosition {
+	return predicate.JobPosition(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobPositionEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobPositionEdgesTable, HiringJobPositionEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHiringJobPositionEdgesWith applies the HasEdge predicate on the "hiring_job_position_edges" edge with a given conditions (other predicates).
+func HasHiringJobPositionEdgesWith(preds ...predicate.HiringJob) predicate.JobPosition {
+	return predicate.JobPosition(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobPositionEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobPositionEdgesTable, HiringJobPositionEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

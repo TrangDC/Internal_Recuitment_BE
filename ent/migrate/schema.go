@@ -430,6 +430,7 @@ var (
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 		{Name: "priority", Type: field.TypeInt, Default: 4},
 		{Name: "hiring_team_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "job_position_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// HiringJobsTable holds the schema information for the "hiring_jobs" table.
@@ -445,8 +446,14 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "hiring_jobs_users_hiring_owner",
+				Symbol:     "hiring_jobs_job_positions_hiring_job_position_edges",
 				Columns:    []*schema.Column{HiringJobsColumns[17]},
+				RefColumns: []*schema.Column{JobPositionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "hiring_jobs_users_hiring_owner",
+				Columns:    []*schema.Column{HiringJobsColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -836,7 +843,8 @@ func init() {
 	EntitySkillsTable.ForeignKeys[1].RefTable = HiringJobsTable
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = HiringTeamsTable
-	HiringJobsTable.ForeignKeys[1].RefTable = UsersTable
+	HiringJobsTable.ForeignKeys[1].RefTable = JobPositionsTable
+	HiringJobsTable.ForeignKeys[2].RefTable = UsersTable
 	HiringTeamApproversTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamApproversTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable

@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatejobstep"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/jobposition"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/user"
@@ -90,6 +91,10 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 				},
 			)
 		},
+	).WithJobPositionEdge(
+		func(query *ent.JobPositionQuery) {
+			query.Where(jobposition.DeletedAtIsNil())
+		},
 	)
 }
 
@@ -141,6 +146,7 @@ func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.Ne
 		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
+		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
 		Save(ctx)
 }
 
@@ -158,6 +164,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
+		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
 		Save(ctx)
 }
 

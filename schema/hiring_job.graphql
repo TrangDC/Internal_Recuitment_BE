@@ -75,6 +75,7 @@ input NewHiringJobInput {
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
+  job_position_id: ID!
 }
 
 input UpdateHiringJobInput {
@@ -90,6 +91,7 @@ input UpdateHiringJobInput {
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
+  job_position_id: ID!
 }
 
 type HiringJob {
@@ -103,6 +105,8 @@ type HiringJob {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
+  job_position: JobPosition!
+  job_position_id: ID!
   hiring_team: HiringTeam!
   user: User!
   status: HiringJobStatus!

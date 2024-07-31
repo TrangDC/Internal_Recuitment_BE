@@ -27,6 +27,31 @@ type JobPosition struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the JobPositionQuery when eager-loading is set.
+	Edges JobPositionEdges `json:"edges"`
+}
+
+// JobPositionEdges holds the relations/edges for other nodes in the graph.
+type JobPositionEdges struct {
+	// HiringJobPositionEdges holds the value of the hiring_job_position_edges edge.
+	HiringJobPositionEdges []*HiringJob `json:"hiring_job_position_edges,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedHiringJobPositionEdges map[string][]*HiringJob
+}
+
+// HiringJobPositionEdgesOrErr returns the HiringJobPositionEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e JobPositionEdges) HiringJobPositionEdgesOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[0] {
+		return e.HiringJobPositionEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_job_position_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +121,11 @@ func (jp *JobPosition) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryHiringJobPositionEdges queries the "hiring_job_position_edges" edge of the JobPosition entity.
+func (jp *JobPosition) QueryHiringJobPositionEdges() *HiringJobQuery {
+	return (&JobPositionClient{config: jp.config}).QueryHiringJobPositionEdges(jp)
+}
+
 // Update returns a builder for updating this JobPosition.
 // Note that you need to call JobPosition.Unwrap() before calling this method if this JobPosition
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -135,6 +165,30 @@ func (jp *JobPosition) String() string {
 	builder.WriteString(jp.Description)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedHiringJobPositionEdges returns the HiringJobPositionEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (jp *JobPosition) NamedHiringJobPositionEdges(name string) ([]*HiringJob, error) {
+	if jp.Edges.namedHiringJobPositionEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := jp.Edges.namedHiringJobPositionEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (jp *JobPosition) appendNamedHiringJobPositionEdges(name string, edges ...*HiringJob) {
+	if jp.Edges.namedHiringJobPositionEdges == nil {
+		jp.Edges.namedHiringJobPositionEdges = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		jp.Edges.namedHiringJobPositionEdges[name] = []*HiringJob{}
+	} else {
+		jp.Edges.namedHiringJobPositionEdges[name] = append(jp.Edges.namedHiringJobPositionEdges[name], edges...)
+	}
 }
 
 // JobPositions is a parsable slice of JobPosition.
