@@ -155,9 +155,6 @@ func (d hiringTeamDtoImpl) teamApproverAuditTrail(teamApprovers []*ent.HiringTea
 }
 
 func (d hiringTeamDtoImpl) teamApproverAuditTrailUpdate(oldApprovers []*ent.HiringTeamApprover, newApprovers []*ent.HiringTeamApprover, atInterface []interface{}) []interface{} {
-	if len(oldApprovers) == len(newApprovers) && reflect.DeepEqual(oldApprovers, newApprovers) {
-		return atInterface
-	}
 	oldApproversAuditTrail := lo.Map(oldApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
 		return models.HiringTeamApproverAuditTrail{
 			Name:    approver.Edges.User.Name,
@@ -170,6 +167,9 @@ func (d hiringTeamDtoImpl) teamApproverAuditTrailUpdate(oldApprovers []*ent.Hiri
 			OrderID: approver.OrderID,
 		}
 	})
+	if len(oldApproversAuditTrail) == len(newApproversAuditTrail) && reflect.DeepEqual(oldApproversAuditTrail, newApproversAuditTrail) {
+		return atInterface
+	}
 	oldApproversJSON, _ := json.Marshal(oldApproversAuditTrail)
 	newApproversJSON, _ := json.Marshal(newApproversAuditTrail)
 	atInterface = append(atInterface, models.AuditTrailUpdate{
