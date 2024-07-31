@@ -968,6 +968,12 @@ type UpdateJobPositionInput struct {
 	Description string `json:"description"`
 }
 
+type UpdateRecTeamInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	LeaderID    string `json:"leader_id"`
+}
+
 type UpdateRoleInput struct {
 	Name              *string                     `json:"name"`
 	Description       *string                     `json:"description"`

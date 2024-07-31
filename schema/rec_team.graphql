@@ -4,6 +4,12 @@ input NewRecTeamInput {
     leader_id: ID!
 }
 
+input UpdateRecTeamInput {
+    name: String!
+    description: String!
+    leader_id: ID!
+}
+
 type RecTeam {
     id: ID!
     name: String!

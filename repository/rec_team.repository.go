@@ -15,6 +15,7 @@ import (
 type RecTeamRepository interface {
 	//mutation
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput) (*ent.RecTeam, error)
+	UpdateRecTeam(ctx context.Context, record *ent.RecTeam, input ent.UpdateRecTeamInput) (*ent.RecTeam, error)
 	DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error)
 
 	// query
@@ -108,6 +109,17 @@ func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecT
 	return create.Save(ctx)
 }
 
+func (rps *recTeamRepoImpl) UpdateRecTeam(ctx context.Context, record *ent.RecTeam, input ent.UpdateRecTeamInput) (*ent.RecTeam, error) {
+	update := rps.BuildUpdateOne(ctx, record).
+		SetName(strings.TrimSpace(input.Name)).
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
+	if record.LeaderID != uuid.MustParse(input.LeaderID) {
+		update = update.AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
+	}
+	return rps.BuildSaveUpdateOne(ctx, update)
+}
+
 func (rps *recTeamRepoImpl) DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error) {
 	delete := rps.BuildUpdateOne(ctx, record).
 		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).
@@ -134,7 +146,9 @@ func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID,
 	if isExist {
 		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
 	}
-	query = rps.BuildQuery().Where(recteam.HasRecMemberEdgesWith(user.ID(userID)), recteam.HasRecLeaderEdgeWith(user.ID(userID)))
+	query = rps.BuildQuery().
+		Where(recteam.Or(recteam.HasRecMemberEdgesWith(user.ID(userID)), recteam.HasRecLeaderEdgeWith(user.ID(userID)))).
+		Where(recteam.IDNEQ(recTeamID))
 	isExist, err = rps.BuildExist(ctx, query)
 	if err != nil {
 		return nil, err
