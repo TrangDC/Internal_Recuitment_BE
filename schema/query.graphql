@@ -3,6 +3,9 @@ type Query {
   GetHiringTeam(id: ID!): HiringTeamResponse!
   GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
 
+  # RecTeam
+  GetAllRecTeams(pagination: PaginationInput, filter: RecTeamFilter, freeWord: RecTeamFreeWord, orderBy: RecTeamOrderBy): RecTeamResponseGetAll!
+
   # User
   GetUser(id: ID!): UserResponse!
   GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!

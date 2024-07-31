@@ -804,14 +804,14 @@ func (u *User) HiringTeamEdges(ctx context.Context) (result []*HiringTeam, err e
 	return result, err
 }
 
-func (u *User) LedRecTeams(ctx context.Context) (result []*RecTeam, err error) {
+func (u *User) LeadRecTeams(ctx context.Context) (result []*RecTeam, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedLedRecTeams(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = u.NamedLeadRecTeams(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = u.Edges.LedRecTeamsOrErr()
+		result, err = u.Edges.LeadRecTeamsOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = u.QueryLedRecTeams().All(ctx)
+		result, err = u.QueryLeadRecTeams().All(ctx)
 	}
 	return result, err
 }

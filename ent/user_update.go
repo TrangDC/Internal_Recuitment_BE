@@ -325,19 +325,19 @@ func (uu *UserUpdate) AddHiringTeamEdges(h ...*HiringTeam) *UserUpdate {
 	return uu.AddHiringTeamEdgeIDs(ids...)
 }
 
-// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by IDs.
-func (uu *UserUpdate) AddLedRecTeamIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddLedRecTeamIDs(ids...)
+// AddLeadRecTeamIDs adds the "lead_rec_teams" edge to the RecTeam entity by IDs.
+func (uu *UserUpdate) AddLeadRecTeamIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddLeadRecTeamIDs(ids...)
 	return uu
 }
 
-// AddLedRecTeams adds the "led_rec_teams" edges to the RecTeam entity.
-func (uu *UserUpdate) AddLedRecTeams(r ...*RecTeam) *UserUpdate {
+// AddLeadRecTeams adds the "lead_rec_teams" edges to the RecTeam entity.
+func (uu *UserUpdate) AddLeadRecTeams(r ...*RecTeam) *UserUpdate {
 	ids := make([]uuid.UUID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return uu.AddLedRecTeamIDs(ids...)
+	return uu.AddLeadRecTeamIDs(ids...)
 }
 
 // SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
@@ -668,25 +668,25 @@ func (uu *UserUpdate) RemoveHiringTeamEdges(h ...*HiringTeam) *UserUpdate {
 	return uu.RemoveHiringTeamEdgeIDs(ids...)
 }
 
-// ClearLedRecTeams clears all "led_rec_teams" edges to the RecTeam entity.
-func (uu *UserUpdate) ClearLedRecTeams() *UserUpdate {
-	uu.mutation.ClearLedRecTeams()
+// ClearLeadRecTeams clears all "lead_rec_teams" edges to the RecTeam entity.
+func (uu *UserUpdate) ClearLeadRecTeams() *UserUpdate {
+	uu.mutation.ClearLeadRecTeams()
 	return uu
 }
 
-// RemoveLedRecTeamIDs removes the "led_rec_teams" edge to RecTeam entities by IDs.
-func (uu *UserUpdate) RemoveLedRecTeamIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveLedRecTeamIDs(ids...)
+// RemoveLeadRecTeamIDs removes the "lead_rec_teams" edge to RecTeam entities by IDs.
+func (uu *UserUpdate) RemoveLeadRecTeamIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveLeadRecTeamIDs(ids...)
 	return uu
 }
 
-// RemoveLedRecTeams removes "led_rec_teams" edges to RecTeam entities.
-func (uu *UserUpdate) RemoveLedRecTeams(r ...*RecTeam) *UserUpdate {
+// RemoveLeadRecTeams removes "lead_rec_teams" edges to RecTeam entities.
+func (uu *UserUpdate) RemoveLeadRecTeams(r ...*RecTeam) *UserUpdate {
 	ids := make([]uuid.UUID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return uu.RemoveLedRecTeamIDs(ids...)
+	return uu.RemoveLeadRecTeamIDs(ids...)
 }
 
 // ClearRecTeams clears the "rec_teams" edge to the RecTeam entity.
@@ -1520,12 +1520,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.LedRecTeamsCleared() {
+	if uu.mutation.LeadRecTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1536,12 +1536,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedLedRecTeamsIDs(); len(nodes) > 0 && !uu.mutation.LedRecTeamsCleared() {
+	if nodes := uu.mutation.RemovedLeadRecTeamsIDs(); len(nodes) > 0 && !uu.mutation.LeadRecTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1555,12 +1555,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.LedRecTeamsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.LeadRecTeamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -2227,19 +2227,19 @@ func (uuo *UserUpdateOne) AddHiringTeamEdges(h ...*HiringTeam) *UserUpdateOne {
 	return uuo.AddHiringTeamEdgeIDs(ids...)
 }
 
-// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by IDs.
-func (uuo *UserUpdateOne) AddLedRecTeamIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddLedRecTeamIDs(ids...)
+// AddLeadRecTeamIDs adds the "lead_rec_teams" edge to the RecTeam entity by IDs.
+func (uuo *UserUpdateOne) AddLeadRecTeamIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddLeadRecTeamIDs(ids...)
 	return uuo
 }
 
-// AddLedRecTeams adds the "led_rec_teams" edges to the RecTeam entity.
-func (uuo *UserUpdateOne) AddLedRecTeams(r ...*RecTeam) *UserUpdateOne {
+// AddLeadRecTeams adds the "lead_rec_teams" edges to the RecTeam entity.
+func (uuo *UserUpdateOne) AddLeadRecTeams(r ...*RecTeam) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return uuo.AddLedRecTeamIDs(ids...)
+	return uuo.AddLeadRecTeamIDs(ids...)
 }
 
 // SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
@@ -2570,25 +2570,25 @@ func (uuo *UserUpdateOne) RemoveHiringTeamEdges(h ...*HiringTeam) *UserUpdateOne
 	return uuo.RemoveHiringTeamEdgeIDs(ids...)
 }
 
-// ClearLedRecTeams clears all "led_rec_teams" edges to the RecTeam entity.
-func (uuo *UserUpdateOne) ClearLedRecTeams() *UserUpdateOne {
-	uuo.mutation.ClearLedRecTeams()
+// ClearLeadRecTeams clears all "lead_rec_teams" edges to the RecTeam entity.
+func (uuo *UserUpdateOne) ClearLeadRecTeams() *UserUpdateOne {
+	uuo.mutation.ClearLeadRecTeams()
 	return uuo
 }
 
-// RemoveLedRecTeamIDs removes the "led_rec_teams" edge to RecTeam entities by IDs.
-func (uuo *UserUpdateOne) RemoveLedRecTeamIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveLedRecTeamIDs(ids...)
+// RemoveLeadRecTeamIDs removes the "lead_rec_teams" edge to RecTeam entities by IDs.
+func (uuo *UserUpdateOne) RemoveLeadRecTeamIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveLeadRecTeamIDs(ids...)
 	return uuo
 }
 
-// RemoveLedRecTeams removes "led_rec_teams" edges to RecTeam entities.
-func (uuo *UserUpdateOne) RemoveLedRecTeams(r ...*RecTeam) *UserUpdateOne {
+// RemoveLeadRecTeams removes "lead_rec_teams" edges to RecTeam entities.
+func (uuo *UserUpdateOne) RemoveLeadRecTeams(r ...*RecTeam) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return uuo.RemoveLedRecTeamIDs(ids...)
+	return uuo.RemoveLeadRecTeamIDs(ids...)
 }
 
 // ClearRecTeams clears the "rec_teams" edge to the RecTeam entity.
@@ -3452,12 +3452,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.LedRecTeamsCleared() {
+	if uuo.mutation.LeadRecTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -3468,12 +3468,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedLedRecTeamsIDs(); len(nodes) > 0 && !uuo.mutation.LedRecTeamsCleared() {
+	if nodes := uuo.mutation.RemovedLeadRecTeamsIDs(); len(nodes) > 0 && !uuo.mutation.LeadRecTeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -3487,12 +3487,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.LedRecTeamsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.LeadRecTeamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

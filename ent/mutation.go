@@ -24141,9 +24141,9 @@ type UserMutation struct {
 	hiring_team_edges                  map[uuid.UUID]struct{}
 	removedhiring_team_edges           map[uuid.UUID]struct{}
 	clearedhiring_team_edges           bool
-	led_rec_teams                      map[uuid.UUID]struct{}
-	removedled_rec_teams               map[uuid.UUID]struct{}
-	clearedled_rec_teams               bool
+	lead_rec_teams                     map[uuid.UUID]struct{}
+	removedlead_rec_teams              map[uuid.UUID]struct{}
+	clearedlead_rec_teams              bool
 	rec_teams                          *uuid.UUID
 	clearedrec_teams                   bool
 	member_of_hiring_team_edges        *uuid.UUID
@@ -25237,58 +25237,58 @@ func (m *UserMutation) ResetHiringTeamEdges() {
 	m.removedhiring_team_edges = nil
 }
 
-// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by ids.
-func (m *UserMutation) AddLedRecTeamIDs(ids ...uuid.UUID) {
-	if m.led_rec_teams == nil {
-		m.led_rec_teams = make(map[uuid.UUID]struct{})
+// AddLeadRecTeamIDs adds the "lead_rec_teams" edge to the RecTeam entity by ids.
+func (m *UserMutation) AddLeadRecTeamIDs(ids ...uuid.UUID) {
+	if m.lead_rec_teams == nil {
+		m.lead_rec_teams = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.led_rec_teams[ids[i]] = struct{}{}
+		m.lead_rec_teams[ids[i]] = struct{}{}
 	}
 }
 
-// ClearLedRecTeams clears the "led_rec_teams" edge to the RecTeam entity.
-func (m *UserMutation) ClearLedRecTeams() {
-	m.clearedled_rec_teams = true
+// ClearLeadRecTeams clears the "lead_rec_teams" edge to the RecTeam entity.
+func (m *UserMutation) ClearLeadRecTeams() {
+	m.clearedlead_rec_teams = true
 }
 
-// LedRecTeamsCleared reports if the "led_rec_teams" edge to the RecTeam entity was cleared.
-func (m *UserMutation) LedRecTeamsCleared() bool {
-	return m.clearedled_rec_teams
+// LeadRecTeamsCleared reports if the "lead_rec_teams" edge to the RecTeam entity was cleared.
+func (m *UserMutation) LeadRecTeamsCleared() bool {
+	return m.clearedlead_rec_teams
 }
 
-// RemoveLedRecTeamIDs removes the "led_rec_teams" edge to the RecTeam entity by IDs.
-func (m *UserMutation) RemoveLedRecTeamIDs(ids ...uuid.UUID) {
-	if m.removedled_rec_teams == nil {
-		m.removedled_rec_teams = make(map[uuid.UUID]struct{})
+// RemoveLeadRecTeamIDs removes the "lead_rec_teams" edge to the RecTeam entity by IDs.
+func (m *UserMutation) RemoveLeadRecTeamIDs(ids ...uuid.UUID) {
+	if m.removedlead_rec_teams == nil {
+		m.removedlead_rec_teams = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.led_rec_teams, ids[i])
-		m.removedled_rec_teams[ids[i]] = struct{}{}
+		delete(m.lead_rec_teams, ids[i])
+		m.removedlead_rec_teams[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedLedRecTeams returns the removed IDs of the "led_rec_teams" edge to the RecTeam entity.
-func (m *UserMutation) RemovedLedRecTeamsIDs() (ids []uuid.UUID) {
-	for id := range m.removedled_rec_teams {
+// RemovedLeadRecTeams returns the removed IDs of the "lead_rec_teams" edge to the RecTeam entity.
+func (m *UserMutation) RemovedLeadRecTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.removedlead_rec_teams {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// LedRecTeamsIDs returns the "led_rec_teams" edge IDs in the mutation.
-func (m *UserMutation) LedRecTeamsIDs() (ids []uuid.UUID) {
-	for id := range m.led_rec_teams {
+// LeadRecTeamsIDs returns the "lead_rec_teams" edge IDs in the mutation.
+func (m *UserMutation) LeadRecTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.lead_rec_teams {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetLedRecTeams resets all changes to the "led_rec_teams" edge.
-func (m *UserMutation) ResetLedRecTeams() {
-	m.led_rec_teams = nil
-	m.clearedled_rec_teams = false
-	m.removedled_rec_teams = nil
+// ResetLeadRecTeams resets all changes to the "lead_rec_teams" edge.
+func (m *UserMutation) ResetLeadRecTeams() {
+	m.lead_rec_teams = nil
+	m.clearedlead_rec_teams = false
+	m.removedlead_rec_teams = nil
 }
 
 // SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by id.
@@ -25974,8 +25974,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.hiring_team_edges != nil {
 		edges = append(edges, user.EdgeHiringTeamEdges)
 	}
-	if m.led_rec_teams != nil {
-		edges = append(edges, user.EdgeLedRecTeams)
+	if m.lead_rec_teams != nil {
+		edges = append(edges, user.EdgeLeadRecTeams)
 	}
 	if m.rec_teams != nil {
 		edges = append(edges, user.EdgeRecTeams)
@@ -26065,9 +26065,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeLedRecTeams:
-		ids := make([]ent.Value, 0, len(m.led_rec_teams))
-		for id := range m.led_rec_teams {
+	case user.EdgeLeadRecTeams:
+		ids := make([]ent.Value, 0, len(m.lead_rec_teams))
+		for id := range m.lead_rec_teams {
 			ids = append(ids, id)
 		}
 		return ids
@@ -26146,8 +26146,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedhiring_team_edges != nil {
 		edges = append(edges, user.EdgeHiringTeamEdges)
 	}
-	if m.removedled_rec_teams != nil {
-		edges = append(edges, user.EdgeLedRecTeams)
+	if m.removedlead_rec_teams != nil {
+		edges = append(edges, user.EdgeLeadRecTeams)
 	}
 	if m.removedapprovers_hiring_teams != nil {
 		edges = append(edges, user.EdgeApproversHiringTeams)
@@ -26231,9 +26231,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeLedRecTeams:
-		ids := make([]ent.Value, 0, len(m.removedled_rec_teams))
-		for id := range m.removedled_rec_teams {
+	case user.EdgeLeadRecTeams:
+		ids := make([]ent.Value, 0, len(m.removedlead_rec_teams))
+		for id := range m.removedlead_rec_teams {
 			ids = append(ids, id)
 		}
 		return ids
@@ -26304,8 +26304,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedhiring_team_edges {
 		edges = append(edges, user.EdgeHiringTeamEdges)
 	}
-	if m.clearedled_rec_teams {
-		edges = append(edges, user.EdgeLedRecTeams)
+	if m.clearedlead_rec_teams {
+		edges = append(edges, user.EdgeLeadRecTeams)
 	}
 	if m.clearedrec_teams {
 		edges = append(edges, user.EdgeRecTeams)
@@ -26355,8 +26355,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedrole_edges
 	case user.EdgeHiringTeamEdges:
 		return m.clearedhiring_team_edges
-	case user.EdgeLedRecTeams:
-		return m.clearedled_rec_teams
+	case user.EdgeLeadRecTeams:
+		return m.clearedlead_rec_teams
 	case user.EdgeRecTeams:
 		return m.clearedrec_teams
 	case user.EdgeMemberOfHiringTeamEdges:
@@ -26423,8 +26423,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeHiringTeamEdges:
 		m.ResetHiringTeamEdges()
 		return nil
-	case user.EdgeLedRecTeams:
-		m.ResetLedRecTeams()
+	case user.EdgeLeadRecTeams:
+		m.ResetLeadRecTeams()
 		return nil
 	case user.EdgeRecTeams:
 		m.ResetRecTeams()

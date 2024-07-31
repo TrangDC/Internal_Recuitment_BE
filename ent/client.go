@@ -3792,15 +3792,15 @@ func (c *UserClient) QueryHiringTeamEdges(u *User) *HiringTeamQuery {
 	return query
 }
 
-// QueryLedRecTeams queries the led_rec_teams edge of a User.
-func (c *UserClient) QueryLedRecTeams(u *User) *RecTeamQuery {
+// QueryLeadRecTeams queries the lead_rec_teams edge of a User.
+func (c *UserClient) QueryLeadRecTeams(u *User) *RecTeamQuery {
 	query := &RecTeamQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(recteam.Table, recteam.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.LedRecTeamsTable, user.LedRecTeamsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LeadRecTeamsTable, user.LeadRecTeamsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

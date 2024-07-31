@@ -672,8 +672,28 @@ type PermissionGroupResponseGetAll struct {
 	Pagination *Pagination            `json:"pagination"`
 }
 
+type RecTeamFilter struct {
+	Name      *string   `json:"name"`
+	LeaderIds []*string `json:"leader_ids"`
+}
+
+type RecTeamFreeWord struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+}
+
+type RecTeamOrderBy struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     RecTeamOrderByField `json:"field"`
+}
+
 type RecTeamResponse struct {
 	Data *RecTeam `json:"data"`
+}
+
+type RecTeamResponseGetAll struct {
+	Edges      []*RecTeamEdge `json:"edges"`
+	Pagination *Pagination    `json:"pagination"`
 }
 
 type RecruitmentReportResponse struct {
@@ -2626,6 +2646,47 @@ func (e *PermissionGroupType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PermissionGroupType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RecTeamOrderByField string
+
+const (
+	RecTeamOrderByFieldName      RecTeamOrderByField = "name"
+	RecTeamOrderByFieldCreatedAt RecTeamOrderByField = "created_at"
+)
+
+var AllRecTeamOrderByField = []RecTeamOrderByField{
+	RecTeamOrderByFieldName,
+	RecTeamOrderByFieldCreatedAt,
+}
+
+func (e RecTeamOrderByField) IsValid() bool {
+	switch e {
+	case RecTeamOrderByFieldName, RecTeamOrderByFieldCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e RecTeamOrderByField) String() string {
+	return string(e)
+}
+
+func (e *RecTeamOrderByField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RecTeamOrderByField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RecTeamOrderByField", str)
+	}
+	return nil
+}
+
+func (e RecTeamOrderByField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -307,19 +307,19 @@ func (uc *UserCreate) AddHiringTeamEdges(h ...*HiringTeam) *UserCreate {
 	return uc.AddHiringTeamEdgeIDs(ids...)
 }
 
-// AddLedRecTeamIDs adds the "led_rec_teams" edge to the RecTeam entity by IDs.
-func (uc *UserCreate) AddLedRecTeamIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddLedRecTeamIDs(ids...)
+// AddLeadRecTeamIDs adds the "lead_rec_teams" edge to the RecTeam entity by IDs.
+func (uc *UserCreate) AddLeadRecTeamIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddLeadRecTeamIDs(ids...)
 	return uc
 }
 
-// AddLedRecTeams adds the "led_rec_teams" edges to the RecTeam entity.
-func (uc *UserCreate) AddLedRecTeams(r ...*RecTeam) *UserCreate {
+// AddLeadRecTeams adds the "lead_rec_teams" edges to the RecTeam entity.
+func (uc *UserCreate) AddLeadRecTeams(r ...*RecTeam) *UserCreate {
 	ids := make([]uuid.UUID, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return uc.AddLedRecTeamIDs(ids...)
+	return uc.AddLeadRecTeamIDs(ids...)
 }
 
 // SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
@@ -834,12 +834,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.LedRecTeamsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.LeadRecTeamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LedRecTeamsTable,
-			Columns: []string{user.LedRecTeamsColumn},
+			Table:   user.LeadRecTeamsTable,
+			Columns: []string{user.LeadRecTeamsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

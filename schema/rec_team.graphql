@@ -1,26 +1,56 @@
+enum RecTeamOrderByField {
+  name
+  created_at
+}
+
+input RecTeamOrderBy {
+  direction: OrderDirection!
+  field: RecTeamOrderByField!
+}
+
+input RecTeamFilter {
+  name: String
+  leader_ids: [ID]
+}
+
+input RecTeamFreeWord {
+  name: String
+  description: String
+}
+
 input NewRecTeamInput {
-    name: String!
-    description: String!
-    leader_id: ID!
+  name: String!
+  description: String!
+  leader_id: ID!
 }
 
 input UpdateRecTeamInput {
-    name: String!
-    description: String!
-    leader_id: ID!
+  name: String!
+  description: String!
+  leader_id: ID!
 }
 
 type RecTeam {
-    id: ID!
-    name: String!
-    description: String!
-    leader_id: ID!
-    leader: User!
-    created_at: Time!
-    updated_at: Time!
-    deleted_at: Time
+  id: ID!
+  name: String!
+  description: String!
+  leader_id: ID!
+  leader: User!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
 }
 
 type RecTeamResponse {
-    data: RecTeam
+  data: RecTeam
+}
+
+type RecTeamEdge {
+  node: RecTeam!
+  cursor: Cursor!
+}
+
+type RecTeamResponseGetAll {
+  edges: [RecTeamEdge!]!
+  pagination: Pagination!
 }
