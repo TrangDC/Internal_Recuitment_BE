@@ -51,6 +51,15 @@ func (r *mutationResolver) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 	return r.serviceRegistry.RecTeam().CreateRecTeam(ctx, input, note)
 }
 
+// DeleteRecTeam is the resolver for the DeleteRecTeam field.
+func (r *mutationResolver) DeleteRecTeam(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.RecTeam().DeleteRecTeam(ctx, uuid.MustParse(id), note)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // CreateJobPosition is the resolver for the CreateJobPosition field.
 func (r *mutationResolver) CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error) {
 	return r.serviceRegistry.JobPosition().CreateJobPosition(ctx, input, note)

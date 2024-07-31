@@ -618,6 +618,7 @@ type ComplexityRoot struct {
 		DeleteHiringJob                   func(childComplexity int, id string, note string) int
 		DeleteHiringTeam                  func(childComplexity int, id string, note string) int
 		DeleteJobPosition                 func(childComplexity int, id string, note string) int
+		DeleteRecTeam                     func(childComplexity int, id string, note string) int
 		DeleteRole                        func(childComplexity int, id string, note string) int
 		DeleteSkill                       func(childComplexity int, id string, note string) int
 		DeleteSkillType                   func(childComplexity int, id string, note string) int
@@ -1120,6 +1121,7 @@ type MutationResolver interface {
 	UpdateHiringTeam(ctx context.Context, id string, input ent.UpdateHiringTeamInput, note string) (*ent.HiringTeamResponse, error)
 	DeleteHiringTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error)
+	DeleteRecTeam(ctx context.Context, id string, note string) (bool, error)
 	CreateJobPosition(ctx context.Context, input ent.NewJobPositionInput, note string) (*ent.JobPositionResponse, error)
 	UpdateJobPosition(ctx context.Context, id string, input ent.UpdateJobPositionInput, note string) (*ent.JobPositionResponse, error)
 	DeleteJobPosition(ctx context.Context, id string, note string) (bool, error)
@@ -3647,6 +3649,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteJobPosition(childComplexity, args["id"].(string), args["note"].(string)), true
+
+	case "Mutation.DeleteRecTeam":
+		if e.complexity.Mutation.DeleteRecTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteRecTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteRecTeam(childComplexity, args["id"].(string), args["note"].(string)), true
 
 	case "Mutation.DeleteRole":
 		if e.complexity.Mutation.DeleteRole == nil {
@@ -6924,6 +6938,7 @@ type JobPositionSelectionResponseGetAll {
 
   # RecTeam
   CreateRecTeam(input: NewRecTeamInput!, note: String!): RecTeamResponse!
+  DeleteRecTeam(id: ID!, note: String!): Boolean!
 
   # JobPosition
   CreateJobPosition(input: NewJobPositionInput!, note: String!): JobPositionResponse!
@@ -8128,6 +8143,30 @@ func (ec *executionContext) field_Mutation_DeleteHiringTeam_args(ctx context.Con
 }
 
 func (ec *executionContext) field_Mutation_DeleteJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_DeleteRecTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -25579,6 +25618,61 @@ func (ec *executionContext) fieldContext_Mutation_CreateRecTeam(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_CreateRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteRecTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteRecTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteRecTeam(rctx, fc.Args["id"].(string), fc.Args["note"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteRecTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48286,6 +48380,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_CreateRecTeam(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "DeleteRecTeam":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteRecTeam(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

@@ -9,12 +9,14 @@ import (
 	"trec/repository"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 type RecTeamService interface {
 	// mutation
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error)
+	DeleteRecTeam(ctx context.Context, id uuid.UUID, note string) error
 }
 
 type recTeamSvcImpl struct {
@@ -53,4 +55,23 @@ func (s *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeam
 	return &ent.RecTeamResponse{
 		Data: results,
 	}, nil
+}
+
+func (s *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note string) error {
+	recTeam, err := s.repoRegistry.RecTeam().GetRecTeam(ctx, id)
+	if err != nil {
+		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	memberIds := lo.Map(recTeam.Edges.RecMemberEdges, func(user *ent.User, index int) uuid.UUID {
+		return user.ID
+	})
+	err = s.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		_, err := repoRegistry.RecTeam().DeleteRecTeam(ctx, recTeam, memberIds)
+		return err
+	})
+	if err != nil {
+		s.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return nil
 }
