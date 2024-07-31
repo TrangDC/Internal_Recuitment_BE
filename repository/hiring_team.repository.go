@@ -149,6 +149,10 @@ func (rps *hiringTeamRepoImpl) DeleteRelationHiringTeam(ctx context.Context, hir
 		return err
 	}
 	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HiringTeamID(hiringTeamID)))).SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = rps.client.HiringTeamApprover.Delete().Where(hiringteamapprover.HiringTeamIDEQ(hiringTeamID)).Exec(ctx)
 	return err
 }
 
