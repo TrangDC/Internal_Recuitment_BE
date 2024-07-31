@@ -15,6 +15,7 @@ import (
 type RecTeamRepository interface {
 	//mutation
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput) (*ent.RecTeam, error)
+	DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error)
 
 	// query
 	GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.RecTeam, error)
@@ -89,6 +90,14 @@ func (rps *recTeamRepoImpl) BuildExist(ctx context.Context, query *ent.RecTeamQu
 	return query.Exist(ctx)
 }
 
+func (rps *recTeamRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.RecTeam) *ent.RecTeamUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
+}
+
+func (rps *recTeamRepoImpl) BuildSaveUpdateOne(ctx context.Context, update *ent.RecTeamUpdateOne) (*ent.RecTeam, error) {
+	return update.Save(ctx)
+}
+
 // mutation
 func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput) (*ent.RecTeam, error) {
 	create := rps.BuildCreate().
@@ -97,6 +106,14 @@ func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecT
 		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID)).
 		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
 	return create.Save(ctx)
+}
+
+func (rps *recTeamRepoImpl) DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error) {
+	delete := rps.BuildUpdateOne(ctx, record).
+		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).
+		ClearRecMemberEdges().
+		RemoveRecMemberEdgeIDs(membersID...)
+	return delete.Save(ctx)
 }
 
 // query
