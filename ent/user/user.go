@@ -54,8 +54,8 @@ const (
 	EdgeRoleEdges = "role_edges"
 	// EdgeHiringTeamEdges holds the string denoting the hiring_team_edges edge name in mutations.
 	EdgeHiringTeamEdges = "hiring_team_edges"
-	// EdgeLedRecTeams holds the string denoting the led_rec_teams edge name in mutations.
-	EdgeLedRecTeams = "led_rec_teams"
+	// EdgeLeadRecTeams holds the string denoting the lead_rec_teams edge name in mutations.
+	EdgeLeadRecTeams = "lead_rec_teams"
 	// EdgeRecTeams holds the string denoting the rec_teams edge name in mutations.
 	EdgeRecTeams = "rec_teams"
 	// EdgeMemberOfHiringTeamEdges holds the string denoting the member_of_hiring_team_edges edge name in mutations.
@@ -136,13 +136,13 @@ const (
 	// HiringTeamEdgesInverseTable is the table name for the HiringTeam entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
 	HiringTeamEdgesInverseTable = "hiring_teams"
-	// LedRecTeamsTable is the table that holds the led_rec_teams relation/edge.
-	LedRecTeamsTable = "rec_teams"
-	// LedRecTeamsInverseTable is the table name for the RecTeam entity.
+	// LeadRecTeamsTable is the table that holds the lead_rec_teams relation/edge.
+	LeadRecTeamsTable = "rec_teams"
+	// LeadRecTeamsInverseTable is the table name for the RecTeam entity.
 	// It exists in this package in order to avoid circular dependency with the "recteam" package.
-	LedRecTeamsInverseTable = "rec_teams"
-	// LedRecTeamsColumn is the table column denoting the led_rec_teams relation/edge.
-	LedRecTeamsColumn = "leader_id"
+	LeadRecTeamsInverseTable = "rec_teams"
+	// LeadRecTeamsColumn is the table column denoting the lead_rec_teams relation/edge.
+	LeadRecTeamsColumn = "leader_id"
 	// RecTeamsTable is the table that holds the rec_teams relation/edge.
 	RecTeamsTable = "users"
 	// RecTeamsInverseTable is the table name for the RecTeam entity.

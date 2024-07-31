@@ -2752,9 +2752,9 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[10] = &Edge{
 		Type: "RecTeam",
-		Name: "led_rec_teams",
+		Name: "lead_rec_teams",
 	}
-	err = u.QueryLedRecTeams().
+	err = u.QueryLeadRecTeams().
 		Select(recteam.FieldID).
 		Scan(ctx, &node.Edges[10].IDs)
 	if err != nil {

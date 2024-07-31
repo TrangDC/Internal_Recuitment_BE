@@ -6,7 +6,7 @@ type Mutation {
   UpdateUser(id: ID!, input: UpdateUserInput!, note: String!): UserResponse!
   UpdateUserStatus(id: ID!, input: UpdateUserStatusInput!, note: String!): UserResponse!
 
-  # Team
+  # HiringTeam
   CreateHiringTeam(input: NewHiringTeamInput!, note: String!): HiringTeamResponse!
   UpdateHiringTeam(id: ID!, input: UpdateHiringTeamInput!, note: String!): HiringTeamResponse!
   DeleteHiringTeam(id: ID!, note: String!): Boolean!

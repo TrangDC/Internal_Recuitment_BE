@@ -25,7 +25,7 @@ func (RecTeam) Fields() []ent.Field {
 // Edges of the RecTeam
 func (RecTeam) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("rec_leader_edge", User.Type).Ref("led_rec_teams").Unique().Required().Field("leader_id"),
+		edge.From("rec_leader_edge", User.Type).Ref("lead_rec_teams").Unique().Required().Field("leader_id"),
 		edge.To("rec_member_edges", User.Type),
 	}
 }

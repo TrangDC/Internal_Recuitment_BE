@@ -56,15 +56,12 @@ func (rps *recTeamRepoImpl) BuildDelete() *ent.RecTeamUpdate {
 
 func (rps *recTeamRepoImpl) BuildQuery() *ent.RecTeamQuery {
 	return rps.client.RecTeam.Query().Where(recteam.DeletedAtIsNil()).
-		WithRecLeaderEdge(
-			func(query *ent.UserQuery) {
-				query.Where(user.DeletedAtIsNil())
-			},
-		).WithRecMemberEdges(
-		func(query *ent.UserQuery) {
+		WithRecLeaderEdge(func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
-		},
-	)
+		}).
+		WithRecMemberEdges(func(query *ent.UserQuery) {
+			query.Where(user.DeletedAtIsNil())
+		})
 }
 
 func (rps *recTeamRepoImpl) BuildBaseQuery() *ent.RecTeamQuery {
@@ -158,3 +155,5 @@ func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID,
 	}
 	return nil, nil
 }
+
+// Path: repository/rec_team.repository.go

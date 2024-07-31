@@ -189,3 +189,5 @@ func (rps *hiringTeamRepoImpl) ValidInput(ctx context.Context, hiringTeamID uuid
 	}
 	return nil, nil
 }
+
+// Path: repository/hiring_team.repository.go

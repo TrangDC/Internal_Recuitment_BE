@@ -478,4 +478,4 @@ func (svc *hiringTeamSvcImpl) validPermissionGet(payload *middleware.Payload, qu
 	}
 }
 
-// Path: service/team.service.go
+// Path: service/hiring_team.service.go

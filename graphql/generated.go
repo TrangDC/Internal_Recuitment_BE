@@ -707,6 +707,7 @@ type ComplexityRoot struct {
 		GetAllHiringTeams                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		GetAllJobPositions                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
 		GetAllPermissionGroups             func(childComplexity int) int
+		GetAllRecTeams                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) int
 		GetAllRoles                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
 		GetAllSkillTypes                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
 		GetAllSkills                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
@@ -754,8 +755,18 @@ type ComplexityRoot struct {
 		UpdatedAt   func(childComplexity int) int
 	}
 
+	RecTeamEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	RecTeamResponse struct {
 		Data func(childComplexity int) int
+	}
+
+	RecTeamResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
 	}
 
 	RecruitmentReportResponse struct {
@@ -1184,6 +1195,7 @@ type PermissionGroupResolver interface {
 type QueryResolver interface {
 	GetHiringTeam(ctx context.Context, id string) (*ent.HiringTeamResponse, error)
 	GetAllHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamResponseGetAll, error)
+	GetAllRecTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error)
 	GetUser(ctx context.Context, id string) (*ent.UserResponse, error)
 	GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
@@ -4305,6 +4317,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllPermissionGroups(childComplexity), true
 
+	case "Query.GetAllRecTeams":
+		if e.complexity.Query.GetAllRecTeams == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllRecTeams_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllRecTeams(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.RecTeamFilter), args["freeWord"].(*ent.RecTeamFreeWord), args["orderBy"].(*ent.RecTeamOrderBy)), true
+
 	case "Query.GetAllRoles":
 		if e.complexity.Query.GetAllRoles == nil {
 			break
@@ -4754,12 +4778,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RecTeam.UpdatedAt(childComplexity), true
 
+	case "RecTeamEdge.cursor":
+		if e.complexity.RecTeamEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.RecTeamEdge.Cursor(childComplexity), true
+
+	case "RecTeamEdge.node":
+		if e.complexity.RecTeamEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.RecTeamEdge.Node(childComplexity), true
+
 	case "RecTeamResponse.data":
 		if e.complexity.RecTeamResponse.Data == nil {
 			break
 		}
 
 		return e.complexity.RecTeamResponse.Data(childComplexity), true
+
+	case "RecTeamResponseGetAll.edges":
+		if e.complexity.RecTeamResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.RecTeamResponseGetAll.Edges(childComplexity), true
+
+	case "RecTeamResponseGetAll.pagination":
+		if e.complexity.RecTeamResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.RecTeamResponseGetAll.Pagination(childComplexity), true
 
 	case "RecruitmentReportResponse.data":
 		if e.complexity.RecruitmentReportResponse.Data == nil {
@@ -5620,6 +5672,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewSkillTypeInput,
 		ec.unmarshalInputNewUserInput,
 		ec.unmarshalInputPaginationInput,
+		ec.unmarshalInputRecTeamFilter,
+		ec.unmarshalInputRecTeamFreeWord,
+		ec.unmarshalInputRecTeamOrderBy,
 		ec.unmarshalInputReportFilter,
 		ec.unmarshalInputReportOrderBy,
 		ec.unmarshalInputRoleFilter,
@@ -6990,7 +7045,7 @@ type JobPositionSelectionResponseGetAll {
   UpdateUser(id: ID!, input: UpdateUserInput!, note: String!): UserResponse!
   UpdateUserStatus(id: ID!, input: UpdateUserStatusInput!, note: String!): UserResponse!
 
-  # Team
+  # HiringTeam
   CreateHiringTeam(input: NewHiringTeamInput!, note: String!): HiringTeamResponse!
   UpdateHiringTeam(id: ID!, input: UpdateHiringTeamInput!, note: String!): HiringTeamResponse!
   DeleteHiringTeam(id: ID!, note: String!): Boolean!
@@ -7105,6 +7160,9 @@ enum PermissionGroupType {
   GetHiringTeam(id: ID!): HiringTeamResponse!
   GetAllHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamResponseGetAll!
 
+  # RecTeam
+  GetAllRecTeams(pagination: PaginationInput, filter: RecTeamFilter, freeWord: RecTeamFreeWord, orderBy: RecTeamOrderBy): RecTeamResponseGetAll!
+
   # User
   GetUser(id: ID!): UserResponse!
   GetAllUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserResponseGetAll!
@@ -7186,31 +7244,61 @@ enum PermissionGroupType {
 
 # Path: schema/query.graphql
 `, BuiltIn: false},
-	{Name: "../schema/rec_team.graphql", Input: `input NewRecTeamInput {
-    name: String!
-    description: String!
-    leader_id: ID!
+	{Name: "../schema/rec_team.graphql", Input: `enum RecTeamOrderByField {
+  name
+  created_at
+}
+
+input RecTeamOrderBy {
+  direction: OrderDirection!
+  field: RecTeamOrderByField!
+}
+
+input RecTeamFilter {
+  name: String
+  leader_ids: [ID]
+}
+
+input RecTeamFreeWord {
+  name: String
+  description: String
+}
+
+input NewRecTeamInput {
+  name: String!
+  description: String!
+  leader_id: ID!
 }
 
 input UpdateRecTeamInput {
-    name: String!
-    description: String!
-    leader_id: ID!
+  name: String!
+  description: String!
+  leader_id: ID!
 }
 
 type RecTeam {
-    id: ID!
-    name: String!
-    description: String!
-    leader_id: ID!
-    leader: User!
-    created_at: Time!
-    updated_at: Time!
-    deleted_at: Time
+  id: ID!
+  name: String!
+  description: String!
+  leader_id: ID!
+  leader: User!
+  created_at: Time!
+  updated_at: Time!
+  deleted_at: Time
 }
 
 type RecTeamResponse {
-    data: RecTeam
+  data: RecTeam
+}
+
+type RecTeamEdge {
+  node: RecTeam!
+  cursor: Cursor!
+}
+
+type RecTeamResponseGetAll {
+  edges: [RecTeamEdge!]!
+  pagination: Pagination!
 }`, BuiltIn: false},
 	{Name: "../schema/report.graphql", Input: `enum ReportFilterPeriod {
   all
@@ -9451,6 +9539,48 @@ func (ec *executionContext) field_Query_GetAllJobPositions_args(ctx context.Cont
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOJobPositionOrder2ᚖtrecᚋentᚐJobPositionOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllRecTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.RecTeamFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalORecTeamFilter2ᚖtrecᚋentᚐRecTeamFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.RecTeamFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalORecTeamFreeWord2ᚖtrecᚋentᚐRecTeamFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 *ent.RecTeamOrderBy
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalORecTeamOrderBy2ᚖtrecᚋentᚐRecTeamOrderBy(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -29418,6 +29548,67 @@ func (ec *executionContext) fieldContext_Query_GetAllHiringTeams(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetAllRecTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllRecTeams(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllRecTeams(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.RecTeamFilter), fc.Args["freeWord"].(*ent.RecTeamFreeWord), fc.Args["orderBy"].(*ent.RecTeamOrderBy))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeamResponseGetAll)
+	fc.Result = res
+	return ec.marshalNRecTeamResponseGetAll2ᚖtrecᚋentᚐRecTeamResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllRecTeams(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_RecTeamResponseGetAll_edges(ctx, field)
+			case "pagination":
+				return ec.fieldContext_RecTeamResponseGetAll_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeamResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllRecTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_GetUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_GetUser(ctx, field)
 	if err != nil {
@@ -32572,6 +32763,112 @@ func (ec *executionContext) fieldContext_RecTeam_deleted_at(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _RecTeamEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeamEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeam)
+	fc.Result = res
+	return ec.marshalNRecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeamEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeamEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_RecTeam_name(ctx, field)
+			case "description":
+				return ec.fieldContext_RecTeam_description(ctx, field)
+			case "leader_id":
+				return ec.fieldContext_RecTeam_leader_id(ctx, field)
+			case "leader":
+				return ec.fieldContext_RecTeam_leader(ctx, field)
+			case "created_at":
+				return ec.fieldContext_RecTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_RecTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_RecTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecTeamEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeamEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeamEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeamEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RecTeamResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RecTeamResponse_data(ctx, field)
 	if err != nil {
@@ -32626,6 +32923,108 @@ func (ec *executionContext) fieldContext_RecTeamResponse_data(ctx context.Contex
 				return ec.fieldContext_RecTeam_deleted_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecTeamResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeamResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.RecTeamEdge)
+	fc.Result = res
+	return ec.marshalNRecTeamEdge2ᚕᚖtrecᚋentᚐRecTeamEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeamResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeamResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_RecTeamEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_RecTeamEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeamEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecTeamResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.RecTeamResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecTeamResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecTeamResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecTeamResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -42763,6 +43162,114 @@ func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRecTeamFilter(ctx context.Context, obj interface{}) (ent.RecTeamFilter, error) {
+	var it ent.RecTeamFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "leader_ids"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "leader_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("leader_ids"))
+			it.LeaderIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRecTeamFreeWord(ctx context.Context, obj interface{}) (ent.RecTeamFreeWord, error) {
+	var it ent.RecTeamFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRecTeamOrderBy(ctx context.Context, obj interface{}) (ent.RecTeamOrderBy, error) {
+	var it ent.RecTeamOrderBy
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNRecTeamOrderByField2trecᚋentᚐRecTeamOrderByField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputReportFilter(ctx context.Context, obj interface{}) (ent.ReportFilter, error) {
 	var it ent.ReportFilter
 	asMap := map[string]interface{}{}
@@ -49696,6 +50203,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "GetAllRecTeams":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllRecTeams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "GetUser":
 			field := field
 
@@ -50864,6 +51394,41 @@ func (ec *executionContext) _RecTeam(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var recTeamEdgeImplementors = []string{"RecTeamEdge"}
+
+func (ec *executionContext) _RecTeamEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.RecTeamEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, recTeamEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RecTeamEdge")
+		case "node":
+
+			out.Values[i] = ec._RecTeamEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._RecTeamEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var recTeamResponseImplementors = []string{"RecTeamResponse"}
 
 func (ec *executionContext) _RecTeamResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.RecTeamResponse) graphql.Marshaler {
@@ -50878,6 +51443,41 @@ func (ec *executionContext) _RecTeamResponse(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._RecTeamResponse_data(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var recTeamResponseGetAllImplementors = []string{"RecTeamResponseGetAll"}
+
+func (ec *executionContext) _RecTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.RecTeamResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, recTeamResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RecTeamResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._RecTeamResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._RecTeamResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -55352,6 +55952,80 @@ func (ec *executionContext) marshalNPermissionGroupType2trecᚋentᚐPermissionG
 	return v
 }
 
+func (ec *executionContext) marshalNRecTeam2ᚖtrecᚋentᚐRecTeam(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeam) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RecTeam(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRecTeamEdge2ᚕᚖtrecᚋentᚐRecTeamEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.RecTeamEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRecTeamEdge2ᚖtrecᚋentᚐRecTeamEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRecTeamEdge2ᚖtrecᚋentᚐRecTeamEdge(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeamEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RecTeamEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRecTeamOrderByField2trecᚋentᚐRecTeamOrderByField(ctx context.Context, v interface{}) (ent.RecTeamOrderByField, error) {
+	var res ent.RecTeamOrderByField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRecTeamOrderByField2trecᚋentᚐRecTeamOrderByField(ctx context.Context, sel ast.SelectionSet, v ent.RecTeamOrderByField) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNRecTeamResponse2trecᚋentᚐRecTeamResponse(ctx context.Context, sel ast.SelectionSet, v ent.RecTeamResponse) graphql.Marshaler {
 	return ec._RecTeamResponse(ctx, sel, &v)
 }
@@ -55364,6 +56038,20 @@ func (ec *executionContext) marshalNRecTeamResponse2ᚖtrecᚋentᚐRecTeamRespo
 		return graphql.Null
 	}
 	return ec._RecTeamResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRecTeamResponseGetAll2trecᚋentᚐRecTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.RecTeamResponseGetAll) graphql.Marshaler {
+	return ec._RecTeamResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRecTeamResponseGetAll2ᚖtrecᚋentᚐRecTeamResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeamResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RecTeamResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReportApplication2ᚕᚖtrecᚋentᚐReportApplication(ctx context.Context, sel ast.SelectionSet, v []*ent.ReportApplication) graphql.Marshaler {
@@ -58431,6 +59119,30 @@ func (ec *executionContext) marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx context.
 		return graphql.Null
 	}
 	return ec._RecTeam(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORecTeamFilter2ᚖtrecᚋentᚐRecTeamFilter(ctx context.Context, v interface{}) (*ent.RecTeamFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRecTeamFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalORecTeamFreeWord2ᚖtrecᚋentᚐRecTeamFreeWord(ctx context.Context, v interface{}) (*ent.RecTeamFreeWord, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRecTeamFreeWord(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalORecTeamOrderBy2ᚖtrecᚋentᚐRecTeamOrderBy(ctx context.Context, v interface{}) (*ent.RecTeamOrderBy, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRecTeamOrderBy(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOReportApplication2ᚖtrecᚋentᚐReportApplication(ctx context.Context, sel ast.SelectionSet, v *ent.ReportApplication) graphql.Marshaler {

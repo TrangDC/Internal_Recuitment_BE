@@ -655,7 +655,7 @@ var (
 		PrimaryKey: []*schema.Column{RecTeamsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "rec_teams_users_led_rec_teams",
+				Symbol:     "rec_teams_users_lead_rec_teams",
 				Columns:    []*schema.Column{RecTeamsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,

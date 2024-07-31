@@ -2543,7 +2543,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedHiringTeamEdges(alias, func(wq *HiringTeamQuery) {
 				*wq = *query
 			})
-		case "ledRecTeams":
+		case "leadRecTeams":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2552,7 +2552,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.WithNamedLedRecTeams(alias, func(wq *RecTeamQuery) {
+			u.WithNamedLeadRecTeams(alias, func(wq *RecTeamQuery) {
 				*wq = *query
 			})
 		case "recTeams":
