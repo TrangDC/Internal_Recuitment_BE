@@ -11,7 +11,7 @@ import (
 )
 
 type HiringTeamApproverService interface {
-	HiringTeamApproverMutation(ctx context.Context, inputs []*ent.HiringTeamApproverInput, hiringTeamID uuid.UUID, currentApprover []*ent.HiringTeamApprover) error
+	HiringTeamApproverMutation(ctx context.Context, repoRegistry repository.Repository, inputs []*ent.HiringTeamApproverInput, hiringTeamID uuid.UUID, currentApprover []*ent.HiringTeamApprover) error
 }
 
 type hiringTeamApproverServiceImpl struct {
@@ -26,18 +26,18 @@ func NewHiringTeamApproverService(repoRegistry repository.Repository, logger *za
 	}
 }
 
-func (svc *hiringTeamApproverServiceImpl) HiringTeamApproverMutation(ctx context.Context, inputs []*ent.HiringTeamApproverInput, hiringTeamID uuid.UUID, currentApprovers []*ent.HiringTeamApprover) error {
+func (svc *hiringTeamApproverServiceImpl) HiringTeamApproverMutation(ctx context.Context, repoRegistry repository.Repository, inputs []*ent.HiringTeamApproverInput, hiringTeamID uuid.UUID, currentApprovers []*ent.HiringTeamApprover) error {
 	for _, input := range inputs {
 		if input.ID == "" {
 			// create new approver
-			err := svc.repoRegistry.HiringTeamApprover().CreateHiringTeamApprover(ctx, input, hiringTeamID)
+			err := repoRegistry.HiringTeamApprover().CreateHiringTeamApprover(ctx, input, hiringTeamID)
 			if err != nil {
 				return err
 			}
 			continue
 		}
 		// update existing approver
-		err := svc.repoRegistry.HiringTeamApprover().UpdateHiringTeamApproverByID(ctx, input)
+		err := repoRegistry.HiringTeamApprover().UpdateHiringTeamApproverByID(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -47,7 +47,7 @@ func (svc *hiringTeamApproverServiceImpl) HiringTeamApproverMutation(ctx context
 			return input.ID == approver.ID.String()
 		}) {
 			// delete approver
-			err := svc.repoRegistry.HiringTeamApprover().DeleteHiringTeamApproverByID(ctx, approver.ID)
+			err := repoRegistry.HiringTeamApprover().DeleteHiringTeamApproverByID(ctx, approver.ID)
 			if err != nil {
 				return err
 			}
