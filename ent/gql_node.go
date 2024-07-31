@@ -1396,8 +1396,8 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     hj.ID,
 		Type:   "HiringJob",
-		Fields: make([]*Field, 17),
-		Edges:  make([]*Edge, 4),
+		Fields: make([]*Field, 18),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
@@ -1536,6 +1536,14 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "hiring_team_id",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(hj.JobPositionID); err != nil {
+		return nil, err
+	}
+	node.Fields[17] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "job_position_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "User",
 		Name: "owner_edge",
@@ -1573,6 +1581,16 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	err = hj.QueryHiringTeamEdge().
 		Select(hiringteam.FieldID).
 		Scan(ctx, &node.Edges[3].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		Type: "JobPosition",
+		Name: "job_position_edge",
+	}
+	err = hj.QueryJobPositionEdge().
+		Select(jobposition.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -1853,7 +1871,7 @@ func (jp *JobPosition) Node(ctx context.Context) (node *Node, err error) {
 		ID:     jp.ID,
 		Type:   "JobPosition",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(jp.CreatedAt); err != nil {
@@ -1895,6 +1913,16 @@ func (jp *JobPosition) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "description",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "HiringJob",
+		Name: "hiring_job_position_edges",
+	}
+	err = jp.QueryHiringJobPositionEdges().
+		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }

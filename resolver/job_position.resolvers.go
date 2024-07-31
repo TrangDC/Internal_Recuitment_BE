@@ -14,6 +14,14 @@ func (r *jobPositionResolver) ID(ctx context.Context, obj *ent.JobPosition) (str
 	return obj.ID.String(), nil
 }
 
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *jobPositionResolver) IsAbleToDelete(ctx context.Context, obj *ent.JobPosition) (bool, error) {
+	if len(obj.Edges.HiringJobPositionEdges) > 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // JobPosition returns graphql1.JobPositionResolver implementation.
 func (r *Resolver) JobPosition() graphql1.JobPositionResolver { return &jobPositionResolver{r} }
 

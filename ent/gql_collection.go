@@ -1293,6 +1293,16 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.withHiringTeamEdge = query
+		case "jobPositionEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &JobPositionQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withJobPositionEdge = query
 		}
 	}
 	return nil
@@ -1679,6 +1689,22 @@ func (jp *JobPositionQuery) CollectFields(ctx context.Context, satisfies ...stri
 
 func (jp *JobPositionQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "hiringJobPositionEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: jp.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			jp.WithNamedHiringJobPositionEdges(alias, func(wq *HiringJobQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 

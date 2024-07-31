@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/hiringjob"
 	"trec/ent/jobposition"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // JobPositionUpdate is the builder for updating JobPosition entities.
@@ -94,9 +96,45 @@ func (jpu *JobPositionUpdate) ClearDescription() *JobPositionUpdate {
 	return jpu
 }
 
+// AddHiringJobPositionEdgeIDs adds the "hiring_job_position_edges" edge to the HiringJob entity by IDs.
+func (jpu *JobPositionUpdate) AddHiringJobPositionEdgeIDs(ids ...uuid.UUID) *JobPositionUpdate {
+	jpu.mutation.AddHiringJobPositionEdgeIDs(ids...)
+	return jpu
+}
+
+// AddHiringJobPositionEdges adds the "hiring_job_position_edges" edges to the HiringJob entity.
+func (jpu *JobPositionUpdate) AddHiringJobPositionEdges(h ...*HiringJob) *JobPositionUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return jpu.AddHiringJobPositionEdgeIDs(ids...)
+}
+
 // Mutation returns the JobPositionMutation object of the builder.
 func (jpu *JobPositionUpdate) Mutation() *JobPositionMutation {
 	return jpu.mutation
+}
+
+// ClearHiringJobPositionEdges clears all "hiring_job_position_edges" edges to the HiringJob entity.
+func (jpu *JobPositionUpdate) ClearHiringJobPositionEdges() *JobPositionUpdate {
+	jpu.mutation.ClearHiringJobPositionEdges()
+	return jpu
+}
+
+// RemoveHiringJobPositionEdgeIDs removes the "hiring_job_position_edges" edge to HiringJob entities by IDs.
+func (jpu *JobPositionUpdate) RemoveHiringJobPositionEdgeIDs(ids ...uuid.UUID) *JobPositionUpdate {
+	jpu.mutation.RemoveHiringJobPositionEdgeIDs(ids...)
+	return jpu
+}
+
+// RemoveHiringJobPositionEdges removes "hiring_job_position_edges" edges to HiringJob entities.
+func (jpu *JobPositionUpdate) RemoveHiringJobPositionEdges(h ...*HiringJob) *JobPositionUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return jpu.RemoveHiringJobPositionEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -213,6 +251,60 @@ func (jpu *JobPositionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if jpu.mutation.DescriptionCleared() {
 		_spec.ClearField(jobposition.FieldDescription, field.TypeString)
 	}
+	if jpu.mutation.HiringJobPositionEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jpu.mutation.RemovedHiringJobPositionEdgesIDs(); len(nodes) > 0 && !jpu.mutation.HiringJobPositionEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jpu.mutation.HiringJobPositionEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, jpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{jobposition.Label}
@@ -298,9 +390,45 @@ func (jpuo *JobPositionUpdateOne) ClearDescription() *JobPositionUpdateOne {
 	return jpuo
 }
 
+// AddHiringJobPositionEdgeIDs adds the "hiring_job_position_edges" edge to the HiringJob entity by IDs.
+func (jpuo *JobPositionUpdateOne) AddHiringJobPositionEdgeIDs(ids ...uuid.UUID) *JobPositionUpdateOne {
+	jpuo.mutation.AddHiringJobPositionEdgeIDs(ids...)
+	return jpuo
+}
+
+// AddHiringJobPositionEdges adds the "hiring_job_position_edges" edges to the HiringJob entity.
+func (jpuo *JobPositionUpdateOne) AddHiringJobPositionEdges(h ...*HiringJob) *JobPositionUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return jpuo.AddHiringJobPositionEdgeIDs(ids...)
+}
+
 // Mutation returns the JobPositionMutation object of the builder.
 func (jpuo *JobPositionUpdateOne) Mutation() *JobPositionMutation {
 	return jpuo.mutation
+}
+
+// ClearHiringJobPositionEdges clears all "hiring_job_position_edges" edges to the HiringJob entity.
+func (jpuo *JobPositionUpdateOne) ClearHiringJobPositionEdges() *JobPositionUpdateOne {
+	jpuo.mutation.ClearHiringJobPositionEdges()
+	return jpuo
+}
+
+// RemoveHiringJobPositionEdgeIDs removes the "hiring_job_position_edges" edge to HiringJob entities by IDs.
+func (jpuo *JobPositionUpdateOne) RemoveHiringJobPositionEdgeIDs(ids ...uuid.UUID) *JobPositionUpdateOne {
+	jpuo.mutation.RemoveHiringJobPositionEdgeIDs(ids...)
+	return jpuo
+}
+
+// RemoveHiringJobPositionEdges removes "hiring_job_position_edges" edges to HiringJob entities.
+func (jpuo *JobPositionUpdateOne) RemoveHiringJobPositionEdges(h ...*HiringJob) *JobPositionUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return jpuo.RemoveHiringJobPositionEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -446,6 +574,60 @@ func (jpuo *JobPositionUpdateOne) sqlSave(ctx context.Context) (_node *JobPositi
 	}
 	if jpuo.mutation.DescriptionCleared() {
 		_spec.ClearField(jobposition.FieldDescription, field.TypeString)
+	}
+	if jpuo.mutation.HiringJobPositionEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jpuo.mutation.RemovedHiringJobPositionEdgesIDs(); len(nodes) > 0 && !jpuo.mutation.HiringJobPositionEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jpuo.mutation.HiringJobPositionEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   jobposition.HiringJobPositionEdgesTable,
+			Columns: []string{jobposition.HiringJobPositionEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &JobPosition{config: jpuo.config}
 	_spec.Assign = _node.assignValues

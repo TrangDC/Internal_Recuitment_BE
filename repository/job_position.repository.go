@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/hiringjob"
 	"trec/ent/jobposition"
 
 	"github.com/google/uuid"
@@ -43,7 +44,11 @@ func (rps *jobPositionRepoImpl) BuildCreate() *ent.JobPositionCreate {
 }
 
 func (rps *jobPositionRepoImpl) BuildQuery() *ent.JobPositionQuery {
-	return rps.client.JobPosition.Query().Where(jobposition.DeletedAtIsNil())
+	return rps.client.JobPosition.Query().Where(jobposition.DeletedAtIsNil()).WithHiringJobPositionEdges(
+		func(query *ent.HiringJobQuery) {
+			query.Where(hiringjob.DeletedAtIsNil())
+		},
+	)
 }
 
 func (rps *jobPositionRepoImpl) BuildGet(ctx context.Context, query *ent.JobPositionQuery) (*ent.JobPosition, error) {

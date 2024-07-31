@@ -21,8 +21,17 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// EdgeHiringJobPositionEdges holds the string denoting the hiring_job_position_edges edge name in mutations.
+	EdgeHiringJobPositionEdges = "hiring_job_position_edges"
 	// Table holds the table name of the jobposition in the database.
 	Table = "job_positions"
+	// HiringJobPositionEdgesTable is the table that holds the hiring_job_position_edges relation/edge.
+	HiringJobPositionEdgesTable = "hiring_jobs"
+	// HiringJobPositionEdgesInverseTable is the table name for the HiringJob entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
+	HiringJobPositionEdgesInverseTable = "hiring_jobs"
+	// HiringJobPositionEdgesColumn is the table column denoting the hiring_job_position_edges relation/edge.
+	HiringJobPositionEdgesColumn = "job_position_id"
 )
 
 // Columns holds all SQL columns for jobposition fields.

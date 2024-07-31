@@ -78,9 +78,6 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	if input.Amount == 0 && input.Status == ent.HiringJobStatusOpened {
-		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.HiringJob().CreateHiringJob(ctx, input)
 		if err != nil {

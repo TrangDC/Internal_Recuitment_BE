@@ -121,6 +121,9 @@ func (svc *jobPositionSvcImpl) DeleteJobPosition(ctx context.Context, jobPositio
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	if len(jobPositionRecord.Edges.HiringJobPositionEdges) > 0 {
+		return util.WrapGQLError(ctx, "model.job_positions.validation.hiring_job_exist", http.StatusBadRequest, util.ErrorFlagDeleteFail)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.JobPosition().DeleteJobPosition(ctx, jobPositionRecord)
 		return err

@@ -32,6 +32,16 @@ func (r *hiringJobResolver) Currency(ctx context.Context, obj *ent.HiringJob) (e
 	return ent.CurrencyEnum(obj.Currency), nil
 }
 
+// JobPosition is the resolver for the job_position field.
+func (r *hiringJobResolver) JobPosition(ctx context.Context, obj *ent.HiringJob) (*ent.JobPosition, error) {
+	return obj.Edges.JobPositionEdge, nil
+}
+
+// JobPositionID is the resolver for the job_position_id field.
+func (r *hiringJobResolver) JobPositionID(ctx context.Context, obj *ent.HiringJob) (string, error) {
+	return obj.JobPositionID.String(), nil
+}
+
 // HiringTeam is the resolver for the hiring_team field.
 func (r *hiringJobResolver) HiringTeam(ctx context.Context, obj *ent.HiringJob) (*ent.HiringTeam, error) {
 	return obj.Edges.HiringTeamEdge, nil

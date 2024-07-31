@@ -8,6 +8,7 @@ import (
 	"time"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/jobposition"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -53,6 +54,8 @@ type HiringJob struct {
 	Priority int `json:"priority,omitempty"`
 	// HiringTeamID holds the value of the "hiring_team_id" field.
 	HiringTeamID uuid.UUID `json:"hiring_team_id,omitempty"`
+	// JobPositionID holds the value of the "job_position_id" field.
+	JobPositionID uuid.UUID `json:"job_position_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobQuery when eager-loading is set.
 	Edges HiringJobEdges `json:"edges"`
@@ -68,11 +71,13 @@ type HiringJobEdges struct {
 	HiringJobSkillEdges []*EntitySkill `json:"hiring_job_skill_edges,omitempty"`
 	// HiringTeamEdge holds the value of the hiring_team_edge edge.
 	HiringTeamEdge *HiringTeam `json:"hiring_team_edge,omitempty"`
+	// JobPositionEdge holds the value of the job_position_edge edge.
+	JobPositionEdge *JobPosition `json:"job_position_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [5]map[string]int
 
 	namedCandidateJobEdges   map[string][]*CandidateJob
 	namedHiringJobSkillEdges map[string][]*EntitySkill
@@ -122,6 +127,19 @@ func (e HiringJobEdges) HiringTeamEdgeOrErr() (*HiringTeam, error) {
 	return nil, &NotLoadedError{edge: "hiring_team_edge"}
 }
 
+// JobPositionEdgeOrErr returns the JobPositionEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HiringJobEdges) JobPositionEdgeOrErr() (*JobPosition, error) {
+	if e.loadedTypes[4] {
+		if e.JobPositionEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: jobposition.Label}
+		}
+		return e.JobPositionEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "job_position_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*HiringJob) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -133,7 +151,7 @@ func (*HiringJob) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case hiringjob.FieldCreatedAt, hiringjob.FieldUpdatedAt, hiringjob.FieldDeletedAt, hiringjob.FieldLastApplyDate:
 			values[i] = new(sql.NullTime)
-		case hiringjob.FieldID, hiringjob.FieldCreatedBy, hiringjob.FieldHiringTeamID:
+		case hiringjob.FieldID, hiringjob.FieldCreatedBy, hiringjob.FieldHiringTeamID, hiringjob.FieldJobPositionID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type HiringJob", columns[i])
@@ -258,6 +276,12 @@ func (hj *HiringJob) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				hj.HiringTeamID = *value
 			}
+		case hiringjob.FieldJobPositionID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field job_position_id", values[i])
+			} else if value != nil {
+				hj.JobPositionID = *value
+			}
 		}
 	}
 	return nil
@@ -281,6 +305,11 @@ func (hj *HiringJob) QueryHiringJobSkillEdges() *EntitySkillQuery {
 // QueryHiringTeamEdge queries the "hiring_team_edge" edge of the HiringJob entity.
 func (hj *HiringJob) QueryHiringTeamEdge() *HiringTeamQuery {
 	return (&HiringJobClient{config: hj.config}).QueryHiringTeamEdge(hj)
+}
+
+// QueryJobPositionEdge queries the "job_position_edge" edge of the HiringJob entity.
+func (hj *HiringJob) QueryJobPositionEdge() *JobPositionQuery {
+	return (&HiringJobClient{config: hj.config}).QueryJobPositionEdge(hj)
 }
 
 // Update returns a builder for updating this HiringJob.
@@ -356,6 +385,9 @@ func (hj *HiringJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("hiring_team_id=")
 	builder.WriteString(fmt.Sprintf("%v", hj.HiringTeamID))
+	builder.WriteString(", ")
+	builder.WriteString("job_position_id=")
+	builder.WriteString(fmt.Sprintf("%v", hj.JobPositionID))
 	builder.WriteByte(')')
 	return builder.String()
 }
