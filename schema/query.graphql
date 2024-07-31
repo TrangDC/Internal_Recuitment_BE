@@ -56,6 +56,7 @@ type Query {
   # Selection
   SelectionUsers(pagination: PaginationInput, filter: UserFilter, freeWord: UserFreeWord, orderBy: UserOrder): UserSelectionResponseGetAll!
   SelectionHiringTeams(pagination: PaginationInput, filter: HiringTeamFilter, freeWord: HiringTeamFreeWord, orderBy: HiringTeamOrderBy!): HiringTeamSelectionResponseGetAll!
+  SelectionRecTeams(pagination: PaginationInput, filter: RecTeamFilter, freeWord: RecTeamFreeWord, orderBy: RecTeamOrderBy): RecTeamSelectionResponseGetAll!
   SelectionJobPositions(pagination: PaginationInput, filter: JobPositionFilter, freeWord: JobPositionFreeWord, orderBy: JobPositionOrder): JobPositionSelectionResponseGetAll!
   SelectionHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobSelectionResponseGetAll!
   SelectionCandidates(pagination: PaginationInput, filter: CandidateFilter, freeWord: CandidateFreeWord, orderBy: CandidateOrder): CandidateSelectionResponseGetAll!
