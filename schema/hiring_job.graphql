@@ -55,6 +55,7 @@ input HiringJobFilter {
   created_by_ids: [ID!]
   for_owner: Boolean
   for_hiring_team: Boolean
+  job_position_ids: [ID!]
 }
 
 input HiringJobFreeWord {

@@ -383,15 +383,16 @@ type GetEmailTemplateKeywordResponse struct {
 }
 
 type HiringJobFilter struct {
-	Name          *string          `json:"name"`
-	HiringTeamIds []string         `json:"hiring_team_ids"`
-	Status        *HiringJobStatus `json:"status"`
-	Priority      *int             `json:"priority"`
-	Location      []*LocationEnum  `json:"location"`
-	SkillIds      []string         `json:"skill_ids"`
-	CreatedByIds  []string         `json:"created_by_ids"`
-	ForOwner      *bool            `json:"for_owner"`
-	ForHiringTeam *bool            `json:"for_hiring_team"`
+	Name           *string          `json:"name"`
+	HiringTeamIds  []string         `json:"hiring_team_ids"`
+	Status         *HiringJobStatus `json:"status"`
+	Priority       *int             `json:"priority"`
+	Location       []*LocationEnum  `json:"location"`
+	SkillIds       []string         `json:"skill_ids"`
+	CreatedByIds   []string         `json:"created_by_ids"`
+	ForOwner       *bool            `json:"for_owner"`
+	ForHiringTeam  *bool            `json:"for_hiring_team"`
+	JobPositionIds []string         `json:"job_position_ids"`
 }
 
 type HiringJobFreeWord struct {
