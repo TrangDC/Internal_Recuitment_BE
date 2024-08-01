@@ -161,8 +161,7 @@ func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.Pagi
 }
 
 func (svc *recTeamSvcImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.RecTeamResponse, error) {
-	query := svc.repoRegistry.RecTeam().BuildQuery()
-	recTeam, err := svc.repoRegistry.RecTeam().BuildGetOne(ctx, query.Where(recteam.IDEQ(id)))
+	recTeam, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
