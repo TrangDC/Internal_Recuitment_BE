@@ -52,14 +52,14 @@ func (rps *roleRepoImpl) BuildDelete() *ent.RoleUpdate {
 }
 
 func (rps *roleRepoImpl) BuildQuery() *ent.RoleQuery {
-	return rps.client.Role.Query().Where(role.DeletedAtIsNil()).WithRolePermissionEdges(
-		func(query *ent.EntityPermissionQuery) {
-			query.WithPermissionEdges(
-				func(query *ent.PermissionQuery) {
+	return rps.client.Role.Query().Where(role.DeletedAtIsNil()).
+		WithRolePermissionEdges(func(query *ent.EntityPermissionQuery) {
+			query.
+				WithPermissionEdges(func(query *ent.PermissionQuery) {
 					query.Where(permission.DeletedAtIsNil())
-				},
-			)
-		})
+				})
+		}).
+		WithUserEdges()
 }
 func (rps *roleRepoImpl) BuildBaseQuery() *ent.RoleQuery {
 	return rps.client.Role.Query().Where(role.DeletedAtIsNil())

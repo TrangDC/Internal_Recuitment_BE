@@ -19,6 +19,11 @@ func (r *roleResolver) EntityPermissions(ctx context.Context, obj *ent.Role) ([]
 	return obj.Edges.RolePermissionEdges, nil
 }
 
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *roleResolver) IsAbleToDelete(ctx context.Context, obj *ent.Role) (bool, error) {
+	return len(obj.Edges.UserEdges) == 0, nil
+}
+
 // Role returns graphql1.RoleResolver implementation.
 func (r *Resolver) Role() graphql1.RoleResolver { return &roleResolver{r} }
 
