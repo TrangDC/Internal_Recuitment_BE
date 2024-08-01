@@ -58,7 +58,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "record_id", Type: field.TypeUUID},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"hiring_teams", "job_positions", "hiring_jobs", "candidates", "skills", "users", "skill_types", "roles", "email_templates"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"hiring_teams", "job_positions", "hiring_jobs", "candidates", "skills", "users", "skill_types", "roles", "email_templates", "rec_teams"}},
 		{Name: "action_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"create", "update", "delete"}, Default: "create"},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "record_changes", Type: field.TypeString, Nullable: true, Size: 2147483647},

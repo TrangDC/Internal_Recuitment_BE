@@ -27,6 +27,7 @@ type Dto interface {
 	User() UserDto
 	Role() RoleDto
 	EmailTemplate() EmailTemplateDto
+	RecTeam() RecTeamDto
 }
 
 // dtoImpl is the implementation of Dto.
@@ -45,6 +46,7 @@ type dtoImpl struct {
 	userDto                 UserDto
 	roleDto                 RoleDto
 	emailTemplateDto        EmailTemplateDto
+	recTeamDto              RecTeamDto
 }
 
 // NewDto creates a new Dto.
@@ -64,6 +66,7 @@ func NewDto() Dto {
 		userDto:                 NewUserDto(),
 		roleDto:                 NewRoleDto(),
 		emailTemplateDto:        NewEmailTemplateDto(),
+		recTeamDto:              NewRecTeamDto(),
 	}
 }
 
@@ -80,6 +83,7 @@ const (
 	UserI18n                 = "model.users.model_name"
 	RoleI18n                 = "model.roles.model_name"
 	EmailTemplateI18n        = "model.email_templates.model_name"
+	RecTeamI18n              = "model.rec_teams.model_name"
 )
 
 func (i dtoImpl) Azure() AzureDto {
@@ -136,6 +140,10 @@ func (i dtoImpl) Role() RoleDto {
 
 func (i dtoImpl) EmailTemplate() EmailTemplateDto {
 	return i.emailTemplateDto
+}
+
+func (i dtoImpl) RecTeam() RecTeamDto {
+	return i.recTeamDto
 }
 
 func CompareArray(arr1, arr2 []string) bool {
