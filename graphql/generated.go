@@ -7836,7 +7836,6 @@ input NewUserInput {
   name: String!
   work_email: String!
   status: UserStatus!
-  entity_permissions: [NewEntityPermissionInput!]!
   hiring_team_id: ID
   role_id: [ID!]
 }
@@ -7845,7 +7844,6 @@ input UpdateUserInput {
   name: String!
   work_email: String!
   status: UserStatus!
-  entity_permissions: [NewEntityPermissionInput!]!
   hiring_team_id: ID
   role_id: [ID!]
 }
@@ -43541,7 +43539,7 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "hiring_team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43569,14 +43567,6 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalNUserStatus2trecᚋentᚐUserStatus(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "entity_permissions":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_permissions"))
-			it.EntityPermissions, err = ec.unmarshalNNewEntityPermissionInput2ᚕᚖtrecᚋentᚐNewEntityPermissionInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45005,7 +44995,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "entity_permissions", "hiring_team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45033,14 +45023,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalNUserStatus2trecᚋentᚐUserStatus(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "entity_permissions":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("entity_permissions"))
-			it.EntityPermissions, err = ec.unmarshalNNewEntityPermissionInput2ᚕᚖtrecᚋentᚐNewEntityPermissionInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

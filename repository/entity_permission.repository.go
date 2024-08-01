@@ -15,6 +15,8 @@ type EntityPermissionRepository interface {
 	CreateAndUpdateEntityPermission(ctx context.Context, entityId uuid.UUID, input []*ent.NewEntityPermissionInput,
 		entityPermissionRecord []*ent.EntityPermission, entityPermissionType entitypermission.EntityType) error
 	DeleteAllEntityPermission(ctx context.Context, entityId uuid.UUID) error
+	BuildQuery() *ent.EntityPermissionQuery
+	BuildList(ctx context.Context, query *ent.EntityPermissionQuery) ([]*ent.EntityPermission, error)
 	ValidActionPermission(ctx context.Context, input []*ent.NewEntityPermissionInput) (error, error)
 }
 
@@ -123,6 +125,15 @@ func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.
 func (rps entityPermissionRepoImpl) DeleteAllEntityPermission(ctx context.Context, entityId uuid.UUID) error {
 	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.EntityID(entityId)).Exec(ctx)
 	return err
+}
+
+// query
+func (rps entityPermissionRepoImpl) BuildQuery() *ent.EntityPermissionQuery {
+	return rps.client.EntityPermission.Query().WithPermissionEdges()
+}
+
+func (rps entityPermissionRepoImpl) BuildList(ctx context.Context, query *ent.EntityPermissionQuery) ([]*ent.EntityPermission, error) {
+	return query.All(ctx)
 }
 
 // common
