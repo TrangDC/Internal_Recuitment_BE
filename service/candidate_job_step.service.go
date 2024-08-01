@@ -19,12 +19,12 @@ type candidateJobStepImpl struct {
 }
 
 func NewCandidateJobStepService(repoRegistry repository.Repository, logger *zap.Logger) CandidateJobStepService {
-	return &attachmentSvcImpl{
+	return &candidateJobStepImpl{
 		repoRegistry: repoRegistry,
 		logger:       logger,
 	}
 }
 
-func (svc *attachmentSvcImpl) CreateCandidateJobStep(ctx context.Context, status candidatejob.Status, candidateJobId uuid.UUID, repoRegistry repository.Repository) error {
+func (svc *candidateJobStepImpl) CreateCandidateJobStep(ctx context.Context, status candidatejob.Status, candidateJobId uuid.UUID, repoRegistry repository.Repository) error {
 	return repoRegistry.CandidateJobStep().CreateCandidateJobStep(ctx, status, candidateJobId)
 }

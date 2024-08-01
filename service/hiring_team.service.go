@@ -56,10 +56,6 @@ func (svc *hiringTeamSvcImpl) CreateHiringTeam(ctx context.Context, input ent.Ne
 		result    *ent.HiringTeam
 		memberIds []uuid.UUID
 	)
-	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	if !payload.ForAll {
-		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
-	}
 	memberIds = lo.Map(input.Members, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
 	})
@@ -158,10 +154,6 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 }
 
 func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID uuid.UUID, note string) error {
-	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	if !payload.ForAll {
-		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
-	}
 	team, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, hiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -418,7 +410,7 @@ func (svc hiringTeamSvcImpl) getTeamListByAdditionOrder(ctx context.Context, que
 		})
 		sort.Slice(teams, func(i, j int) bool {
 			if orderBy.Direction == ent.OrderDirectionAsc {
-				return (teams[i].Edges.HiringTeamJobEdges[0].LastApplyDate.After(teams[j].Edges.HiringTeamJobEdges[0].LastApplyDate))
+				return teams[i].Edges.HiringTeamJobEdges[0].LastApplyDate.After(teams[j].Edges.HiringTeamJobEdges[0].LastApplyDate)
 			} else {
 				return teams[i].Edges.HiringTeamJobEdges[0].LastApplyDate.Before(teams[j].Edges.HiringTeamJobEdges[0].LastApplyDate)
 			}
@@ -451,9 +443,6 @@ func (svc *hiringTeamSvcImpl) validPermissionUpdate(payload *middleware.Payload,
 	currentMemberIds := lo.Map(record.Edges.HiringMemberEdges, func(user *ent.User, _ int) uuid.UUID {
 		return user.ID
 	})
-	if payload.ForOwner && payload.ForTeam && (lo.Contains(currentManagerIds, payload.UserID) || lo.Contains(currentMemberIds, payload.UserID)) {
-		return true
-	}
 	if payload.ForOwner && lo.Contains(currentManagerIds, payload.UserID) {
 		return true
 	}
@@ -466,9 +455,6 @@ func (svc *hiringTeamSvcImpl) validPermissionUpdate(payload *middleware.Payload,
 func (svc *hiringTeamSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.HiringTeamQuery) {
 	if payload.ForAll {
 		return
-	}
-	if payload.ForOwner && payload.ForTeam {
-		query.Where(hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))))
 	}
 	if payload.ForOwner {
 		query.Where(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)))
