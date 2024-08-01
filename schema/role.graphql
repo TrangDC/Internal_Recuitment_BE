@@ -21,6 +21,7 @@ type Role {
   name: String!
   description: String
   entity_permissions: [EntityPermission!]!
+  is_able_to_delete: Boolean!
 }
 
 input NewRoleInput {

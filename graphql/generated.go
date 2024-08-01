@@ -875,6 +875,7 @@ type ComplexityRoot struct {
 		Description       func(childComplexity int) int
 		EntityPermissions func(childComplexity int) int
 		ID                func(childComplexity int) int
+		IsAbleToDelete    func(childComplexity int) int
 		Name              func(childComplexity int) int
 	}
 
@@ -1269,6 +1270,7 @@ type RoleResolver interface {
 	ID(ctx context.Context, obj *ent.Role) (string, error)
 
 	EntityPermissions(ctx context.Context, obj *ent.Role) ([]*ent.EntityPermission, error)
+	IsAbleToDelete(ctx context.Context, obj *ent.Role) (bool, error)
 }
 type SkillResolver interface {
 	ID(ctx context.Context, obj *ent.Skill) (string, error)
@@ -5192,6 +5194,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Role.ID(childComplexity), true
 
+	case "Role.is_able_to_delete":
+		if e.complexity.Role.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.Role.IsAbleToDelete(childComplexity), true
+
 	case "Role.name":
 		if e.complexity.Role.Name == nil {
 			break
@@ -7585,6 +7594,7 @@ type Role {
   name: String!
   description: String
   entity_permissions: [EntityPermission!]!
+  is_able_to_delete: Boolean!
 }
 
 input NewRoleInput {
@@ -20158,6 +20168,8 @@ func (ec *executionContext) fieldContext_EmailTemplate_roles(ctx context.Context
 				return ec.fieldContext_Role_description(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_Role_entity_permissions(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Role_is_able_to_delete(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Role", field.Name)
 		},
@@ -35624,6 +35636,50 @@ func (ec *executionContext) fieldContext_Role_entity_permissions(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Role_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.Role) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Role_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Role().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Role_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Role",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RoleEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.RoleEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RoleEdge_node(ctx, field)
 	if err != nil {
@@ -35671,6 +35727,8 @@ func (ec *executionContext) fieldContext_RoleEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Role_description(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_Role_entity_permissions(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Role_is_able_to_delete(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Role", field.Name)
 		},
@@ -35769,6 +35827,8 @@ func (ec *executionContext) fieldContext_RoleResponse_data(ctx context.Context, 
 				return ec.fieldContext_Role_description(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_Role_entity_permissions(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Role_is_able_to_delete(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Role", field.Name)
 		},
@@ -38271,6 +38331,8 @@ func (ec *executionContext) fieldContext_User_roles(ctx context.Context, field g
 				return ec.fieldContext_Role_description(ctx, field)
 			case "entity_permissions":
 				return ec.fieldContext_Role_entity_permissions(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Role_is_able_to_delete(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Role", field.Name)
 		},
@@ -52719,6 +52781,26 @@ func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Role_entity_permissions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Role_is_able_to_delete(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
