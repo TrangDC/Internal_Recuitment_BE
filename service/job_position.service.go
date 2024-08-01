@@ -220,7 +220,7 @@ func (svc *jobPositionSvcImpl) getAllJobPosition(ctx context.Context, pagination
 	count, err := svc.repoRegistry.JobPosition().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	order := ent.Desc(jobposition.FieldCreatedAt)
 	if orderBy != nil {
@@ -238,7 +238,7 @@ func (svc *jobPositionSvcImpl) getAllJobPosition(ctx context.Context, pagination
 	jobPositions, err := svc.repoRegistry.JobPosition().BuildList(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	return jobPositions, count, page, perPage, nil
 }

@@ -130,7 +130,7 @@ func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.Pagi
 	query := svc.repoRegistry.RecTeam().BuildQuery()
 	recTeams, count, page, perPage, err = svc.getAllRecTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		return nil, err
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(recTeams, func(entity *ent.RecTeam, index int) *ent.RecTeamEdge {
 		return &ent.RecTeamEdge{
@@ -165,7 +165,7 @@ func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.Pagin
 	query := svc.repoRegistry.RecTeam().BuildBaseQuery()
 	recTeams, count, page, perPage, err = svc.getAllRecTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		return nil, err
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(recTeams, func(entity *ent.RecTeam, index int) *ent.RecTeamSelectionEdge {
 		return &ent.RecTeamSelectionEdge{
@@ -203,7 +203,7 @@ func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTea
 	count, err = svc.repoRegistry.RecTeam().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	order := ent.Desc(recteam.FieldCreatedAt)
 	if orderBy != nil {
@@ -221,7 +221,7 @@ func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTea
 	recTeams, err = svc.repoRegistry.RecTeam().BuildList(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	return recTeams, count, page, perPage, nil
 }
