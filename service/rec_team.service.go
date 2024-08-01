@@ -27,6 +27,7 @@ type RecTeamService interface {
 	// query
 	GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
 		filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error)
+	GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.RecTeamResponse, error)
 	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
 		filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error)
 }
@@ -157,6 +158,17 @@ func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.Pagi
 	}
 
 	return result, nil
+}
+
+func (svc *recTeamSvcImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.RecTeamResponse, error) {
+	recTeam, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	return &ent.RecTeamResponse{
+		Data: recTeam,
+	}, nil
 }
 
 func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error) {

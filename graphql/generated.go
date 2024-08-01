@@ -724,6 +724,7 @@ type ComplexityRoot struct {
 		GetHiringTeam                      func(childComplexity int, id string) int
 		GetJobPosition                     func(childComplexity int, id string) int
 		GetMe                              func(childComplexity int) int
+		GetRecTeam                         func(childComplexity int, id string) int
 		GetRole                            func(childComplexity int, id string) int
 		GetSkill                           func(childComplexity int, id string) int
 		GetSkillType                       func(childComplexity int, id string) int
@@ -1213,6 +1214,7 @@ type QueryResolver interface {
 	GetHiringTeam(ctx context.Context, id string) (*ent.HiringTeamResponse, error)
 	GetAllHiringTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamResponseGetAll, error)
 	GetAllRecTeams(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error)
+	GetRecTeam(ctx context.Context, id string) (*ent.RecTeamResponse, error)
 	GetUser(ctx context.Context, id string) (*ent.UserResponse, error)
 	GetAllUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
@@ -4535,6 +4537,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetMe(childComplexity), true
 
+	case "Query.GetRecTeam":
+		if e.complexity.Query.GetRecTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetRecTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetRecTeam(childComplexity, args["id"].(string)), true
+
 	case "Query.GetRole":
 		if e.complexity.Query.GetRole == nil {
 			break
@@ -7242,6 +7256,7 @@ enum PermissionGroupType {
 
   # RecTeam
   GetAllRecTeams(pagination: PaginationInput, filter: RecTeamFilter, freeWord: RecTeamFreeWord, orderBy: RecTeamOrderBy): RecTeamResponseGetAll!
+  GetRecTeam(id: ID!): RecTeamResponse!
 
   # User
   GetUser(id: ID!): UserResponse!
@@ -10032,6 +10047,21 @@ func (ec *executionContext) field_Query_GetHiringTeam_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_GetJobPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetRecTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -29744,6 +29774,65 @@ func (ec *executionContext) fieldContext_Query_GetAllRecTeams(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllRecTeams_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetRecTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetRecTeam(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetRecTeam(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeamResponse)
+	fc.Result = res
+	return ec.marshalNRecTeamResponse2ᚖtrecᚋentᚐRecTeamResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetRecTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_RecTeamResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeamResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetRecTeam_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -50733,6 +50822,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllRecTeams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetRecTeam":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetRecTeam(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

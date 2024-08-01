@@ -5,6 +5,7 @@ type Query {
 
   # RecTeam
   GetAllRecTeams(pagination: PaginationInput, filter: RecTeamFilter, freeWord: RecTeamFreeWord, orderBy: RecTeamOrderBy): RecTeamResponseGetAll!
+  GetRecTeam(id: ID!): RecTeamResponse!
 
   # User
   GetUser(id: ID!): UserResponse!

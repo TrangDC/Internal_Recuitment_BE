@@ -26,6 +26,11 @@ func (r *queryResolver) GetAllRecTeams(ctx context.Context, pagination *ent.Pagi
 	return r.serviceRegistry.RecTeam().GetRecTeams(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// GetRecTeam is the resolver for the GetRecTeam field.
+func (r *queryResolver) GetRecTeam(ctx context.Context, id string) (*ent.RecTeamResponse, error) {
+	return r.serviceRegistry.RecTeam().GetRecTeam(ctx, uuid.MustParse(id))
+}
+
 // GetUser is the resolver for the GetUser field.UserSelectionResponseGetAll
 func (r *queryResolver) GetUser(ctx context.Context, id string) (*ent.UserResponse, error) {
 	return r.serviceRegistry.User().GetUser(ctx, uuid.MustParse(id))
