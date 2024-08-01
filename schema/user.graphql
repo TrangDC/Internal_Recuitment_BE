@@ -60,7 +60,6 @@ input NewUserInput {
   name: String!
   work_email: String!
   status: UserStatus!
-  entity_permissions: [NewEntityPermissionInput!]!
   hiring_team_id: ID
   role_id: [ID!]
 }
@@ -69,7 +68,6 @@ input UpdateUserInput {
   name: String!
   work_email: String!
   status: UserStatus!
-  entity_permissions: [NewEntityPermissionInput!]!
   hiring_team_id: ID
   role_id: [ID!]
 }

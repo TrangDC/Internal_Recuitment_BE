@@ -644,12 +644,11 @@ type NewSkillTypeInput struct {
 }
 
 type NewUserInput struct {
-	Name              string                      `json:"name"`
-	WorkEmail         string                      `json:"work_email"`
-	Status            UserStatus                  `json:"status"`
-	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
-	HiringTeamID      *string                     `json:"hiring_team_id"`
-	RoleID            []string                    `json:"role_id"`
+	Name         string     `json:"name"`
+	WorkEmail    string     `json:"work_email"`
+	Status       UserStatus `json:"status"`
+	HiringTeamID *string    `json:"hiring_team_id"`
+	RoleID       []string   `json:"role_id"`
 }
 
 type Pagination struct {
@@ -1027,12 +1026,11 @@ type UpdateSkillTypeInput struct {
 }
 
 type UpdateUserInput struct {
-	Name              string                      `json:"name"`
-	WorkEmail         string                      `json:"work_email"`
-	Status            UserStatus                  `json:"status"`
-	EntityPermissions []*NewEntityPermissionInput `json:"entity_permissions"`
-	HiringTeamID      *string                     `json:"hiring_team_id"`
-	RoleID            []string                    `json:"role_id"`
+	Name         string     `json:"name"`
+	WorkEmail    string     `json:"work_email"`
+	Status       UserStatus `json:"status"`
+	HiringTeamID *string    `json:"hiring_team_id"`
+	RoleID       []string   `json:"role_id"`
 }
 
 type UpdateUserStatusInput struct {

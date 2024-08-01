@@ -6,6 +6,9 @@ import (
 	"trec/ent"
 	"trec/ent/user"
 	"trec/models"
+
+	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type UserDto interface {
@@ -13,6 +16,7 @@ type UserDto interface {
 	AuditTrailDelete(record *ent.User) (string, error)
 	AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) (string, error)
 	AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamName string) string
+	NewUserEntityPermissionInput(rolePermissions []*ent.EntityPermission) []*ent.NewEntityPermissionInput
 }
 
 type userDtoImpl struct {
@@ -113,6 +117,34 @@ func (d userDtoImpl) AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamN
 	result.Update = append(result.Update, entity...)
 	jsonObj, _ := json.Marshal(result)
 	return string(jsonObj)
+}
+
+func (d userDtoImpl) NewUserEntityPermissionInput(rolePermissions []*ent.EntityPermission) []*ent.NewEntityPermissionInput {
+	inputByPermissionID := make(map[uuid.UUID]*ent.NewEntityPermissionInput)
+	lo.ForEach(rolePermissions, func(rolePermission *ent.EntityPermission, _ int) {
+		permissionID := rolePermission.Edges.PermissionEdges.ID
+		if _, exist := inputByPermissionID[permissionID]; !exist {
+			inputByPermissionID[permissionID] = &ent.NewEntityPermissionInput{
+				ForOwner:     rolePermission.ForOwner,
+				ForTeam:      rolePermission.ForTeam,
+				ForAll:       rolePermission.ForAll,
+				PermissionID: permissionID.String(),
+			}
+			return
+		}
+		if rolePermission.ForAll {
+			inputByPermissionID[permissionID].ForAll = true
+			inputByPermissionID[permissionID].ForTeam = false
+			inputByPermissionID[permissionID].ForOwner = false
+			return
+		}
+		if rolePermission.ForTeam && inputByPermissionID[permissionID].ForOwner {
+			inputByPermissionID[permissionID].ForTeam = true
+			inputByPermissionID[permissionID].ForOwner = false
+			return
+		}
+	})
+	return lo.Values(inputByPermissionID)
 }
 
 func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {

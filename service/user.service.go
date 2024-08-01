@@ -63,23 +63,22 @@ func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput,
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.EntityPermission().ValidActionPermission(ctx, input.EntityPermissions)
+	roleIds := lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
+		return uuid.MustParse(member)
+	})
+	rolesPermissions, err := svc.repoRegistry.EntityPermission().BuildList(ctx,
+		svc.repoRegistry.EntityPermission().BuildQuery().Where(entitypermission.EntityIDIn(roleIds...)))
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
-	roleIds := lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
-		return uuid.MustParse(member)
-	})
+	userPermissionInput := svc.dtoRegistry.User().NewUserEntityPermissionInput(rolesPermissions)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.User().CreateUser(ctx, input, roleIds)
 		if err != nil {
 			return err
 		}
-		err := repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, input.EntityPermissions, nil, entitypermission.EntityTypeUser)
+		err := repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, userPermissionInput, nil, entitypermission.EntityTypeUser)
 		return err
 	})
 	if err != nil {
@@ -152,14 +151,6 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.EntityPermission().ValidActionPermission(ctx, input.EntityPermissions)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-	}
-	if errString != nil {
-		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	if len(input.RoleID) != 0 {
 		roleIds = lo.Map(input.RoleID, func(member string, index int) uuid.UUID {
 			return uuid.MustParse(member)
@@ -170,12 +161,19 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 		input.HiringTeamID = &currentTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
+	rolesPermissions, err := svc.repoRegistry.EntityPermission().BuildList(ctx,
+		svc.repoRegistry.EntityPermission().BuildQuery().Where(entitypermission.EntityIDIn(roleIds...)))
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	userPermissionInput := svc.dtoRegistry.User().NewUserEntityPermissionInput(rolesPermissions)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.User().UpdateUser(ctx, record, input, newRoleIds, removeRoleIds)
 		if err != nil {
 			return err
 		}
-		err = repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, input.EntityPermissions, record.Edges.UserPermissionEdges, entitypermission.EntityTypeUser)
+		err = repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, userPermissionInput, record.Edges.UserPermissionEdges, entitypermission.EntityTypeUser)
 		return err
 	})
 	if err != nil {
