@@ -6881,6 +6881,7 @@ input HiringJobFilter {
   created_by_ids: [ID!]
   for_owner: Boolean
   for_hiring_team: Boolean
+  job_position_ids: [ID!]
 }
 
 input HiringJobFreeWord {
@@ -42436,7 +42437,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "hiring_team_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team"}
+	fieldsInOrder := [...]string{"name", "hiring_team_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team", "job_position_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42512,6 +42513,14 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("for_hiring_team"))
 			it.ForHiringTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "job_position_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("job_position_ids"))
+			it.JobPositionIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

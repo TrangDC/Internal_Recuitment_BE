@@ -477,6 +477,12 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 				hiringJobQuery.Where(hiringjob.IDEQ(uuid.Nil))
 			}
 		}
+		if input.JobPositionIds != nil {
+			ids := lo.Map(input.JobPositionIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			hiringJobQuery.Where(hiringjob.JobPositionIDIn(ids...))
+		}
 	}
 }
 
