@@ -450,6 +450,20 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			})
 			userQuery.Where(user.Or(user.HiringTeamIDIn(teamIds...), user.HasHiringTeamEdgesWith(hiringteam.IDIn(teamIds...))))
 		}
+		if input.IsAbleToLeaderRecTeam != nil {
+			if *input.IsAbleToLeaderRecTeam {
+				userQuery.Where(user.Not(user.HasLeadRecTeams()))
+			} else {
+				userQuery.Where(user.HasLeadRecTeams())
+			}
+		}
+		if input.IsAbleToManagerHiringTeam != nil {
+			if *input.IsAbleToManagerHiringTeam {
+				userQuery.Where(user.Not(user.HasHiringTeamEdges()))
+			} else {
+				userQuery.Where(user.HasHiringTeamEdges())
+			}
+		}
 	}
 }
 

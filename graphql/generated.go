@@ -989,15 +989,17 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		EntityPermissions  func(childComplexity int) int
-		HiringTeam         func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		MemberOfHiringTeam func(childComplexity int) int
-		MemberOfRecTeam    func(childComplexity int) int
-		Name               func(childComplexity int) int
-		Roles              func(childComplexity int) int
-		Status             func(childComplexity int) int
-		WorkEmail          func(childComplexity int) int
+		EntityPermissions     func(childComplexity int) int
+		HiringTeam            func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		IsLeaderOfRecTeam     func(childComplexity int) int
+		IsManagerOfHiringTeam func(childComplexity int) int
+		MemberOfHiringTeam    func(childComplexity int) int
+		MemberOfRecTeam       func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		Roles                 func(childComplexity int) int
+		Status                func(childComplexity int) int
+		WorkEmail             func(childComplexity int) int
 	}
 
 	UserEdge struct {
@@ -1291,6 +1293,8 @@ type UserResolver interface {
 	Roles(ctx context.Context, obj *ent.User) ([]*ent.Role, error)
 	MemberOfHiringTeam(ctx context.Context, obj *ent.User) (*ent.HiringTeam, error)
 	MemberOfRecTeam(ctx context.Context, obj *ent.User) (*ent.RecTeam, error)
+	IsLeaderOfRecTeam(ctx context.Context, obj *ent.User) (bool, error)
+	IsManagerOfHiringTeam(ctx context.Context, obj *ent.User) (bool, error)
 }
 
 type executableSchema struct {
@@ -5579,6 +5583,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.is_leader_of_rec_team":
+		if e.complexity.User.IsLeaderOfRecTeam == nil {
+			break
+		}
+
+		return e.complexity.User.IsLeaderOfRecTeam(childComplexity), true
+
+	case "User.is_manager_of_hiring_team":
+		if e.complexity.User.IsManagerOfHiringTeam == nil {
+			break
+		}
+
+		return e.complexity.User.IsManagerOfHiringTeam(childComplexity), true
+
 	case "User.member_of_hiring_team":
 		if e.complexity.User.MemberOfHiringTeam == nil {
 			break
@@ -7830,6 +7848,8 @@ type User {
   roles: [Role!]!
   member_of_hiring_team: HiringTeam
   member_of_rec_team: RecTeam
+  is_leader_of_rec_team: Boolean!
+  is_manager_of_hiring_team: Boolean!
 }
 
 type UserSelectionEdge {
@@ -7850,6 +7870,8 @@ input UserFilter {
   is_able_to_interviewer: Boolean
   hiring_team_id: [ID!]
   role_id: [ID!]
+  is_able_to_leader_rec_team: Boolean
+  is_able_to_manager_hiring_team: Boolean
 }
 
 input UserFreeWord {
@@ -11993,6 +12015,10 @@ func (ec *executionContext) fieldContext_AuditTrail_createdInfo(ctx context.Cont
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -13701,6 +13727,10 @@ func (ec *executionContext) fieldContext_Candidate_reference_user(ctx context.Co
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14749,6 +14779,10 @@ func (ec *executionContext) fieldContext_CandidateInterview_interviewer(ctx cont
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14932,6 +14966,10 @@ func (ec *executionContext) fieldContext_CandidateInterview_owner(ctx context.Co
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -16182,6 +16220,10 @@ func (ec *executionContext) fieldContext_CandidateJob_owner(ctx context.Context,
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -16930,6 +16972,10 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_owner(ctx context.
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -22461,6 +22507,10 @@ func (ec *executionContext) fieldContext_HiringJob_user(ctx context.Context, fie
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -23670,6 +23720,10 @@ func (ec *executionContext) fieldContext_HiringTeam_managers(ctx context.Context
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -24140,6 +24194,10 @@ func (ec *executionContext) fieldContext_HiringTeamApprover_user(ctx context.Con
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -32918,6 +32976,10 @@ func (ec *executionContext) fieldContext_RecTeam_leader(ctx context.Context, fie
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -38553,6 +38615,94 @@ func (ec *executionContext) fieldContext_User_member_of_rec_team(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _User_is_leader_of_rec_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().IsLeaderOfRecTeam(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_is_leader_of_rec_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_is_manager_of_hiring_team(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().IsManagerOfHiringTeam(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_is_manager_of_hiring_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UserEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserEdge_node(ctx, field)
 	if err != nil {
@@ -38610,6 +38760,10 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -38715,6 +38869,10 @@ func (ec *executionContext) fieldContext_UserResponse_data(ctx context.Context, 
 				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
 			case "member_of_rec_team":
 				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -45234,7 +45392,7 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "status", "is_able_to_interviewer", "hiring_team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "status", "is_able_to_interviewer", "hiring_team_id", "role_id", "is_able_to_leader_rec_team", "is_able_to_manager_hiring_team"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45294,6 +45452,22 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role_id"))
 			it.RoleID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_able_to_leader_rec_team":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_able_to_leader_rec_team"))
+			it.IsAbleToLeaderRecTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_able_to_manager_hiring_team":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_able_to_manager_hiring_team"))
+			it.IsAbleToManagerHiringTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -53856,6 +54030,46 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_member_of_rec_team(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_leader_of_rec_team":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_is_leader_of_rec_team(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "is_manager_of_hiring_team":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_is_manager_of_hiring_team(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 

@@ -17,6 +17,7 @@ type RecTeamRepository interface {
 	CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput) (*ent.RecTeam, error)
 	UpdateRecTeam(ctx context.Context, record *ent.RecTeam, input ent.UpdateRecTeamInput) (*ent.RecTeam, error)
 	DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error)
+	DeleteRelationRecTeam(ctx context.Context, recTeamId uuid.UUID) error
 
 	// query
 	GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.RecTeam, error)
@@ -25,7 +26,6 @@ type RecTeamRepository interface {
 	BuildCount(ctx context.Context, query *ent.RecTeamQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.RecTeamQuery) ([]*ent.RecTeam, error)
 	BuildGetOne(ctx context.Context, query *ent.RecTeamQuery) (*ent.RecTeam, error)
-	DeleteRelationRecTeam(ctx context.Context, recTeamId uuid.UUID) error
 
 	// common function
 	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, userID uuid.UUID) (error, error)

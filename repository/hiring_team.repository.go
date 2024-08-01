@@ -33,6 +33,7 @@ type HiringTeamRepository interface {
 	BuildCount(ctx context.Context, query *ent.HiringTeamQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.HiringTeamQuery) ([]*ent.HiringTeam, error)
 	BuildGetOne(ctx context.Context, query *ent.HiringTeamQuery) (*ent.HiringTeam, error)
+	IsManagerOfHiringTeam(ctx context.Context, userID uuid.UUID) (bool, error)
 
 	// common function
 	ValidInput(ctx context.Context, hiringTeamID uuid.UUID, name string, memberIds []uuid.UUID, approverCount int) (error, error)
@@ -162,6 +163,12 @@ func (rps *hiringTeamRepoImpl) DeleteRelationHiringTeam(ctx context.Context, hir
 func (rps *hiringTeamRepoImpl) GetHiringTeam(ctx context.Context, id uuid.UUID) (*ent.HiringTeam, error) {
 	query := rps.BuildQuery().Where(hiringteam.IDEQ(id))
 	return rps.BuildGet(ctx, query)
+}
+
+func (rps *hiringTeamRepoImpl) IsManagerOfHiringTeam(ctx context.Context, userID uuid.UUID) (bool, error) {
+	query := rps.BuildQuery().
+		Where(hiringteam.HasHiringMemberEdgesWith(user.IDEQ(userID)))
+	return rps.BuildExist(ctx, query)
 }
 
 // common function

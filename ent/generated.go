@@ -1038,13 +1038,15 @@ type UpdateUserStatusInput struct {
 }
 
 type UserFilter struct {
-	Name                *string     `json:"name"`
-	Ids                 []string    `json:"ids"`
-	IgnoreIds           []string    `json:"ignore_ids"`
-	Status              *UserStatus `json:"status"`
-	IsAbleToInterviewer *bool       `json:"is_able_to_interviewer"`
-	HiringTeamID        []string    `json:"hiring_team_id"`
-	RoleID              []string    `json:"role_id"`
+	Name                      *string     `json:"name"`
+	Ids                       []string    `json:"ids"`
+	IgnoreIds                 []string    `json:"ignore_ids"`
+	Status                    *UserStatus `json:"status"`
+	IsAbleToInterviewer       *bool       `json:"is_able_to_interviewer"`
+	HiringTeamID              []string    `json:"hiring_team_id"`
+	RoleID                    []string    `json:"role_id"`
+	IsAbleToLeaderRecTeam     *bool       `json:"is_able_to_leader_rec_team"`
+	IsAbleToManagerHiringTeam *bool       `json:"is_able_to_manager_hiring_team"`
 }
 
 type UserFreeWord struct {

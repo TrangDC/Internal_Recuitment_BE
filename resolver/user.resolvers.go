@@ -47,6 +47,17 @@ func (r *userResolver) MemberOfRecTeam(ctx context.Context, obj *ent.User) (*ent
 	return obj.Edges.RecTeams, nil
 }
 
+// IsLeaderOfRecTeam is the resolver for the is_leader_of_rec_team field.
+func (r *userResolver) IsLeaderOfRecTeam(ctx context.Context, obj *ent.User) (bool, error) {
+	return obj.Edges.RecTeams.LeaderID == obj.ID, nil
+}
+
+// IsManagerOfHiringTeam is the resolver for the is_manager_of_hiring_team field.
+func (r *userResolver) IsManagerOfHiringTeam(ctx context.Context, obj *ent.User) (bool, error) {
+	isManager := r.serviceRegistry.HiringTeam().IsManagerOfHiringTeam(ctx, obj.ID)
+	return isManager, nil
+}
+
 // User returns graphql1.UserResolver implementation.
 func (r *Resolver) User() graphql1.UserResolver { return &userResolver{r} }
 

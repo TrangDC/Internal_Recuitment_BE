@@ -29,6 +29,8 @@ type User {
   roles: [Role!]!
   member_of_hiring_team: HiringTeam
   member_of_rec_team: RecTeam
+  is_leader_of_rec_team: Boolean!
+  is_manager_of_hiring_team: Boolean!
 }
 
 type UserSelectionEdge {
@@ -49,6 +51,8 @@ input UserFilter {
   is_able_to_interviewer: Boolean
   hiring_team_id: [ID!]
   role_id: [ID!]
+  is_able_to_leader_rec_team: Boolean
+  is_able_to_manager_hiring_team: Boolean
 }
 
 input UserFreeWord {
