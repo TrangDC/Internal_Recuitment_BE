@@ -40,14 +40,9 @@ func ImportAdminPermission(db *sql.DB, logger *zap.Logger, configs *config.Confi
 		logger.Error(fmt.Sprintf("User %s is deleted", userOid))
 		return
 	}
-	var id string
-	err = db.QueryRow("SELECT id FROM entity_permissions WHERE entity_id = $1 AND entity_type = 'user'", userId).Scan(&id)
+	_, err = db.Query("DELETE FROM entity_permissions WHERE entity_id = $1;", userId)
 	if err != nil && err != sql.ErrNoRows {
 		log.Printf("Error reading user permissions: %v", err)
-		return
-	}
-	if id != "" {
-		log.Println("[SCRIPTS] Admin permissions already imported")
 		return
 	}
 	for _, record := range pRecords[1:] {
