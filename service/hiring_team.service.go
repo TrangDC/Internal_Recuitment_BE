@@ -31,6 +31,7 @@ type HiringTeamService interface {
 		filter *ent.HiringTeamFilter, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamResponseGetAll, error)
 	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringTeamFreeWord,
 		filter *ent.HiringTeamFilter, orderBy ent.HiringTeamOrderBy) (*ent.HiringTeamSelectionResponseGetAll, error)
+	IsManagerOfHiringTeam(ctx context.Context, userID uuid.UUID) bool
 }
 
 type hiringTeamSvcImpl struct {
@@ -305,6 +306,15 @@ func (svc *hiringTeamSvcImpl) getAllHiringTeams(ctx context.Context, query *ent.
 		}
 	}
 	return teams, count, nil
+}
+
+func (svc *hiringTeamSvcImpl) IsManagerOfHiringTeam(ctx context.Context, userID uuid.UUID) bool {
+	exist, err := svc.repoRegistry.HiringTeam().IsManagerOfHiringTeam(ctx, userID)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return false
+	}
+	return exist
 }
 
 // common function
