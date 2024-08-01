@@ -54,3 +54,20 @@ type RecTeamResponseGetAll {
   edges: [RecTeamEdge!]!
   pagination: Pagination!
 }
+
+type RecTeamSelection {
+  id: ID!
+  name: String!
+}
+
+type RecTeamSelectionEdge {
+  node: RecTeamSelection!
+  cursor: Cursor!
+}
+
+type RecTeamSelectionResponseGetAll {
+  edges: [RecTeamSelectionEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/rec_team.graphql

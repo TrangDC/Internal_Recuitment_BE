@@ -26,6 +26,8 @@ type RecTeamService interface {
 	// query
 	GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
 		filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error)
+	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
+		filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error)
 }
 
 type recTeamSvcImpl struct {
@@ -116,10 +118,18 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 
 // query
 func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error) {
-	var edges []*ent.RecTeamEdge
-	recTeams, count, page, perPage, err := svc.getAllRecTeams(ctx, pagination, freeWord, filter, orderBy)
+	var (
+		result   *ent.RecTeamResponseGetAll
+		edges    []*ent.RecTeamEdge
+		page     int
+		perPage  int
+		recTeams []*ent.RecTeam
+		count    int
+		err      error
+	)
+	query := svc.repoRegistry.RecTeam().BuildQuery()
+	recTeams, count, page, perPage, err = svc.getAllRecTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(recTeams, func(entity *ent.RecTeam, index int) *ent.RecTeamEdge {
@@ -130,26 +140,70 @@ func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.Pagi
 			},
 		}
 	})
-	return &ent.RecTeamResponseGetAll{
+	result = &ent.RecTeamResponseGetAll{
 		Edges: edges,
 		Pagination: &ent.Pagination{
 			Total:   count,
 			Page:    page,
 			PerPage: perPage,
 		},
-	}, nil
+	}
+
+	return result, nil
 }
 
-func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) ([]*ent.RecTeam, int, int, int, error) {
-	var page int
-	var perPage int
-	query := svc.repoRegistry.RecTeam().BuildQuery()
+func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error) {
+	var (
+		result   *ent.RecTeamSelectionResponseGetAll
+		edges    []*ent.RecTeamSelectionEdge
+		page     int
+		perPage  int
+		recTeams []*ent.RecTeam
+		count    int
+		err      error
+	)
+	query := svc.repoRegistry.RecTeam().BuildBaseQuery()
+	recTeams, count, page, perPage, err = svc.getAllRecTeams(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = lo.Map(recTeams, func(entity *ent.RecTeam, index int) *ent.RecTeamSelectionEdge {
+		return &ent.RecTeamSelectionEdge{
+			Node: &ent.RecTeamSelection{
+				ID:   entity.ID.String(),
+				Name: entity.Name,
+			},
+			Cursor: ent.Cursor{
+				Value: entity.ID.String(),
+			},
+		}
+	})
+	result = &ent.RecTeamSelectionResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Page:    page,
+			PerPage: perPage,
+			Total:   count,
+		},
+	}
+
+	return result, nil
+}
+
+func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTeamQuery, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) ([]*ent.RecTeam, int, int, int, error) {
+	var (
+		page     int
+		perPage  int
+		recTeams []*ent.RecTeam
+		count    int
+		err      error
+	)
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
-	count, err := svc.repoRegistry.RecTeam().BuildCount(ctx, query)
+	count, err = svc.repoRegistry.RecTeam().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	order := ent.Desc(recteam.FieldCreatedAt)
 	if orderBy != nil {
@@ -164,10 +218,10 @@ func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, pagination *ent.P
 		perPage = *pagination.PerPage
 		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
-	recTeams, err := svc.repoRegistry.RecTeam().BuildList(ctx, query)
+	recTeams, err = svc.repoRegistry.RecTeam().BuildList(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return nil, 0, 0, 0, err
 	}
 	return recTeams, count, page, perPage, nil
 }

@@ -696,6 +696,21 @@ type RecTeamResponseGetAll struct {
 	Pagination *Pagination    `json:"pagination"`
 }
 
+type RecTeamSelection struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type RecTeamSelectionEdge struct {
+	Node   *RecTeamSelection `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+type RecTeamSelectionResponseGetAll struct {
+	Edges      []*RecTeamSelectionEdge `json:"edges"`
+	Pagination *Pagination             `json:"pagination"`
+}
+
 type RecruitmentReportResponse struct {
 	Data *ReportStatsByTime `json:"data"`
 }
