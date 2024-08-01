@@ -10,6 +10,7 @@ import (
 	"trec/ent/recteam"
 	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -90,9 +91,13 @@ func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note
 
 func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, input ent.UpdateRecTeamInput, note string) (*ent.RecTeamResponse, error) {
 	var result *ent.RecTeam
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, uuid.MustParse(recTeamId))
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+	}
+	if !svc.validPermissionUpdate(payload, record) {
+		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	errString, err := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.MustParse(recTeamId), input.Name, uuid.MustParse(input.LeaderID))
 	if err != nil {
@@ -118,6 +123,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 
 // query
 func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var (
 		result   *ent.RecTeamResponseGetAll
 		edges    []*ent.RecTeamEdge
@@ -128,6 +134,7 @@ func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.Pagi
 		err      error
 	)
 	query := svc.repoRegistry.RecTeam().BuildQuery()
+	svc.validPermissionGet(payload, query)
 	recTeams, count, page, perPage, err = svc.getAllRecTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -253,6 +260,36 @@ func (svc *recTeamSvcImpl) filter(recTeamQuery *ent.RecTeamQuery, input *ent.Rec
 			})
 			recTeamQuery.Where(recteam.HasRecLeaderEdgeWith(user.IDIn(leaderIDs...)))
 		}
+	}
+}
+
+// permission
+func (svc *recTeamSvcImpl) validPermissionUpdate(payload *middleware.Payload, record *ent.RecTeam) bool {
+	if payload.ForAll {
+		return true
+	}
+	currentLeaderId := record.LeaderID
+	currentMemberIds := lo.Map(record.Edges.RecMemberEdges, func(user *ent.User, _ int) uuid.UUID {
+		return user.ID
+	})
+	if payload.ForOwner && payload.UserID == currentLeaderId {
+		return true
+	}
+	if payload.ForTeam && lo.Contains(currentMemberIds, payload.UserID) {
+		return true
+	}
+	return false
+}
+
+func (svc *recTeamSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.RecTeamQuery) {
+	if payload.ForAll {
+		return
+	}
+	if payload.ForOwner {
+		query.Where(recteam.LeaderIDEQ(payload.UserID))
+	}
+	if payload.ForTeam {
+		query.Where(recteam.HasRecMemberEdgesWith(user.IDEQ(payload.UserID)))
 	}
 }
 
