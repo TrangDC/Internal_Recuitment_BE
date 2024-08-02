@@ -7887,6 +7887,7 @@ input NewUserInput {
   work_email: String!
   status: UserStatus!
   hiring_team_id: ID
+  rec_team_id: ID
   role_id: [ID!]
 }
 
@@ -7896,6 +7897,7 @@ input UpdateUserInput {
   status: UserStatus!
   hiring_team_id: ID
   role_id: [ID!]
+  rec_team_id: ID
 }
 
 type UserResponse {
@@ -43859,7 +43861,7 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "rec_team_id", "role_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43895,6 +43897,14 @@ func (ec *executionContext) unmarshalInputNewUserInput(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
 			it.HiringTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_team_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_team_id"))
+			it.RecTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45315,7 +45325,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "role_id"}
+	fieldsInOrder := [...]string{"name", "work_email", "status", "hiring_team_id", "role_id", "rec_team_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45359,6 +45369,14 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role_id"))
 			it.RoleID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_team_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_team_id"))
+			it.RecTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

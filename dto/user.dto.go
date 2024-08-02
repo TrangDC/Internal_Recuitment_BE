@@ -81,6 +81,15 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 				if newRecord.Edges.MemberOfHiringTeamEdges != nil {
 					newValueField = newRecord.Edges.MemberOfHiringTeamEdges.Name
 				}
+			case "model.users.rec_team":
+				oldValueField = ""
+				if oldRecord.Edges.RecTeams != nil {
+					oldValueField = oldRecord.Edges.RecTeams.Name
+				}
+				newValueField = ""
+				if newRecord.Edges.RecTeams != nil {
+					newValueField = newRecord.Edges.RecTeams.Name
+				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -190,6 +199,11 @@ func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 			if record.Edges.MemberOfHiringTeamEdges != nil {
 				valueField = record.Edges.MemberOfHiringTeamEdges.Name
 			}
+		case "model.users.rec_team":
+			valueField = ""
+			if record.Edges.RecTeams != nil {
+				valueField = record.Edges.RecTeams.Name
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -218,6 +232,8 @@ func (d userDtoImpl) formatFieldI18n(input string) string {
 		return "model.users.status"
 	case "HiringTeamID":
 		return "model.users.hiring_team"
+	case "RecTeamID":
+		return "model.users.rec_team"
 	}
 	return ""
 }

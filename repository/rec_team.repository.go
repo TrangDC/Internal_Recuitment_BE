@@ -115,7 +115,7 @@ func (rps *recTeamRepoImpl) UpdateRecTeam(ctx context.Context, record *ent.RecTe
 
 func (rps *recTeamRepoImpl) DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error) {
 	delete := rps.BuildUpdateOne(ctx, record).
-		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC())
+		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).ClearRecLeaderEdge().RemoveRecMemberEdgeIDs(membersID...)
 	return delete.Save(ctx)
 }
 

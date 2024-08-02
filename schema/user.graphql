@@ -66,6 +66,7 @@ input NewUserInput {
   work_email: String!
   status: UserStatus!
   hiring_team_id: ID
+  rec_team_id: ID
   role_id: [ID!]
 }
 
@@ -75,6 +76,7 @@ input UpdateUserInput {
   status: UserStatus!
   hiring_team_id: ID
   role_id: [ID!]
+  rec_team_id: ID
 }
 
 type UserResponse {

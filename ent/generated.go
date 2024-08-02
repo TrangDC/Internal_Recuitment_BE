@@ -649,6 +649,7 @@ type NewUserInput struct {
 	WorkEmail    string     `json:"work_email"`
 	Status       UserStatus `json:"status"`
 	HiringTeamID *string    `json:"hiring_team_id"`
+	RecTeamID    *string    `json:"rec_team_id"`
 	RoleID       []string   `json:"role_id"`
 }
 
@@ -1032,6 +1033,7 @@ type UpdateUserInput struct {
 	Status       UserStatus `json:"status"`
 	HiringTeamID *string    `json:"hiring_team_id"`
 	RoleID       []string   `json:"role_id"`
+	RecTeamID    *string    `json:"rec_team_id"`
 }
 
 type UpdateUserStatusInput struct {

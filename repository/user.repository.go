@@ -34,7 +34,7 @@ type UserRepository interface {
 	BuildCount(ctx context.Context, query *ent.UserQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.UserQuery) ([]*ent.User, error)
 	// common function
-	ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) (error, error)
+	ValidInput(ctx context.Context, userId uuid.UUID, workEmail string, recTeamId, hiringTeamId *string) (error, error)
 }
 
 type userRepoImpl struct {
@@ -122,8 +122,11 @@ func (rps *userRepoImpl) CreateUser(ctx context.Context, input *ent.NewUserInput
 		SetWorkEmail(strings.TrimSpace(input.WorkEmail)).
 		SetStatus(user.Status(input.Status)).
 		AddRoleEdgeIDs(roleIds...)
-	if input.HiringTeamID != nil && *input.HiringTeamID != "" {
+	if *input.HiringTeamID != "" {
 		create.SetHiringTeamID(uuid.MustParse(*input.HiringTeamID))
+	}
+	if *input.RecTeamID != "" {
+		create.SetRecTeamID(uuid.MustParse(*input.RecTeamID))
 	}
 	return create.Save(ctx)
 }
@@ -133,10 +136,15 @@ func (rps *userRepoImpl) UpdateUser(ctx context.Context, record *ent.User, input
 		SetName(strings.TrimSpace(input.Name)).
 		SetWorkEmail(strings.TrimSpace(input.WorkEmail)).
 		SetStatus(user.Status(input.Status)).AddRoleEdgeIDs(newRoleIds...).RemoveRoleEdgeIDs(removeRoleIds...)
-	if input.HiringTeamID != nil && *input.HiringTeamID != "" {
+	if *input.HiringTeamID != "" {
 		update.SetHiringTeamID(uuid.MustParse(*input.HiringTeamID))
 	} else {
 		update.ClearHiringTeamID()
+	}
+	if *input.RecTeamID != "" {
+		update.SetRecTeamID(uuid.MustParse(*input.RecTeamID))
+	} else {
+		update.ClearRecTeamID()
 	}
 	return update.Save(ctx)
 }
@@ -182,7 +190,7 @@ func (rps *userRepoImpl) GetOneUser(ctx context.Context, query *ent.UserQuery) (
 }
 
 // common function
-func (rps *userRepoImpl) ValidWorkEmail(ctx context.Context, userId uuid.UUID, workEmail string) (error, error) {
+func (rps *userRepoImpl) ValidInput(ctx context.Context, userId uuid.UUID, workEmail string, recTeamId, hiringTeamId *string) (error, error) {
 	query := rps.BuildParanoidQuery().Where(user.WorkEmailEqualFold(strings.TrimSpace(strings.ToLower(workEmail))))
 	if userId != uuid.Nil {
 		query = query.Where(user.IDNEQ(userId))
@@ -193,6 +201,18 @@ func (rps *userRepoImpl) ValidWorkEmail(ctx context.Context, userId uuid.UUID, w
 	}
 	if isExist {
 		return nil, fmt.Errorf("model.users.validation.work_email_exist")
+	}
+	if *hiringTeamId == "" && *recTeamId == "" {
+		return nil, fmt.Errorf("model.users.validation.hiring_team_or_rec_team_required")
+	}
+	if *recTeamId != "" {
+		userRecord, err := rps.GetOneUser(ctx, rps.BuildQuery().Where(user.IDEQ(userId)).WithRecTeams())
+		if err != nil {
+			return err, nil
+		}
+		if userRecord.Edges.RecTeams != nil && userRecord.Edges.RecTeams.LeaderID.String() != *recTeamId {
+			return nil, fmt.Errorf("model.users.validation.user_is_leader_of_another_rec_team")
+		}
 	}
 	return nil, nil
 }

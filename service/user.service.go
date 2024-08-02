@@ -11,6 +11,7 @@ import (
 	"trec/ent/hiringteam"
 	"trec/ent/permission"
 	"trec/ent/predicate"
+	"trec/ent/recteam"
 	"trec/ent/role"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -56,7 +57,7 @@ func NewUserService(repoRegistry repository.Repository, dtoRegistry dto.Dto, log
 // mutation
 func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput, note string) (*ent.UserResponse, error) {
 	var record *ent.User
-	errString, err := svc.repoRegistry.User().ValidWorkEmail(ctx, uuid.Nil, input.WorkEmail)
+	errString, err := svc.repoRegistry.User().ValidInput(ctx, uuid.Nil, input.WorkEmail, input.RecTeamID, input.HiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -144,7 +145,7 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	errString, err := svc.repoRegistry.User().ValidWorkEmail(ctx, id, input.WorkEmail)
+	errString, err := svc.repoRegistry.User().ValidInput(ctx, id, input.WorkEmail, input.RecTeamID, input.HiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -160,6 +161,10 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	if len(record.Edges.HiringTeamEdges) != 0 {
 		currentTeamId := record.Edges.HiringTeamEdges[0].ID.String()
 		input.HiringTeamID = &currentTeamId
+	}
+	if record.Edges.RecTeams != nil {
+		currentRecTeamId := record.Edges.RecTeams.ID.String()
+		input.RecTeamID = &currentRecTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
 	rolesPermissions, err := svc.repoRegistry.EntityPermission().BuildList(ctx,
@@ -468,16 +473,24 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 		}
 		if input.IsAbleToLeaderRecTeam != nil {
 			if *input.IsAbleToLeaderRecTeam {
-				userQuery.Where(user.Not(user.HasLeadRecTeams()))
+				userQuery.Where(user.Not(user.HasLeadRecTeamsWith(
+					recteam.DeletedAtIsNil(),
+				)))
 			} else {
-				userQuery.Where(user.HasLeadRecTeams())
+				userQuery.Where(user.HasLeadRecTeamsWith(
+					recteam.DeletedAtIsNil(),
+				))
 			}
 		}
 		if input.IsAbleToManagerHiringTeam != nil {
 			if *input.IsAbleToManagerHiringTeam {
-				userQuery.Where(user.Not(user.HasHiringTeamEdges()))
+				userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(
+					hiringteam.DeletedAtIsNil(),
+				)))
 			} else {
-				userQuery.Where(user.HasHiringTeamEdges())
+				userQuery.Where(user.HasHiringTeamEdgesWith(
+					hiringteam.DeletedAtIsNil(),
+				))
 			}
 		}
 		if input.RecTeamIds != nil {
