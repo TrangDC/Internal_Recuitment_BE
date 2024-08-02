@@ -6643,6 +6643,7 @@ enum projectModule {
   users
   skill_types
   roles
+  rec_teams
 }
 
 enum auditTrailAction {

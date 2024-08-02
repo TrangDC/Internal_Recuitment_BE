@@ -2935,6 +2935,7 @@ const (
 	ProjectModuleUsers          ProjectModule = "users"
 	ProjectModuleSkillTypes     ProjectModule = "skill_types"
 	ProjectModuleRoles          ProjectModule = "roles"
+	ProjectModuleRecTeams       ProjectModule = "rec_teams"
 )
 
 var AllProjectModule = []ProjectModule{
@@ -2947,11 +2948,12 @@ var AllProjectModule = []ProjectModule{
 	ProjectModuleUsers,
 	ProjectModuleSkillTypes,
 	ProjectModuleRoles,
+	ProjectModuleRecTeams,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleHiringTeams, ProjectModuleJobPositions, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills, ProjectModuleEmailTemplates, ProjectModuleUsers, ProjectModuleSkillTypes, ProjectModuleRoles:
+	case ProjectModuleHiringTeams, ProjectModuleJobPositions, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills, ProjectModuleEmailTemplates, ProjectModuleUsers, ProjectModuleSkillTypes, ProjectModuleRoles, ProjectModuleRecTeams:
 		return true
 	}
 	return false
