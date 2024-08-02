@@ -103,7 +103,7 @@ func (rps *roleRepoImpl) UpdateRole(ctx context.Context, record *ent.Role, input
 }
 
 func (rps *roleRepoImpl) DeleteRole(ctx context.Context, record *ent.Role) (*ent.Role, error) {
-	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+	update := rps.BuildUpdateOne(ctx, record).ClearUserRoles().SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
 	return update.Save(ctx)
 }
 

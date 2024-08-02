@@ -119,7 +119,7 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 		if err != nil {
 			return err
 		}
-		err = repoRegistry.EntityPermission().DeleteAllEntityPermission(ctx, record.ID)
+		err = repoRegistry.EntityPermission().DeleteBulkEntityPermissionByEntityID(ctx, record.ID)
 		return err
 	})
 	if err != nil {

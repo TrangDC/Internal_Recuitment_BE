@@ -10,6 +10,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/predicate"
 	"trec/ent/role"
+	"trec/ent/user"
 	"trec/internal/util"
 	"trec/repository"
 
@@ -113,13 +114,25 @@ func (svc *roleSvcImpl) UpdateRole(ctx context.Context, roleId uuid.UUID, input 
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	users, err := svc.repoRegistry.User().BuildList(
+		ctx,
+		svc.repoRegistry.User().BuildBaseQuery().Where(user.HasRoleEdgesWith(role.ID(roleId))).
+			WithRoleEdges(func(query *ent.RoleQuery) { query.Where(role.IDNEQ(roleId)).WithRolePermissionEdges() }),
+	)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.Role().UpdateRole(ctx, record, input)
 		if err != nil {
 			return err
 		}
 		err = repoRegistry.EntityPermission().CreateAndUpdateEntityPermission(ctx, record.ID, input.EntityPermissions, record.Edges.RolePermissionEdges, entitypermission.EntityTypeRole)
-		return err
+		if err != nil {
+			return err
+		}
+		return svc.updateUserPermissions(ctx, repoRegistry, users, input.EntityPermissions)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -145,13 +158,25 @@ func (svc *roleSvcImpl) DeleteRole(ctx context.Context, roleId uuid.UUID, note s
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
+	users, err := svc.repoRegistry.User().BuildList(
+		ctx,
+		svc.repoRegistry.User().BuildBaseQuery().Where(user.HasRoleEdgesWith(role.ID(roleId))).
+			WithRoleEdges(func(query *ent.RoleQuery) { query.Where(role.IDNEQ(roleId)).WithRolePermissionEdges() }),
+	)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.Role().DeleteRole(ctx, roleRecord)
 		if err != nil {
 			return err
 		}
-		err = repoRegistry.EntityPermission().DeleteAllEntityPermission(ctx, roleId)
-		return err
+		err = repoRegistry.EntityPermission().DeleteBulkEntityPermissionByEntityID(ctx, roleId)
+		if err != nil {
+			return err
+		}
+		return svc.updateUserPermissions(ctx, repoRegistry, users, nil)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -232,6 +257,26 @@ func (svc roleSvcImpl) Selections(ctx context.Context, pagination *ent.Paginatio
 			PerPage: perPage,
 		},
 	}, nil
+}
+
+func (svc roleSvcImpl) updateUserPermissions(ctx context.Context, repoRegistry repository.Repository, roleUsers []*ent.User, rolePermissionInput []*ent.NewEntityPermissionInput) error {
+	userIDs := make([]uuid.UUID, 0)
+	userPermissionInputs := make(map[uuid.UUID][]*ent.NewEntityPermissionInput)
+	for _, userRec := range roleUsers {
+		userIDs = append(userIDs, userRec.ID)
+		rolePermissions := lo.Flatten(lo.Map(userRec.Edges.RoleEdges, func(roleRec *ent.Role, _ int) []*ent.EntityPermission {
+			return roleRec.Edges.RolePermissionEdges
+		}))
+		userPermissionInput := svc.dtoRegistry.User().NewUserEntityPermissionInput(rolePermissions)
+		userPermissionInput = append(userPermissionInput, rolePermissionInput...)
+		userPermissionInputs[userRec.ID] = userPermissionInput
+	}
+	err := repoRegistry.EntityPermission().DeleteBulkEntityPermissionByEntityIDs(ctx, userIDs)
+	if err != nil {
+		return err
+	}
+	err = repoRegistry.EntityPermission().CreateBulkEntityPermissionByEntityIDs(ctx, userPermissionInputs, entitypermission.EntityTypeUser)
+	return err
 }
 
 func (svc roleSvcImpl) getAllRole(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RoleFreeWord,
