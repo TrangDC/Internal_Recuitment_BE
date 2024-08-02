@@ -1126,7 +1126,7 @@ type HiringJobResolver interface {
 
 	Currency(ctx context.Context, obj *ent.HiringJob) (ent.CurrencyEnum, error)
 	JobPosition(ctx context.Context, obj *ent.HiringJob) (*ent.JobPosition, error)
-	JobPositionID(ctx context.Context, obj *ent.HiringJob) (string, error)
+	JobPositionID(ctx context.Context, obj *ent.HiringJob) (*string, error)
 	HiringTeam(ctx context.Context, obj *ent.HiringJob) (*ent.HiringTeam, error)
 	User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error)
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
@@ -6949,8 +6949,8 @@ type HiringJob {
   salary_from: Int!
   salary_to: Int!
   currency: CurrencyEnum!
-  job_position: JobPosition!
-  job_position_id: ID!
+  job_position: JobPosition
+  job_position_id: ID
   hiring_team: HiringTeam!
   user: User!
   status: HiringJobStatus!
@@ -22322,14 +22322,11 @@ func (ec *executionContext) _HiringJob_job_position(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.JobPosition)
 	fc.Result = res
-	return ec.marshalNJobPosition2ᚖtrecᚋentᚐJobPosition(ctx, field.Selections, res)
+	return ec.marshalOJobPosition2ᚖtrecᚋentᚐJobPosition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_HiringJob_job_position(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -22382,14 +22379,11 @@ func (ec *executionContext) _HiringJob_job_position_id(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_HiringJob_job_position_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -49046,9 +49040,6 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._HiringJob_job_position(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -49066,9 +49057,6 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._HiringJob_job_position_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -56597,10 +56585,6 @@ func (ec *executionContext) marshalNJSON2string(ctx context.Context, sel ast.Sel
 	return res
 }
 
-func (ec *executionContext) marshalNJobPosition2trecᚋentᚐJobPosition(ctx context.Context, sel ast.SelectionSet, v ent.JobPosition) graphql.Marshaler {
-	return ec._JobPosition(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNJobPosition2ᚖtrecᚋentᚐJobPosition(ctx context.Context, sel ast.SelectionSet, v *ent.JobPosition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -60130,6 +60114,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOJobPosition2ᚖtrecᚋentᚐJobPosition(ctx context.Context, sel ast.SelectionSet, v *ent.JobPosition) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._JobPosition(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOJobPositionFilter2ᚖtrecᚋentᚐJobPositionFilter(ctx context.Context, v interface{}) (*ent.JobPositionFilter, error) {

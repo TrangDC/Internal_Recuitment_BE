@@ -9,6 +9,7 @@ import (
 	"trec/ent/candidatejob"
 	graphql1 "trec/graphql"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
 
@@ -38,8 +39,12 @@ func (r *hiringJobResolver) JobPosition(ctx context.Context, obj *ent.HiringJob)
 }
 
 // JobPositionID is the resolver for the job_position_id field.
-func (r *hiringJobResolver) JobPositionID(ctx context.Context, obj *ent.HiringJob) (string, error) {
-	return obj.JobPositionID.String(), nil
+func (r *hiringJobResolver) JobPositionID(ctx context.Context, obj *ent.HiringJob) (*string, error) {
+	jobPosition := ""
+	if obj.JobPositionID != uuid.Nil {
+		jobPosition = obj.JobPositionID.String()
+	}
+	return &jobPosition, nil
 }
 
 // HiringTeam is the resolver for the hiring_team field.
