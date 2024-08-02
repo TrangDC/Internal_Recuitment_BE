@@ -2,6 +2,7 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"trec/ent"
 	"trec/models"
@@ -81,6 +82,8 @@ func (d recTeamDtoImpl) AuditTrailUpdate(oldRecord *ent.RecTeam, newRecord *ent.
 }
 
 func (d recTeamDtoImpl) recordAudit(record *ent.RecTeam) []interface{} {
+	fmt.Println("====>", record.Edges.RecLeaderEdge)
+	fmt.Println("====>", record.Edges.RecMemberEdges)
 	var entity []interface{}
 	value := reflect.ValueOf(interface{}(record)).Elem()
 	recordType := reflect.TypeOf(record).Elem()

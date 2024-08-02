@@ -101,8 +101,7 @@ func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecT
 	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID)).
-		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
+		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
 	return create.Save(ctx)
 }
 
@@ -111,17 +110,12 @@ func (rps *recTeamRepoImpl) UpdateRecTeam(ctx context.Context, record *ent.RecTe
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
 		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
-	if record.LeaderID != uuid.MustParse(input.LeaderID) {
-		update = update.AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
-	}
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
 func (rps *recTeamRepoImpl) DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error) {
 	delete := rps.BuildUpdateOne(ctx, record).
-		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).
-		ClearRecMemberEdges().
-		RemoveRecMemberEdgeIDs(membersID...)
+		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC())
 	return delete.Save(ctx)
 }
 
@@ -144,14 +138,13 @@ func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID,
 		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
 	}
 	query = rps.BuildQuery().
-		Where(recteam.Or(recteam.HasRecMemberEdgesWith(user.ID(userID)), recteam.HasRecLeaderEdgeWith(user.ID(userID)))).
-		Where(recteam.IDNEQ(recTeamID))
+		Where(recteam.LeaderID(userID), recteam.IDNEQ(recTeamID))
 	isExist, err = rps.BuildExist(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	if isExist {
-		return fmt.Errorf("model.rec_teams.validation.is_in_another_rec_team"), nil
+		return fmt.Errorf("model.rec_teams.validation.leader_invalid"), nil
 	}
 	return nil, nil
 }

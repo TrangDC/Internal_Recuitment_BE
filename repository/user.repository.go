@@ -24,9 +24,11 @@ type UserRepository interface {
 	UpdateUserStatus(ctx context.Context, record *ent.User, status user.Status) (*ent.User, error)
 	UpdateUserHiringTeam(ctx context.Context, userIds []uuid.UUID, hiringTeamID uuid.UUID) error
 	DeleteUserHiringTeam(ctx context.Context, userIds []uuid.UUID) error
+	UpdateUserRecTeam(ctx context.Context, record *ent.User, recTeamId uuid.UUID) error
 
 	// query
 	GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error)
+	GetOneUser(ctx context.Context, query *ent.UserQuery) (*ent.User, error)
 	BuildQuery() *ent.UserQuery
 	BuildBaseQuery() *ent.UserQuery
 	BuildCount(ctx context.Context, query *ent.UserQuery) (int, error)
@@ -158,9 +160,24 @@ func (rps userRepoImpl) DeleteUserHiringTeam(ctx context.Context, userIds []uuid
 	return err
 }
 
+func (rps userRepoImpl) UpdateUserRecTeam(ctx context.Context, record *ent.User, recTeamId uuid.UUID) error {
+	update := record.Update().SetUpdatedAt(time.Now().UTC())
+	if recTeamId != uuid.Nil {
+		update.SetRecTeamID(recTeamId)
+	} else {
+		update.ClearRecTeamID()
+	}
+	_, err := update.Save(ctx)
+	return err
+}
+
 // query
 func (rps *userRepoImpl) GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error) {
 	query := rps.BuildQuery().Where(user.IDEQ(userId))
+	return rps.BuildGet(ctx, query)
+}
+
+func (rps *userRepoImpl) GetOneUser(ctx context.Context, query *ent.UserQuery) (*ent.User, error) {
 	return rps.BuildGet(ctx, query)
 }
 
