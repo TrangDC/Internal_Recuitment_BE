@@ -34,6 +34,7 @@ type Skill {
   name: String!
   description: String
   skill_type: SkillType
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
