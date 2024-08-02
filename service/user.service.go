@@ -465,39 +465,53 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			})
 			userQuery.Where(user.HasRoleEdgesWith(role.IDIn(roles...)))
 		}
-		if input.HiringTeamID != nil {
-			teamIds := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
+		if input.HiringTeamID != nil && input.IsAbleToManagerHiringTeam != nil && *input.IsAbleToManagerHiringTeam {
+			ids := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.Or(user.HiringTeamIDIn(teamIds...), user.HasHiringTeamEdgesWith(hiringteam.IDIn(teamIds...))))
-		}
-		if input.IsAbleToLeaderRecTeam != nil {
-			if *input.IsAbleToLeaderRecTeam {
-				userQuery.Where(user.Not(user.HasLeadRecTeamsWith(
-					recteam.DeletedAtIsNil(),
-				)))
-			} else {
-				userQuery.Where(user.HasLeadRecTeamsWith(
-					recteam.DeletedAtIsNil(),
-				))
+			userQuery.Where(user.Or(user.HiringTeamIDIn(ids...), user.HiringTeamIDIsNil()))
+		} else {
+			if input.HiringTeamID != nil {
+				ids := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
+					return uuid.MustParse(item)
+				})
+				userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(hiringteam.IDNotIn(ids...))))
+			}
+			if input.IsAbleToManagerHiringTeam != nil {
+				if *input.IsAbleToManagerHiringTeam {
+					userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(
+						hiringteam.DeletedAtIsNil(),
+					)))
+				} else {
+					userQuery.Where(user.HasHiringTeamEdgesWith(
+						hiringteam.DeletedAtIsNil(),
+					))
+				}
 			}
 		}
-		if input.IsAbleToManagerHiringTeam != nil {
-			if *input.IsAbleToManagerHiringTeam {
-				userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(
-					hiringteam.DeletedAtIsNil(),
-				)))
-			} else {
-				userQuery.Where(user.HasHiringTeamEdgesWith(
-					hiringteam.DeletedAtIsNil(),
-				))
-			}
-		}
-		if input.RecTeamIds != nil {
+		if input.IsAbleToLeaderRecTeam != nil && *input.IsAbleToLeaderRecTeam && input.RecTeamIds != nil {
 			ids := lo.Map(input.RecTeamIds, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.RecTeamIDIn(ids...))
+			userQuery.Where(user.Not(user.HasLeadRecTeamsWith(recteam.IDNotIn(ids...))))
+			} else {
+			if input.IsAbleToLeaderRecTeam != nil {
+				if *input.IsAbleToLeaderRecTeam {
+					userQuery.Where(user.Not(user.HasLeadRecTeamsWith(
+						recteam.DeletedAtIsNil(),
+					)))
+				} else {
+					userQuery.Where(user.HasLeadRecTeamsWith(
+						recteam.DeletedAtIsNil(),
+					))
+				}
+			}
+			if input.RecTeamIds != nil {
+				ids := lo.Map(input.RecTeamIds, func(item string, index int) uuid.UUID {
+					return uuid.MustParse(item)
+				})
+				userQuery.Where(user.RecTeamIDIn(ids...))
+			}
 		}
 	}
 }
