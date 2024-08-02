@@ -1017,9 +1017,11 @@ type ComplexityRoot struct {
 	}
 
 	UserSelection struct {
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		WorkEmail func(childComplexity int) int
+		HiringTeamID func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
+		RecTeamID    func(childComplexity int) int
+		WorkEmail    func(childComplexity int) int
 	}
 
 	UserSelectionEdge struct {
@@ -5674,6 +5676,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserResponseGetAll.Pagination(childComplexity), true
 
+	case "UserSelection.hiring_team_id":
+		if e.complexity.UserSelection.HiringTeamID == nil {
+			break
+		}
+
+		return e.complexity.UserSelection.HiringTeamID(childComplexity), true
+
 	case "UserSelection.id":
 		if e.complexity.UserSelection.ID == nil {
 			break
@@ -5687,6 +5696,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserSelection.Name(childComplexity), true
+
+	case "UserSelection.rec_team_id":
+		if e.complexity.UserSelection.RecTeamID == nil {
+			break
+		}
+
+		return e.complexity.UserSelection.RecTeamID(childComplexity), true
 
 	case "UserSelection.work_email":
 		if e.complexity.UserSelection.WorkEmail == nil {
@@ -7838,6 +7854,8 @@ type UserSelection {
   id: ID!
   name: String!
   work_email: String!
+  hiring_team_id: ID
+  rec_team_id: ID
 }
 
 type User {
@@ -39119,6 +39137,88 @@ func (ec *executionContext) fieldContext_UserSelection_work_email(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _UserSelection_hiring_team_id(ctx context.Context, field graphql.CollectedField, obj *ent.UserSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserSelection_hiring_team_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HiringTeamID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserSelection_hiring_team_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserSelection_rec_team_id(ctx context.Context, field graphql.CollectedField, obj *ent.UserSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserSelection_rec_team_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RecTeamID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserSelection_rec_team_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserSelection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserSelectionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UserSelectionEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSelectionEdge_node(ctx, field)
 	if err != nil {
@@ -39164,6 +39264,10 @@ func (ec *executionContext) fieldContext_UserSelectionEdge_node(ctx context.Cont
 				return ec.fieldContext_UserSelection_name(ctx, field)
 			case "work_email":
 				return ec.fieldContext_UserSelection_work_email(ctx, field)
+			case "hiring_team_id":
+				return ec.fieldContext_UserSelection_hiring_team_id(ctx, field)
+			case "rec_team_id":
+				return ec.fieldContext_UserSelection_rec_team_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserSelection", field.Name)
 		},
@@ -54251,6 +54355,14 @@ func (ec *executionContext) _UserSelection(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "hiring_team_id":
+
+			out.Values[i] = ec._UserSelection_hiring_team_id(ctx, field, obj)
+
+		case "rec_team_id":
+
+			out.Values[i] = ec._UserSelection_rec_team_id(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

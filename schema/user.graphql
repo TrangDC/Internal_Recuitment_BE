@@ -17,6 +17,8 @@ type UserSelection {
   id: ID!
   name: String!
   work_email: String!
+  hiring_team_id: ID
+  rec_team_id: ID
 }
 
 type User {

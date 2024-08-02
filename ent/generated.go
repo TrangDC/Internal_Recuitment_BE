@@ -1068,9 +1068,11 @@ type UserResponseGetAll struct {
 }
 
 type UserSelection struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	WorkEmail string `json:"work_email"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	WorkEmail    string  `json:"work_email"`
+	HiringTeamID *string `json:"hiring_team_id"`
+	RecTeamID    *string `json:"rec_team_id"`
 }
 
 type UserSelectionEdge struct {

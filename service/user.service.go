@@ -263,11 +263,21 @@ func (svc *userSvcImpl) Selections(ctx context.Context, pagination *ent.Paginati
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(users, func(user *ent.User, index int) *ent.UserSelectionEdge {
+		hiringTeamId := ""
+		if user.HiringTeamID != uuid.Nil {
+			hiringTeamId = user.HiringTeamID.String()
+		}
+		recTeamId := ""
+		if user.RecTeamID != uuid.Nil {
+			recTeamId = user.RecTeamID.String()
+		}
 		return &ent.UserSelectionEdge{
 			Node: &ent.UserSelection{
-				ID:        user.ID.String(),
-				Name:      user.Name,
-				WorkEmail: user.WorkEmail,
+				ID:           user.ID.String(),
+				Name:         user.Name,
+				WorkEmail:    user.WorkEmail,
+				HiringTeamID: &hiringTeamId,
+				RecTeamID:    &recTeamId,
 			},
 			Cursor: ent.Cursor{
 				Value: user.ID.String(),
@@ -494,7 +504,7 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 				return uuid.MustParse(item)
 			})
 			userQuery.Where(user.Not(user.HasLeadRecTeamsWith(recteam.IDNotIn(ids...))))
-			} else {
+		} else {
 			if input.IsAbleToLeaderRecTeam != nil {
 				if *input.IsAbleToLeaderRecTeam {
 					userQuery.Where(user.Not(user.HasLeadRecTeamsWith(
