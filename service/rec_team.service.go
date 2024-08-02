@@ -93,7 +93,7 @@ func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err := repoRegistry.RecTeam().DeleteRecTeam(ctx, record, memberIds)
 		if err != nil {
-			return nil
+			return err
 		}
 		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, uuid.Nil, record.LeaderID, note, repoRegistry)
 		return err
@@ -134,7 +134,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.RecTeam().UpdateRecTeam(ctx, record, input)
 		if err != nil {
-			return nil
+			return err
 		}
 		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, record.ID, uuid.MustParse(input.LeaderID), note, repoRegistry)
 		return err
