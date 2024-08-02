@@ -175,7 +175,7 @@ func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID
 		if err != nil {
 			return err
 		}
-		err = svc.userSvcImpl.RemoveHiringTeam(ctx, team.ID, memberIds, note)
+		err = svc.userSvcImpl.RemoveHiringTeam(ctx, memberIds, note)
 		return err
 	})
 	if err != nil {

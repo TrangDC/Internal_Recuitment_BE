@@ -34,6 +34,7 @@ type RecTeamService interface {
 }
 
 type recTeamSvcImpl struct {
+	userSvcImpl  UserService
 	repoRegistry repository.Repository
 	dtoRegistry  dto.Dto
 	logger       *zap.Logger
@@ -41,6 +42,7 @@ type recTeamSvcImpl struct {
 
 func NewRecTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) RecTeamService {
 	return &recTeamSvcImpl{
+		userSvcImpl:  NewUserService(repoRegistry, dtoRegistry, logger),
 		repoRegistry: repoRegistry,
 		dtoRegistry:  dtoRegistry,
 		logger:       logger,
@@ -49,7 +51,7 @@ func NewRecTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, 
 
 // mutation
 func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error) {
-	var result *ent.RecTeam
+	var record *ent.RecTeam
 	errString, err := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.Nil, input.Name, uuid.MustParse(input.LeaderID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -59,14 +61,14 @@ func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		result, err = repoRegistry.RecTeam().CreateRecTeam(ctx, input)
+		record, err = repoRegistry.RecTeam().CreateRecTeam(ctx, input)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	results, _ := svc.repoRegistry.RecTeam().GetRecTeam(ctx, result.ID)
+	result, _ := svc.repoRegistry.RecTeam().GetRecTeam(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.RecTeam().AuditTrailCreate(result)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -76,27 +78,31 @@ func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return &ent.RecTeamResponse{
-		Data: results,
+		Data: result,
 	}, nil
 }
 
 func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note string) error {
-	recTeam, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
+	record, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
 	if err != nil {
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	memberIds := lo.Map(recTeam.Edges.RecMemberEdges, func(user *ent.User, index int) uuid.UUID {
+	memberIds := lo.Map(record.Edges.RecMemberEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID
 	})
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err := repoRegistry.RecTeam().DeleteRecTeam(ctx, recTeam, memberIds)
+		_, err := repoRegistry.RecTeam().DeleteRecTeam(ctx, record, memberIds)
+		if err != nil {
+			return nil
+		}
+		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, uuid.Nil, record.LeaderID, note, repoRegistry)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	jsonString, err := svc.dtoRegistry.RecTeam().AuditTrailDelete(recTeam)
+	jsonString, err := svc.dtoRegistry.RecTeam().AuditTrailDelete(record)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -127,6 +133,10 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.RecTeam().UpdateRecTeam(ctx, record, input)
+		if err != nil {
+			return nil
+		}
+		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, record.ID, uuid.MustParse(input.LeaderID), note, repoRegistry)
 		return err
 	})
 	if err != nil {

@@ -16,6 +16,7 @@ type UserDto interface {
 	AuditTrailDelete(record *ent.User) (string, error)
 	AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) (string, error)
 	AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamName string) string
+	AuditTrailUpdateRecTeam(oldRecord *ent.User, recTeamName string) string
 	NewUserEntityPermissionInput(rolePermissions []*ent.EntityPermission) []*ent.NewEntityPermissionInput
 }
 
@@ -145,6 +146,30 @@ func (d userDtoImpl) NewUserEntityPermissionInput(rolePermissions []*ent.EntityP
 		}
 	})
 	return lo.Values(inputByPermissionID)
+}
+
+func (d userDtoImpl) AuditTrailUpdateRecTeam(oldRecord *ent.User, recTeamName string) string {
+	result := models.AuditTrailData{
+		Module: UserI18n,
+		Create: []interface{}{},
+		Update: []interface{}{},
+		Delete: []interface{}{},
+	}
+	entity := []interface{}{}
+	oldTeamName := ""
+	if oldRecord.Edges.RecTeams != nil {
+		oldTeamName = oldRecord.Edges.RecTeams.Name
+	}
+	entity = append(entity, models.AuditTrailUpdate{
+		Field: "model.users.rec_team",
+		Value: models.ValueChange{
+			OldValue: oldTeamName,
+			NewValue: recTeamName,
+		},
+	})
+	result.Update = append(result.Update, entity...)
+	jsonObj, _ := json.Marshal(result)
+	return string(jsonObj)
 }
 
 func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {

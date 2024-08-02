@@ -35,7 +35,8 @@ type UserService interface {
 	GetUsers(ctx context.Context, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) (*ent.UserResponseGetAll, error)
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
 	UpdateHiringTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error
-	RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error
+	RemoveHiringTeam(ctx context.Context, userId []uuid.UUID, note string) error
+	SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userId uuid.UUID, note string, repoRegistry repository.Repository) error
 }
 
 type userSvcImpl struct {
@@ -371,7 +372,7 @@ func (svc *userSvcImpl) UpdateHiringTeam(ctx context.Context, teamName string, t
 	return err
 }
 
-func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, userId []uuid.UUID, note string) error {
+func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, userId []uuid.UUID, note string) error {
 	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildQuery().Where(user.IDIn(userId...)))
 	if err != nil {
 		return err
@@ -387,6 +388,21 @@ func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, teamId uuid.UUID, 
 		}
 	})
 	err = svc.repoRegistry.AuditTrail().CreateBulkUserTeamAt(ctx, recordAuditTrails, note)
+	return err
+}
+
+func (svc *userSvcImpl) SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userId uuid.UUID, note string, repoRegistry repository.Repository) error {
+	query := repoRegistry.User().BuildBaseQuery().Where(user.IDEQ(userId)).WithRecTeams()
+	record, err := repoRegistry.User().GetOneUser(ctx, query)
+	if err != nil {
+		return err
+	}
+	err = repoRegistry.User().UpdateUserRecTeam(ctx, record, recTeamId)
+	if err != nil {
+		return err
+	}
+	err = repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers,
+		svc.dtoRegistry.User().AuditTrailUpdateRecTeam(record, recTeamName), audittrail.ActionTypeUpdate, note)
 	return err
 }
 
