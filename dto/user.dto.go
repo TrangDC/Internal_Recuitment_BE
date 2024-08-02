@@ -100,6 +100,7 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 			})
 		}
 	}
+	entity = d.userRoleAuditTrailUpdate(oldRecord.Edges.RoleEdges, newRecord.Edges.RoleEdges, entity)
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
@@ -210,7 +211,32 @@ func (d userDtoImpl) recordAudit(record *ent.User) []interface{} {
 			Value: valueField,
 		})
 	}
+	entity = d.userRoleAuditTrail(record.Edges.RoleEdges, entity)
 	return entity
+}
+
+func (d userDtoImpl) userRoleAuditTrail(userRoles []*ent.Role, atInterface []interface{}) []interface{} {
+	userRoleAuditTrail := lo.Map(userRoles, func(roleRec *ent.Role, _ int) string { return roleRec.Name })
+	atInterface = append(atInterface, models.AuditTrailCreateDelete{
+		Field: "model.users.roles",
+		Value: userRoleAuditTrail,
+	})
+	return atInterface
+}
+
+func (d userDtoImpl) userRoleAuditTrailUpdate(oldRoles []*ent.Role, newRoles []*ent.Role, atInterface []interface{}) []interface{} {
+	oldRoleNames := lo.Map(oldRoles, func(roleRec *ent.Role, _ int) string { return roleRec.Name })
+	newRoleNames := lo.Map(newRoles, func(roleRec *ent.Role, _ int) string { return roleRec.Name })
+	if !CompareArray(oldRoleNames, newRoleNames) {
+		atInterface = append(atInterface, models.AuditTrailUpdate{
+			Field: "model.users.roles",
+			Value: models.ValueChange{
+				OldValue: oldRoleNames,
+				NewValue: newRoleNames,
+			},
+		})
+	}
+	return atInterface
 }
 
 func (d userDtoImpl) statusI18n(input user.Status) string {
