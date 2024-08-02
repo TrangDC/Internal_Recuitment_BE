@@ -53,6 +53,7 @@ input UserFilter {
   role_id: [ID!]
   is_able_to_leader_rec_team: Boolean
   is_able_to_manager_hiring_team: Boolean
+  rec_team_ids: [ID!]
 }
 
 input UserFreeWord {

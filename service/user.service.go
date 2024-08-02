@@ -480,6 +480,12 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 				userQuery.Where(user.HasHiringTeamEdges())
 			}
 		}
+		if input.RecTeamIds != nil {
+			ids := lo.Map(input.RecTeamIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			userQuery.Where(user.RecTeamIDIn(ids...))
+		}
 	}
 }
 

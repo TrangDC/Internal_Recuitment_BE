@@ -1048,6 +1048,7 @@ type UserFilter struct {
 	RoleID                    []string    `json:"role_id"`
 	IsAbleToLeaderRecTeam     *bool       `json:"is_able_to_leader_rec_team"`
 	IsAbleToManagerHiringTeam *bool       `json:"is_able_to_manager_hiring_team"`
+	RecTeamIds                []string    `json:"rec_team_ids"`
 }
 
 type UserFreeWord struct {

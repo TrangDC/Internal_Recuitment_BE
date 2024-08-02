@@ -7874,6 +7874,7 @@ input UserFilter {
   role_id: [ID!]
   is_able_to_leader_rec_team: Boolean
   is_able_to_manager_hiring_team: Boolean
+  rec_team_ids: [ID!]
 }
 
 input UserFreeWord {
@@ -45402,7 +45403,7 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "status", "is_able_to_interviewer", "hiring_team_id", "role_id", "is_able_to_leader_rec_team", "is_able_to_manager_hiring_team"}
+	fieldsInOrder := [...]string{"name", "ids", "ignore_ids", "status", "is_able_to_interviewer", "hiring_team_id", "role_id", "is_able_to_leader_rec_team", "is_able_to_manager_hiring_team", "rec_team_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45478,6 +45479,14 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_able_to_manager_hiring_team"))
 			it.IsAbleToManagerHiringTeam, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_team_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_team_ids"))
+			it.RecTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
