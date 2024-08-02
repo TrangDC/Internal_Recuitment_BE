@@ -950,12 +950,13 @@ type ComplexityRoot struct {
 	}
 
 	SkillType struct {
-		CreatedAt   func(childComplexity int) int
-		DeletedAt   func(childComplexity int) int
-		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		DeletedAt      func(childComplexity int) int
+		Description    func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IsAbleToDelete func(childComplexity int) int
+		Name           func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
 	}
 
 	SkillTypeEdge struct {
@@ -1285,6 +1286,8 @@ type SkillResolver interface {
 }
 type SkillTypeResolver interface {
 	ID(ctx context.Context, obj *ent.SkillType) (string, error)
+
+	IsAbleToDelete(ctx context.Context, obj *ent.SkillType) (bool, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *ent.User) (string, error)
@@ -5466,6 +5469,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SkillType.ID(childComplexity), true
 
+	case "SkillType.is_able_to_delete":
+		if e.complexity.SkillType.IsAbleToDelete == nil {
+			break
+		}
+
+		return e.complexity.SkillType.IsAbleToDelete(childComplexity), true
+
 	case "SkillType.name":
 		if e.complexity.SkillType.Name == nil {
 			break
@@ -7725,6 +7735,7 @@ type SkillType {
   id: ID!
   name: String!
   description: String
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -36610,6 +36621,8 @@ func (ec *executionContext) fieldContext_Skill_skill_type(ctx context.Context, f
 				return ec.fieldContext_SkillType_name(ctx, field)
 			case "description":
 				return ec.fieldContext_SkillType_description(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_SkillType_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SkillType_created_at(ctx, field)
 			case "updated_at":
@@ -37431,6 +37444,50 @@ func (ec *executionContext) fieldContext_SkillType_description(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _SkillType_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SkillType_is_able_to_delete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SkillType().IsAbleToDelete(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SkillType_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SkillType",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SkillType_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.SkillType) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SkillType_created_at(ctx, field)
 	if err != nil {
@@ -37605,6 +37662,8 @@ func (ec *executionContext) fieldContext_SkillTypeEdge_node(ctx context.Context,
 				return ec.fieldContext_SkillType_name(ctx, field)
 			case "description":
 				return ec.fieldContext_SkillType_description(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_SkillType_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SkillType_created_at(ctx, field)
 			case "updated_at":
@@ -37707,6 +37766,8 @@ func (ec *executionContext) fieldContext_SkillTypeResponse_data(ctx context.Cont
 				return ec.fieldContext_SkillType_name(ctx, field)
 			case "description":
 				return ec.fieldContext_SkillType_description(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_SkillType_is_able_to_delete(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SkillType_created_at(ctx, field)
 			case "updated_at":
@@ -53775,6 +53836,26 @@ func (ec *executionContext) _SkillType(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._SkillType_description(ctx, field, obj)
 
+		case "is_able_to_delete":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SkillType_is_able_to_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._SkillType_created_at(ctx, field, obj)

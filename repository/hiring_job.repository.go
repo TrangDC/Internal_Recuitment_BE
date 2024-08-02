@@ -35,7 +35,7 @@ type HiringJobRepository interface {
 	BuildList(ctx context.Context, query *ent.HiringJobQuery) ([]*ent.HiringJob, error)
 	BuildGetOne(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error)
 	// common function
-	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error)
+	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string, hiringTeamID string) (error, error)
 	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error)
 }
 
@@ -200,8 +200,8 @@ func (rps *hiringJobRepoImpl) GetHiringJob(ctx context.Context, hiringJobId uuid
 }
 
 // common function
-func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string) (error, error) {
-	query := rps.BuildQuery().Where(hiringjob.NameEqualFold(strings.TrimSpace(name)))
+func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UUID, name string, hiringTeamId string) (error, error) {
+	query := rps.BuildQuery().Where(hiringjob.NameEqualFold(strings.TrimSpace(name)), hiringjob.HiringTeamID(uuid.MustParse(hiringTeamId)))
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}

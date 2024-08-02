@@ -62,7 +62,7 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	if !svc.validPermissionMutation(payload, hiringTeam) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name)
+	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name, input.HiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -150,7 +150,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if input.Amount == 0 && record.Status == hiringjob.StatusOpened {
 		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name)
+	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name, input.HiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)

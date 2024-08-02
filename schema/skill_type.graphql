@@ -31,6 +31,7 @@ type SkillType {
   id: ID!
   name: String!
   description: String
+  is_able_to_delete: Boolean!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

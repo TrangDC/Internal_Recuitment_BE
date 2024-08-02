@@ -14,6 +14,14 @@ func (r *skillTypeResolver) ID(ctx context.Context, obj *ent.SkillType) (string,
 	return obj.ID.String(), nil
 }
 
+// IsAbleToDelete is the resolver for the is_able_to_delete field.
+func (r *skillTypeResolver) IsAbleToDelete(ctx context.Context, obj *ent.SkillType) (bool, error) {
+	if len(obj.Edges.SkillEdges) > 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 // SkillType returns graphql1.SkillTypeResolver implementation.
 func (r *Resolver) SkillType() graphql1.SkillTypeResolver { return &skillTypeResolver{r} }
 
