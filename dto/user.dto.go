@@ -132,7 +132,7 @@ func (d userDtoImpl) AuditTrailUpdateHiringTeam(oldRecord *ent.User, hiringTeamN
 func (d userDtoImpl) NewUserEntityPermissionInput(rolePermissions []*ent.EntityPermission) []*ent.NewEntityPermissionInput {
 	inputByPermissionID := make(map[uuid.UUID]*ent.NewEntityPermissionInput)
 	lo.ForEach(rolePermissions, func(rolePermission *ent.EntityPermission, _ int) {
-		permissionID := rolePermission.Edges.PermissionEdges.ID
+		permissionID := rolePermission.PermissionID
 		if _, exist := inputByPermissionID[permissionID]; !exist {
 			inputByPermissionID[permissionID] = &ent.NewEntityPermissionInput{
 				ForOwner:     rolePermission.ForOwner,

@@ -12,11 +12,16 @@ import (
 )
 
 type EntityPermissionRepository interface {
+	// mutation
 	CreateAndUpdateEntityPermission(ctx context.Context, entityId uuid.UUID, input []*ent.NewEntityPermissionInput,
 		entityPermissionRecord []*ent.EntityPermission, entityPermissionType entitypermission.EntityType) error
-	DeleteAllEntityPermission(ctx context.Context, entityId uuid.UUID) error
+	CreateBulkEntityPermissionByEntityIDs(ctx context.Context, inputs map[uuid.UUID][]*ent.NewEntityPermissionInput, entityPermissionType entitypermission.EntityType) error
+	DeleteBulkEntityPermissionByEntityID(ctx context.Context, entityId uuid.UUID) error
+	DeleteBulkEntityPermissionByEntityIDs(ctx context.Context, entityIDs []uuid.UUID) error
+	// query
 	BuildQuery() *ent.EntityPermissionQuery
 	BuildList(ctx context.Context, query *ent.EntityPermissionQuery) ([]*ent.EntityPermission, error)
+	// common
 	ValidActionPermission(ctx context.Context, input []*ent.NewEntityPermissionInput) (error, error)
 }
 
@@ -35,7 +40,7 @@ func NewEntityPermissionRepository(client *ent.Client) EntityPermissionRepositor
 	}
 }
 
-func (rps entityPermissionRepoImpl) CreateBulkEntityPermission(ctx context.Context, input []*ent.NewEntityPermissionInput,
+func (rps entityPermissionRepoImpl) CreateBulkEntityPermissionByEntityID(ctx context.Context, input []*ent.NewEntityPermissionInput,
 	entityId uuid.UUID, entityPermissionType entitypermission.EntityType) error {
 	var recordCreate []*ent.EntityPermissionCreate
 	for _, entity := range input {
@@ -55,7 +60,7 @@ func (rps entityPermissionRepoImpl) CreateBulkEntityPermission(ctx context.Conte
 	return err
 }
 
-func (rps entityPermissionRepoImpl) DeleteEntityPermission(ctx context.Context, entityPermissionIds []uuid.UUID) error {
+func (rps entityPermissionRepoImpl) DeleteEntityPermissionByIDs(ctx context.Context, entityPermissionIds []uuid.UUID) error {
 	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.IDIn(entityPermissionIds...)).Exec(ctx)
 	return err
 }
@@ -68,6 +73,31 @@ func (rps entityPermissionRepoImpl) UpdateEntityPermission(ctx context.Context, 
 		SetForTeam(input.ForTeam).
 		SetUpdatedAt(time.Now().UTC()).
 		Save(ctx)
+	return err
+}
+
+func (rps entityPermissionRepoImpl) CreateBulkEntityPermissionByEntityIDs(ctx context.Context, inputs map[uuid.UUID][]*ent.NewEntityPermissionInput, entityPermissionType entitypermission.EntityType) error {
+	creates := make([]*ent.EntityPermissionCreate, 0)
+	for entityID, inputsPerEntityID := range inputs {
+		createsByEntityID := lo.Map(inputsPerEntityID, func(inputPerEntityID *ent.NewEntityPermissionInput, _ int) *ent.EntityPermissionCreate {
+			return rps.client.EntityPermission.Create().
+				SetEntityID(entityID).
+				SetPermissionID(uuid.MustParse(inputPerEntityID.PermissionID)).
+				SetEntityType(entityPermissionType).
+				SetForOwner(inputPerEntityID.ForOwner).
+				SetForAll(inputPerEntityID.ForAll).
+				SetForTeam(inputPerEntityID.ForTeam).
+				SetCreatedAt(time.Now().UTC()).
+				SetUpdatedAt(time.Now().UTC())
+		})
+		creates = append(creates, createsByEntityID...)
+	}
+	_, err := rps.client.EntityPermission.CreateBulk(creates...).Save(ctx)
+	return err
+}
+
+func (rps entityPermissionRepoImpl) DeleteBulkEntityPermissionByEntityIDs(ctx context.Context, entityIDs []uuid.UUID) error {
+	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.EntityIDIn(entityIDs...)).Exec(ctx)
 	return err
 }
 
@@ -100,13 +130,13 @@ func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.
 		}
 	}
 	if len(newInput) > 0 {
-		err := rps.CreateBulkEntityPermission(ctx, newInput, entityId, entityPermissionType)
+		err := rps.CreateBulkEntityPermissionByEntityID(ctx, newInput, entityId, entityPermissionType)
 		if err != nil {
 			return err
 		}
 	}
 	if len(deletedIds) > 0 {
-		err := rps.DeleteEntityPermission(ctx, deletedIds)
+		err := rps.DeleteEntityPermissionByIDs(ctx, deletedIds)
 		if err != nil {
 			return err
 		}
@@ -122,7 +152,7 @@ func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.
 	return nil
 }
 
-func (rps entityPermissionRepoImpl) DeleteAllEntityPermission(ctx context.Context, entityId uuid.UUID) error {
+func (rps entityPermissionRepoImpl) DeleteBulkEntityPermissionByEntityID(ctx context.Context, entityId uuid.UUID) error {
 	_, err := rps.client.EntityPermission.Delete().Where(entitypermission.EntityID(entityId)).Exec(ctx)
 	return err
 }
