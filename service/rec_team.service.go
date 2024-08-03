@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net/http"
+	"sort"
 	"strings"
 	"trec/dto"
 	"trec/ent"
@@ -158,7 +159,8 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 }
 
 // query
-func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error) {
+func (svc *recTeamSvcImpl) GetRecTeams(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
+	filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamResponseGetAll, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var (
 		result   *ent.RecTeamResponseGetAll
@@ -206,7 +208,8 @@ func (svc *recTeamSvcImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.R
 	}, nil
 }
 
-func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error) {
+func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord,
+	filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) (*ent.RecTeamSelectionResponseGetAll, error) {
 	var (
 		result   *ent.RecTeamSelectionResponseGetAll
 		edges    []*ent.RecTeamSelectionEdge
@@ -240,11 +243,11 @@ func (svc *recTeamSvcImpl) Selections(ctx context.Context, pagination *ent.Pagin
 			Total:   count,
 		},
 	}
-
 	return result, nil
 }
 
-func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTeamQuery, pagination *ent.PaginationInput, freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) ([]*ent.RecTeam, int, int, int, error) {
+func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTeamQuery, pagination *ent.PaginationInput,
+	freeWord *ent.RecTeamFreeWord, filter *ent.RecTeamFilter, orderBy *ent.RecTeamOrderBy) ([]*ent.RecTeam, int, int, int, error) {
 	var (
 		page     int
 		perPage  int
@@ -254,33 +257,74 @@ func (svc *recTeamSvcImpl) getAllRecTeams(ctx context.Context, query *ent.RecTea
 	)
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
-	count, err = svc.repoRegistry.RecTeam().BuildCount(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, err
-	}
-	order := ent.Desc(recteam.FieldCreatedAt)
-	if orderBy != nil {
-		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
-		if orderBy.Direction == ent.OrderDirectionAsc {
-			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
-		}
-	}
-	query = query.Order(order)
 	if pagination != nil {
 		page = *pagination.Page
 		perPage = *pagination.PerPage
-		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
-	recTeams, err = svc.repoRegistry.RecTeam().BuildList(ctx, query)
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, 0, 0, 0, err
+	if orderBy == nil || orderBy.Field != ent.RecTeamOrderByFieldLeader {
+		count, err = svc.repoRegistry.RecTeam().BuildCount(ctx, query)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, 0, 0, 0, err
+		}
+		order := ent.Desc(recteam.FieldCreatedAt)
+		if orderBy != nil {
+			order = ent.Desc(strings.ToLower(orderBy.Field.String()))
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+			}
+		}
+		query = query.Order(order)
+		if pagination != nil {
+			query = query.Limit(perPage).Offset((page - 1) * perPage)
+		}
+		recTeams, err = svc.repoRegistry.RecTeam().BuildList(ctx, query)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, 0, 0, 0, err
+		}
+	} else {
+		count, recTeams, err = svc.getTeamsListByAdditionalOrder(ctx, query, page, perPage, orderBy)
+		if err != nil {
+			return nil, 0, 0, 0, err
+		}
 	}
 	return recTeams, count, page, perPage, nil
 }
 
 // common function
+func (svc *recTeamSvcImpl) getTeamsListByAdditionalOrder(ctx context.Context, query *ent.RecTeamQuery, page, perPage int, orderBy *ent.RecTeamOrderBy) (int, []*ent.RecTeam, error) {
+	teams, err := svc.repoRegistry.RecTeam().BuildList(ctx, query.Order(ent.Desc(ent.RecTeamOrderByFieldCreatedAt.String())))
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return 0, nil, err
+	}
+	count := len(teams)
+	switch orderBy.Field {
+	case ent.RecTeamOrderByFieldLeader:
+		sort.Slice(teams, func(i, j int) bool {
+			if orderBy.Direction == ent.OrderDirectionAsc {
+				return teams[i].Edges.RecLeaderEdge.Name < teams[j].Edges.RecLeaderEdge.Name
+			} else {
+				return teams[i].Edges.RecLeaderEdge.Name > teams[j].Edges.RecLeaderEdge.Name
+			}
+		})
+	}
+	// Split slice by page and perPage
+	if page != 0 && perPage != 0 {
+		start := (page - 1) * perPage
+		end := start + perPage
+		if start > len(teams) {
+			return count, nil, nil
+		}
+		if start <= len(teams) && end > len(teams) {
+			return count, teams[start:], nil
+		}
+		teams = teams[start:end]
+	}
+	return count, teams, nil
+}
+
 func (svc *recTeamSvcImpl) freeWord(recTeamQuery *ent.RecTeamQuery, input *ent.RecTeamFreeWord) {
 	var recTeams []predicate.RecTeam
 	if input != nil {

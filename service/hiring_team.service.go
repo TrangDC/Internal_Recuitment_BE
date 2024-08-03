@@ -222,7 +222,7 @@ func (svc *hiringTeamSvcImpl) GetHiringTeams(ctx context.Context, pagination *en
 	svc.validPermissionGet(payload, query)
 	teams, count, err = svc.getAllHiringTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		return nil, err
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(teams, func(entity *ent.HiringTeam, index int) *ent.HiringTeamEdge {
 		return &ent.HiringTeamEdge{
@@ -256,7 +256,7 @@ func (svc *hiringTeamSvcImpl) Selections(ctx context.Context, pagination *ent.Pa
 	query := svc.repoRegistry.HiringTeam().BuildBaseQuery()
 	teams, count, err := svc.getAllHiringTeams(ctx, query, pagination, freeWord, filter, orderBy)
 	if err != nil {
-		return nil, err
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	edges = lo.Map(teams, func(entity *ent.HiringTeam, index int) *ent.HiringTeamSelectionEdge {
 		return &ent.HiringTeamSelectionEdge{
@@ -297,12 +297,12 @@ func (svc *hiringTeamSvcImpl) getAllHiringTeams(ctx context.Context, query *ent.
 	if ent.HiringTeamOrderByAdditionalField.IsValid(ent.HiringTeamOrderByAdditionalField(orderBy.Field.String())) {
 		count, teams, err = svc.getTeamListByAdditionOrder(ctx, query, page, perPage, orderBy)
 		if err != nil {
-			return nil, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			return nil, 0, err
 		}
 	} else {
 		count, teams, err = svc.getTeamsListByNormalOrder(ctx, query, page, perPage, orderBy)
 		if err != nil {
-			return nil, 0, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			return nil, 0, err
 		}
 	}
 	return teams, count, nil

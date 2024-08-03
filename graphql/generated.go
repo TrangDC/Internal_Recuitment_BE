@@ -7398,6 +7398,7 @@ enum PermissionGroupType {
 	{Name: "../schema/rec_team.graphql", Input: `enum RecTeamOrderByField {
   name
   created_at
+  leader
 }
 
 input RecTeamOrderBy {

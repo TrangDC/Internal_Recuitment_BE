@@ -2675,16 +2675,18 @@ type RecTeamOrderByField string
 const (
 	RecTeamOrderByFieldName      RecTeamOrderByField = "name"
 	RecTeamOrderByFieldCreatedAt RecTeamOrderByField = "created_at"
+	RecTeamOrderByFieldLeader    RecTeamOrderByField = "leader"
 )
 
 var AllRecTeamOrderByField = []RecTeamOrderByField{
 	RecTeamOrderByFieldName,
 	RecTeamOrderByFieldCreatedAt,
+	RecTeamOrderByFieldLeader,
 }
 
 func (e RecTeamOrderByField) IsValid() bool {
 	switch e {
-	case RecTeamOrderByFieldName, RecTeamOrderByFieldCreatedAt:
+	case RecTeamOrderByFieldName, RecTeamOrderByFieldCreatedAt, RecTeamOrderByFieldLeader:
 		return true
 	}
 	return false

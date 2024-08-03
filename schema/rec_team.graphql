@@ -1,6 +1,7 @@
 enum RecTeamOrderByField {
   name
   created_at
+  leader
 }
 
 input RecTeamOrderBy {
