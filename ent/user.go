@@ -66,14 +66,14 @@ type UserEdges struct {
 	RoleEdges []*Role `json:"role_edges,omitempty"`
 	// HiringTeamEdges holds the value of the hiring_team_edges edge.
 	HiringTeamEdges []*HiringTeam `json:"hiring_team_edges,omitempty"`
-	// LeadRecTeams holds the value of the lead_rec_teams edge.
-	LeadRecTeams []*RecTeam `json:"lead_rec_teams,omitempty"`
-	// RecTeams holds the value of the rec_teams edge.
-	RecTeams *RecTeam `json:"rec_teams,omitempty"`
 	// MemberOfHiringTeamEdges holds the value of the member_of_hiring_team_edges edge.
 	MemberOfHiringTeamEdges *HiringTeam `json:"member_of_hiring_team_edges,omitempty"`
 	// ApproversHiringTeams holds the value of the approvers_hiring_teams edge.
 	ApproversHiringTeams []*HiringTeam `json:"approvers_hiring_teams,omitempty"`
+	// LeaderRecEdge holds the value of the leader_rec_edge edge.
+	LeaderRecEdge *RecTeam `json:"leader_rec_edge,omitempty"`
+	// RecTeams holds the value of the rec_teams edge.
+	RecTeams *RecTeam `json:"rec_teams,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
 	InterviewUsers []*CandidateInterviewer `json:"interview_users,omitempty"`
 	// RoleUsers holds the value of the role_users edge.
@@ -98,7 +98,6 @@ type UserEdges struct {
 	namedUserPermissionEdges     map[string][]*EntityPermission
 	namedRoleEdges               map[string][]*Role
 	namedHiringTeamEdges         map[string][]*HiringTeam
-	namedLeadRecTeams            map[string][]*RecTeam
 	namedApproversHiringTeams    map[string][]*HiringTeam
 	namedInterviewUsers          map[string][]*CandidateInterviewer
 	namedRoleUsers               map[string][]*UserRole
@@ -196,32 +195,10 @@ func (e UserEdges) HiringTeamEdgesOrErr() ([]*HiringTeam, error) {
 	return nil, &NotLoadedError{edge: "hiring_team_edges"}
 }
 
-// LeadRecTeamsOrErr returns the LeadRecTeams value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) LeadRecTeamsOrErr() ([]*RecTeam, error) {
-	if e.loadedTypes[10] {
-		return e.LeadRecTeams, nil
-	}
-	return nil, &NotLoadedError{edge: "lead_rec_teams"}
-}
-
-// RecTeamsOrErr returns the RecTeams value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) RecTeamsOrErr() (*RecTeam, error) {
-	if e.loadedTypes[11] {
-		if e.RecTeams == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: recteam.Label}
-		}
-		return e.RecTeams, nil
-	}
-	return nil, &NotLoadedError{edge: "rec_teams"}
-}
-
 // MemberOfHiringTeamEdgesOrErr returns the MemberOfHiringTeamEdges value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) MemberOfHiringTeamEdgesOrErr() (*HiringTeam, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[10] {
 		if e.MemberOfHiringTeamEdges == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: hiringteam.Label}
@@ -234,10 +211,36 @@ func (e UserEdges) MemberOfHiringTeamEdgesOrErr() (*HiringTeam, error) {
 // ApproversHiringTeamsOrErr returns the ApproversHiringTeams value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ApproversHiringTeamsOrErr() ([]*HiringTeam, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[11] {
 		return e.ApproversHiringTeams, nil
 	}
 	return nil, &NotLoadedError{edge: "approvers_hiring_teams"}
+}
+
+// LeaderRecEdgeOrErr returns the LeaderRecEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) LeaderRecEdgeOrErr() (*RecTeam, error) {
+	if e.loadedTypes[12] {
+		if e.LeaderRecEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: recteam.Label}
+		}
+		return e.LeaderRecEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "leader_rec_edge"}
+}
+
+// RecTeamsOrErr returns the RecTeams value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) RecTeamsOrErr() (*RecTeam, error) {
+	if e.loadedTypes[13] {
+		if e.RecTeams == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: recteam.Label}
+		}
+		return e.RecTeams, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_teams"}
 }
 
 // InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
@@ -423,16 +426,6 @@ func (u *User) QueryHiringTeamEdges() *HiringTeamQuery {
 	return (&UserClient{config: u.config}).QueryHiringTeamEdges(u)
 }
 
-// QueryLeadRecTeams queries the "lead_rec_teams" edge of the User entity.
-func (u *User) QueryLeadRecTeams() *RecTeamQuery {
-	return (&UserClient{config: u.config}).QueryLeadRecTeams(u)
-}
-
-// QueryRecTeams queries the "rec_teams" edge of the User entity.
-func (u *User) QueryRecTeams() *RecTeamQuery {
-	return (&UserClient{config: u.config}).QueryRecTeams(u)
-}
-
 // QueryMemberOfHiringTeamEdges queries the "member_of_hiring_team_edges" edge of the User entity.
 func (u *User) QueryMemberOfHiringTeamEdges() *HiringTeamQuery {
 	return (&UserClient{config: u.config}).QueryMemberOfHiringTeamEdges(u)
@@ -441,6 +434,16 @@ func (u *User) QueryMemberOfHiringTeamEdges() *HiringTeamQuery {
 // QueryApproversHiringTeams queries the "approvers_hiring_teams" edge of the User entity.
 func (u *User) QueryApproversHiringTeams() *HiringTeamQuery {
 	return (&UserClient{config: u.config}).QueryApproversHiringTeams(u)
+}
+
+// QueryLeaderRecEdge queries the "leader_rec_edge" edge of the User entity.
+func (u *User) QueryLeaderRecEdge() *RecTeamQuery {
+	return (&UserClient{config: u.config}).QueryLeaderRecEdge(u)
+}
+
+// QueryRecTeams queries the "rec_teams" edge of the User entity.
+func (u *User) QueryRecTeams() *RecTeamQuery {
+	return (&UserClient{config: u.config}).QueryRecTeams(u)
 }
 
 // QueryInterviewUsers queries the "interview_users" edge of the User entity.
@@ -756,30 +759,6 @@ func (u *User) appendNamedHiringTeamEdges(name string, edges ...*HiringTeam) {
 		u.Edges.namedHiringTeamEdges[name] = []*HiringTeam{}
 	} else {
 		u.Edges.namedHiringTeamEdges[name] = append(u.Edges.namedHiringTeamEdges[name], edges...)
-	}
-}
-
-// NamedLeadRecTeams returns the LeadRecTeams named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (u *User) NamedLeadRecTeams(name string) ([]*RecTeam, error) {
-	if u.Edges.namedLeadRecTeams == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := u.Edges.namedLeadRecTeams[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (u *User) appendNamedLeadRecTeams(name string, edges ...*RecTeam) {
-	if u.Edges.namedLeadRecTeams == nil {
-		u.Edges.namedLeadRecTeams = make(map[string][]*RecTeam)
-	}
-	if len(edges) == 0 {
-		u.Edges.namedLeadRecTeams[name] = []*RecTeam{}
-	} else {
-		u.Edges.namedLeadRecTeams[name] = append(u.Edges.namedLeadRecTeams[name], edges...)
 	}
 }
 

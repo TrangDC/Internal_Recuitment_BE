@@ -37,10 +37,10 @@ type RecTeam struct {
 
 // RecTeamEdges holds the relations/edges for other nodes in the graph.
 type RecTeamEdges struct {
-	// RecLeaderEdge holds the value of the rec_leader_edge edge.
-	RecLeaderEdge *User `json:"rec_leader_edge,omitempty"`
 	// RecMemberEdges holds the value of the rec_member_edges edge.
 	RecMemberEdges []*User `json:"rec_member_edges,omitempty"`
+	// RecLeaderEdge holds the value of the rec_leader_edge edge.
+	RecLeaderEdge *User `json:"rec_leader_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -50,10 +50,19 @@ type RecTeamEdges struct {
 	namedRecMemberEdges map[string][]*User
 }
 
+// RecMemberEdgesOrErr returns the RecMemberEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e RecTeamEdges) RecMemberEdgesOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.RecMemberEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_member_edges"}
+}
+
 // RecLeaderEdgeOrErr returns the RecLeaderEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e RecTeamEdges) RecLeaderEdgeOrErr() (*User, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.RecLeaderEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
@@ -61,15 +70,6 @@ func (e RecTeamEdges) RecLeaderEdgeOrErr() (*User, error) {
 		return e.RecLeaderEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "rec_leader_edge"}
-}
-
-// RecMemberEdgesOrErr returns the RecMemberEdges value or an error if the edge
-// was not loaded in eager-loading.
-func (e RecTeamEdges) RecMemberEdgesOrErr() ([]*User, error) {
-	if e.loadedTypes[1] {
-		return e.RecMemberEdges, nil
-	}
-	return nil, &NotLoadedError{edge: "rec_member_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -145,14 +145,14 @@ func (rt *RecTeam) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryRecLeaderEdge queries the "rec_leader_edge" edge of the RecTeam entity.
-func (rt *RecTeam) QueryRecLeaderEdge() *UserQuery {
-	return (&RecTeamClient{config: rt.config}).QueryRecLeaderEdge(rt)
-}
-
 // QueryRecMemberEdges queries the "rec_member_edges" edge of the RecTeam entity.
 func (rt *RecTeam) QueryRecMemberEdges() *UserQuery {
 	return (&RecTeamClient{config: rt.config}).QueryRecMemberEdges(rt)
+}
+
+// QueryRecLeaderEdge queries the "rec_leader_edge" edge of the RecTeam entity.
+func (rt *RecTeam) QueryRecLeaderEdge() *UserQuery {
+	return (&RecTeamClient{config: rt.config}).QueryRecLeaderEdge(rt)
 }
 
 // Update returns a builder for updating this RecTeam.

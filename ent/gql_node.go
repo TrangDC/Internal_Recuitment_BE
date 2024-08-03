@@ -1654,30 +1654,30 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
-		Type: "User",
-		Name: "user_edges",
-	}
-	err = ht.QueryUserEdges().
-		Select(user.FieldID).
-		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[1] = &Edge{
 		Type: "HiringJob",
 		Name: "hiring_team_job_edges",
 	}
 	err = ht.QueryHiringTeamJobEdges().
 		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "User",
+		Name: "hiring_member_edges",
+	}
+	err = ht.QueryHiringMemberEdges().
+		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[2] = &Edge{
 		Type: "User",
-		Name: "hiring_member_edges",
+		Name: "approvers_users",
 	}
-	err = ht.QueryHiringMemberEdges().
+	err = ht.QueryApproversUsers().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
@@ -1685,30 +1685,30 @@ func (ht *HiringTeam) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[3] = &Edge{
 		Type: "User",
-		Name: "approvers_users",
+		Name: "user_edges",
 	}
-	err = ht.QueryApproversUsers().
+	err = ht.QueryUserEdges().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[3].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[4] = &Edge{
-		Type: "HiringTeamManager",
-		Name: "user_hiring_teams",
-	}
-	err = ht.QueryUserHiringTeams().
-		Select(hiringteammanager.FieldID).
-		Scan(ctx, &node.Edges[4].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[5] = &Edge{
 		Type: "HiringTeamApprover",
 		Name: "hiring_team_approvers",
 	}
 	err = ht.QueryHiringTeamApprovers().
 		Select(hiringteamapprover.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		Type: "HiringTeamManager",
+		Name: "user_hiring_teams",
+	}
+	err = ht.QueryUserHiringTeams().
+		Select(hiringteammanager.FieldID).
 		Scan(ctx, &node.Edges[5].IDs)
 	if err != nil {
 		return nil, err
@@ -2300,9 +2300,9 @@ func (rt *RecTeam) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[0] = &Edge{
 		Type: "User",
-		Name: "rec_leader_edge",
+		Name: "rec_member_edges",
 	}
-	err = rt.QueryRecLeaderEdge().
+	err = rt.QueryRecMemberEdges().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -2310,9 +2310,9 @@ func (rt *RecTeam) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1] = &Edge{
 		Type: "User",
-		Name: "rec_member_edges",
+		Name: "rec_leader_edge",
 	}
-	err = rt.QueryRecMemberEdges().
+	err = rt.QueryRecLeaderEdge().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -2751,41 +2751,41 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[10] = &Edge{
-		Type: "RecTeam",
-		Name: "lead_rec_teams",
-	}
-	err = u.QueryLeadRecTeams().
-		Select(recteam.FieldID).
-		Scan(ctx, &node.Edges[10].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[11] = &Edge{
-		Type: "RecTeam",
-		Name: "rec_teams",
-	}
-	err = u.QueryRecTeams().
-		Select(recteam.FieldID).
-		Scan(ctx, &node.Edges[11].IDs)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[12] = &Edge{
 		Type: "HiringTeam",
 		Name: "member_of_hiring_team_edges",
 	}
 	err = u.QueryMemberOfHiringTeamEdges().
 		Select(hiringteam.FieldID).
-		Scan(ctx, &node.Edges[12].IDs)
+		Scan(ctx, &node.Edges[10].IDs)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[13] = &Edge{
+	node.Edges[11] = &Edge{
 		Type: "HiringTeam",
 		Name: "approvers_hiring_teams",
 	}
 	err = u.QueryApproversHiringTeams().
 		Select(hiringteam.FieldID).
+		Scan(ctx, &node.Edges[11].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[12] = &Edge{
+		Type: "RecTeam",
+		Name: "leader_rec_edge",
+	}
+	err = u.QueryLeaderRecEdge().
+		Select(recteam.FieldID).
+		Scan(ctx, &node.Edges[12].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[13] = &Edge{
+		Type: "RecTeam",
+		Name: "rec_teams",
+	}
+	err = u.QueryRecTeams().
+		Select(recteam.FieldID).
 		Scan(ctx, &node.Edges[13].IDs)
 	if err != nil {
 		return nil, err

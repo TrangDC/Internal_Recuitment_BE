@@ -503,15 +503,15 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			ids := lo.Map(input.RecTeamIds, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.Not(user.HasLeadRecTeamsWith(recteam.IDNotIn(ids...))))
+			userQuery.Where(user.Not(user.HasLeaderRecEdgeWith(recteam.IDNotIn(ids...))))
 		} else {
 			if input.IsAbleToLeaderRecTeam != nil {
 				if *input.IsAbleToLeaderRecTeam {
-					userQuery.Where(user.Not(user.HasLeadRecTeamsWith(
+					userQuery.Where(user.Not(user.HasLeaderRecEdgeWith(
 						recteam.DeletedAtIsNil(),
 					)))
 				} else {
-					userQuery.Where(user.HasLeadRecTeamsWith(
+					userQuery.Where(user.HasLeaderRecEdgeWith(
 						recteam.DeletedAtIsNil(),
 					))
 				}

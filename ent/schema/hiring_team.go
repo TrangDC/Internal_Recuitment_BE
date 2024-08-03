@@ -23,11 +23,12 @@ func (HiringTeam) Fields() []ent.Field {
 // Edges of the HiringTeam.
 func (HiringTeam) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user_edges", User.Type).Ref("hiring_team_edges").Through("user_hiring_teams", HiringTeamManager.Type).
-			Comment("The uniqueness of the user is enforced on the edge schema"),
 		edge.To("hiring_team_job_edges", HiringJob.Type),
 		edge.To("hiring_member_edges", User.Type),
 		edge.To("approvers_users", User.Type).Through("hiring_team_approvers", HiringTeamApprover.Type),
+
+		edge.From("user_edges", User.Type).Ref("hiring_team_edges").Through("user_hiring_teams", HiringTeamManager.Type).
+		Comment("The uniqueness of the user is enforced on the edge schema"),
 	}
 }
 

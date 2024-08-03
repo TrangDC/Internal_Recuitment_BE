@@ -90,21 +90,18 @@ func (rtc *RecTeamCreate) SetLeaderID(u uuid.UUID) *RecTeamCreate {
 	return rtc
 }
 
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (rtc *RecTeamCreate) SetNillableLeaderID(u *uuid.UUID) *RecTeamCreate {
+	if u != nil {
+		rtc.SetLeaderID(*u)
+	}
+	return rtc
+}
+
 // SetID sets the "id" field.
 func (rtc *RecTeamCreate) SetID(u uuid.UUID) *RecTeamCreate {
 	rtc.mutation.SetID(u)
 	return rtc
-}
-
-// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
-func (rtc *RecTeamCreate) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamCreate {
-	rtc.mutation.SetRecLeaderEdgeID(id)
-	return rtc
-}
-
-// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
-func (rtc *RecTeamCreate) SetRecLeaderEdge(u *User) *RecTeamCreate {
-	return rtc.SetRecLeaderEdgeID(u.ID)
 }
 
 // AddRecMemberEdgeIDs adds the "rec_member_edges" edge to the User entity by IDs.
@@ -120,6 +117,25 @@ func (rtc *RecTeamCreate) AddRecMemberEdges(u ...*User) *RecTeamCreate {
 		ids[i] = u[i].ID
 	}
 	return rtc.AddRecMemberEdgeIDs(ids...)
+}
+
+// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
+func (rtc *RecTeamCreate) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamCreate {
+	rtc.mutation.SetRecLeaderEdgeID(id)
+	return rtc
+}
+
+// SetNillableRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID if the given value is not nil.
+func (rtc *RecTeamCreate) SetNillableRecLeaderEdgeID(id *uuid.UUID) *RecTeamCreate {
+	if id != nil {
+		rtc = rtc.SetRecLeaderEdgeID(*id)
+	}
+	return rtc
+}
+
+// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
+func (rtc *RecTeamCreate) SetRecLeaderEdge(u *User) *RecTeamCreate {
+	return rtc.SetRecLeaderEdgeID(u.ID)
 }
 
 // Mutation returns the RecTeamMutation object of the builder.
@@ -223,12 +239,6 @@ func (rtc *RecTeamCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "RecTeam.description": %w`, err)}
 		}
 	}
-	if _, ok := rtc.mutation.LeaderID(); !ok {
-		return &ValidationError{Name: "leader_id", err: errors.New(`ent: missing required field "RecTeam.leader_id"`)}
-	}
-	if _, ok := rtc.mutation.RecLeaderEdgeID(); !ok {
-		return &ValidationError{Name: "rec_leader_edge", err: errors.New(`ent: missing required edge "RecTeam.rec_leader_edge"`)}
-	}
 	return nil
 }
 
@@ -285,26 +295,6 @@ func (rtc *RecTeamCreate) createSpec() (*RecTeam, *sqlgraph.CreateSpec) {
 		_spec.SetField(recteam.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if nodes := rtc.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   recteam.RecLeaderEdgeTable,
-			Columns: []string{recteam.RecLeaderEdgeColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.LeaderID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := rtc.mutation.RecMemberEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -322,6 +312,26 @@ func (rtc *RecTeamCreate) createSpec() (*RecTeam, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rtc.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   recteam.RecLeaderEdgeTable,
+			Columns: []string{recteam.RecLeaderEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.LeaderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

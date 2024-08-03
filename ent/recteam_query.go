@@ -26,8 +26,8 @@ type RecTeamQuery struct {
 	order                   []OrderFunc
 	fields                  []string
 	predicates              []predicate.RecTeam
-	withRecLeaderEdge       *UserQuery
 	withRecMemberEdges      *UserQuery
+	withRecLeaderEdge       *UserQuery
 	modifiers               []func(*sql.Selector)
 	loadTotal               []func(context.Context, []*RecTeam) error
 	withNamedRecMemberEdges map[string]*UserQuery
@@ -67,28 +67,6 @@ func (rtq *RecTeamQuery) Order(o ...OrderFunc) *RecTeamQuery {
 	return rtq
 }
 
-// QueryRecLeaderEdge chains the current query on the "rec_leader_edge" edge.
-func (rtq *RecTeamQuery) QueryRecLeaderEdge() *UserQuery {
-	query := &UserQuery{config: rtq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rtq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := rtq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(recteam.Table, recteam.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, recteam.RecLeaderEdgeTable, recteam.RecLeaderEdgeColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryRecMemberEdges chains the current query on the "rec_member_edges" edge.
 func (rtq *RecTeamQuery) QueryRecMemberEdges() *UserQuery {
 	query := &UserQuery{config: rtq.config}
@@ -104,6 +82,28 @@ func (rtq *RecTeamQuery) QueryRecMemberEdges() *UserQuery {
 			sqlgraph.From(recteam.Table, recteam.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, recteam.RecMemberEdgesTable, recteam.RecMemberEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRecLeaderEdge chains the current query on the "rec_leader_edge" edge.
+func (rtq *RecTeamQuery) QueryRecLeaderEdge() *UserQuery {
+	query := &UserQuery{config: rtq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rtq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rtq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recteam.Table, recteam.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, recteam.RecLeaderEdgeTable, recteam.RecLeaderEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
 		return fromU, nil
@@ -292,24 +292,13 @@ func (rtq *RecTeamQuery) Clone() *RecTeamQuery {
 		offset:             rtq.offset,
 		order:              append([]OrderFunc{}, rtq.order...),
 		predicates:         append([]predicate.RecTeam{}, rtq.predicates...),
-		withRecLeaderEdge:  rtq.withRecLeaderEdge.Clone(),
 		withRecMemberEdges: rtq.withRecMemberEdges.Clone(),
+		withRecLeaderEdge:  rtq.withRecLeaderEdge.Clone(),
 		// clone intermediate query.
 		sql:    rtq.sql.Clone(),
 		path:   rtq.path,
 		unique: rtq.unique,
 	}
-}
-
-// WithRecLeaderEdge tells the query-builder to eager-load the nodes that are connected to
-// the "rec_leader_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (rtq *RecTeamQuery) WithRecLeaderEdge(opts ...func(*UserQuery)) *RecTeamQuery {
-	query := &UserQuery{config: rtq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	rtq.withRecLeaderEdge = query
-	return rtq
 }
 
 // WithRecMemberEdges tells the query-builder to eager-load the nodes that are connected to
@@ -320,6 +309,17 @@ func (rtq *RecTeamQuery) WithRecMemberEdges(opts ...func(*UserQuery)) *RecTeamQu
 		opt(query)
 	}
 	rtq.withRecMemberEdges = query
+	return rtq
+}
+
+// WithRecLeaderEdge tells the query-builder to eager-load the nodes that are connected to
+// the "rec_leader_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (rtq *RecTeamQuery) WithRecLeaderEdge(opts ...func(*UserQuery)) *RecTeamQuery {
+	query := &UserQuery{config: rtq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rtq.withRecLeaderEdge = query
 	return rtq
 }
 
@@ -397,8 +397,8 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 		nodes       = []*RecTeam{}
 		_spec       = rtq.querySpec()
 		loadedTypes = [2]bool{
-			rtq.withRecLeaderEdge != nil,
 			rtq.withRecMemberEdges != nil,
+			rtq.withRecLeaderEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -422,16 +422,16 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rtq.withRecLeaderEdge; query != nil {
-		if err := rtq.loadRecLeaderEdge(ctx, query, nodes, nil,
-			func(n *RecTeam, e *User) { n.Edges.RecLeaderEdge = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := rtq.withRecMemberEdges; query != nil {
 		if err := rtq.loadRecMemberEdges(ctx, query, nodes,
 			func(n *RecTeam) { n.Edges.RecMemberEdges = []*User{} },
 			func(n *RecTeam, e *User) { n.Edges.RecMemberEdges = append(n.Edges.RecMemberEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rtq.withRecLeaderEdge; query != nil {
+		if err := rtq.loadRecLeaderEdge(ctx, query, nodes, nil,
+			func(n *RecTeam, e *User) { n.Edges.RecLeaderEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -450,32 +450,6 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 	return nodes, nil
 }
 
-func (rtq *RecTeamQuery) loadRecLeaderEdge(ctx context.Context, query *UserQuery, nodes []*RecTeam, init func(*RecTeam), assign func(*RecTeam, *User)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*RecTeam)
-	for i := range nodes {
-		fk := nodes[i].LeaderID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "leader_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (rtq *RecTeamQuery) loadRecMemberEdges(ctx context.Context, query *UserQuery, nodes []*RecTeam, init func(*RecTeam), assign func(*RecTeam, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*RecTeam)
@@ -500,6 +474,32 @@ func (rtq *RecTeamQuery) loadRecMemberEdges(ctx context.Context, query *UserQuer
 			return fmt.Errorf(`unexpected foreign-key "rec_team_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (rtq *RecTeamQuery) loadRecLeaderEdge(ctx context.Context, query *UserQuery, nodes []*RecTeam, init func(*RecTeam), assign func(*RecTeam, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*RecTeam)
+	for i := range nodes {
+		fk := nodes[i].LeaderID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "leader_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

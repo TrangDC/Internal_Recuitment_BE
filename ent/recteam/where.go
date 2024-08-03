@@ -592,31 +592,17 @@ func LeaderIDNotIn(vs ...uuid.UUID) predicate.RecTeam {
 	})
 }
 
-// HasRecLeaderEdge applies the HasEdge predicate on the "rec_leader_edge" edge.
-func HasRecLeaderEdge() predicate.RecTeam {
+// LeaderIDIsNil applies the IsNil predicate on the "leader_id" field.
+func LeaderIDIsNil() predicate.RecTeam {
 	return predicate.RecTeam(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RecLeaderEdgeTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, RecLeaderEdgeTable, RecLeaderEdgeColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
+		s.Where(sql.IsNull(s.C(FieldLeaderID)))
 	})
 }
 
-// HasRecLeaderEdgeWith applies the HasEdge predicate on the "rec_leader_edge" edge with a given conditions (other predicates).
-func HasRecLeaderEdgeWith(preds ...predicate.User) predicate.RecTeam {
+// LeaderIDNotNil applies the NotNil predicate on the "leader_id" field.
+func LeaderIDNotNil() predicate.RecTeam {
 	return predicate.RecTeam(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RecLeaderEdgeInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, RecLeaderEdgeTable, RecLeaderEdgeColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
+		s.Where(sql.NotNull(s.C(FieldLeaderID)))
 	})
 }
 
@@ -639,6 +625,34 @@ func HasRecMemberEdgesWith(preds ...predicate.User) predicate.RecTeam {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RecMemberEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, RecMemberEdgesTable, RecMemberEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRecLeaderEdge applies the HasEdge predicate on the "rec_leader_edge" edge.
+func HasRecLeaderEdge() predicate.RecTeam {
+	return predicate.RecTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecLeaderEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, RecLeaderEdgeTable, RecLeaderEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecLeaderEdgeWith applies the HasEdge predicate on the "rec_leader_edge" edge with a given conditions (other predicates).
+func HasRecLeaderEdgeWith(preds ...predicate.User) predicate.RecTeam {
+	return predicate.RecTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecLeaderEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, RecLeaderEdgeTable, RecLeaderEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

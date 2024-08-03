@@ -2226,22 +2226,6 @@ func (c *HiringTeamClient) GetX(ctx context.Context, id uuid.UUID) *HiringTeam {
 	return obj
 }
 
-// QueryUserEdges queries the user_edges edge of a HiringTeam.
-func (c *HiringTeamClient) QueryUserEdges(ht *HiringTeam) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ht.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, hiringteam.UserEdgesTable, hiringteam.UserEdgesPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryHiringTeamJobEdges queries the hiring_team_job_edges edge of a HiringTeam.
 func (c *HiringTeamClient) QueryHiringTeamJobEdges(ht *HiringTeam) *HiringJobQuery {
 	query := &HiringJobQuery{config: c.config}
@@ -2290,15 +2274,15 @@ func (c *HiringTeamClient) QueryApproversUsers(ht *HiringTeam) *UserQuery {
 	return query
 }
 
-// QueryUserHiringTeams queries the user_hiring_teams edge of a HiringTeam.
-func (c *HiringTeamClient) QueryUserHiringTeams(ht *HiringTeam) *HiringTeamManagerQuery {
-	query := &HiringTeamManagerQuery{config: c.config}
+// QueryUserEdges queries the user_edges edge of a HiringTeam.
+func (c *HiringTeamClient) QueryUserEdges(ht *HiringTeam) *UserQuery {
+	query := &UserQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ht.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
-			sqlgraph.To(hiringteammanager.Table, hiringteammanager.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.UserHiringTeamsTable, hiringteam.UserHiringTeamsColumn),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, hiringteam.UserEdgesTable, hiringteam.UserEdgesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
 		return fromV, nil
@@ -2315,6 +2299,22 @@ func (c *HiringTeamClient) QueryHiringTeamApprovers(ht *HiringTeam) *HiringTeamA
 			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
 			sqlgraph.To(hiringteamapprover.Table, hiringteamapprover.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.HiringTeamApproversTable, hiringteam.HiringTeamApproversColumn),
+		)
+		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserHiringTeams queries the user_hiring_teams edge of a HiringTeam.
+func (c *HiringTeamClient) QueryUserHiringTeams(ht *HiringTeam) *HiringTeamManagerQuery {
+	query := &HiringTeamManagerQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ht.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringteam.Table, hiringteam.FieldID, id),
+			sqlgraph.To(hiringteammanager.Table, hiringteammanager.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, hiringteam.UserHiringTeamsTable, hiringteam.UserHiringTeamsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ht.driver.Dialect(), step)
 		return fromV, nil
@@ -3112,22 +3112,6 @@ func (c *RecTeamClient) GetX(ctx context.Context, id uuid.UUID) *RecTeam {
 	return obj
 }
 
-// QueryRecLeaderEdge queries the rec_leader_edge edge of a RecTeam.
-func (c *RecTeamClient) QueryRecLeaderEdge(rt *RecTeam) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rt.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(recteam.Table, recteam.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, recteam.RecLeaderEdgeTable, recteam.RecLeaderEdgeColumn),
-		)
-		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryRecMemberEdges queries the rec_member_edges edge of a RecTeam.
 func (c *RecTeamClient) QueryRecMemberEdges(rt *RecTeam) *UserQuery {
 	query := &UserQuery{config: c.config}
@@ -3137,6 +3121,22 @@ func (c *RecTeamClient) QueryRecMemberEdges(rt *RecTeam) *UserQuery {
 			sqlgraph.From(recteam.Table, recteam.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, recteam.RecMemberEdgesTable, recteam.RecMemberEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecLeaderEdge queries the rec_leader_edge edge of a RecTeam.
+func (c *RecTeamClient) QueryRecLeaderEdge(rt *RecTeam) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recteam.Table, recteam.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, recteam.RecLeaderEdgeTable, recteam.RecLeaderEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
 		return fromV, nil
@@ -3792,38 +3792,6 @@ func (c *UserClient) QueryHiringTeamEdges(u *User) *HiringTeamQuery {
 	return query
 }
 
-// QueryLeadRecTeams queries the lead_rec_teams edge of a User.
-func (c *UserClient) QueryLeadRecTeams(u *User) *RecTeamQuery {
-	query := &RecTeamQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(recteam.Table, recteam.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.LeadRecTeamsTable, user.LeadRecTeamsColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRecTeams queries the rec_teams edge of a User.
-func (c *UserClient) QueryRecTeams(u *User) *RecTeamQuery {
-	query := &RecTeamQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(recteam.Table, recteam.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, user.RecTeamsTable, user.RecTeamsColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryMemberOfHiringTeamEdges queries the member_of_hiring_team_edges edge of a User.
 func (c *UserClient) QueryMemberOfHiringTeamEdges(u *User) *HiringTeamQuery {
 	query := &HiringTeamQuery{config: c.config}
@@ -3849,6 +3817,38 @@ func (c *UserClient) QueryApproversHiringTeams(u *User) *HiringTeamQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.ApproversHiringTeamsTable, user.ApproversHiringTeamsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLeaderRecEdge queries the leader_rec_edge edge of a User.
+func (c *UserClient) QueryLeaderRecEdge(u *User) *RecTeamQuery {
+	query := &RecTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(recteam.Table, recteam.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.LeaderRecEdgeTable, user.LeaderRecEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecTeams queries the rec_teams edge of a User.
+func (c *UserClient) QueryRecTeams(u *User) *RecTeamQuery {
+	query := &RecTeamQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(recteam.Table, recteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.RecTeamsTable, user.RecTeamsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

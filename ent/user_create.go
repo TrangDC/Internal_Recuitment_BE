@@ -307,40 +307,6 @@ func (uc *UserCreate) AddHiringTeamEdges(h ...*HiringTeam) *UserCreate {
 	return uc.AddHiringTeamEdgeIDs(ids...)
 }
 
-// AddLeadRecTeamIDs adds the "lead_rec_teams" edge to the RecTeam entity by IDs.
-func (uc *UserCreate) AddLeadRecTeamIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddLeadRecTeamIDs(ids...)
-	return uc
-}
-
-// AddLeadRecTeams adds the "lead_rec_teams" edges to the RecTeam entity.
-func (uc *UserCreate) AddLeadRecTeams(r ...*RecTeam) *UserCreate {
-	ids := make([]uuid.UUID, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
-	}
-	return uc.AddLeadRecTeamIDs(ids...)
-}
-
-// SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
-func (uc *UserCreate) SetRecTeamsID(id uuid.UUID) *UserCreate {
-	uc.mutation.SetRecTeamsID(id)
-	return uc
-}
-
-// SetNillableRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableRecTeamsID(id *uuid.UUID) *UserCreate {
-	if id != nil {
-		uc = uc.SetRecTeamsID(*id)
-	}
-	return uc
-}
-
-// SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
-func (uc *UserCreate) SetRecTeams(r *RecTeam) *UserCreate {
-	return uc.SetRecTeamsID(r.ID)
-}
-
 // SetMemberOfHiringTeamEdgesID sets the "member_of_hiring_team_edges" edge to the HiringTeam entity by ID.
 func (uc *UserCreate) SetMemberOfHiringTeamEdgesID(id uuid.UUID) *UserCreate {
 	uc.mutation.SetMemberOfHiringTeamEdgesID(id)
@@ -373,6 +339,44 @@ func (uc *UserCreate) AddApproversHiringTeams(h ...*HiringTeam) *UserCreate {
 		ids[i] = h[i].ID
 	}
 	return uc.AddApproversHiringTeamIDs(ids...)
+}
+
+// SetLeaderRecEdgeID sets the "leader_rec_edge" edge to the RecTeam entity by ID.
+func (uc *UserCreate) SetLeaderRecEdgeID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetLeaderRecEdgeID(id)
+	return uc
+}
+
+// SetNillableLeaderRecEdgeID sets the "leader_rec_edge" edge to the RecTeam entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableLeaderRecEdgeID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetLeaderRecEdgeID(*id)
+	}
+	return uc
+}
+
+// SetLeaderRecEdge sets the "leader_rec_edge" edge to the RecTeam entity.
+func (uc *UserCreate) SetLeaderRecEdge(r *RecTeam) *UserCreate {
+	return uc.SetLeaderRecEdgeID(r.ID)
+}
+
+// SetRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID.
+func (uc *UserCreate) SetRecTeamsID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetRecTeamsID(id)
+	return uc
+}
+
+// SetNillableRecTeamsID sets the "rec_teams" edge to the RecTeam entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableRecTeamsID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetRecTeamsID(*id)
+	}
+	return uc
+}
+
+// SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
+func (uc *UserCreate) SetRecTeams(r *RecTeam) *UserCreate {
+	return uc.SetRecTeamsID(r.ID)
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
@@ -834,45 +838,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.LeadRecTeamsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.LeadRecTeamsTable,
-			Columns: []string{user.LeadRecTeamsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: recteam.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.RecTeamsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   user.RecTeamsTable,
-			Columns: []string{user.RecTeamsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: recteam.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.RecTeamID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := uc.mutation.MemberOfHiringTeamEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -914,6 +879,45 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.LeaderRecEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.LeaderRecEdgeTable,
+			Columns: []string{user.LeaderRecEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RecTeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RecTeamsTable,
+			Columns: []string{user.RecTeamsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RecTeamID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.InterviewUsersIDs(); len(nodes) > 0 {

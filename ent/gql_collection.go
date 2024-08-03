@@ -1372,18 +1372,6 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "userEdges":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &UserQuery{config: ht.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			ht.WithNamedUserEdges(alias, func(wq *UserQuery) {
-				*wq = *query
-			})
 		case "hiringTeamJobEdges":
 			var (
 				alias = field.Alias
@@ -1420,16 +1408,16 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 			ht.WithNamedApproversUsers(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
-		case "userHiringTeams":
+		case "userEdges":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &HiringTeamManagerQuery{config: ht.config}
+				query = &UserQuery{config: ht.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			ht.WithNamedUserHiringTeams(alias, func(wq *HiringTeamManagerQuery) {
+			ht.WithNamedUserEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
 		case "hiringTeamApprovers":
@@ -1442,6 +1430,18 @@ func (ht *HiringTeamQuery) collectField(ctx context.Context, op *graphql.Operati
 				return err
 			}
 			ht.WithNamedHiringTeamApprovers(alias, func(wq *HiringTeamApproverQuery) {
+				*wq = *query
+			})
+		case "userHiringTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringTeamManagerQuery{config: ht.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ht.WithNamedUserHiringTeams(alias, func(wq *HiringTeamManagerQuery) {
 				*wq = *query
 			})
 		}
@@ -2031,16 +2031,6 @@ func (rt *RecTeamQuery) collectField(ctx context.Context, op *graphql.OperationC
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "recLeaderEdge":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &UserQuery{config: rt.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			rt.withRecLeaderEdge = query
 		case "recMemberEdges":
 			var (
 				alias = field.Alias
@@ -2053,6 +2043,16 @@ func (rt *RecTeamQuery) collectField(ctx context.Context, op *graphql.OperationC
 			rt.WithNamedRecMemberEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "recLeaderEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: rt.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			rt.withRecLeaderEdge = query
 		}
 	}
 	return nil
@@ -2543,28 +2543,6 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedHiringTeamEdges(alias, func(wq *HiringTeamQuery) {
 				*wq = *query
 			})
-		case "leadRecTeams":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &RecTeamQuery{config: u.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			u.WithNamedLeadRecTeams(alias, func(wq *RecTeamQuery) {
-				*wq = *query
-			})
-		case "recTeams":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &RecTeamQuery{config: u.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			u.withRecTeams = query
 		case "memberOfHiringTeamEdges":
 			var (
 				alias = field.Alias
@@ -2587,6 +2565,26 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedApproversHiringTeams(alias, func(wq *HiringTeamQuery) {
 				*wq = *query
 			})
+		case "leaderRecEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecTeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withLeaderRecEdge = query
+		case "recTeams":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecTeamQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withRecTeams = query
 		case "interviewUsers":
 			var (
 				alias = field.Alias

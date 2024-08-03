@@ -205,13 +205,27 @@ func (rps *userRepoImpl) ValidInput(ctx context.Context, userId uuid.UUID, workE
 	if *hiringTeamId == "" && *recTeamId == "" {
 		return nil, fmt.Errorf("model.users.validation.hiring_team_or_rec_team_required")
 	}
-	if *recTeamId != "" {
-		userRecord, err := rps.GetOneUser(ctx, rps.BuildQuery().Where(user.IDEQ(userId)).WithRecTeams())
+	if userId != uuid.Nil {
+		query := rps.BuildQuery().Where(user.IDEQ(userId))
+		if *recTeamId != "" {
+			query = query.WithLeaderRecEdge()
+		}
+		if *hiringTeamId != "" {
+			query = query.WithHiringTeamEdges(
+				func(htq *ent.HiringTeamQuery) {
+					htq.Where(hiringteam.DeletedAtIsNil())
+				},
+			)
+		}
+		userRecord, err := rps.GetOneUser(ctx, query)
 		if err != nil {
 			return err, nil
 		}
-		if userRecord.Edges.RecTeams != nil && userRecord.Edges.RecTeams.LeaderID.String() != *recTeamId {
+		if userRecord.Edges.LeaderRecEdge != nil && userRecord.Edges.LeaderRecEdge.ID.String() != *recTeamId {
 			return nil, fmt.Errorf("model.users.validation.user_is_leader_of_another_rec_team")
+		}
+		if len(userRecord.Edges.HiringTeamEdges) != 0 && userRecord.Edges.HiringTeamEdges[0].ID.String() != *hiringTeamId {
+			return nil, fmt.Errorf("model.users.validation.user_is_manager_of_another_hiring_team")
 		}
 	}
 	return nil, nil

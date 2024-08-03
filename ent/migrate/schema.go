@@ -646,7 +646,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
-		{Name: "leader_id", Type: field.TypeUUID},
+		{Name: "leader_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// RecTeamsTable holds the schema information for the "rec_teams" table.
 	RecTeamsTable = &schema.Table{
@@ -655,10 +655,10 @@ var (
 		PrimaryKey: []*schema.Column{RecTeamsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "rec_teams_users_lead_rec_teams",
+				Symbol:     "rec_teams_users_leader_rec_edge",
 				Columns:    []*schema.Column{RecTeamsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}

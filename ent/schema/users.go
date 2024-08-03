@@ -20,9 +20,9 @@ func (User) Fields() []ent.Field {
 		field.String("work_email").MaxLen(256).Annotations(entgql.OrderField("work_email")),
 		field.Enum("status").Values("active", "inactive").Default("active"),
 		field.String("oid").Unique().MaxLen(256),
-		field.UUID("rec_team_id", uuid.UUID{}).Unique().Optional(),
+		field.UUID("rec_team_id", uuid.UUID{}).Optional(),
 		field.String("location").MaxLen(256).Optional(),
-		field.UUID("hiring_team_id", uuid.UUID{}).Unique().Optional(),
+		field.UUID("hiring_team_id", uuid.UUID{}).Optional(),
 	}
 }
 
@@ -39,10 +39,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("user_permission_edges", EntityPermission.Type),
 		edge.To("role_edges", Role.Type).Through("role_users", UserRole.Type),
 		edge.To("hiring_team_edges", HiringTeam.Type).Through("hiring_team_users", HiringTeamManager.Type),
-		edge.To("lead_rec_teams", RecTeam.Type).Annotations(),
-		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
 		edge.From("member_of_hiring_team_edges", HiringTeam.Type).Ref("hiring_member_edges").Unique().Field("hiring_team_id"),
 		edge.From("approvers_hiring_teams", HiringTeam.Type).Ref("approvers_users").Through("hiring_team_approvers", HiringTeamApprover.Type),
+		edge.To("leader_rec_edge", RecTeam.Type).Unique(),
+		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
 	}
 }
 

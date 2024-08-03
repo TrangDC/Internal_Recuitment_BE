@@ -102,15 +102,18 @@ func (rtu *RecTeamUpdate) SetLeaderID(u uuid.UUID) *RecTeamUpdate {
 	return rtu
 }
 
-// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
-func (rtu *RecTeamUpdate) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdate {
-	rtu.mutation.SetRecLeaderEdgeID(id)
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (rtu *RecTeamUpdate) SetNillableLeaderID(u *uuid.UUID) *RecTeamUpdate {
+	if u != nil {
+		rtu.SetLeaderID(*u)
+	}
 	return rtu
 }
 
-// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
-func (rtu *RecTeamUpdate) SetRecLeaderEdge(u *User) *RecTeamUpdate {
-	return rtu.SetRecLeaderEdgeID(u.ID)
+// ClearLeaderID clears the value of the "leader_id" field.
+func (rtu *RecTeamUpdate) ClearLeaderID() *RecTeamUpdate {
+	rtu.mutation.ClearLeaderID()
+	return rtu
 }
 
 // AddRecMemberEdgeIDs adds the "rec_member_edges" edge to the User entity by IDs.
@@ -128,15 +131,28 @@ func (rtu *RecTeamUpdate) AddRecMemberEdges(u ...*User) *RecTeamUpdate {
 	return rtu.AddRecMemberEdgeIDs(ids...)
 }
 
+// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
+func (rtu *RecTeamUpdate) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdate {
+	rtu.mutation.SetRecLeaderEdgeID(id)
+	return rtu
+}
+
+// SetNillableRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID if the given value is not nil.
+func (rtu *RecTeamUpdate) SetNillableRecLeaderEdgeID(id *uuid.UUID) *RecTeamUpdate {
+	if id != nil {
+		rtu = rtu.SetRecLeaderEdgeID(*id)
+	}
+	return rtu
+}
+
+// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
+func (rtu *RecTeamUpdate) SetRecLeaderEdge(u *User) *RecTeamUpdate {
+	return rtu.SetRecLeaderEdgeID(u.ID)
+}
+
 // Mutation returns the RecTeamMutation object of the builder.
 func (rtu *RecTeamUpdate) Mutation() *RecTeamMutation {
 	return rtu.mutation
-}
-
-// ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
-func (rtu *RecTeamUpdate) ClearRecLeaderEdge() *RecTeamUpdate {
-	rtu.mutation.ClearRecLeaderEdge()
-	return rtu
 }
 
 // ClearRecMemberEdges clears all "rec_member_edges" edges to the User entity.
@@ -158,6 +174,12 @@ func (rtu *RecTeamUpdate) RemoveRecMemberEdges(u ...*User) *RecTeamUpdate {
 		ids[i] = u[i].ID
 	}
 	return rtu.RemoveRecMemberEdgeIDs(ids...)
+}
+
+// ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
+func (rtu *RecTeamUpdate) ClearRecLeaderEdge() *RecTeamUpdate {
+	rtu.mutation.ClearRecLeaderEdge()
+	return rtu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -232,9 +254,6 @@ func (rtu *RecTeamUpdate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "RecTeam.description": %w`, err)}
 		}
 	}
-	if _, ok := rtu.mutation.RecLeaderEdgeID(); rtu.mutation.RecLeaderEdgeCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "RecTeam.rec_leader_edge"`)
-	}
 	return nil
 }
 
@@ -277,41 +296,6 @@ func (rtu *RecTeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if rtu.mutation.DescriptionCleared() {
 		_spec.ClearField(recteam.FieldDescription, field.TypeString)
 	}
-	if rtu.mutation.RecLeaderEdgeCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   recteam.RecLeaderEdgeTable,
-			Columns: []string{recteam.RecLeaderEdgeColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rtu.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   recteam.RecLeaderEdgeTable,
-			Columns: []string{recteam.RecLeaderEdgeColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if rtu.mutation.RecMemberEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -353,6 +337,41 @@ func (rtu *RecTeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Inverse: false,
 			Table:   recteam.RecMemberEdgesTable,
 			Columns: []string{recteam.RecMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rtu.mutation.RecLeaderEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   recteam.RecLeaderEdgeTable,
+			Columns: []string{recteam.RecLeaderEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtu.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   recteam.RecLeaderEdgeTable,
+			Columns: []string{recteam.RecLeaderEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -457,15 +476,18 @@ func (rtuo *RecTeamUpdateOne) SetLeaderID(u uuid.UUID) *RecTeamUpdateOne {
 	return rtuo
 }
 
-// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
-func (rtuo *RecTeamUpdateOne) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdateOne {
-	rtuo.mutation.SetRecLeaderEdgeID(id)
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (rtuo *RecTeamUpdateOne) SetNillableLeaderID(u *uuid.UUID) *RecTeamUpdateOne {
+	if u != nil {
+		rtuo.SetLeaderID(*u)
+	}
 	return rtuo
 }
 
-// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
-func (rtuo *RecTeamUpdateOne) SetRecLeaderEdge(u *User) *RecTeamUpdateOne {
-	return rtuo.SetRecLeaderEdgeID(u.ID)
+// ClearLeaderID clears the value of the "leader_id" field.
+func (rtuo *RecTeamUpdateOne) ClearLeaderID() *RecTeamUpdateOne {
+	rtuo.mutation.ClearLeaderID()
+	return rtuo
 }
 
 // AddRecMemberEdgeIDs adds the "rec_member_edges" edge to the User entity by IDs.
@@ -483,15 +505,28 @@ func (rtuo *RecTeamUpdateOne) AddRecMemberEdges(u ...*User) *RecTeamUpdateOne {
 	return rtuo.AddRecMemberEdgeIDs(ids...)
 }
 
+// SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
+func (rtuo *RecTeamUpdateOne) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdateOne {
+	rtuo.mutation.SetRecLeaderEdgeID(id)
+	return rtuo
+}
+
+// SetNillableRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID if the given value is not nil.
+func (rtuo *RecTeamUpdateOne) SetNillableRecLeaderEdgeID(id *uuid.UUID) *RecTeamUpdateOne {
+	if id != nil {
+		rtuo = rtuo.SetRecLeaderEdgeID(*id)
+	}
+	return rtuo
+}
+
+// SetRecLeaderEdge sets the "rec_leader_edge" edge to the User entity.
+func (rtuo *RecTeamUpdateOne) SetRecLeaderEdge(u *User) *RecTeamUpdateOne {
+	return rtuo.SetRecLeaderEdgeID(u.ID)
+}
+
 // Mutation returns the RecTeamMutation object of the builder.
 func (rtuo *RecTeamUpdateOne) Mutation() *RecTeamMutation {
 	return rtuo.mutation
-}
-
-// ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
-func (rtuo *RecTeamUpdateOne) ClearRecLeaderEdge() *RecTeamUpdateOne {
-	rtuo.mutation.ClearRecLeaderEdge()
-	return rtuo
 }
 
 // ClearRecMemberEdges clears all "rec_member_edges" edges to the User entity.
@@ -513,6 +548,12 @@ func (rtuo *RecTeamUpdateOne) RemoveRecMemberEdges(u ...*User) *RecTeamUpdateOne
 		ids[i] = u[i].ID
 	}
 	return rtuo.RemoveRecMemberEdgeIDs(ids...)
+}
+
+// ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
+func (rtuo *RecTeamUpdateOne) ClearRecLeaderEdge() *RecTeamUpdateOne {
+	rtuo.mutation.ClearRecLeaderEdge()
+	return rtuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -600,9 +641,6 @@ func (rtuo *RecTeamUpdateOne) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "RecTeam.description": %w`, err)}
 		}
 	}
-	if _, ok := rtuo.mutation.RecLeaderEdgeID(); rtuo.mutation.RecLeaderEdgeCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "RecTeam.rec_leader_edge"`)
-	}
 	return nil
 }
 
@@ -662,41 +700,6 @@ func (rtuo *RecTeamUpdateOne) sqlSave(ctx context.Context) (_node *RecTeam, err 
 	if rtuo.mutation.DescriptionCleared() {
 		_spec.ClearField(recteam.FieldDescription, field.TypeString)
 	}
-	if rtuo.mutation.RecLeaderEdgeCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   recteam.RecLeaderEdgeTable,
-			Columns: []string{recteam.RecLeaderEdgeColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rtuo.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   recteam.RecLeaderEdgeTable,
-			Columns: []string{recteam.RecLeaderEdgeColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if rtuo.mutation.RecMemberEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -738,6 +741,41 @@ func (rtuo *RecTeamUpdateOne) sqlSave(ctx context.Context) (_node *RecTeam, err 
 			Inverse: false,
 			Table:   recteam.RecMemberEdgesTable,
 			Columns: []string{recteam.RecMemberEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rtuo.mutation.RecLeaderEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   recteam.RecLeaderEdgeTable,
+			Columns: []string{recteam.RecLeaderEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtuo.mutation.RecLeaderEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   recteam.RecLeaderEdgeTable,
+			Columns: []string{recteam.RecLeaderEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

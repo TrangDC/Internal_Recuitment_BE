@@ -18,15 +18,15 @@ func (RecTeam) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
 		field.String("description").MaxLen(512).Optional(),
-		field.UUID("leader_id", uuid.UUID{}).Annotations(),
+		field.UUID("leader_id", uuid.UUID{}).Optional(),
 	}
 }
 
 // Edges of the RecTeam
 func (RecTeam) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("rec_leader_edge", User.Type).Ref("lead_rec_teams").Unique().Required().Field("leader_id"),
 		edge.To("rec_member_edges", User.Type),
+		edge.From("rec_leader_edge", User.Type).Ref("leader_rec_edge").Unique().Field("leader_id"),
 	}
 }
 
