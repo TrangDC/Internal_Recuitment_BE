@@ -479,13 +479,15 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			ids := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
 				return uuid.MustParse(item)
 			})
-			userQuery.Where(user.Or(user.HiringTeamIDIn(ids...)))
+			userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(
+				hiringteam.IDNotIn(ids...), hiringteam.DeletedAtIsNil(),
+			)))
 		} else {
 			if input.HiringTeamID != nil {
 				ids := lo.Map(input.HiringTeamID, func(item string, index int) uuid.UUID {
 					return uuid.MustParse(item)
 				})
-				userQuery.Where(user.Not(user.HasHiringTeamEdgesWith(hiringteam.IDNotIn(ids...))))
+				userQuery.Where(user.HiringTeamIDIn(ids...))
 			}
 			if input.IsAbleToManagerHiringTeam != nil {
 				if *input.IsAbleToManagerHiringTeam {
