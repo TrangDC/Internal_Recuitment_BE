@@ -49,6 +49,9 @@ func (r *userResolver) MemberOfRecTeam(ctx context.Context, obj *ent.User) (*ent
 
 // IsLeaderOfRecTeam is the resolver for the is_leader_of_rec_team field.
 func (r *userResolver) IsLeaderOfRecTeam(ctx context.Context, obj *ent.User) (bool, error) {
+	if obj.Edges.RecTeams == nil {
+		return false, nil
+	}
 	return obj.Edges.RecTeams.LeaderID == obj.ID, nil
 }
 

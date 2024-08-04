@@ -80,7 +80,11 @@ func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 			query.Where(role.DeletedAtIsNil())
 		}).WithRecTeams(func(query *ent.RecTeamQuery) {
 		query.Where(recteam.DeletedAtIsNil())
-	})
+	}).WithLeaderRecEdge(
+		func(query *ent.RecTeamQuery) {
+			query.Where(recteam.DeletedAtIsNil())
+		},
+	)
 }
 
 func (rps *userRepoImpl) BuildBaseQuery() *ent.UserQuery {
@@ -208,7 +212,11 @@ func (rps *userRepoImpl) ValidInput(ctx context.Context, userId uuid.UUID, workE
 	if userId != uuid.Nil {
 		query := rps.BuildQuery().Where(user.IDEQ(userId))
 		if *recTeamId != "" {
-			query = query.WithLeaderRecEdge()
+			query = query.WithLeaderRecEdge(
+				func(rtq *ent.RecTeamQuery) {
+					rtq.Where(recteam.DeletedAtIsNil())
+				},
+			)
 		}
 		if *hiringTeamId != "" {
 			query = query.WithHiringTeamEdges(

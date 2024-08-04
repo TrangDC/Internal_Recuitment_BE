@@ -101,24 +101,25 @@ func (rps *recTeamRepoImpl) CreateRecTeam(ctx context.Context, input ent.NewRecT
 	create := rps.BuildCreate().
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
-	return create.Save(ctx)
+		SetLeaderID(uuid.MustParse(input.LeaderID)).
+		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
+	result, err := create.Save(ctx)
+	return result, err
 }
 
 func (rps *recTeamRepoImpl) UpdateRecTeam(ctx context.Context, record *ent.RecTeam, input ent.UpdateRecTeamInput) (*ent.RecTeam, error) {
 	update := rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetRecLeaderEdgeID(uuid.MustParse(input.LeaderID))
+		SetLeaderID(uuid.MustParse(input.LeaderID)).
+		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
 func (rps *recTeamRepoImpl) DeleteRecTeam(ctx context.Context, record *ent.RecTeam, membersID []uuid.UUID) (*ent.RecTeam, error) {
 	delete := rps.BuildUpdateOne(ctx, record).
-		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).
-		ClearRecMemberEdges().
-		RemoveRecMemberEdgeIDs(membersID...)
-	return delete.Save(ctx)
+		SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC()).RemoveRecMemberEdgeIDs(membersID...)
+	return rps.BuildSaveUpdateOne(ctx, delete)
 }
 
 // query
