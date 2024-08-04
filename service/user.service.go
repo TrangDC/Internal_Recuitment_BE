@@ -162,8 +162,8 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 		currentTeamId := record.Edges.HiringTeamEdges[0].ID.String()
 		input.HiringTeamID = &currentTeamId
 	}
-	if record.Edges.RecTeams != nil {
-		currentRecTeamId := record.Edges.RecTeams.ID.String()
+	if record.Edges.LeaderRecEdge != nil {
+		currentRecTeamId := record.Edges.LeaderRecEdge.ID.String()
 		input.RecTeamID = &currentRecTeamId
 	}
 	newRoleIds, removeRoleIds := svc.updateRoles(record, roleIds)
