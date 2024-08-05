@@ -167,7 +167,7 @@ func (rps *hiringTeamRepoImpl) GetHiringTeam(ctx context.Context, id uuid.UUID) 
 
 func (rps *hiringTeamRepoImpl) IsManagerOfHiringTeam(ctx context.Context, userID uuid.UUID) (bool, error) {
 	query := rps.BuildQuery().
-		Where(hiringteam.HasHiringMemberEdgesWith(user.IDEQ(userID)))
+		Where(hiringteam.HasUserEdgesWith(user.IDEQ(userID)))
 	return rps.BuildExist(ctx, query)
 }
 
