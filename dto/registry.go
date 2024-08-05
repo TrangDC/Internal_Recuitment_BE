@@ -220,7 +220,7 @@ func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
 		result = carbonTime
 	}
 	numebrOfTz := currentTime.DiffInHours(carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")))
-	fmt.Println("=======>", currentTime, carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")), numebrOfTz, location, carbonTime.SetTimezone(carbon.UTC))
+	fmt.Println("=======>", currentTime, carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")), numebrOfTz, location, carbonTime.SetTimezone(carbon.UTC), carbonTime.SetTimezone(carbon.Paris))
 	if numebrOfTz < 0 {
 		timeZone = "-" + fmt.Sprint(numebrOfTz)
 	} else {
