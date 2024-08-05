@@ -28,7 +28,7 @@ type RecTeamRepository interface {
 	BuildGetOne(ctx context.Context, query *ent.RecTeamQuery) (*ent.RecTeam, error)
 
 	// common function
-	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, userID uuid.UUID) (error, error)
+	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, userID uuid.UUID) (error, error, *ent.User)
 }
 
 type recTeamRepoImpl struct {
@@ -111,8 +111,7 @@ func (rps *recTeamRepoImpl) UpdateRecTeam(ctx context.Context, record *ent.RecTe
 	update := rps.BuildUpdateOne(ctx, record).
 		SetName(strings.TrimSpace(input.Name)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetLeaderID(uuid.MustParse(input.LeaderID)).
-		AddRecMemberEdgeIDs(uuid.MustParse(input.LeaderID))
+		SetLeaderID(uuid.MustParse(input.LeaderID))
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -128,28 +127,36 @@ func (rps *recTeamRepoImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.
 }
 
 // common function
-func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, userID uuid.UUID) (error, error) {
+func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID, name string, userID uuid.UUID) (error, error, *ent.User) {
 	query := rps.BuildQuery().Where(recteam.NameEqualFold(strings.TrimSpace(name)))
 	if recTeamID != uuid.Nil {
 		query = query.Where(recteam.IDNEQ(recTeamID))
 	}
 	isExist, err := rps.BuildExist(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 	if isExist {
-		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil
+		return fmt.Errorf("model.rec_teams.validation.name_exist"), nil, nil
 	}
-	query = rps.BuildQuery().
-		Where(recteam.LeaderID(userID), recteam.IDNEQ(recTeamID))
-	isExist, err = rps.BuildExist(ctx, query)
-	if err != nil {
-		return nil, err
+	isValidLeader := true
+	userRecord, _ := rps.client.User.Query().Where(user.ID(userID), user.DeletedAtIsNil()).WithRecTeams(
+		func(query *ent.RecTeamQuery) {
+			query.Where(recteam.DeletedAtIsNil())
+		},
+	).First(ctx)
+	if userRecord == nil {
+		isValidLeader = false
 	}
-	if isExist {
-		return fmt.Errorf("model.rec_teams.validation.leader_invalid"), nil
+	if userRecord.Edges.RecTeams != nil && userRecord.Edges.RecTeams.LeaderID == userID {
+		if recTeamID == uuid.Nil || recTeamID != userRecord.Edges.RecTeams.ID {
+			isValidLeader = false
+		}
 	}
-	return nil, nil
+	if !isValidLeader {
+		return fmt.Errorf("model.rec_teams.validation.invalid_leader"), nil, nil
+	}
+	return nil, nil, userRecord
 }
 
 // Path: repository/rec_team.repository.go

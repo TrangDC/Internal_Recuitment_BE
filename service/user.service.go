@@ -37,7 +37,9 @@ type UserService interface {
 	GetMe(ctx context.Context) (*ent.UserResponse, error)
 	UpdateHiringTeam(ctx context.Context, teamName string, teamId uuid.UUID, userId []uuid.UUID, note string) error
 	RemoveHiringTeam(ctx context.Context, userId []uuid.UUID, note string) error
-	SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userId uuid.UUID, note string, repoRegistry repository.Repository) error
+	SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userId []uuid.UUID, oldRecName string, note string, repoRegistry repository.Repository) error
+	RemoveRecTeam(ctx context.Context, userIds []uuid.UUID, note string, repoRegistry repository.Repository) error
+	AuditTrailCreateRecTeamWLeader(ctx context.Context, userRecord *ent.User, recTeamName string, note string, repoRegistry repository.Repository) error
 }
 
 type userSvcImpl struct {
@@ -406,18 +408,29 @@ func (svc *userSvcImpl) RemoveHiringTeam(ctx context.Context, userId []uuid.UUID
 	return err
 }
 
-func (svc *userSvcImpl) SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userId uuid.UUID, note string, repoRegistry repository.Repository) error {
-	query := repoRegistry.User().BuildBaseQuery().Where(user.IDEQ(userId)).WithRecTeams()
-	record, err := repoRegistry.User().GetOneUser(ctx, query)
+func (svc *userSvcImpl) SetRecTeam(ctx context.Context, recTeamName string, recTeamId uuid.UUID, userIds []uuid.UUID, oldRecName, note string, repoRegistry repository.Repository) error {
+	err := repoRegistry.User().UpdateUserRecTeam(ctx, userIds, recTeamId)
 	if err != nil {
 		return err
 	}
-	err = repoRegistry.User().UpdateUserRecTeam(ctx, record, recTeamId)
-	if err != nil {
-		return err
+	auditTrailResult := svc.dtoRegistry.User().AuditTrailUpdateRecTeam(oldRecName, recTeamName)
+	err = repoRegistry.AuditTrail().BulkAuditTrailMutation(ctx, userIds, audittrail.ModuleUsers,
+		auditTrailResult, audittrail.ActionTypeUpdate, note)
+	return err
+}
+
+func (svc userSvcImpl) RemoveRecTeam(ctx context.Context, userIds []uuid.UUID, note string, repoRegistry repository.Repository) error {
+	err := repoRegistry.User().UpdateUserRecTeam(ctx, userIds, uuid.Nil)
+	return err
+}
+
+func (svc userSvcImpl) AuditTrailCreateRecTeamWLeader(ctx context.Context, userRecord *ent.User, recTeamName string, note string, repoRegistry repository.Repository) error {
+	var oldUserRec string
+	if userRecord.Edges.RecTeams != nil {
+		oldUserRec = userRecord.Edges.RecTeams.Name
 	}
-	err = repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers,
-		svc.dtoRegistry.User().AuditTrailUpdateRecTeam(record, recTeamName), audittrail.ActionTypeUpdate, note)
+	err := repoRegistry.AuditTrail().AuditTrailMutation(ctx, userRecord.ID, audittrail.ModuleUsers,
+		svc.dtoRegistry.User().AuditTrailUpdateRecTeam(oldUserRec, recTeamName), audittrail.ActionTypeUpdate, note)
 	return err
 }
 

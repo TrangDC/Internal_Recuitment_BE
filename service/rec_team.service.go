@@ -53,7 +53,7 @@ func NewRecTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, 
 // mutation
 func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTeamInput, note string) (*ent.RecTeamResponse, error) {
 	var record *ent.RecTeam
-	errString, err := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.Nil, input.Name, uuid.MustParse(input.LeaderID))
+	errString, err, userRecord := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.Nil, input.Name, uuid.MustParse(input.LeaderID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -62,7 +62,15 @@ func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		err = svc.userSvcImpl.RemoveRecTeam(ctx, []uuid.UUID{userRecord.ID}, note, repoRegistry)
+		if err != nil {
+			return err
+		}
 		record, err = repoRegistry.RecTeam().CreateRecTeam(ctx, input)
+		if err != nil {
+			return err
+		}
+		err = svc.userSvcImpl.AuditTrailCreateRecTeamWLeader(ctx, userRecord, input.Name, note, repoRegistry)
 		return err
 	})
 	if err != nil {
@@ -96,7 +104,7 @@ func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note
 		if err != nil {
 			return err
 		}
-		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, uuid.Nil, record.LeaderID, note, repoRegistry)
+		err = svc.userSvcImpl.SetRecTeam(ctx, "", uuid.Nil, memberIds, record.Name, note, repoRegistry)
 		return err
 	})
 	if err != nil {
@@ -116,6 +124,7 @@ func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note
 
 func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, input ent.UpdateRecTeamInput, note string) (*ent.RecTeamResponse, error) {
 	var result *ent.RecTeam
+	var oldUserRec string
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, uuid.MustParse(recTeamId))
 	if err != nil {
@@ -124,7 +133,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	if !svc.validPermissionUpdate(payload, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	errString, err := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.MustParse(recTeamId), input.Name, uuid.MustParse(input.LeaderID))
+	errString, err, userRecord := svc.repoRegistry.RecTeam().ValidInput(ctx, uuid.MustParse(recTeamId), input.Name, uuid.MustParse(input.LeaderID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -132,12 +141,15 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	if userRecord.Edges.RecTeams != nil {
+		oldUserRec = userRecord.Edges.RecTeams.Name
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.RecTeam().UpdateRecTeam(ctx, record, input)
 		if err != nil {
 			return err
 		}
-		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, record.ID, uuid.MustParse(input.LeaderID), note, repoRegistry)
+		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, record.ID, []uuid.UUID{uuid.MustParse(input.LeaderID)}, oldUserRec, note, repoRegistry)
 		return err
 	})
 	if err != nil {

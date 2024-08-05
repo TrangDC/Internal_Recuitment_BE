@@ -24,7 +24,7 @@ type UserRepository interface {
 	UpdateUserStatus(ctx context.Context, record *ent.User, status user.Status) (*ent.User, error)
 	UpdateUserHiringTeam(ctx context.Context, userIds []uuid.UUID, hiringTeamID uuid.UUID) error
 	DeleteUserHiringTeam(ctx context.Context, userIds []uuid.UUID) error
-	UpdateUserRecTeam(ctx context.Context, record *ent.User, recTeamId uuid.UUID) error
+	UpdateUserRecTeam(ctx context.Context, userIds []uuid.UUID, recTeamId uuid.UUID) error
 
 	// query
 	GetUser(ctx context.Context, userId uuid.UUID) (*ent.User, error)
@@ -172,8 +172,8 @@ func (rps userRepoImpl) DeleteUserHiringTeam(ctx context.Context, userIds []uuid
 	return err
 }
 
-func (rps userRepoImpl) UpdateUserRecTeam(ctx context.Context, record *ent.User, recTeamId uuid.UUID) error {
-	update := record.Update().SetUpdatedAt(time.Now().UTC())
+func (rps userRepoImpl) UpdateUserRecTeam(ctx context.Context, userIds []uuid.UUID, recTeamId uuid.UUID) error {
+	update := rps.client.User.Update().Where(user.IDIn(userIds...)).SetUpdatedAt(time.Now().UTC())
 	if recTeamId != uuid.Nil {
 		update.SetRecTeamID(recTeamId)
 	} else {
