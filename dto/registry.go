@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"sort"
 	"strconv"
@@ -183,41 +184,40 @@ func FormatCurrency(number int) string {
 }
 
 func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
-	carbonTime := carbon.Parse(input.String())
 	inputTime := carbon.Parse(input.Format("2006-01-02 15:04:05"))
-	var result carbon.Carbon
 	timeZone := ""
+	locationString := carbon.HoChiMinh
 	switch location {
-	case "Vietnam":
-		result = carbonTime.SetTimezone(carbon.HoChiMinh)
 	case "Singapore":
-		result = carbonTime.SetTimezone(carbon.Singapore)
+		locationString = carbon.Singapore
 	case "Thailand":
-		result = carbonTime.SetTimezone(carbon.Bangkok)
+		locationString = carbon.Bangkok
 	case "India":
-		result = carbonTime.SetTimezone(carbon.Kolkata)
+		locationString = carbon.Kolkata
 	case "Japan":
-		result = carbonTime.SetTimezone(carbon.Tokyo)
+		locationString = carbon.Tokyo
 	case "China":
-		result = carbonTime.SetTimezone(carbon.Shanghai)
+		locationString = carbon.Shanghai
 	case "Australia":
-		result = carbonTime.SetTimezone(carbon.Sydney)
+		locationString = carbon.Sydney
 	case "United States":
-		result = carbonTime.SetTimezone(carbon.NewYork)
+		locationString = carbon.NewYork
 	case "United Kingdom":
-		result = carbonTime.SetTimezone(carbon.London)
+		locationString = carbon.London
 	case "Germany":
-		result = carbonTime.SetTimezone(carbon.Berlin)
+		locationString = carbon.Berlin
 	case "France":
-		result = carbonTime.SetTimezone(carbon.Paris)
-	default:
-		result = carbonTime
+		locationString = carbon.Paris
 	}
-	result = carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05"))
+	timeLocation, err := time.LoadLocation(locationString)
+	if err != nil {
+		log.Println("Error when load location", err)
+	}
+	timeWithLocation := input.In(timeLocation).Format("2006-01-02 15:04:05")
+	result := carbon.Parse(timeWithLocation)
 	numebrOfTz := inputTime.DiffInHours(result)
-	fmt.Println("======>", inputTime, result, numebrOfTz, location, carbonTime.SetTimezone(carbon.Paris), result.StdTime())
 	if numebrOfTz < 0 {
-		timeZone = fmt.Sprint(numebrOfTz)
+		timeZone = "-" + fmt.Sprint(numebrOfTz)
 	} else {
 		timeZone = "+" + fmt.Sprint(numebrOfTz)
 	}
