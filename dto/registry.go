@@ -183,6 +183,7 @@ func FormatCurrency(number int) string {
 }
 
 func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
+	currentTime := carbon.Parse(input.Format("2006-01-02 15:04:05"))
 	carbonTime := carbon.Parse(input.String())
 	var result carbon.Carbon
 	timeZone := ""
@@ -212,9 +213,10 @@ func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
 	default:
 		result = carbonTime
 	}
-	numebrOfTz := carbon.Parse(input.Format("2006-01-02 15:04:05")).DiffInHours(carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")))
+	numebrOfTz := currentTime.DiffInHours(carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")))
+	fmt.Println("=======>", currentTime, carbon.Parse(result.StdTime().Format("2006-01-02 15:04:05")), numebrOfTz)
 	if numebrOfTz < 0 {
-		timeZone = fmt.Sprint(numebrOfTz)
+		timeZone = "-" + fmt.Sprint(numebrOfTz)
 	} else {
 		timeZone = "+" + fmt.Sprint(numebrOfTz)
 	}
