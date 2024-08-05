@@ -30,6 +30,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"github.com/golang-module/carbon/v2"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/spf13/cobra"
@@ -50,6 +51,13 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 					logger.Fatal("recover error", zap.Any("error", err))
 				}
 			}()
+
+			carbon.SetDefault(carbon.Default{
+				Layout:       carbon.DateTimeLayout,
+				Timezone:     carbon.UTC,
+				WeekStartsAt: carbon.Monday,
+				Locale:       "en",
+			})
 
 			// Create postgresql connection
 			db, err := pg.NewDBConnection(configs.Postgres, logger)
