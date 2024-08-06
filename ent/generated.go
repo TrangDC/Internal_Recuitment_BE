@@ -827,9 +827,9 @@ type RoleResponseGetAll struct {
 }
 
 type RoleSelection struct {
-	ID     string            `json:"id"`
-	Name   string            `json:"name"`
-	Skills []*SkillSelection `json:"skills"`
+	ID                string              `json:"id"`
+	Name              string              `json:"name"`
+	EntityPermissions []*EntityPermission `json:"entity_permissions"`
 }
 
 type RoleSelectionEdge struct {

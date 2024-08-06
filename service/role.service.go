@@ -241,8 +241,9 @@ func (svc roleSvcImpl) Selections(ctx context.Context, pagination *ent.Paginatio
 	edges = lo.Map(roles, func(entity *ent.Role, index int) *ent.RoleSelectionEdge {
 		return &ent.RoleSelectionEdge{
 			Node: &ent.RoleSelection{
-				ID:   entity.ID.String(),
-				Name: entity.Name,
+				ID:                entity.ID.String(),
+				Name:              entity.Name,
+				EntityPermissions: entity.Edges.RolePermissionEdges,
 			},
 			Cursor: ent.Cursor{
 				Value: entity.ID.String(),

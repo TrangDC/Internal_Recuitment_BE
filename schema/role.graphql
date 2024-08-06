@@ -53,7 +53,7 @@ type RoleEdge {
 type RoleSelection {
   id: ID!
   name: String!
-  skills: [SkillSelection!]
+  entity_permissions: [EntityPermission!]!
 }
 
 type RoleSelectionEdge {

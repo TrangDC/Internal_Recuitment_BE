@@ -895,9 +895,9 @@ type ComplexityRoot struct {
 	}
 
 	RoleSelection struct {
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
-		Skills func(childComplexity int) int
+		EntityPermissions func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Name              func(childComplexity int) int
 	}
 
 	RoleSelectionEdge struct {
@@ -5268,6 +5268,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RoleResponseGetAll.Pagination(childComplexity), true
 
+	case "RoleSelection.entity_permissions":
+		if e.complexity.RoleSelection.EntityPermissions == nil {
+			break
+		}
+
+		return e.complexity.RoleSelection.EntityPermissions(childComplexity), true
+
 	case "RoleSelection.id":
 		if e.complexity.RoleSelection.ID == nil {
 			break
@@ -5281,13 +5288,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoleSelection.Name(childComplexity), true
-
-	case "RoleSelection.skills":
-		if e.complexity.RoleSelection.Skills == nil {
-			break
-		}
-
-		return e.complexity.RoleSelection.Skills(childComplexity), true
 
 	case "RoleSelectionEdge.cursor":
 		if e.complexity.RoleSelectionEdge.Cursor == nil {
@@ -7697,7 +7697,7 @@ type RoleEdge {
 type RoleSelection {
   id: ID!
   name: String!
-  skills: [SkillSelection!]
+  entity_permissions: [EntityPermission!]!
 }
 
 type RoleSelectionEdge {
@@ -36216,8 +36216,8 @@ func (ec *executionContext) fieldContext_RoleSelection_name(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _RoleSelection_skills(ctx context.Context, field graphql.CollectedField, obj *ent.RoleSelection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_RoleSelection_skills(ctx, field)
+func (ec *executionContext) _RoleSelection_entity_permissions(ctx context.Context, field graphql.CollectedField, obj *ent.RoleSelection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoleSelection_entity_permissions(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -36230,21 +36230,24 @@ func (ec *executionContext) _RoleSelection_skills(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Skills, nil
+		return obj.EntityPermissions, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.SkillSelection)
+	res := resTmp.([]*ent.EntityPermission)
 	fc.Result = res
-	return ec.marshalOSkillSelection2ᚕᚖtrecᚋentᚐSkillSelectionᚄ(ctx, field.Selections, res)
+	return ec.marshalNEntityPermission2ᚕᚖtrecᚋentᚐEntityPermissionᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_RoleSelection_skills(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_RoleSelection_entity_permissions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoleSelection",
 		Field:      field,
@@ -36253,11 +36256,17 @@ func (ec *executionContext) fieldContext_RoleSelection_skills(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_SkillSelection_id(ctx, field)
-			case "name":
-				return ec.fieldContext_SkillSelection_name(ctx, field)
+				return ec.fieldContext_EntityPermission_id(ctx, field)
+			case "for_owner":
+				return ec.fieldContext_EntityPermission_for_owner(ctx, field)
+			case "for_team":
+				return ec.fieldContext_EntityPermission_for_team(ctx, field)
+			case "for_all":
+				return ec.fieldContext_EntityPermission_for_all(ctx, field)
+			case "permission":
+				return ec.fieldContext_EntityPermission_permission(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type SkillSelection", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type EntityPermission", field.Name)
 		},
 	}
 	return fc, nil
@@ -36306,8 +36315,8 @@ func (ec *executionContext) fieldContext_RoleSelectionEdge_node(ctx context.Cont
 				return ec.fieldContext_RoleSelection_id(ctx, field)
 			case "name":
 				return ec.fieldContext_RoleSelection_name(ctx, field)
-			case "skills":
-				return ec.fieldContext_RoleSelection_skills(ctx, field)
+			case "entity_permissions":
+				return ec.fieldContext_RoleSelection_entity_permissions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RoleSelection", field.Name)
 		},
@@ -53479,10 +53488,13 @@ func (ec *executionContext) _RoleSelection(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "skills":
+		case "entity_permissions":
 
-			out.Values[i] = ec._RoleSelection_skills(ctx, field, obj)
+			out.Values[i] = ec._RoleSelection_entity_permissions(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
