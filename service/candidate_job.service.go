@@ -585,7 +585,8 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 				func(query *ent.AttachmentQuery) {
 					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
 				},
-			).WithCreatedByEdge().Order(ent.Desc(candidatejobfeedback.FieldCreatedAt))
+			).WithCreatedByEdge(func(query *ent.UserQuery) { query.WithHiringTeamEdges() }).
+				Order(ent.Desc(candidatejobfeedback.FieldCreatedAt))
 		},
 	)
 	svc.validPermissionGet(payload, query)
