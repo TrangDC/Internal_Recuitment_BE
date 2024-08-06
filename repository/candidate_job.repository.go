@@ -37,6 +37,7 @@ type CandidateJobRepository interface {
 	BuildBaseQuery() *ent.CandidateJobQuery
 	BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
+	BuildIDList(ctx context.Context, query *ent.CandidateJobQuery) ([]uuid.UUID, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
@@ -107,6 +108,10 @@ func (rps candidateJobRepoImpl) BuildGet(ctx context.Context, query *ent.Candida
 
 func (rps candidateJobRepoImpl) BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error) {
 	return query.All(ctx)
+}
+
+func (rps candidateJobRepoImpl) BuildIDList(ctx context.Context, query *ent.CandidateJobQuery) ([]uuid.UUID, error) {
+	return query.IDs(ctx)
 }
 
 func (rps candidateJobRepoImpl) BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error) {
