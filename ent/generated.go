@@ -218,7 +218,7 @@ type CandidateJobFilter struct {
 	ToDate       *time.Time                 `json:"to_date"`
 	HiringTeamID *string                    `json:"hiring_team_id"`
 	HiringJobID  *string                    `json:"hiring_job_id"`
-	CandidateID  string                     `json:"candidate_id"`
+	CandidateID  *string                    `json:"candidate_id"`
 	FailedReason []CandidateJobFailedReason `json:"failed_reason"`
 }
 

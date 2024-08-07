@@ -85,6 +85,7 @@ const (
 	RoleI18n                 = "model.roles.model_name"
 	EmailTemplateI18n        = "model.email_templates.model_name"
 	RecTeamI18n              = "model.rec_teams.model_name"
+	UserPermissionI18n       = "model.user_permission.model_name"
 )
 
 func (i dtoImpl) Azure() AzureDto {

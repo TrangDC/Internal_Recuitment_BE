@@ -40,7 +40,7 @@ type CandidateJobService interface {
 
 	// query
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
-	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
+	GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter *ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput,
 		filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (
 		*ent.CandidateJobGroupByStatusResponse, error)
@@ -372,13 +372,13 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 	return nil
 }
 
-func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error) {
+func (svc *candidateJobSvcImpl) GetCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.CandidateJobFreeWord, filter *ent.CandidateJobFilter, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.CandidateJobResponseGetAll
 	var edges []*ent.CandidateJobEdge
 	var page int
 	var perPage int
-	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.CandidateIDEQ(uuid.MustParse(filter.CandidateID)))
+	query := svc.repoRegistry.CandidateJob().BuildQuery()
 	svc.validPermissionGet(payload, query)
 	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
@@ -680,7 +680,13 @@ func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuer
 	}
 }
 
-func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *ent.CandidateJobQuery, input ent.CandidateJobFilter) {
+func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *ent.CandidateJobQuery, input *ent.CandidateJobFilter) {
+	if input == nil {
+		return
+	}
+	if input.CandidateID != nil {
+		candidateJobQuery.Where(candidatejob.CandidateIDEQ(uuid.MustParse(*input.CandidateID)))
+	}
 	if input.Status != nil {
 		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
 	}
