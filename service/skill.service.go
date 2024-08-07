@@ -84,12 +84,12 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note str
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
 	}
-	if len(record.Edges.EntitySkillEdges) > 0 {
-		return util.WrapGQLError(ctx, "model.skills.validation.entity_skill_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.Skill().DeleteSkill(ctx, record)
-		return err
+		if err != nil {
+			return err
+		}
+		return repoRegistry.EntitySkill().DeleteBulkEntitySkillBySkillID(ctx, id)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))

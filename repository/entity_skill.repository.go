@@ -14,6 +14,7 @@ type EntitySkillRepository interface {
 	CreateAndUpdateEntitySkill(ctx context.Context, entityId uuid.UUID, input []*ent.EntitySkillRecordInput,
 		entitySkillRecord []*ent.EntitySkill, entitySkillType entityskill.EntityType) error
 	DeleteAllEntitySkill(ctx context.Context, entityId uuid.UUID) error
+	DeleteBulkEntitySkillBySkillID(ctx context.Context, skillID uuid.UUID) error
 }
 
 type entitySkillRepoImpl struct {
@@ -120,5 +121,10 @@ func (rps entitySkillRepoImpl) DeleteAllEntitySkill(ctx context.Context, entityI
 		SetDeletedAt(time.Now().UTC()).
 		SetUpdatedAt(time.Now().UTC()).
 		Save(ctx)
+	return err
+}
+
+func (rps entitySkillRepoImpl) DeleteBulkEntitySkillBySkillID(ctx context.Context, skillID uuid.UUID) error {
+	_, err := rps.client.EntitySkill.Delete().Where(entityskill.SkillID(skillID)).Exec(ctx)
 	return err
 }
