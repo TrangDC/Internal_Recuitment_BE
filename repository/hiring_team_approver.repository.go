@@ -34,6 +34,7 @@ func (rps *hiringTeamApproverRepoImpl) CreateHiringTeamApprover(ctx context.Cont
 
 func (rps *hiringTeamApproverRepoImpl) UpdateHiringTeamApproverByID(ctx context.Context, input *ent.HiringTeamApproverInput) error {
 	_, err := rps.client.HiringTeamApprover.UpdateOneID(uuid.MustParse(input.ID)).
+		SetUserID(uuid.MustParse(input.UserID)).
 		SetOrderID(input.OrderID).
 		SetUpdatedAt(time.Now().UTC()).Save(ctx)
 	return err
