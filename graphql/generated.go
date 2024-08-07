@@ -699,7 +699,7 @@ type ComplexityRoot struct {
 		GetAllCandidateInterview4Calendar  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
 		GetAllCandidateInterviews          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
 		GetAllCandidateJobFeedbacks        func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
-		GetAllCandidateJobs                func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
+		GetAllCandidateJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
 		GetAllCandidates                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
 		GetAllEmailTemplateKeywords        func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
 		GetAllEmailTemplates               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
@@ -1233,7 +1233,7 @@ type QueryResolver interface {
 	GetCandidate(ctx context.Context, id string) (*ent.CandidateResponse, error)
 	GetAllCandidates(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) (*ent.CandidateResponseGetAll, error)
 	GetCandidateJob(ctx context.Context, id string) (*ent.CandidateJobResponse, error)
-	GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
+	GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (*ent.CandidateJobGroupByStatusResponse, error)
 	GetCandidateJobGroupByInterview(ctx context.Context, id string) (*ent.CandidateJobGroupByInterviewResponse, error)
 	GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error)
@@ -4268,7 +4268,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetAllCandidateJobs(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(ent.CandidateJobFilter), args["freeWord"].(*ent.CandidateJobFreeWord), args["orderBy"].(*ent.CandidateJobOrder)), true
+		return e.complexity.Query.GetAllCandidateJobs(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.CandidateJobFilter), args["freeWord"].(*ent.CandidateJobFreeWord), args["orderBy"].(*ent.CandidateJobOrder)), true
 
 	case "Query.GetAllCandidates":
 		if e.complexity.Query.GetAllCandidates == nil {
@@ -6325,7 +6325,7 @@ input CandidateJobFilter {
   to_date: Time
   hiring_team_id: ID
   hiring_job_id: ID
-  candidate_id: ID!
+  candidate_id: ID
   failed_reason: [CandidateJobFailedReason!]
 }
 
@@ -7336,7 +7336,7 @@ enum PermissionGroupType {
 
   # CandidateJob
   GetCandidateJob(id: ID!): CandidateJobResponse!
-  GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter!, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
+  GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
   GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
   GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
 
@@ -9471,10 +9471,10 @@ func (ec *executionContext) field_Query_GetAllCandidateJobs_args(ctx context.Con
 		}
 	}
 	args["pagination"] = arg0
-	var arg1 ent.CandidateJobFilter
+	var arg1 *ent.CandidateJobFilter
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalNCandidateJobFilter2trecᚋentᚐCandidateJobFilter(ctx, tmp)
+		arg1, err = ec.unmarshalOCandidateJobFilter2ᚖtrecᚋentᚐCandidateJobFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -30657,7 +30657,7 @@ func (ec *executionContext) _Query_GetAllCandidateJobs(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllCandidateJobs(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(ent.CandidateJobFilter), fc.Args["freeWord"].(*ent.CandidateJobFreeWord), fc.Args["orderBy"].(*ent.CandidateJobOrder))
+		return ec.resolvers.Query().GetAllCandidateJobs(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.CandidateJobFilter), fc.Args["freeWord"].(*ent.CandidateJobFreeWord), fc.Args["orderBy"].(*ent.CandidateJobOrder))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -42243,7 +42243,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
-			it.CandidateID, err = ec.unmarshalNID2string(ctx, v)
+			it.CandidateID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -55614,11 +55614,6 @@ func (ec *executionContext) marshalNCandidateJobFeedbackResponseGetAll2ᚖtrec�
 	return ec._CandidateJobFeedbackResponseGetAll(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCandidateJobFilter2trecᚋentᚐCandidateJobFilter(ctx context.Context, v interface{}) (ent.CandidateJobFilter, error) {
-	res, err := ec.unmarshalInputCandidateJobFilter(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNCandidateJobGroupByInterviewResponse2trecᚋentᚐCandidateJobGroupByInterviewResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobGroupByInterviewResponse) graphql.Marshaler {
 	return ec._CandidateJobGroupByInterviewResponse(ctx, sel, &v)
 }
@@ -59478,6 +59473,14 @@ func (ec *executionContext) unmarshalOCandidateJobFeedbackOrder2ᚖtrecᚋentᚐ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputCandidateJobFeedbackOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateJobFilter2ᚖtrecᚋentᚐCandidateJobFilter(ctx context.Context, v interface{}) (*ent.CandidateJobFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCandidateJobFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

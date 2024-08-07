@@ -171,7 +171,7 @@ input CandidateJobFilter {
   to_date: Time
   hiring_team_id: ID
   hiring_job_id: ID
-  candidate_id: ID!
+  candidate_id: ID
   failed_reason: [CandidateJobFailedReason!]
 }
 
