@@ -1,0 +1,75 @@
+enum CandidateHistoryCallTypeEnum {
+  candidate
+  others
+}
+
+enum CandidateHistoryCallOrderField {
+  created_at
+}
+
+input CandidateHistoryCallOrder {
+  direction: OrderDirection!
+  field: CandidateHistoryCallOrderField!
+}
+
+input CandidateHistoryCallFilter {
+  from_date: Time
+  to_date: Time
+  candidate_id: ID
+  type: CandidateHistoryCallTypeEnum
+  start_time: Time
+  end_time: Time
+}
+
+input CandidateHistoryCallFreeWord {
+  description: String
+}
+
+
+type CandidateHistoryCall {
+  id: ID!
+  candidate_id: ID!
+  type: CandidateHistoryCallTypeEnum!
+  contact_to: String!
+  date: Time!
+  start_time: Time!
+  end_time: Time!
+  candidate: Candidate!
+  edited: Boolean!
+  description: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+input NewCandidateHistoryCallInput {
+  candidate_id: ID!
+  type: CandidateHistoryCallTypeEnum!
+  contact_to: String!
+  date: Time!
+  start_time: Time!
+  end_time: Time!
+  description: String!
+}
+
+input UpdateCandidateHistoryCallInput {
+  contact_to: String
+  date: Time
+  start_time: Time
+  end_time: Time
+  description: String
+}
+
+type CandidateHistoryCallResponse {
+  data: CandidateHistoryCall!
+}
+
+type CandidateHistoryCallEdge {
+  node: CandidateHistoryCall!
+  cursor: Cursor!
+}
+type CandidateHistoryCallResponseGetAll {
+  edges: [CandidateHistoryCallEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/candidate_history_call.graphql

@@ -32,6 +32,7 @@ func (Attachment) Edges() []ent.Edge {
 		edge.From("candidate_educate_edge", CandidateEducate.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 		edge.From("candidate_award_edge", CandidateAward.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 		edge.From("candidate_certificate_edge", CandidateCertificate.Type).Ref("attachment_edges").Unique().Field("relation_id"),
+		edge.From("candidate_history_call_edge", CandidateHistoryCall.Type).Ref("attachment_edges").Unique().Field("relation_id"),
 	}
 }
 

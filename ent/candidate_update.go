@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/predicate"
@@ -427,6 +428,21 @@ func (cu *CandidateUpdate) AddCandidateCertificateEdges(c ...*CandidateCertifica
 	return cu.AddCandidateCertificateEdgeIDs(ids...)
 }
 
+// AddCandidateHistoryCallEdgeIDs adds the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by IDs.
+func (cu *CandidateUpdate) AddCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateHistoryCallEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateHistoryCallEdges adds the "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (cu *CandidateUpdate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateHistoryCallEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
@@ -583,6 +599,27 @@ func (cu *CandidateUpdate) RemoveCandidateCertificateEdges(c ...*CandidateCertif
 		ids[i] = c[i].ID
 	}
 	return cu.RemoveCandidateCertificateEdgeIDs(ids...)
+}
+
+// ClearCandidateHistoryCallEdges clears all "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (cu *CandidateUpdate) ClearCandidateHistoryCallEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateHistoryCallEdges()
+	return cu
+}
+
+// RemoveCandidateHistoryCallEdgeIDs removes the "candidate_history_call_edges" edge to CandidateHistoryCall entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateHistoryCallEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateHistoryCallEdges removes "candidate_history_call_edges" edges to CandidateHistoryCall entities.
+func (cu *CandidateUpdate) RemoveCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateHistoryCallEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1196,6 +1233,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.CandidateHistoryCallEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateHistoryCallEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateHistoryCallEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateHistoryCallEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidate.Label}
@@ -1605,6 +1696,21 @@ func (cuo *CandidateUpdateOne) AddCandidateCertificateEdges(c ...*CandidateCerti
 	return cuo.AddCandidateCertificateEdgeIDs(ids...)
 }
 
+// AddCandidateHistoryCallEdgeIDs adds the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateHistoryCallEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateHistoryCallEdges adds the "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (cuo *CandidateUpdateOne) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateHistoryCallEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
@@ -1761,6 +1867,27 @@ func (cuo *CandidateUpdateOne) RemoveCandidateCertificateEdges(c ...*CandidateCe
 		ids[i] = c[i].ID
 	}
 	return cuo.RemoveCandidateCertificateEdgeIDs(ids...)
+}
+
+// ClearCandidateHistoryCallEdges clears all "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (cuo *CandidateUpdateOne) ClearCandidateHistoryCallEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateHistoryCallEdges()
+	return cuo
+}
+
+// RemoveCandidateHistoryCallEdgeIDs removes the "candidate_history_call_edges" edge to CandidateHistoryCall entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateHistoryCallEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateHistoryCallEdges removes "candidate_history_call_edges" edges to CandidateHistoryCall entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateHistoryCallEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -2396,6 +2523,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateHistoryCallEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateHistoryCallEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateHistoryCallEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateHistoryCallEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
 				},
 			},
 		}

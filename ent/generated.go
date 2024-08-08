@@ -165,6 +165,28 @@ type CandidateFreeWord struct {
 	Phone *string `json:"phone"`
 }
 
+type CandidateHistoryCallFilter struct {
+	FromDate    *time.Time                    `json:"from_date"`
+	ToDate      *time.Time                    `json:"to_date"`
+	CandidateID *string                       `json:"candidate_id"`
+	Type        *CandidateHistoryCallTypeEnum `json:"type"`
+	StartTime   *time.Time                    `json:"start_time"`
+	EndTime     *time.Time                    `json:"end_time"`
+}
+
+type CandidateHistoryCallFreeWord struct {
+	Description *string `json:"description"`
+}
+
+type CandidateHistoryCallResponse struct {
+	Data *CandidateHistoryCall `json:"data"`
+}
+
+type CandidateHistoryCallResponseGetAll struct {
+	Edges      []*CandidateHistoryCallEdge `json:"edges"`
+	Pagination *Pagination                 `json:"pagination"`
+}
+
 type CandidateInterviewCalendarFilter struct {
 	InterviewDate     *time.Time `json:"interview_date"`
 	StartFrom         *time.Time `json:"start_from"`
@@ -552,6 +574,16 @@ type NewAttachmentInput struct {
 	ID           *string `json:"id"`
 	DocumentName string  `json:"document_name"`
 	DocumentID   string  `json:"document_id"`
+}
+
+type NewCandidateHistoryCallInput struct {
+	CandidateID string                       `json:"candidate_id"`
+	Type        CandidateHistoryCallTypeEnum `json:"type"`
+	ContactTo   string                       `json:"contact_to"`
+	Date        time.Time                    `json:"date"`
+	StartTime   time.Time                    `json:"start_time"`
+	EndTime     time.Time                    `json:"end_time"`
+	Description string                       `json:"description"`
 }
 
 type NewCandidateInput struct {
@@ -954,6 +986,14 @@ type UpdateCandidateAttachment struct {
 	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
+type UpdateCandidateHistoryCallInput struct {
+	ContactTo   *string    `json:"contact_to"`
+	Date        *time.Time `json:"date"`
+	StartTime   *time.Time `json:"start_time"`
+	EndTime     *time.Time `json:"end_time"`
+	Description *string    `json:"description"`
+}
+
 type UpdateCandidateInput struct {
 	Name                 string                       `json:"name"`
 	Email                string                       `json:"email"`
@@ -1254,6 +1294,47 @@ func (e *AttachmentRelationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateHistoryCallTypeEnum string
+
+const (
+	CandidateHistoryCallTypeEnumCandidate CandidateHistoryCallTypeEnum = "candidate"
+	CandidateHistoryCallTypeEnumOthers    CandidateHistoryCallTypeEnum = "others"
+)
+
+var AllCandidateHistoryCallTypeEnum = []CandidateHistoryCallTypeEnum{
+	CandidateHistoryCallTypeEnumCandidate,
+	CandidateHistoryCallTypeEnumOthers,
+}
+
+func (e CandidateHistoryCallTypeEnum) IsValid() bool {
+	switch e {
+	case CandidateHistoryCallTypeEnumCandidate, CandidateHistoryCallTypeEnumOthers:
+		return true
+	}
+	return false
+}
+
+func (e CandidateHistoryCallTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *CandidateHistoryCallTypeEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateHistoryCallTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateHistoryCallTypeEnum", str)
+	}
+	return nil
+}
+
+func (e CandidateHistoryCallTypeEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

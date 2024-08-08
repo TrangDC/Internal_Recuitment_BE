@@ -12,6 +12,7 @@ import (
 	"trec/ent/candidateaward"
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -239,6 +240,25 @@ func (ac *AttachmentCreate) SetNillableCandidateCertificateEdgeID(id *uuid.UUID)
 // SetCandidateCertificateEdge sets the "candidate_certificate_edge" edge to the CandidateCertificate entity.
 func (ac *AttachmentCreate) SetCandidateCertificateEdge(c *CandidateCertificate) *AttachmentCreate {
 	return ac.SetCandidateCertificateEdgeID(c.ID)
+}
+
+// SetCandidateHistoryCallEdgeID sets the "candidate_history_call_edge" edge to the CandidateHistoryCall entity by ID.
+func (ac *AttachmentCreate) SetCandidateHistoryCallEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateHistoryCallEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateHistoryCallEdgeID sets the "candidate_history_call_edge" edge to the CandidateHistoryCall entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateHistoryCallEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateHistoryCallEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateHistoryCallEdge sets the "candidate_history_call_edge" edge to the CandidateHistoryCall entity.
+func (ac *AttachmentCreate) SetCandidateHistoryCallEdge(c *CandidateHistoryCall) *AttachmentCreate {
+	return ac.SetCandidateHistoryCallEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -539,6 +559,26 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateHistoryCallEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateHistoryCallEdgeTable,
+			Columns: []string{attachment.CandidateHistoryCallEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
 				},
 			},
 		}

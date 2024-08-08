@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/user"
@@ -371,6 +372,21 @@ func (cc *CandidateCreate) AddCandidateCertificateEdges(c ...*CandidateCertifica
 		ids[i] = c[i].ID
 	}
 	return cc.AddCandidateCertificateEdgeIDs(ids...)
+}
+
+// AddCandidateHistoryCallEdgeIDs adds the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by IDs.
+func (cc *CandidateCreate) AddCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateHistoryCallEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateHistoryCallEdges adds the "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (cc *CandidateCreate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateHistoryCallEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -769,6 +785,25 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateHistoryCallEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateHistoryCallEdgesTable,
+			Columns: []string{candidate.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
 				},
 			},
 		}

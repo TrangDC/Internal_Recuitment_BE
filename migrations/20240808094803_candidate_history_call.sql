@@ -1,4 +1,4 @@
-Create type candidate_history_call_enum as ENUM ('candidate', 'other');
+Create type candidate_history_call_enum as ENUM ('candidate', 'others');
 
 CREATE TABLE candidate_history_calls (
   "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

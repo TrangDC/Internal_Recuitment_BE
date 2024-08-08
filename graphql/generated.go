@@ -44,6 +44,7 @@ type ResolverRoot interface {
 	CandidateCertificate() CandidateCertificateResolver
 	CandidateEducate() CandidateEducateResolver
 	CandidateExp() CandidateExpResolver
+	CandidateHistoryCall() CandidateHistoryCallResolver
 	CandidateInterview() CandidateInterviewResolver
 	CandidateJob() CandidateJobResolver
 	CandidateJobFeedback() CandidateJobFeedbackResolver
@@ -244,6 +245,35 @@ type ComplexityRoot struct {
 		Position    func(childComplexity int) int
 		StartDate   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
+	}
+
+	CandidateHistoryCall struct {
+		Candidate   func(childComplexity int) int
+		CandidateID func(childComplexity int) int
+		ContactTo   func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Date        func(childComplexity int) int
+		Description func(childComplexity int) int
+		Edited      func(childComplexity int) int
+		EndTime     func(childComplexity int) int
+		ID          func(childComplexity int) int
+		StartTime   func(childComplexity int) int
+		Type        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
+	CandidateHistoryCallEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	CandidateHistoryCallResponse struct {
+		Data func(childComplexity int) int
+	}
+
+	CandidateHistoryCallResponseGetAll struct {
+		Edges      func(childComplexity int) int
+		Pagination func(childComplexity int) int
 	}
 
 	CandidateInterview struct {
@@ -1134,6 +1164,14 @@ type CandidateEducateResolver interface {
 }
 type CandidateExpResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateExp) (string, error)
+}
+type CandidateHistoryCallResolver interface {
+	ID(ctx context.Context, obj *ent.CandidateHistoryCall) (string, error)
+	CandidateID(ctx context.Context, obj *ent.CandidateHistoryCall) (string, error)
+	Type(ctx context.Context, obj *ent.CandidateHistoryCall) (ent.CandidateHistoryCallTypeEnum, error)
+
+	Candidate(ctx context.Context, obj *ent.CandidateHistoryCall) (*ent.Candidate, error)
+	Edited(ctx context.Context, obj *ent.CandidateHistoryCall) (bool, error)
 }
 type CandidateInterviewResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateInterview) (string, error)
@@ -2193,6 +2231,125 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateExp.UpdatedAt(childComplexity), true
+
+	case "CandidateHistoryCall.candidate":
+		if e.complexity.CandidateHistoryCall.Candidate == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Candidate(childComplexity), true
+
+	case "CandidateHistoryCall.candidate_id":
+		if e.complexity.CandidateHistoryCall.CandidateID == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.CandidateID(childComplexity), true
+
+	case "CandidateHistoryCall.contact_to":
+		if e.complexity.CandidateHistoryCall.ContactTo == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.ContactTo(childComplexity), true
+
+	case "CandidateHistoryCall.createdAt":
+		if e.complexity.CandidateHistoryCall.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.CreatedAt(childComplexity), true
+
+	case "CandidateHistoryCall.date":
+		if e.complexity.CandidateHistoryCall.Date == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Date(childComplexity), true
+
+	case "CandidateHistoryCall.description":
+		if e.complexity.CandidateHistoryCall.Description == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Description(childComplexity), true
+
+	case "CandidateHistoryCall.edited":
+		if e.complexity.CandidateHistoryCall.Edited == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Edited(childComplexity), true
+
+	case "CandidateHistoryCall.end_time":
+		if e.complexity.CandidateHistoryCall.EndTime == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.EndTime(childComplexity), true
+
+	case "CandidateHistoryCall.id":
+		if e.complexity.CandidateHistoryCall.ID == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.ID(childComplexity), true
+
+	case "CandidateHistoryCall.start_time":
+		if e.complexity.CandidateHistoryCall.StartTime == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.StartTime(childComplexity), true
+
+	case "CandidateHistoryCall.type":
+		if e.complexity.CandidateHistoryCall.Type == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Type(childComplexity), true
+
+	case "CandidateHistoryCall.updatedAt":
+		if e.complexity.CandidateHistoryCall.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.UpdatedAt(childComplexity), true
+
+	case "CandidateHistoryCallEdge.cursor":
+		if e.complexity.CandidateHistoryCallEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCallEdge.Cursor(childComplexity), true
+
+	case "CandidateHistoryCallEdge.node":
+		if e.complexity.CandidateHistoryCallEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCallEdge.Node(childComplexity), true
+
+	case "CandidateHistoryCallResponse.data":
+		if e.complexity.CandidateHistoryCallResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCallResponse.Data(childComplexity), true
+
+	case "CandidateHistoryCallResponseGetAll.edges":
+		if e.complexity.CandidateHistoryCallResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCallResponseGetAll.Edges(childComplexity), true
+
+	case "CandidateHistoryCallResponseGetAll.pagination":
+		if e.complexity.CandidateHistoryCallResponseGetAll.Pagination == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCallResponseGetAll.Pagination(childComplexity), true
 
 	case "CandidateInterview.candidate_job":
 		if e.complexity.CandidateInterview.CandidateJob == nil {
@@ -6098,6 +6255,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCandidateExpInput,
 		ec.unmarshalInputCandidateFilter,
 		ec.unmarshalInputCandidateFreeWord,
+		ec.unmarshalInputCandidateHistoryCallFilter,
+		ec.unmarshalInputCandidateHistoryCallFreeWord,
+		ec.unmarshalInputCandidateHistoryCallOrder,
 		ec.unmarshalInputCandidateInterviewCalendarFilter,
 		ec.unmarshalInputCandidateInterviewFilter,
 		ec.unmarshalInputCandidateInterviewFreeWord,
@@ -6129,6 +6289,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputJobPositionFreeWord,
 		ec.unmarshalInputJobPositionOrder,
 		ec.unmarshalInputNewAttachmentInput,
+		ec.unmarshalInputNewCandidateHistoryCallInput,
 		ec.unmarshalInputNewCandidateInput,
 		ec.unmarshalInputNewCandidateInterview4CalendarInput,
 		ec.unmarshalInputNewCandidateInterviewInput,
@@ -6160,6 +6321,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSkillTypeFreeWord,
 		ec.unmarshalInputSkillTypeOrder,
 		ec.unmarshalInputUpdateCandidateAttachment,
+		ec.unmarshalInputUpdateCandidateHistoryCallInput,
 		ec.unmarshalInputUpdateCandidateInput,
 		ec.unmarshalInputUpdateCandidateInterviewInput,
 		ec.unmarshalInputUpdateCandidateInterviewScheduleInput,
@@ -6395,6 +6557,82 @@ input CandidateExpInput {
   end_date: Time
   description: String!
 }
+`, BuiltIn: false},
+	{Name: "../schema/candidate_history_call.graphql", Input: `enum CandidateHistoryCallTypeEnum {
+  candidate
+  others
+}
+
+enum CandidateHistoryCallOrderField {
+  created_at
+}
+
+input CandidateHistoryCallOrder {
+  direction: OrderDirection!
+  field: CandidateHistoryCallOrderField!
+}
+
+input CandidateHistoryCallFilter {
+  from_date: Time
+  to_date: Time
+  candidate_id: ID
+  type: CandidateHistoryCallTypeEnum
+  start_time: Time
+  end_time: Time
+}
+
+input CandidateHistoryCallFreeWord {
+  description: String
+}
+
+
+type CandidateHistoryCall {
+  id: ID!
+  candidate_id: ID!
+  type: CandidateHistoryCallTypeEnum!
+  contact_to: String!
+  date: Time!
+  start_time: Time!
+  end_time: Time!
+  candidate: Candidate!
+  edited: Boolean!
+  description: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+input NewCandidateHistoryCallInput {
+  candidate_id: ID!
+  type: CandidateHistoryCallTypeEnum!
+  contact_to: String!
+  date: Time!
+  start_time: Time!
+  end_time: Time!
+  description: String!
+}
+
+input UpdateCandidateHistoryCallInput {
+  contact_to: String
+  date: Time
+  start_time: Time
+  end_time: Time
+  description: String
+}
+
+type CandidateHistoryCallResponse {
+  data: CandidateHistoryCall!
+}
+
+type CandidateHistoryCallEdge {
+  node: CandidateHistoryCall!
+  cursor: Cursor!
+}
+type CandidateHistoryCallResponseGetAll {
+  edges: [CandidateHistoryCallEdge!]!
+  pagination: Pagination!
+}
+
+# Path: schema/candidate_history_call.graphql
 `, BuiltIn: false},
 	{Name: "../schema/candidate_interview.graphql", Input: `enum CandidateInterviewOrderField {
   created_at
@@ -16514,6 +16752,878 @@ func (ec *executionContext) fieldContext_CandidateExp_updated_at(ctx context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_candidate_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_candidate_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().CandidateID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_candidate_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_type(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().Type(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.CandidateHistoryCallTypeEnum)
+	fc.Result = res
+	return ec.marshalNCandidateHistoryCallTypeEnum2trecᚋentᚐCandidateHistoryCallTypeEnum(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateHistoryCallTypeEnum does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_contact_to(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_contact_to(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContactTo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_contact_to(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_date(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_start_time(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_start_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_start_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_end_time(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_end_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_end_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_candidate(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_candidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().Candidate(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Candidate)
+	fc.Result = res
+	return ec.marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_candidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Candidate_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Candidate_name(ctx, field)
+			case "email":
+				return ec.fieldContext_Candidate_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_Candidate_phone(ctx, field)
+			case "dob":
+				return ec.fieldContext_Candidate_dob(ctx, field)
+			case "status":
+				return ec.fieldContext_Candidate_status(ctx, field)
+			case "is_black_list":
+				return ec.fieldContext_Candidate_is_black_list(ctx, field)
+			case "last_apply_date":
+				return ec.fieldContext_Candidate_last_apply_date(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_Candidate_is_able_to_delete(ctx, field)
+			case "hiring_job_title":
+				return ec.fieldContext_Candidate_hiring_job_title(ctx, field)
+			case "reference_type":
+				return ec.fieldContext_Candidate_reference_type(ctx, field)
+			case "reference_value":
+				return ec.fieldContext_Candidate_reference_value(ctx, field)
+			case "reference_uid":
+				return ec.fieldContext_Candidate_reference_uid(ctx, field)
+			case "recruit_time":
+				return ec.fieldContext_Candidate_recruit_time(ctx, field)
+			case "description":
+				return ec.fieldContext_Candidate_description(ctx, field)
+			case "country":
+				return ec.fieldContext_Candidate_country(ctx, field)
+			case "attachments":
+				return ec.fieldContext_Candidate_attachments(ctx, field)
+			case "entity_skill_types":
+				return ec.fieldContext_Candidate_entity_skill_types(ctx, field)
+			case "reference_user":
+				return ec.fieldContext_Candidate_reference_user(ctx, field)
+			case "address":
+				return ec.fieldContext_Candidate_address(ctx, field)
+			case "candidate_exp":
+				return ec.fieldContext_Candidate_candidate_exp(ctx, field)
+			case "candidate_educate":
+				return ec.fieldContext_Candidate_candidate_educate(ctx, field)
+			case "candidate_award":
+				return ec.fieldContext_Candidate_candidate_award(ctx, field)
+			case "candidate_certificate":
+				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
+			case "avatar":
+				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Candidate_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Candidate_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Candidate_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Candidate", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_edited(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().Edited(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_edited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_description(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCall_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCallEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCallEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCallEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateHistoryCall)
+	fc.Result = res
+	return ec.marshalNCandidateHistoryCall2ᚖtrecᚋentᚐCandidateHistoryCall(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCallEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCallEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateHistoryCall_id(ctx, field)
+			case "candidate_id":
+				return ec.fieldContext_CandidateHistoryCall_candidate_id(ctx, field)
+			case "type":
+				return ec.fieldContext_CandidateHistoryCall_type(ctx, field)
+			case "contact_to":
+				return ec.fieldContext_CandidateHistoryCall_contact_to(ctx, field)
+			case "date":
+				return ec.fieldContext_CandidateHistoryCall_date(ctx, field)
+			case "start_time":
+				return ec.fieldContext_CandidateHistoryCall_start_time(ctx, field)
+			case "end_time":
+				return ec.fieldContext_CandidateHistoryCall_end_time(ctx, field)
+			case "candidate":
+				return ec.fieldContext_CandidateHistoryCall_candidate(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
+			case "description":
+				return ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CandidateHistoryCall_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CandidateHistoryCall_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateHistoryCall", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCallEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCallEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCallEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCallEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCallEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCallResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCallResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCallResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateHistoryCall)
+	fc.Result = res
+	return ec.marshalNCandidateHistoryCall2ᚖtrecᚋentᚐCandidateHistoryCall(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCallResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCallResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateHistoryCall_id(ctx, field)
+			case "candidate_id":
+				return ec.fieldContext_CandidateHistoryCall_candidate_id(ctx, field)
+			case "type":
+				return ec.fieldContext_CandidateHistoryCall_type(ctx, field)
+			case "contact_to":
+				return ec.fieldContext_CandidateHistoryCall_contact_to(ctx, field)
+			case "date":
+				return ec.fieldContext_CandidateHistoryCall_date(ctx, field)
+			case "start_time":
+				return ec.fieldContext_CandidateHistoryCall_start_time(ctx, field)
+			case "end_time":
+				return ec.fieldContext_CandidateHistoryCall_end_time(ctx, field)
+			case "candidate":
+				return ec.fieldContext_CandidateHistoryCall_candidate(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
+			case "description":
+				return ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CandidateHistoryCall_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_CandidateHistoryCall_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateHistoryCall", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCallResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCallResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCallResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateHistoryCallEdge)
+	fc.Result = res
+	return ec.marshalNCandidateHistoryCallEdge2ᚕᚖtrecᚋentᚐCandidateHistoryCallEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCallResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCallResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_CandidateHistoryCallEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_CandidateHistoryCallEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateHistoryCallEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateHistoryCallResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCallResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCallResponseGetAll_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCallResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCallResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -44062,6 +45172,138 @@ func (ec *executionContext) unmarshalInputCandidateFreeWord(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCandidateHistoryCallFilter(ctx context.Context, obj interface{}) (ent.CandidateHistoryCallFilter, error) {
+	var it ent.CandidateHistoryCallFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"from_date", "to_date", "candidate_id", "type", "start_time", "end_time"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_date"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
+			it.CandidateID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOCandidateHistoryCallTypeEnum2ᚖtrecᚋentᚐCandidateHistoryCallTypeEnum(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "start_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_time"))
+			it.StartTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_time"))
+			it.EndTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateHistoryCallFreeWord(ctx context.Context, obj interface{}) (ent.CandidateHistoryCallFreeWord, error) {
+	var it ent.CandidateHistoryCallFreeWord
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCandidateHistoryCallOrder(ctx context.Context, obj interface{}) (ent.CandidateHistoryCallOrder, error) {
+	var it ent.CandidateHistoryCallOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2trecᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNCandidateHistoryCallOrderField2ᚖtrecᚋentᚐCandidateHistoryCallOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCandidateInterviewCalendarFilter(ctx context.Context, obj interface{}) (ent.CandidateInterviewCalendarFilter, error) {
 	var it ent.CandidateInterviewCalendarFilter
 	asMap := map[string]interface{}{}
@@ -45473,6 +46715,82 @@ func (ec *executionContext) unmarshalInputNewAttachmentInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("document_id"))
 			it.DocumentID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewCandidateHistoryCallInput(ctx context.Context, obj interface{}) (ent.NewCandidateHistoryCallInput, error) {
+	var it ent.NewCandidateHistoryCallInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"candidate_id", "type", "contact_to", "date", "start_time", "end_time", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "candidate_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
+			it.CandidateID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNCandidateHistoryCallTypeEnum2trecᚋentᚐCandidateHistoryCallTypeEnum(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "contact_to":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contact_to"))
+			it.ContactTo, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+			it.Date, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "start_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_time"))
+			it.StartTime, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_time"))
+			it.EndTime, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47077,6 +48395,66 @@ func (ec *executionContext) unmarshalInputUpdateCandidateAttachment(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
 			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateCandidateHistoryCallInput(ctx context.Context, obj interface{}) (ent.UpdateCandidateHistoryCallInput, error) {
+	var it ent.UpdateCandidateHistoryCallInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"contact_to", "date", "start_time", "end_time", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "contact_to":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contact_to"))
+			it.ContactTo, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+			it.Date, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "start_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_time"))
+			it.StartTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_time"))
+			it.EndTime, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49778,6 +51156,274 @@ func (ec *executionContext) _CandidateExp(ctx context.Context, sel ast.Selection
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateHistoryCallImplementors = []string{"CandidateHistoryCall"}
+
+func (ec *executionContext) _CandidateHistoryCall(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateHistoryCall) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateHistoryCallImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateHistoryCall")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "candidate_id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_candidate_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "type":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "contact_to":
+
+			out.Values[i] = ec._CandidateHistoryCall_contact_to(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "date":
+
+			out.Values[i] = ec._CandidateHistoryCall_date(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "start_time":
+
+			out.Values[i] = ec._CandidateHistoryCall_start_time(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "end_time":
+
+			out.Values[i] = ec._CandidateHistoryCall_end_time(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "candidate":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_candidate(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "edited":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_edited(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "description":
+
+			out.Values[i] = ec._CandidateHistoryCall_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+
+			out.Values[i] = ec._CandidateHistoryCall_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedAt":
+
+			out.Values[i] = ec._CandidateHistoryCall_updatedAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateHistoryCallEdgeImplementors = []string{"CandidateHistoryCallEdge"}
+
+func (ec *executionContext) _CandidateHistoryCallEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateHistoryCallEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateHistoryCallEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateHistoryCallEdge")
+		case "node":
+
+			out.Values[i] = ec._CandidateHistoryCallEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cursor":
+
+			out.Values[i] = ec._CandidateHistoryCallEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateHistoryCallResponseImplementors = []string{"CandidateHistoryCallResponse"}
+
+func (ec *executionContext) _CandidateHistoryCallResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateHistoryCallResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateHistoryCallResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateHistoryCallResponse")
+		case "data":
+
+			out.Values[i] = ec._CandidateHistoryCallResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var candidateHistoryCallResponseGetAllImplementors = []string{"CandidateHistoryCallResponseGetAll"}
+
+func (ec *executionContext) _CandidateHistoryCallResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateHistoryCallResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateHistoryCallResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CandidateHistoryCallResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._CandidateHistoryCallResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._CandidateHistoryCallResponseGetAll_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -58023,6 +59669,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCandidate2trecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v ent.Candidate) graphql.Marshaler {
+	return ec._Candidate(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNCandidate2ᚖtrecᚋentᚐCandidate(ctx context.Context, sel ast.SelectionSet, v *ent.Candidate) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -58277,6 +59927,96 @@ func (ec *executionContext) unmarshalNCandidateExpInput2ᚕᚖtrecᚋentᚐCandi
 func (ec *executionContext) unmarshalNCandidateExpInput2ᚖtrecᚋentᚐCandidateExpInput(ctx context.Context, v interface{}) (*ent.CandidateExpInput, error) {
 	res, err := ec.unmarshalInputCandidateExpInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateHistoryCall2ᚖtrecᚋentᚐCandidateHistoryCall(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateHistoryCall) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateHistoryCall(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCandidateHistoryCallEdge2ᚕᚖtrecᚋentᚐCandidateHistoryCallEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateHistoryCallEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateHistoryCallEdge2ᚖtrecᚋentᚐCandidateHistoryCallEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCandidateHistoryCallEdge2ᚖtrecᚋentᚐCandidateHistoryCallEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateHistoryCallEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CandidateHistoryCallEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCandidateHistoryCallOrderField2ᚖtrecᚋentᚐCandidateHistoryCallOrderField(ctx context.Context, v interface{}) (*ent.CandidateHistoryCallOrderField, error) {
+	var res = new(ent.CandidateHistoryCallOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateHistoryCallOrderField2ᚖtrecᚋentᚐCandidateHistoryCallOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateHistoryCallOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalNCandidateHistoryCallTypeEnum2trecᚋentᚐCandidateHistoryCallTypeEnum(ctx context.Context, v interface{}) (ent.CandidateHistoryCallTypeEnum, error) {
+	var res ent.CandidateHistoryCallTypeEnum
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateHistoryCallTypeEnum2trecᚋentᚐCandidateHistoryCallTypeEnum(ctx context.Context, sel ast.SelectionSet, v ent.CandidateHistoryCallTypeEnum) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNCandidateInterview2ᚖtrecᚋentᚐCandidateInterview(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateInterview) graphql.Marshaler {
@@ -62403,6 +64143,22 @@ func (ec *executionContext) unmarshalOCandidateFreeWord2ᚖtrecᚋentᚐCandidat
 	}
 	res, err := ec.unmarshalInputCandidateFreeWord(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateHistoryCallTypeEnum2ᚖtrecᚋentᚐCandidateHistoryCallTypeEnum(ctx context.Context, v interface{}) (*ent.CandidateHistoryCallTypeEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.CandidateHistoryCallTypeEnum)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCandidateHistoryCallTypeEnum2ᚖtrecᚋentᚐCandidateHistoryCallTypeEnum(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateHistoryCallTypeEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOCandidateInterview2ᚕᚖtrecᚋentᚐCandidateInterviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateInterview) graphql.Marshaler {

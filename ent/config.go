@@ -35,6 +35,7 @@ type hooks struct {
 	CandidateCertificate []ent.Hook
 	CandidateEducate     []ent.Hook
 	CandidateExp         []ent.Hook
+	CandidateHistoryCall []ent.Hook
 	CandidateInterview   []ent.Hook
 	CandidateInterviewer []ent.Hook
 	CandidateJob         []ent.Hook
