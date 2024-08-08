@@ -9,6 +9,10 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/predicate"
@@ -259,6 +263,26 @@ func (cu *CandidateUpdate) ClearCountry() *CandidateUpdate {
 	return cu
 }
 
+// SetAddress sets the "address" field.
+func (cu *CandidateUpdate) SetAddress(s string) *CandidateUpdate {
+	cu.mutation.SetAddress(s)
+	return cu
+}
+
+// SetNillableAddress sets the "address" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableAddress(s *string) *CandidateUpdate {
+	if s != nil {
+		cu.SetAddress(*s)
+	}
+	return cu
+}
+
+// ClearAddress clears the value of the "address" field.
+func (cu *CandidateUpdate) ClearAddress() *CandidateUpdate {
+	cu.mutation.ClearAddress()
+	return cu
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
 	cu.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -321,6 +345,66 @@ func (cu *CandidateUpdate) AddCandidateSkillEdges(e ...*EntitySkill) *CandidateU
 		ids[i] = e[i].ID
 	}
 	return cu.AddCandidateSkillEdgeIDs(ids...)
+}
+
+// AddCandidateExpEdgeIDs adds the "candidate_exp_edges" edge to the CandidateExp entity by IDs.
+func (cu *CandidateUpdate) AddCandidateExpEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateExpEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateExpEdges adds the "candidate_exp_edges" edges to the CandidateExp entity.
+func (cu *CandidateUpdate) AddCandidateExpEdges(c ...*CandidateExp) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateExpEdgeIDs(ids...)
+}
+
+// AddCandidateEducateEdgeIDs adds the "candidate_educate_edges" edge to the CandidateEducate entity by IDs.
+func (cu *CandidateUpdate) AddCandidateEducateEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateEducateEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateEducateEdges adds the "candidate_educate_edges" edges to the CandidateEducate entity.
+func (cu *CandidateUpdate) AddCandidateEducateEdges(c ...*CandidateEducate) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateEducateEdgeIDs(ids...)
+}
+
+// AddCandidateAwardEdgeIDs adds the "candidate_award_edges" edge to the CandidateAward entity by IDs.
+func (cu *CandidateUpdate) AddCandidateAwardEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateAwardEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateAwardEdges adds the "candidate_award_edges" edges to the CandidateAward entity.
+func (cu *CandidateUpdate) AddCandidateAwardEdges(c ...*CandidateAward) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateAwardEdgeIDs(ids...)
+}
+
+// AddCandidateCertificateEdgeIDs adds the "candidate_certificate_edges" edge to the CandidateCertificate entity by IDs.
+func (cu *CandidateUpdate) AddCandidateCertificateEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateCertificateEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateCertificateEdges adds the "candidate_certificate_edges" edges to the CandidateCertificate entity.
+func (cu *CandidateUpdate) AddCandidateCertificateEdges(c ...*CandidateCertificate) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateCertificateEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -395,6 +479,90 @@ func (cu *CandidateUpdate) RemoveCandidateSkillEdges(e ...*EntitySkill) *Candida
 		ids[i] = e[i].ID
 	}
 	return cu.RemoveCandidateSkillEdgeIDs(ids...)
+}
+
+// ClearCandidateExpEdges clears all "candidate_exp_edges" edges to the CandidateExp entity.
+func (cu *CandidateUpdate) ClearCandidateExpEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateExpEdges()
+	return cu
+}
+
+// RemoveCandidateExpEdgeIDs removes the "candidate_exp_edges" edge to CandidateExp entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateExpEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateExpEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateExpEdges removes "candidate_exp_edges" edges to CandidateExp entities.
+func (cu *CandidateUpdate) RemoveCandidateExpEdges(c ...*CandidateExp) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateExpEdgeIDs(ids...)
+}
+
+// ClearCandidateEducateEdges clears all "candidate_educate_edges" edges to the CandidateEducate entity.
+func (cu *CandidateUpdate) ClearCandidateEducateEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateEducateEdges()
+	return cu
+}
+
+// RemoveCandidateEducateEdgeIDs removes the "candidate_educate_edges" edge to CandidateEducate entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateEducateEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateEducateEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateEducateEdges removes "candidate_educate_edges" edges to CandidateEducate entities.
+func (cu *CandidateUpdate) RemoveCandidateEducateEdges(c ...*CandidateEducate) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateEducateEdgeIDs(ids...)
+}
+
+// ClearCandidateAwardEdges clears all "candidate_award_edges" edges to the CandidateAward entity.
+func (cu *CandidateUpdate) ClearCandidateAwardEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateAwardEdges()
+	return cu
+}
+
+// RemoveCandidateAwardEdgeIDs removes the "candidate_award_edges" edge to CandidateAward entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateAwardEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateAwardEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateAwardEdges removes "candidate_award_edges" edges to CandidateAward entities.
+func (cu *CandidateUpdate) RemoveCandidateAwardEdges(c ...*CandidateAward) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateAwardEdgeIDs(ids...)
+}
+
+// ClearCandidateCertificateEdges clears all "candidate_certificate_edges" edges to the CandidateCertificate entity.
+func (cu *CandidateUpdate) ClearCandidateCertificateEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateCertificateEdges()
+	return cu
+}
+
+// RemoveCandidateCertificateEdgeIDs removes the "candidate_certificate_edges" edge to CandidateCertificate entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateCertificateEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateCertificateEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateCertificateEdges removes "candidate_certificate_edges" edges to CandidateCertificate entities.
+func (cu *CandidateUpdate) RemoveCandidateCertificateEdges(c ...*CandidateCertificate) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateCertificateEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -494,6 +662,11 @@ func (cu *CandidateUpdate) check() error {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.Address(); ok {
+		if err := candidate.AddressValidator(v); err != nil {
+			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -577,6 +750,12 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.CountryCleared() {
 		_spec.ClearField(candidate.FieldCountry, field.TypeString)
+	}
+	if value, ok := cu.mutation.Address(); ok {
+		_spec.SetField(candidate.FieldAddress, field.TypeString, value)
+	}
+	if cu.mutation.AddressCleared() {
+		_spec.ClearField(candidate.FieldAddress, field.TypeString)
 	}
 	if cu.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -767,6 +946,222 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CandidateExpEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateExpEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateExpEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateExpEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CandidateEducateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateEducateEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateEducateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateEducateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CandidateAwardEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateAwardEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateAwardEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateAwardEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.CandidateCertificateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateCertificateEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateCertificateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateCertificateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
 				},
 			},
 		}
@@ -1020,6 +1415,26 @@ func (cuo *CandidateUpdateOne) ClearCountry() *CandidateUpdateOne {
 	return cuo
 }
 
+// SetAddress sets the "address" field.
+func (cuo *CandidateUpdateOne) SetAddress(s string) *CandidateUpdateOne {
+	cuo.mutation.SetAddress(s)
+	return cuo
+}
+
+// SetNillableAddress sets the "address" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableAddress(s *string) *CandidateUpdateOne {
+	if s != nil {
+		cuo.SetAddress(*s)
+	}
+	return cuo
+}
+
+// ClearAddress clears the value of the "address" field.
+func (cuo *CandidateUpdateOne) ClearAddress() *CandidateUpdateOne {
+	cuo.mutation.ClearAddress()
+	return cuo
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cuo *CandidateUpdateOne) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
 	cuo.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -1082,6 +1497,66 @@ func (cuo *CandidateUpdateOne) AddCandidateSkillEdges(e ...*EntitySkill) *Candid
 		ids[i] = e[i].ID
 	}
 	return cuo.AddCandidateSkillEdgeIDs(ids...)
+}
+
+// AddCandidateExpEdgeIDs adds the "candidate_exp_edges" edge to the CandidateExp entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateExpEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateExpEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateExpEdges adds the "candidate_exp_edges" edges to the CandidateExp entity.
+func (cuo *CandidateUpdateOne) AddCandidateExpEdges(c ...*CandidateExp) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateExpEdgeIDs(ids...)
+}
+
+// AddCandidateEducateEdgeIDs adds the "candidate_educate_edges" edge to the CandidateEducate entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateEducateEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateEducateEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateEducateEdges adds the "candidate_educate_edges" edges to the CandidateEducate entity.
+func (cuo *CandidateUpdateOne) AddCandidateEducateEdges(c ...*CandidateEducate) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateEducateEdgeIDs(ids...)
+}
+
+// AddCandidateAwardEdgeIDs adds the "candidate_award_edges" edge to the CandidateAward entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateAwardEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateAwardEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateAwardEdges adds the "candidate_award_edges" edges to the CandidateAward entity.
+func (cuo *CandidateUpdateOne) AddCandidateAwardEdges(c ...*CandidateAward) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateAwardEdgeIDs(ids...)
+}
+
+// AddCandidateCertificateEdgeIDs adds the "candidate_certificate_edges" edge to the CandidateCertificate entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateCertificateEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateCertificateEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateCertificateEdges adds the "candidate_certificate_edges" edges to the CandidateCertificate entity.
+func (cuo *CandidateUpdateOne) AddCandidateCertificateEdges(c ...*CandidateCertificate) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateCertificateEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -1156,6 +1631,90 @@ func (cuo *CandidateUpdateOne) RemoveCandidateSkillEdges(e ...*EntitySkill) *Can
 		ids[i] = e[i].ID
 	}
 	return cuo.RemoveCandidateSkillEdgeIDs(ids...)
+}
+
+// ClearCandidateExpEdges clears all "candidate_exp_edges" edges to the CandidateExp entity.
+func (cuo *CandidateUpdateOne) ClearCandidateExpEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateExpEdges()
+	return cuo
+}
+
+// RemoveCandidateExpEdgeIDs removes the "candidate_exp_edges" edge to CandidateExp entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateExpEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateExpEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateExpEdges removes "candidate_exp_edges" edges to CandidateExp entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateExpEdges(c ...*CandidateExp) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateExpEdgeIDs(ids...)
+}
+
+// ClearCandidateEducateEdges clears all "candidate_educate_edges" edges to the CandidateEducate entity.
+func (cuo *CandidateUpdateOne) ClearCandidateEducateEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateEducateEdges()
+	return cuo
+}
+
+// RemoveCandidateEducateEdgeIDs removes the "candidate_educate_edges" edge to CandidateEducate entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateEducateEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateEducateEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateEducateEdges removes "candidate_educate_edges" edges to CandidateEducate entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateEducateEdges(c ...*CandidateEducate) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateEducateEdgeIDs(ids...)
+}
+
+// ClearCandidateAwardEdges clears all "candidate_award_edges" edges to the CandidateAward entity.
+func (cuo *CandidateUpdateOne) ClearCandidateAwardEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateAwardEdges()
+	return cuo
+}
+
+// RemoveCandidateAwardEdgeIDs removes the "candidate_award_edges" edge to CandidateAward entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateAwardEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateAwardEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateAwardEdges removes "candidate_award_edges" edges to CandidateAward entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateAwardEdges(c ...*CandidateAward) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateAwardEdgeIDs(ids...)
+}
+
+// ClearCandidateCertificateEdges clears all "candidate_certificate_edges" edges to the CandidateCertificate entity.
+func (cuo *CandidateUpdateOne) ClearCandidateCertificateEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateCertificateEdges()
+	return cuo
+}
+
+// RemoveCandidateCertificateEdgeIDs removes the "candidate_certificate_edges" edge to CandidateCertificate entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateCertificateEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateCertificateEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateCertificateEdges removes "candidate_certificate_edges" edges to CandidateCertificate entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateCertificateEdges(c ...*CandidateCertificate) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateCertificateEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1268,6 +1827,11 @@ func (cuo *CandidateUpdateOne) check() error {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.Address(); ok {
+		if err := candidate.AddressValidator(v); err != nil {
+			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1368,6 +1932,12 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if cuo.mutation.CountryCleared() {
 		_spec.ClearField(candidate.FieldCountry, field.TypeString)
+	}
+	if value, ok := cuo.mutation.Address(); ok {
+		_spec.SetField(candidate.FieldAddress, field.TypeString, value)
+	}
+	if cuo.mutation.AddressCleared() {
+		_spec.ClearField(candidate.FieldAddress, field.TypeString)
 	}
 	if cuo.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1558,6 +2128,222 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateExpEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateExpEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateExpEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateExpEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateEducateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateEducateEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateEducateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateEducateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateAwardEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateAwardEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateAwardEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateAwardEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateCertificateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateCertificateEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateCertificateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateCertificateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
 				},
 			},
 		}

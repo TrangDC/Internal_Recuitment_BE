@@ -48,6 +48,8 @@ type Candidate struct {
 	Description string `json:"description,omitempty"`
 	// Country holds the value of the "country" field.
 	Country string `json:"country,omitempty"`
+	// Address holds the value of the "address" field.
+	Address string `json:"address,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateQuery when eager-loading is set.
 	Edges CandidateEdges `json:"edges"`
@@ -63,15 +65,27 @@ type CandidateEdges struct {
 	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
 	// CandidateSkillEdges holds the value of the candidate_skill_edges edge.
 	CandidateSkillEdges []*EntitySkill `json:"candidate_skill_edges,omitempty"`
+	// CandidateExpEdges holds the value of the candidate_exp_edges edge.
+	CandidateExpEdges []*CandidateExp `json:"candidate_exp_edges,omitempty"`
+	// CandidateEducateEdges holds the value of the candidate_educate_edges edge.
+	CandidateEducateEdges []*CandidateEducate `json:"candidate_educate_edges,omitempty"`
+	// CandidateAwardEdges holds the value of the candidate_award_edges edge.
+	CandidateAwardEdges []*CandidateAward `json:"candidate_award_edges,omitempty"`
+	// CandidateCertificateEdges holds the value of the candidate_certificate_edges edge.
+	CandidateCertificateEdges []*CandidateCertificate `json:"candidate_certificate_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [8]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [8]map[string]int
 
-	namedCandidateJobEdges   map[string][]*CandidateJob
-	namedAttachmentEdges     map[string][]*Attachment
-	namedCandidateSkillEdges map[string][]*EntitySkill
+	namedCandidateJobEdges         map[string][]*CandidateJob
+	namedAttachmentEdges           map[string][]*Attachment
+	namedCandidateSkillEdges       map[string][]*EntitySkill
+	namedCandidateExpEdges         map[string][]*CandidateExp
+	namedCandidateEducateEdges     map[string][]*CandidateEducate
+	namedCandidateAwardEdges       map[string][]*CandidateAward
+	namedCandidateCertificateEdges map[string][]*CandidateCertificate
 }
 
 // CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
@@ -114,6 +128,42 @@ func (e CandidateEdges) CandidateSkillEdgesOrErr() ([]*EntitySkill, error) {
 	return nil, &NotLoadedError{edge: "candidate_skill_edges"}
 }
 
+// CandidateExpEdgesOrErr returns the CandidateExpEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateExpEdgesOrErr() ([]*CandidateExp, error) {
+	if e.loadedTypes[4] {
+		return e.CandidateExpEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_exp_edges"}
+}
+
+// CandidateEducateEdgesOrErr returns the CandidateEducateEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateEducateEdgesOrErr() ([]*CandidateEducate, error) {
+	if e.loadedTypes[5] {
+		return e.CandidateEducateEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_educate_edges"}
+}
+
+// CandidateAwardEdgesOrErr returns the CandidateAwardEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateAwardEdgesOrErr() ([]*CandidateAward, error) {
+	if e.loadedTypes[6] {
+		return e.CandidateAwardEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_award_edges"}
+}
+
+// CandidateCertificateEdgesOrErr returns the CandidateCertificateEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) CandidateCertificateEdgesOrErr() ([]*CandidateCertificate, error) {
+	if e.loadedTypes[7] {
+		return e.CandidateCertificateEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_certificate_edges"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Candidate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -121,7 +171,7 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case candidate.FieldIsBlacklist:
 			values[i] = new(sql.NullBool)
-		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone, candidate.FieldReferenceType, candidate.FieldReferenceValue, candidate.FieldDescription, candidate.FieldCountry:
+		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone, candidate.FieldReferenceType, candidate.FieldReferenceValue, candidate.FieldDescription, candidate.FieldCountry, candidate.FieldAddress:
 			values[i] = new(sql.NullString)
 		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate, candidate.FieldRecruitTime:
 			values[i] = new(sql.NullTime)
@@ -238,6 +288,12 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Country = value.String
 			}
+		case candidate.FieldAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field address", values[i])
+			} else if value.Valid {
+				c.Address = value.String
+			}
 		}
 	}
 	return nil
@@ -261,6 +317,26 @@ func (c *Candidate) QueryAttachmentEdges() *AttachmentQuery {
 // QueryCandidateSkillEdges queries the "candidate_skill_edges" edge of the Candidate entity.
 func (c *Candidate) QueryCandidateSkillEdges() *EntitySkillQuery {
 	return (&CandidateClient{config: c.config}).QueryCandidateSkillEdges(c)
+}
+
+// QueryCandidateExpEdges queries the "candidate_exp_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateExpEdges() *CandidateExpQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateExpEdges(c)
+}
+
+// QueryCandidateEducateEdges queries the "candidate_educate_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateEducateEdges() *CandidateEducateQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateEducateEdges(c)
+}
+
+// QueryCandidateAwardEdges queries the "candidate_award_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateAwardEdges() *CandidateAwardQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateAwardEdges(c)
+}
+
+// QueryCandidateCertificateEdges queries the "candidate_certificate_edges" edge of the Candidate entity.
+func (c *Candidate) QueryCandidateCertificateEdges() *CandidateCertificateQuery {
+	return (&CandidateClient{config: c.config}).QueryCandidateCertificateEdges(c)
 }
 
 // Update returns a builder for updating this Candidate.
@@ -330,6 +406,9 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("country=")
 	builder.WriteString(c.Country)
+	builder.WriteString(", ")
+	builder.WriteString("address=")
+	builder.WriteString(c.Address)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -403,6 +482,102 @@ func (c *Candidate) appendNamedCandidateSkillEdges(name string, edges ...*Entity
 		c.Edges.namedCandidateSkillEdges[name] = []*EntitySkill{}
 	} else {
 		c.Edges.namedCandidateSkillEdges[name] = append(c.Edges.namedCandidateSkillEdges[name], edges...)
+	}
+}
+
+// NamedCandidateExpEdges returns the CandidateExpEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateExpEdges(name string) ([]*CandidateExp, error) {
+	if c.Edges.namedCandidateExpEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateExpEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateExpEdges(name string, edges ...*CandidateExp) {
+	if c.Edges.namedCandidateExpEdges == nil {
+		c.Edges.namedCandidateExpEdges = make(map[string][]*CandidateExp)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateExpEdges[name] = []*CandidateExp{}
+	} else {
+		c.Edges.namedCandidateExpEdges[name] = append(c.Edges.namedCandidateExpEdges[name], edges...)
+	}
+}
+
+// NamedCandidateEducateEdges returns the CandidateEducateEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateEducateEdges(name string) ([]*CandidateEducate, error) {
+	if c.Edges.namedCandidateEducateEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateEducateEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateEducateEdges(name string, edges ...*CandidateEducate) {
+	if c.Edges.namedCandidateEducateEdges == nil {
+		c.Edges.namedCandidateEducateEdges = make(map[string][]*CandidateEducate)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateEducateEdges[name] = []*CandidateEducate{}
+	} else {
+		c.Edges.namedCandidateEducateEdges[name] = append(c.Edges.namedCandidateEducateEdges[name], edges...)
+	}
+}
+
+// NamedCandidateAwardEdges returns the CandidateAwardEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateAwardEdges(name string) ([]*CandidateAward, error) {
+	if c.Edges.namedCandidateAwardEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateAwardEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateAwardEdges(name string, edges ...*CandidateAward) {
+	if c.Edges.namedCandidateAwardEdges == nil {
+		c.Edges.namedCandidateAwardEdges = make(map[string][]*CandidateAward)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateAwardEdges[name] = []*CandidateAward{}
+	} else {
+		c.Edges.namedCandidateAwardEdges[name] = append(c.Edges.namedCandidateAwardEdges[name], edges...)
+	}
+}
+
+// NamedCandidateCertificateEdges returns the CandidateCertificateEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedCandidateCertificateEdges(name string) ([]*CandidateCertificate, error) {
+	if c.Edges.namedCandidateCertificateEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedCandidateCertificateEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedCandidateCertificateEdges(name string, edges ...*CandidateCertificate) {
+	if c.Edges.namedCandidateCertificateEdges == nil {
+		c.Edges.namedCandidateCertificateEdges = make(map[string][]*CandidateCertificate)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedCandidateCertificateEdges[name] = []*CandidateCertificate{}
+	} else {
+		c.Edges.namedCandidateCertificateEdges[name] = append(c.Edges.namedCandidateCertificateEdges[name], edges...)
 	}
 }
 

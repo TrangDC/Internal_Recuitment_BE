@@ -9,6 +9,9 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -187,6 +190,63 @@ func (au *AttachmentUpdate) SetCandidateEdge(c *Candidate) *AttachmentUpdate {
 	return au.SetCandidateEdgeID(c.ID)
 }
 
+// SetCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID.
+func (au *AttachmentUpdate) SetCandidateEducateEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateEducateEdgeID(id)
+	return au
+}
+
+// SetNillableCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateEducateEdgeID(id *uuid.UUID) *AttachmentUpdate {
+	if id != nil {
+		au = au.SetCandidateEducateEdgeID(*id)
+	}
+	return au
+}
+
+// SetCandidateEducateEdge sets the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (au *AttachmentUpdate) SetCandidateEducateEdge(c *CandidateEducate) *AttachmentUpdate {
+	return au.SetCandidateEducateEdgeID(c.ID)
+}
+
+// SetCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID.
+func (au *AttachmentUpdate) SetCandidateAwardEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateAwardEdgeID(id)
+	return au
+}
+
+// SetNillableCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateAwardEdgeID(id *uuid.UUID) *AttachmentUpdate {
+	if id != nil {
+		au = au.SetCandidateAwardEdgeID(*id)
+	}
+	return au
+}
+
+// SetCandidateAwardEdge sets the "candidate_award_edge" edge to the CandidateAward entity.
+func (au *AttachmentUpdate) SetCandidateAwardEdge(c *CandidateAward) *AttachmentUpdate {
+	return au.SetCandidateAwardEdgeID(c.ID)
+}
+
+// SetCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID.
+func (au *AttachmentUpdate) SetCandidateCertificateEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateCertificateEdgeID(id)
+	return au
+}
+
+// SetNillableCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateCertificateEdgeID(id *uuid.UUID) *AttachmentUpdate {
+	if id != nil {
+		au = au.SetCandidateCertificateEdgeID(*id)
+	}
+	return au
+}
+
+// SetCandidateCertificateEdge sets the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (au *AttachmentUpdate) SetCandidateCertificateEdge(c *CandidateCertificate) *AttachmentUpdate {
+	return au.SetCandidateCertificateEdgeID(c.ID)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (au *AttachmentUpdate) Mutation() *AttachmentMutation {
 	return au.mutation
@@ -213,6 +273,24 @@ func (au *AttachmentUpdate) ClearCandidateInterviewEdge() *AttachmentUpdate {
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (au *AttachmentUpdate) ClearCandidateEdge() *AttachmentUpdate {
 	au.mutation.ClearCandidateEdge()
+	return au
+}
+
+// ClearCandidateEducateEdge clears the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (au *AttachmentUpdate) ClearCandidateEducateEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateEducateEdge()
+	return au
+}
+
+// ClearCandidateAwardEdge clears the "candidate_award_edge" edge to the CandidateAward entity.
+func (au *AttachmentUpdate) ClearCandidateAwardEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateAwardEdge()
+	return au
+}
+
+// ClearCandidateCertificateEdge clears the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (au *AttachmentUpdate) ClearCandidateCertificateEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateCertificateEdge()
 	return au
 }
 
@@ -470,6 +548,111 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if au.mutation.CandidateEducateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEducateEdgeTable,
+			Columns: []string{attachment.CandidateEducateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CandidateEducateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEducateEdgeTable,
+			Columns: []string{attachment.CandidateEducateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CandidateAwardEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateAwardEdgeTable,
+			Columns: []string{attachment.CandidateAwardEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CandidateAwardEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateAwardEdgeTable,
+			Columns: []string{attachment.CandidateAwardEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CandidateCertificateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateCertificateEdgeTable,
+			Columns: []string{attachment.CandidateCertificateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CandidateCertificateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateCertificateEdgeTable,
+			Columns: []string{attachment.CandidateCertificateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{attachment.Label}
@@ -643,6 +826,63 @@ func (auo *AttachmentUpdateOne) SetCandidateEdge(c *Candidate) *AttachmentUpdate
 	return auo.SetCandidateEdgeID(c.ID)
 }
 
+// SetCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateEducateEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateEducateEdgeID(id)
+	return auo
+}
+
+// SetNillableCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateEducateEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
+	if id != nil {
+		auo = auo.SetCandidateEducateEdgeID(*id)
+	}
+	return auo
+}
+
+// SetCandidateEducateEdge sets the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (auo *AttachmentUpdateOne) SetCandidateEducateEdge(c *CandidateEducate) *AttachmentUpdateOne {
+	return auo.SetCandidateEducateEdgeID(c.ID)
+}
+
+// SetCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateAwardEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateAwardEdgeID(id)
+	return auo
+}
+
+// SetNillableCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateAwardEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
+	if id != nil {
+		auo = auo.SetCandidateAwardEdgeID(*id)
+	}
+	return auo
+}
+
+// SetCandidateAwardEdge sets the "candidate_award_edge" edge to the CandidateAward entity.
+func (auo *AttachmentUpdateOne) SetCandidateAwardEdge(c *CandidateAward) *AttachmentUpdateOne {
+	return auo.SetCandidateAwardEdgeID(c.ID)
+}
+
+// SetCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateCertificateEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateCertificateEdgeID(id)
+	return auo
+}
+
+// SetNillableCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateCertificateEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
+	if id != nil {
+		auo = auo.SetCandidateCertificateEdgeID(*id)
+	}
+	return auo
+}
+
+// SetCandidateCertificateEdge sets the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (auo *AttachmentUpdateOne) SetCandidateCertificateEdge(c *CandidateCertificate) *AttachmentUpdateOne {
+	return auo.SetCandidateCertificateEdgeID(c.ID)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (auo *AttachmentUpdateOne) Mutation() *AttachmentMutation {
 	return auo.mutation
@@ -669,6 +909,24 @@ func (auo *AttachmentUpdateOne) ClearCandidateInterviewEdge() *AttachmentUpdateO
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (auo *AttachmentUpdateOne) ClearCandidateEdge() *AttachmentUpdateOne {
 	auo.mutation.ClearCandidateEdge()
+	return auo
+}
+
+// ClearCandidateEducateEdge clears the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (auo *AttachmentUpdateOne) ClearCandidateEducateEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateEducateEdge()
+	return auo
+}
+
+// ClearCandidateAwardEdge clears the "candidate_award_edge" edge to the CandidateAward entity.
+func (auo *AttachmentUpdateOne) ClearCandidateAwardEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateAwardEdge()
+	return auo
+}
+
+// ClearCandidateCertificateEdge clears the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (auo *AttachmentUpdateOne) ClearCandidateCertificateEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateCertificateEdge()
 	return auo
 }
 
@@ -948,6 +1206,111 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CandidateEducateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEducateEdgeTable,
+			Columns: []string{attachment.CandidateEducateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CandidateEducateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEducateEdgeTable,
+			Columns: []string{attachment.CandidateEducateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CandidateAwardEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateAwardEdgeTable,
+			Columns: []string{attachment.CandidateAwardEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CandidateAwardEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateAwardEdgeTable,
+			Columns: []string{attachment.CandidateAwardEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CandidateCertificateEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateCertificateEdgeTable,
+			Columns: []string{attachment.CandidateCertificateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CandidateCertificateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateCertificateEdgeTable,
+			Columns: []string{attachment.CandidateCertificateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
 				},
 			},
 		}

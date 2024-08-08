@@ -20,6 +20,14 @@ type Tx struct {
 	AuditTrail *AuditTrailClient
 	// Candidate is the client for interacting with the Candidate builders.
 	Candidate *CandidateClient
+	// CandidateAward is the client for interacting with the CandidateAward builders.
+	CandidateAward *CandidateAwardClient
+	// CandidateCertificate is the client for interacting with the CandidateCertificate builders.
+	CandidateCertificate *CandidateCertificateClient
+	// CandidateEducate is the client for interacting with the CandidateEducate builders.
+	CandidateEducate *CandidateEducateClient
+	// CandidateExp is the client for interacting with the CandidateExp builders.
+	CandidateExp *CandidateExpClient
 	// CandidateInterview is the client for interacting with the CandidateInterview builders.
 	CandidateInterview *CandidateInterviewClient
 	// CandidateInterviewer is the client for interacting with the CandidateInterviewer builders.
@@ -200,6 +208,10 @@ func (tx *Tx) init() {
 	tx.Attachment = NewAttachmentClient(tx.config)
 	tx.AuditTrail = NewAuditTrailClient(tx.config)
 	tx.Candidate = NewCandidateClient(tx.config)
+	tx.CandidateAward = NewCandidateAwardClient(tx.config)
+	tx.CandidateCertificate = NewCandidateCertificateClient(tx.config)
+	tx.CandidateEducate = NewCandidateEducateClient(tx.config)
+	tx.CandidateExp = NewCandidateExpClient(tx.config)
 	tx.CandidateInterview = NewCandidateInterviewClient(tx.config)
 	tx.CandidateInterviewer = NewCandidateInterviewerClient(tx.config)
 	tx.CandidateJob = NewCandidateJobClient(tx.config)

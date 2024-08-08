@@ -40,6 +40,30 @@ func (a *Attachment) CandidateEdge(ctx context.Context) (*Candidate, error) {
 	return result, MaskNotFound(err)
 }
 
+func (a *Attachment) CandidateEducateEdge(ctx context.Context) (*CandidateEducate, error) {
+	result, err := a.Edges.CandidateEducateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateEducateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (a *Attachment) CandidateAwardEdge(ctx context.Context) (*CandidateAward, error) {
+	result, err := a.Edges.CandidateAwardEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateAwardEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (a *Attachment) CandidateCertificateEdge(ctx context.Context) (*CandidateCertificate, error) {
+	result, err := a.Edges.CandidateCertificateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateCertificateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
 	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -90,6 +114,134 @@ func (c *Candidate) CandidateSkillEdges(ctx context.Context) (result []*EntitySk
 		result, err = c.QueryCandidateSkillEdges().All(ctx)
 	}
 	return result, err
+}
+
+func (c *Candidate) CandidateExpEdges(ctx context.Context) (result []*CandidateExp, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateExpEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateExpEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateExpEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (c *Candidate) CandidateEducateEdges(ctx context.Context) (result []*CandidateEducate, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateEducateEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateEducateEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateEducateEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (c *Candidate) CandidateAwardEdges(ctx context.Context) (result []*CandidateAward, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateAwardEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateAwardEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateAwardEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (c *Candidate) CandidateCertificateEdges(ctx context.Context) (result []*CandidateCertificate, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateCertificateEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateCertificateEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateCertificateEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (ca *CandidateAward) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ca.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ca.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ca.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (ca *CandidateAward) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := ca.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ca.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (cc *CandidateCertificate) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cc.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cc.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cc.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (cc *CandidateCertificate) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := cc.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cc.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (ce *CandidateEducate) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ce.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ce.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ce.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (ce *CandidateEducate) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := ce.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ce.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (ce *CandidateExp) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ce.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ce.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ce.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (ce *CandidateExp) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := ce.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = ce.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (ci *CandidateInterview) CandidateJobEdge(ctx context.Context) (*CandidateJob, error) {

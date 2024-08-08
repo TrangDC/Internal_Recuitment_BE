@@ -9,6 +9,9 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -179,6 +182,63 @@ func (ac *AttachmentCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *Attachmen
 // SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
 func (ac *AttachmentCreate) SetCandidateEdge(c *Candidate) *AttachmentCreate {
 	return ac.SetCandidateEdgeID(c.ID)
+}
+
+// SetCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID.
+func (ac *AttachmentCreate) SetCandidateEducateEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateEducateEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateEducateEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateEducateEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateEducateEdge sets the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (ac *AttachmentCreate) SetCandidateEducateEdge(c *CandidateEducate) *AttachmentCreate {
+	return ac.SetCandidateEducateEdgeID(c.ID)
+}
+
+// SetCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID.
+func (ac *AttachmentCreate) SetCandidateAwardEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateAwardEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateAwardEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateAwardEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateAwardEdge sets the "candidate_award_edge" edge to the CandidateAward entity.
+func (ac *AttachmentCreate) SetCandidateAwardEdge(c *CandidateAward) *AttachmentCreate {
+	return ac.SetCandidateAwardEdgeID(c.ID)
+}
+
+// SetCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID.
+func (ac *AttachmentCreate) SetCandidateCertificateEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateCertificateEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateCertificateEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateCertificateEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateCertificateEdge sets the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (ac *AttachmentCreate) SetCandidateCertificateEdge(c *CandidateCertificate) *AttachmentCreate {
+	return ac.SetCandidateCertificateEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -419,6 +479,66 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateEducateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateEducateEdgeTable,
+			Columns: []string{attachment.CandidateEducateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateAwardEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateAwardEdgeTable,
+			Columns: []string{attachment.CandidateAwardEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateCertificateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateCertificateEdgeTable,
+			Columns: []string{attachment.CandidateCertificateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
 				},
 			},
 		}

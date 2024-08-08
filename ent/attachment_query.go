@@ -8,6 +8,9 @@ import (
 	"math"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -32,6 +35,10 @@ type AttachmentQuery struct {
 	withCandidateJobFeedbackEdge *CandidateJobFeedbackQuery
 	withCandidateInterviewEdge   *CandidateInterviewQuery
 	withCandidateEdge            *CandidateQuery
+	withCandidateEducateEdge     *CandidateEducateQuery
+	withCandidateAwardEdge       *CandidateAwardQuery
+	withCandidateCertificateEdge *CandidateCertificateQuery
+	withFKs                      bool
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*Attachment) error
 	// intermediate query (i.e. traversal path).
@@ -151,6 +158,72 @@ func (aq *AttachmentQuery) QueryCandidateEdge() *CandidateQuery {
 			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEdgeTable, attachment.CandidateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateEducateEdge chains the current query on the "candidate_educate_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateEducateEdge() *CandidateEducateQuery {
+	query := &CandidateEducateQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidateeducate.Table, candidateeducate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEducateEdgeTable, attachment.CandidateEducateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateAwardEdge chains the current query on the "candidate_award_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateAwardEdge() *CandidateAwardQuery {
+	query := &CandidateAwardQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidateaward.Table, candidateaward.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateAwardEdgeTable, attachment.CandidateAwardEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateCertificateEdge chains the current query on the "candidate_certificate_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateCertificateEdge() *CandidateCertificateQuery {
+	query := &CandidateCertificateQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateCertificateEdgeTable, attachment.CandidateCertificateEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -343,6 +416,9 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		withCandidateJobFeedbackEdge: aq.withCandidateJobFeedbackEdge.Clone(),
 		withCandidateInterviewEdge:   aq.withCandidateInterviewEdge.Clone(),
 		withCandidateEdge:            aq.withCandidateEdge.Clone(),
+		withCandidateEducateEdge:     aq.withCandidateEducateEdge.Clone(),
+		withCandidateAwardEdge:       aq.withCandidateAwardEdge.Clone(),
+		withCandidateCertificateEdge: aq.withCandidateCertificateEdge.Clone(),
 		// clone intermediate query.
 		sql:    aq.sql.Clone(),
 		path:   aq.path,
@@ -391,6 +467,39 @@ func (aq *AttachmentQuery) WithCandidateEdge(opts ...func(*CandidateQuery)) *Att
 		opt(query)
 	}
 	aq.withCandidateEdge = query
+	return aq
+}
+
+// WithCandidateEducateEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_educate_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateEducateEdge(opts ...func(*CandidateEducateQuery)) *AttachmentQuery {
+	query := &CandidateEducateQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateEducateEdge = query
+	return aq
+}
+
+// WithCandidateAwardEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_award_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateAwardEdge(opts ...func(*CandidateAwardQuery)) *AttachmentQuery {
+	query := &CandidateAwardQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateAwardEdge = query
+	return aq
+}
+
+// WithCandidateCertificateEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_certificate_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateCertificateEdge(opts ...func(*CandidateCertificateQuery)) *AttachmentQuery {
+	query := &CandidateCertificateQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateCertificateEdge = query
 	return aq
 }
 
@@ -466,14 +575,24 @@ func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
 func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Attachment, error) {
 	var (
 		nodes       = []*Attachment{}
+		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [7]bool{
 			aq.withCandidateJobEdge != nil,
 			aq.withCandidateJobFeedbackEdge != nil,
 			aq.withCandidateInterviewEdge != nil,
 			aq.withCandidateEdge != nil,
+			aq.withCandidateEducateEdge != nil,
+			aq.withCandidateAwardEdge != nil,
+			aq.withCandidateCertificateEdge != nil,
 		}
 	)
+	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, attachment.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Attachment).scanValues(nil, columns)
 	}
@@ -516,6 +635,24 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if query := aq.withCandidateEdge; query != nil {
 		if err := aq.loadCandidateEdge(ctx, query, nodes, nil,
 			func(n *Attachment, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateEducateEdge; query != nil {
+		if err := aq.loadCandidateEducateEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateEducate) { n.Edges.CandidateEducateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateAwardEdge; query != nil {
+		if err := aq.loadCandidateAwardEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateAward) { n.Edges.CandidateAwardEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateCertificateEdge; query != nil {
+		if err := aq.loadCandidateCertificateEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateCertificate) { n.Edges.CandidateCertificateEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -616,6 +753,84 @@ func (aq *AttachmentQuery) loadCandidateEdge(ctx context.Context, query *Candida
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
 	query.Where(candidate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateEducateEdge(ctx context.Context, query *CandidateEducateQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateEducate)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidateeducate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateAwardEdge(ctx context.Context, query *CandidateAwardQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateAward)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidateaward.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateCertificateEdge(ctx context.Context, query *CandidateCertificateQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateCertificate)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidatecertificate.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

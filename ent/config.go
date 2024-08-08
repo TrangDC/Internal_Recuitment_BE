@@ -31,6 +31,10 @@ type hooks struct {
 	Attachment           []ent.Hook
 	AuditTrail           []ent.Hook
 	Candidate            []ent.Hook
+	CandidateAward       []ent.Hook
+	CandidateCertificate []ent.Hook
+	CandidateEducate     []ent.Hook
+	CandidateExp         []ent.Hook
 	CandidateInterview   []ent.Hook
 	CandidateInterviewer []ent.Hook
 	CandidateJob         []ent.Hook

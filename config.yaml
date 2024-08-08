@@ -30,3 +30,8 @@ azureStorage:
 
 serviceBus:
   connectionString: $SERVICEBUS_CONNECTION_STRING
+
+talena:
+  email: $TALENA_EMAIL
+  password: $TALENA_PASSWORD
+  host:     $TALENA_HOST

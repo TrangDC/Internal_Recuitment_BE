@@ -11,6 +11,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -53,6 +57,10 @@ const (
 	TypeAttachment           = "Attachment"
 	TypeAuditTrail           = "AuditTrail"
 	TypeCandidate            = "Candidate"
+	TypeCandidateAward       = "CandidateAward"
+	TypeCandidateCertificate = "CandidateCertificate"
+	TypeCandidateEducate     = "CandidateEducate"
+	TypeCandidateExp         = "CandidateExp"
 	TypeCandidateInterview   = "CandidateInterview"
 	TypeCandidateInterviewer = "CandidateInterviewer"
 	TypeCandidateJob         = "CandidateJob"
@@ -99,6 +107,12 @@ type AttachmentMutation struct {
 	clearedcandidate_interview_edge    bool
 	candidate_edge                     *uuid.UUID
 	clearedcandidate_edge              bool
+	candidate_educate_edge             *uuid.UUID
+	clearedcandidate_educate_edge      bool
+	candidate_award_edge               *uuid.UUID
+	clearedcandidate_award_edge        bool
+	candidate_certificate_edge         *uuid.UUID
+	clearedcandidate_certificate_edge  bool
 	done                               bool
 	oldValue                           func(context.Context) (*Attachment, error)
 	predicates                         []predicate.Attachment
@@ -655,6 +669,123 @@ func (m *AttachmentMutation) ResetCandidateEdge() {
 	m.clearedcandidate_edge = false
 }
 
+// SetCandidateEducateEdgeID sets the "candidate_educate_edge" edge to the CandidateEducate entity by id.
+func (m *AttachmentMutation) SetCandidateEducateEdgeID(id uuid.UUID) {
+	m.candidate_educate_edge = &id
+}
+
+// ClearCandidateEducateEdge clears the "candidate_educate_edge" edge to the CandidateEducate entity.
+func (m *AttachmentMutation) ClearCandidateEducateEdge() {
+	m.clearedcandidate_educate_edge = true
+}
+
+// CandidateEducateEdgeCleared reports if the "candidate_educate_edge" edge to the CandidateEducate entity was cleared.
+func (m *AttachmentMutation) CandidateEducateEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_educate_edge
+}
+
+// CandidateEducateEdgeID returns the "candidate_educate_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateEducateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_educate_edge != nil {
+		return *m.candidate_educate_edge, true
+	}
+	return
+}
+
+// CandidateEducateEdgeIDs returns the "candidate_educate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEducateEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateEducateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_educate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEducateEdge resets all changes to the "candidate_educate_edge" edge.
+func (m *AttachmentMutation) ResetCandidateEducateEdge() {
+	m.candidate_educate_edge = nil
+	m.clearedcandidate_educate_edge = false
+}
+
+// SetCandidateAwardEdgeID sets the "candidate_award_edge" edge to the CandidateAward entity by id.
+func (m *AttachmentMutation) SetCandidateAwardEdgeID(id uuid.UUID) {
+	m.candidate_award_edge = &id
+}
+
+// ClearCandidateAwardEdge clears the "candidate_award_edge" edge to the CandidateAward entity.
+func (m *AttachmentMutation) ClearCandidateAwardEdge() {
+	m.clearedcandidate_award_edge = true
+}
+
+// CandidateAwardEdgeCleared reports if the "candidate_award_edge" edge to the CandidateAward entity was cleared.
+func (m *AttachmentMutation) CandidateAwardEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_award_edge
+}
+
+// CandidateAwardEdgeID returns the "candidate_award_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateAwardEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_award_edge != nil {
+		return *m.candidate_award_edge, true
+	}
+	return
+}
+
+// CandidateAwardEdgeIDs returns the "candidate_award_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateAwardEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateAwardEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_award_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateAwardEdge resets all changes to the "candidate_award_edge" edge.
+func (m *AttachmentMutation) ResetCandidateAwardEdge() {
+	m.candidate_award_edge = nil
+	m.clearedcandidate_award_edge = false
+}
+
+// SetCandidateCertificateEdgeID sets the "candidate_certificate_edge" edge to the CandidateCertificate entity by id.
+func (m *AttachmentMutation) SetCandidateCertificateEdgeID(id uuid.UUID) {
+	m.candidate_certificate_edge = &id
+}
+
+// ClearCandidateCertificateEdge clears the "candidate_certificate_edge" edge to the CandidateCertificate entity.
+func (m *AttachmentMutation) ClearCandidateCertificateEdge() {
+	m.clearedcandidate_certificate_edge = true
+}
+
+// CandidateCertificateEdgeCleared reports if the "candidate_certificate_edge" edge to the CandidateCertificate entity was cleared.
+func (m *AttachmentMutation) CandidateCertificateEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_certificate_edge
+}
+
+// CandidateCertificateEdgeID returns the "candidate_certificate_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateCertificateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_certificate_edge != nil {
+		return *m.candidate_certificate_edge, true
+	}
+	return
+}
+
+// CandidateCertificateEdgeIDs returns the "candidate_certificate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateCertificateEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateCertificateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_certificate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateCertificateEdge resets all changes to the "candidate_certificate_edge" edge.
+func (m *AttachmentMutation) ResetCandidateCertificateEdge() {
+	m.candidate_certificate_edge = nil
+	m.clearedcandidate_certificate_edge = false
+}
+
 // Where appends a list predicates to the AttachmentMutation builder.
 func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
 	m.predicates = append(m.predicates, ps...)
@@ -896,7 +1027,7 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 7)
 	if m.candidate_job_edge != nil {
 		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
@@ -908,6 +1039,15 @@ func (m *AttachmentMutation) AddedEdges() []string {
 	}
 	if m.candidate_edge != nil {
 		edges = append(edges, attachment.EdgeCandidateEdge)
+	}
+	if m.candidate_educate_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateEducateEdge)
+	}
+	if m.candidate_award_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateAwardEdge)
+	}
+	if m.candidate_certificate_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateCertificateEdge)
 	}
 	return edges
 }
@@ -932,13 +1072,25 @@ func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case attachment.EdgeCandidateEducateEdge:
+		if id := m.candidate_educate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case attachment.EdgeCandidateAwardEdge:
+		if id := m.candidate_award_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case attachment.EdgeCandidateCertificateEdge:
+		if id := m.candidate_certificate_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 7)
 	return edges
 }
 
@@ -950,7 +1102,7 @@ func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 7)
 	if m.clearedcandidate_job_edge {
 		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
@@ -962,6 +1114,15 @@ func (m *AttachmentMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_edge {
 		edges = append(edges, attachment.EdgeCandidateEdge)
+	}
+	if m.clearedcandidate_educate_edge {
+		edges = append(edges, attachment.EdgeCandidateEducateEdge)
+	}
+	if m.clearedcandidate_award_edge {
+		edges = append(edges, attachment.EdgeCandidateAwardEdge)
+	}
+	if m.clearedcandidate_certificate_edge {
+		edges = append(edges, attachment.EdgeCandidateCertificateEdge)
 	}
 	return edges
 }
@@ -978,6 +1139,12 @@ func (m *AttachmentMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_interview_edge
 	case attachment.EdgeCandidateEdge:
 		return m.clearedcandidate_edge
+	case attachment.EdgeCandidateEducateEdge:
+		return m.clearedcandidate_educate_edge
+	case attachment.EdgeCandidateAwardEdge:
+		return m.clearedcandidate_award_edge
+	case attachment.EdgeCandidateCertificateEdge:
+		return m.clearedcandidate_certificate_edge
 	}
 	return false
 }
@@ -998,6 +1165,15 @@ func (m *AttachmentMutation) ClearEdge(name string) error {
 	case attachment.EdgeCandidateEdge:
 		m.ClearCandidateEdge()
 		return nil
+	case attachment.EdgeCandidateEducateEdge:
+		m.ClearCandidateEducateEdge()
+		return nil
+	case attachment.EdgeCandidateAwardEdge:
+		m.ClearCandidateAwardEdge()
+		return nil
+	case attachment.EdgeCandidateCertificateEdge:
+		m.ClearCandidateCertificateEdge()
+		return nil
 	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
 }
@@ -1017,6 +1193,15 @@ func (m *AttachmentMutation) ResetEdge(name string) error {
 		return nil
 	case attachment.EdgeCandidateEdge:
 		m.ResetCandidateEdge()
+		return nil
+	case attachment.EdgeCandidateEducateEdge:
+		m.ResetCandidateEducateEdge()
+		return nil
+	case attachment.EdgeCandidateAwardEdge:
+		m.ResetCandidateAwardEdge()
+		return nil
+	case attachment.EdgeCandidateCertificateEdge:
+		m.ResetCandidateCertificateEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
@@ -1957,38 +2142,51 @@ func (m *AuditTrailMutation) ResetEdge(name string) error {
 // CandidateMutation represents an operation that mutates the Candidate nodes in the graph.
 type CandidateMutation struct {
 	config
-	op                           Op
-	typ                          string
-	id                           *uuid.UUID
-	created_at                   *time.Time
-	updated_at                   *time.Time
-	deleted_at                   *time.Time
-	name                         *string
-	email                        *string
-	phone                        *string
-	dob                          *time.Time
-	is_blacklist                 *bool
-	last_apply_date              *time.Time
-	reference_type               *candidate.ReferenceType
-	reference_value              *string
-	recruit_time                 *time.Time
-	description                  *string
-	country                      *string
-	clearedFields                map[string]struct{}
-	candidate_job_edges          map[uuid.UUID]struct{}
-	removedcandidate_job_edges   map[uuid.UUID]struct{}
-	clearedcandidate_job_edges   bool
-	reference_user_edge          *uuid.UUID
-	clearedreference_user_edge   bool
-	attachment_edges             map[uuid.UUID]struct{}
-	removedattachment_edges      map[uuid.UUID]struct{}
-	clearedattachment_edges      bool
-	candidate_skill_edges        map[uuid.UUID]struct{}
-	removedcandidate_skill_edges map[uuid.UUID]struct{}
-	clearedcandidate_skill_edges bool
-	done                         bool
-	oldValue                     func(context.Context) (*Candidate, error)
-	predicates                   []predicate.Candidate
+	op                                 Op
+	typ                                string
+	id                                 *uuid.UUID
+	created_at                         *time.Time
+	updated_at                         *time.Time
+	deleted_at                         *time.Time
+	name                               *string
+	email                              *string
+	phone                              *string
+	dob                                *time.Time
+	is_blacklist                       *bool
+	last_apply_date                    *time.Time
+	reference_type                     *candidate.ReferenceType
+	reference_value                    *string
+	recruit_time                       *time.Time
+	description                        *string
+	country                            *string
+	address                            *string
+	clearedFields                      map[string]struct{}
+	candidate_job_edges                map[uuid.UUID]struct{}
+	removedcandidate_job_edges         map[uuid.UUID]struct{}
+	clearedcandidate_job_edges         bool
+	reference_user_edge                *uuid.UUID
+	clearedreference_user_edge         bool
+	attachment_edges                   map[uuid.UUID]struct{}
+	removedattachment_edges            map[uuid.UUID]struct{}
+	clearedattachment_edges            bool
+	candidate_skill_edges              map[uuid.UUID]struct{}
+	removedcandidate_skill_edges       map[uuid.UUID]struct{}
+	clearedcandidate_skill_edges       bool
+	candidate_exp_edges                map[uuid.UUID]struct{}
+	removedcandidate_exp_edges         map[uuid.UUID]struct{}
+	clearedcandidate_exp_edges         bool
+	candidate_educate_edges            map[uuid.UUID]struct{}
+	removedcandidate_educate_edges     map[uuid.UUID]struct{}
+	clearedcandidate_educate_edges     bool
+	candidate_award_edges              map[uuid.UUID]struct{}
+	removedcandidate_award_edges       map[uuid.UUID]struct{}
+	clearedcandidate_award_edges       bool
+	candidate_certificate_edges        map[uuid.UUID]struct{}
+	removedcandidate_certificate_edges map[uuid.UUID]struct{}
+	clearedcandidate_certificate_edges bool
+	done                               bool
+	oldValue                           func(context.Context) (*Candidate, error)
+	predicates                         []predicate.Candidate
 }
 
 var _ ent.Mutation = (*CandidateMutation)(nil)
@@ -2752,6 +2950,55 @@ func (m *CandidateMutation) ResetCountry() {
 	delete(m.clearedFields, candidate.FieldCountry)
 }
 
+// SetAddress sets the "address" field.
+func (m *CandidateMutation) SetAddress(s string) {
+	m.address = &s
+}
+
+// Address returns the value of the "address" field in the mutation.
+func (m *CandidateMutation) Address() (r string, exists bool) {
+	v := m.address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddress returns the old "address" field's value of the Candidate entity.
+// If the Candidate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateMutation) OldAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
+	}
+	return oldValue.Address, nil
+}
+
+// ClearAddress clears the value of the "address" field.
+func (m *CandidateMutation) ClearAddress() {
+	m.address = nil
+	m.clearedFields[candidate.FieldAddress] = struct{}{}
+}
+
+// AddressCleared returns if the "address" field was cleared in this mutation.
+func (m *CandidateMutation) AddressCleared() bool {
+	_, ok := m.clearedFields[candidate.FieldAddress]
+	return ok
+}
+
+// ResetAddress resets all changes to the "address" field.
+func (m *CandidateMutation) ResetAddress() {
+	m.address = nil
+	delete(m.clearedFields, candidate.FieldAddress)
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by ids.
 func (m *CandidateMutation) AddCandidateJobEdgeIDs(ids ...uuid.UUID) {
 	if m.candidate_job_edges == nil {
@@ -2953,6 +3200,222 @@ func (m *CandidateMutation) ResetCandidateSkillEdges() {
 	m.removedcandidate_skill_edges = nil
 }
 
+// AddCandidateExpEdgeIDs adds the "candidate_exp_edges" edge to the CandidateExp entity by ids.
+func (m *CandidateMutation) AddCandidateExpEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_exp_edges == nil {
+		m.candidate_exp_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_exp_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateExpEdges clears the "candidate_exp_edges" edge to the CandidateExp entity.
+func (m *CandidateMutation) ClearCandidateExpEdges() {
+	m.clearedcandidate_exp_edges = true
+}
+
+// CandidateExpEdgesCleared reports if the "candidate_exp_edges" edge to the CandidateExp entity was cleared.
+func (m *CandidateMutation) CandidateExpEdgesCleared() bool {
+	return m.clearedcandidate_exp_edges
+}
+
+// RemoveCandidateExpEdgeIDs removes the "candidate_exp_edges" edge to the CandidateExp entity by IDs.
+func (m *CandidateMutation) RemoveCandidateExpEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_exp_edges == nil {
+		m.removedcandidate_exp_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_exp_edges, ids[i])
+		m.removedcandidate_exp_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateExpEdges returns the removed IDs of the "candidate_exp_edges" edge to the CandidateExp entity.
+func (m *CandidateMutation) RemovedCandidateExpEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_exp_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateExpEdgesIDs returns the "candidate_exp_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateExpEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_exp_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateExpEdges resets all changes to the "candidate_exp_edges" edge.
+func (m *CandidateMutation) ResetCandidateExpEdges() {
+	m.candidate_exp_edges = nil
+	m.clearedcandidate_exp_edges = false
+	m.removedcandidate_exp_edges = nil
+}
+
+// AddCandidateEducateEdgeIDs adds the "candidate_educate_edges" edge to the CandidateEducate entity by ids.
+func (m *CandidateMutation) AddCandidateEducateEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_educate_edges == nil {
+		m.candidate_educate_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_educate_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateEducateEdges clears the "candidate_educate_edges" edge to the CandidateEducate entity.
+func (m *CandidateMutation) ClearCandidateEducateEdges() {
+	m.clearedcandidate_educate_edges = true
+}
+
+// CandidateEducateEdgesCleared reports if the "candidate_educate_edges" edge to the CandidateEducate entity was cleared.
+func (m *CandidateMutation) CandidateEducateEdgesCleared() bool {
+	return m.clearedcandidate_educate_edges
+}
+
+// RemoveCandidateEducateEdgeIDs removes the "candidate_educate_edges" edge to the CandidateEducate entity by IDs.
+func (m *CandidateMutation) RemoveCandidateEducateEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_educate_edges == nil {
+		m.removedcandidate_educate_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_educate_edges, ids[i])
+		m.removedcandidate_educate_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateEducateEdges returns the removed IDs of the "candidate_educate_edges" edge to the CandidateEducate entity.
+func (m *CandidateMutation) RemovedCandidateEducateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_educate_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateEducateEdgesIDs returns the "candidate_educate_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateEducateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_educate_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateEducateEdges resets all changes to the "candidate_educate_edges" edge.
+func (m *CandidateMutation) ResetCandidateEducateEdges() {
+	m.candidate_educate_edges = nil
+	m.clearedcandidate_educate_edges = false
+	m.removedcandidate_educate_edges = nil
+}
+
+// AddCandidateAwardEdgeIDs adds the "candidate_award_edges" edge to the CandidateAward entity by ids.
+func (m *CandidateMutation) AddCandidateAwardEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_award_edges == nil {
+		m.candidate_award_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_award_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateAwardEdges clears the "candidate_award_edges" edge to the CandidateAward entity.
+func (m *CandidateMutation) ClearCandidateAwardEdges() {
+	m.clearedcandidate_award_edges = true
+}
+
+// CandidateAwardEdgesCleared reports if the "candidate_award_edges" edge to the CandidateAward entity was cleared.
+func (m *CandidateMutation) CandidateAwardEdgesCleared() bool {
+	return m.clearedcandidate_award_edges
+}
+
+// RemoveCandidateAwardEdgeIDs removes the "candidate_award_edges" edge to the CandidateAward entity by IDs.
+func (m *CandidateMutation) RemoveCandidateAwardEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_award_edges == nil {
+		m.removedcandidate_award_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_award_edges, ids[i])
+		m.removedcandidate_award_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateAwardEdges returns the removed IDs of the "candidate_award_edges" edge to the CandidateAward entity.
+func (m *CandidateMutation) RemovedCandidateAwardEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_award_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateAwardEdgesIDs returns the "candidate_award_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateAwardEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_award_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateAwardEdges resets all changes to the "candidate_award_edges" edge.
+func (m *CandidateMutation) ResetCandidateAwardEdges() {
+	m.candidate_award_edges = nil
+	m.clearedcandidate_award_edges = false
+	m.removedcandidate_award_edges = nil
+}
+
+// AddCandidateCertificateEdgeIDs adds the "candidate_certificate_edges" edge to the CandidateCertificate entity by ids.
+func (m *CandidateMutation) AddCandidateCertificateEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_certificate_edges == nil {
+		m.candidate_certificate_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_certificate_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateCertificateEdges clears the "candidate_certificate_edges" edge to the CandidateCertificate entity.
+func (m *CandidateMutation) ClearCandidateCertificateEdges() {
+	m.clearedcandidate_certificate_edges = true
+}
+
+// CandidateCertificateEdgesCleared reports if the "candidate_certificate_edges" edge to the CandidateCertificate entity was cleared.
+func (m *CandidateMutation) CandidateCertificateEdgesCleared() bool {
+	return m.clearedcandidate_certificate_edges
+}
+
+// RemoveCandidateCertificateEdgeIDs removes the "candidate_certificate_edges" edge to the CandidateCertificate entity by IDs.
+func (m *CandidateMutation) RemoveCandidateCertificateEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_certificate_edges == nil {
+		m.removedcandidate_certificate_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_certificate_edges, ids[i])
+		m.removedcandidate_certificate_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateCertificateEdges returns the removed IDs of the "candidate_certificate_edges" edge to the CandidateCertificate entity.
+func (m *CandidateMutation) RemovedCandidateCertificateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_certificate_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateCertificateEdgesIDs returns the "candidate_certificate_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateCertificateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_certificate_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateCertificateEdges resets all changes to the "candidate_certificate_edges" edge.
+func (m *CandidateMutation) ResetCandidateCertificateEdges() {
+	m.candidate_certificate_edges = nil
+	m.clearedcandidate_certificate_edges = false
+	m.removedcandidate_certificate_edges = nil
+}
+
 // Where appends a list predicates to the CandidateMutation builder.
 func (m *CandidateMutation) Where(ps ...predicate.Candidate) {
 	m.predicates = append(m.predicates, ps...)
@@ -2972,7 +3435,7 @@ func (m *CandidateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, candidate.FieldCreatedAt)
 	}
@@ -3018,6 +3481,9 @@ func (m *CandidateMutation) Fields() []string {
 	if m.country != nil {
 		fields = append(fields, candidate.FieldCountry)
 	}
+	if m.address != nil {
+		fields = append(fields, candidate.FieldAddress)
+	}
 	return fields
 }
 
@@ -3056,6 +3522,8 @@ func (m *CandidateMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case candidate.FieldCountry:
 		return m.Country()
+	case candidate.FieldAddress:
+		return m.Address()
 	}
 	return nil, false
 }
@@ -3095,6 +3563,8 @@ func (m *CandidateMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldDescription(ctx)
 	case candidate.FieldCountry:
 		return m.OldCountry(ctx)
+	case candidate.FieldAddress:
+		return m.OldAddress(ctx)
 	}
 	return nil, fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -3209,6 +3679,13 @@ func (m *CandidateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCountry(v)
 		return nil
+	case candidate.FieldAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddress(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -3266,6 +3743,9 @@ func (m *CandidateMutation) ClearedFields() []string {
 	if m.FieldCleared(candidate.FieldCountry) {
 		fields = append(fields, candidate.FieldCountry)
 	}
+	if m.FieldCleared(candidate.FieldAddress) {
+		fields = append(fields, candidate.FieldAddress)
+	}
 	return fields
 }
 
@@ -3306,6 +3786,9 @@ func (m *CandidateMutation) ClearField(name string) error {
 		return nil
 	case candidate.FieldCountry:
 		m.ClearCountry()
+		return nil
+	case candidate.FieldAddress:
+		m.ClearAddress()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate nullable field %s", name)
@@ -3360,13 +3843,16 @@ func (m *CandidateMutation) ResetField(name string) error {
 	case candidate.FieldCountry:
 		m.ResetCountry()
 		return nil
+	case candidate.FieldAddress:
+		m.ResetAddress()
+		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.candidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -3378,6 +3864,18 @@ func (m *CandidateMutation) AddedEdges() []string {
 	}
 	if m.candidate_skill_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateSkillEdges)
+	}
+	if m.candidate_exp_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateExpEdges)
+	}
+	if m.candidate_educate_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateEducateEdges)
+	}
+	if m.candidate_award_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateAwardEdges)
+	}
+	if m.candidate_certificate_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateCertificateEdges)
 	}
 	return edges
 }
@@ -3408,13 +3906,37 @@ func (m *CandidateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateExpEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_exp_edges))
+		for id := range m.candidate_exp_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateEducateEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_educate_edges))
+		for id := range m.candidate_educate_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateAwardEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_award_edges))
+		for id := range m.candidate_award_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateCertificateEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_certificate_edges))
+		for id := range m.candidate_certificate_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -3423,6 +3945,18 @@ func (m *CandidateMutation) RemovedEdges() []string {
 	}
 	if m.removedcandidate_skill_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateSkillEdges)
+	}
+	if m.removedcandidate_exp_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateExpEdges)
+	}
+	if m.removedcandidate_educate_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateEducateEdges)
+	}
+	if m.removedcandidate_award_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateAwardEdges)
+	}
+	if m.removedcandidate_certificate_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateCertificateEdges)
 	}
 	return edges
 }
@@ -3449,13 +3983,37 @@ func (m *CandidateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateExpEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_exp_edges))
+		for id := range m.removedcandidate_exp_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateEducateEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_educate_edges))
+		for id := range m.removedcandidate_educate_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateAwardEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_award_edges))
+		for id := range m.removedcandidate_award_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidate.EdgeCandidateCertificateEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_certificate_edges))
+		for id := range m.removedcandidate_certificate_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 8)
 	if m.clearedcandidate_job_edges {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -3467,6 +4025,18 @@ func (m *CandidateMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_skill_edges {
 		edges = append(edges, candidate.EdgeCandidateSkillEdges)
+	}
+	if m.clearedcandidate_exp_edges {
+		edges = append(edges, candidate.EdgeCandidateExpEdges)
+	}
+	if m.clearedcandidate_educate_edges {
+		edges = append(edges, candidate.EdgeCandidateEducateEdges)
+	}
+	if m.clearedcandidate_award_edges {
+		edges = append(edges, candidate.EdgeCandidateAwardEdges)
+	}
+	if m.clearedcandidate_certificate_edges {
+		edges = append(edges, candidate.EdgeCandidateCertificateEdges)
 	}
 	return edges
 }
@@ -3483,6 +4053,14 @@ func (m *CandidateMutation) EdgeCleared(name string) bool {
 		return m.clearedattachment_edges
 	case candidate.EdgeCandidateSkillEdges:
 		return m.clearedcandidate_skill_edges
+	case candidate.EdgeCandidateExpEdges:
+		return m.clearedcandidate_exp_edges
+	case candidate.EdgeCandidateEducateEdges:
+		return m.clearedcandidate_educate_edges
+	case candidate.EdgeCandidateAwardEdges:
+		return m.clearedcandidate_award_edges
+	case candidate.EdgeCandidateCertificateEdges:
+		return m.clearedcandidate_certificate_edges
 	}
 	return false
 }
@@ -3514,8 +4092,3999 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 	case candidate.EdgeCandidateSkillEdges:
 		m.ResetCandidateSkillEdges()
 		return nil
+	case candidate.EdgeCandidateExpEdges:
+		m.ResetCandidateExpEdges()
+		return nil
+	case candidate.EdgeCandidateEducateEdges:
+		m.ResetCandidateEducateEdges()
+		return nil
+	case candidate.EdgeCandidateAwardEdges:
+		m.ResetCandidateAwardEdges()
+		return nil
+	case candidate.EdgeCandidateCertificateEdges:
+		m.ResetCandidateCertificateEdges()
+		return nil
 	}
 	return fmt.Errorf("unknown Candidate edge %s", name)
+}
+
+// CandidateAwardMutation represents an operation that mutates the CandidateAward nodes in the graph.
+type CandidateAwardMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	name                    *string
+	achieved_date           *time.Time
+	clearedFields           map[string]struct{}
+	attachment_edges        map[uuid.UUID]struct{}
+	removedattachment_edges map[uuid.UUID]struct{}
+	clearedattachment_edges bool
+	candidate_edge          *uuid.UUID
+	clearedcandidate_edge   bool
+	done                    bool
+	oldValue                func(context.Context) (*CandidateAward, error)
+	predicates              []predicate.CandidateAward
+}
+
+var _ ent.Mutation = (*CandidateAwardMutation)(nil)
+
+// candidateawardOption allows management of the mutation configuration using functional options.
+type candidateawardOption func(*CandidateAwardMutation)
+
+// newCandidateAwardMutation creates new mutation for the CandidateAward entity.
+func newCandidateAwardMutation(c config, op Op, opts ...candidateawardOption) *CandidateAwardMutation {
+	m := &CandidateAwardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateAward,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateAwardID sets the ID field of the mutation.
+func withCandidateAwardID(id uuid.UUID) candidateawardOption {
+	return func(m *CandidateAwardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateAward
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateAward, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateAward.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateAward sets the old CandidateAward of the mutation.
+func withCandidateAward(node *CandidateAward) candidateawardOption {
+	return func(m *CandidateAwardMutation) {
+		m.oldValue = func(context.Context) (*CandidateAward, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateAwardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateAwardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateAward entities.
+func (m *CandidateAwardMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateAwardMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateAwardMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateAward.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateAwardMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateAwardMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateAwardMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateAwardMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateAwardMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateAwardMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidateaward.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateAwardMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidateaward.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateAwardMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidateaward.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateAwardMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateAwardMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateAwardMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidateaward.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateAwardMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidateaward.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateAwardMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidateaward.FieldDeletedAt)
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (m *CandidateAwardMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_edge = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *CandidateAwardMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ClearCandidateID clears the value of the "candidate_id" field.
+func (m *CandidateAwardMutation) ClearCandidateID() {
+	m.candidate_edge = nil
+	m.clearedFields[candidateaward.FieldCandidateID] = struct{}{}
+}
+
+// CandidateIDCleared returns if the "candidate_id" field was cleared in this mutation.
+func (m *CandidateAwardMutation) CandidateIDCleared() bool {
+	_, ok := m.clearedFields[candidateaward.FieldCandidateID]
+	return ok
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *CandidateAwardMutation) ResetCandidateID() {
+	m.candidate_edge = nil
+	delete(m.clearedFields, candidateaward.FieldCandidateID)
+}
+
+// SetName sets the "name" field.
+func (m *CandidateAwardMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CandidateAwardMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CandidateAwardMutation) ResetName() {
+	m.name = nil
+}
+
+// SetAchievedDate sets the "achieved_date" field.
+func (m *CandidateAwardMutation) SetAchievedDate(t time.Time) {
+	m.achieved_date = &t
+}
+
+// AchievedDate returns the value of the "achieved_date" field in the mutation.
+func (m *CandidateAwardMutation) AchievedDate() (r time.Time, exists bool) {
+	v := m.achieved_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAchievedDate returns the old "achieved_date" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldAchievedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAchievedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAchievedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAchievedDate: %w", err)
+	}
+	return oldValue.AchievedDate, nil
+}
+
+// ClearAchievedDate clears the value of the "achieved_date" field.
+func (m *CandidateAwardMutation) ClearAchievedDate() {
+	m.achieved_date = nil
+	m.clearedFields[candidateaward.FieldAchievedDate] = struct{}{}
+}
+
+// AchievedDateCleared returns if the "achieved_date" field was cleared in this mutation.
+func (m *CandidateAwardMutation) AchievedDateCleared() bool {
+	_, ok := m.clearedFields[candidateaward.FieldAchievedDate]
+	return ok
+}
+
+// ResetAchievedDate resets all changes to the "achieved_date" field.
+func (m *CandidateAwardMutation) ResetAchievedDate() {
+	m.achieved_date = nil
+	delete(m.clearedFields, candidateaward.FieldAchievedDate)
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateAwardMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateAwardMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateAwardMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateAwardMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateAwardMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateAwardMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateAwardMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *CandidateAwardMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *CandidateAwardMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *CandidateAwardMutation) CandidateEdgeCleared() bool {
+	return m.CandidateIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *CandidateAwardMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateAwardMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *CandidateAwardMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// Where appends a list predicates to the CandidateAwardMutation builder.
+func (m *CandidateAwardMutation) Where(ps ...predicate.CandidateAward) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateAwardMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateAward).
+func (m *CandidateAwardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateAwardMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, candidateaward.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidateaward.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidateaward.FieldDeletedAt)
+	}
+	if m.candidate_edge != nil {
+		fields = append(fields, candidateaward.FieldCandidateID)
+	}
+	if m.name != nil {
+		fields = append(fields, candidateaward.FieldName)
+	}
+	if m.achieved_date != nil {
+		fields = append(fields, candidateaward.FieldAchievedDate)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateAwardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidateaward.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidateaward.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidateaward.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidateaward.FieldCandidateID:
+		return m.CandidateID()
+	case candidateaward.FieldName:
+		return m.Name()
+	case candidateaward.FieldAchievedDate:
+		return m.AchievedDate()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateAwardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidateaward.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidateaward.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidateaward.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidateaward.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case candidateaward.FieldName:
+		return m.OldName(ctx)
+	case candidateaward.FieldAchievedDate:
+		return m.OldAchievedDate(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateAward field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateAwardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidateaward.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidateaward.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidateaward.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidateaward.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case candidateaward.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case candidateaward.FieldAchievedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAchievedDate(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateAward field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateAwardMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateAwardMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateAwardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateAward numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateAwardMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidateaward.FieldUpdatedAt) {
+		fields = append(fields, candidateaward.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidateaward.FieldDeletedAt) {
+		fields = append(fields, candidateaward.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidateaward.FieldCandidateID) {
+		fields = append(fields, candidateaward.FieldCandidateID)
+	}
+	if m.FieldCleared(candidateaward.FieldAchievedDate) {
+		fields = append(fields, candidateaward.FieldAchievedDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateAwardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateAwardMutation) ClearField(name string) error {
+	switch name {
+	case candidateaward.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidateaward.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidateaward.FieldCandidateID:
+		m.ClearCandidateID()
+		return nil
+	case candidateaward.FieldAchievedDate:
+		m.ClearAchievedDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateAward nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateAwardMutation) ResetField(name string) error {
+	switch name {
+	case candidateaward.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidateaward.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidateaward.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidateaward.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case candidateaward.FieldName:
+		m.ResetName()
+		return nil
+	case candidateaward.FieldAchievedDate:
+		m.ResetAchievedDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateAward field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateAwardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.attachment_edges != nil {
+		edges = append(edges, candidateaward.EdgeAttachmentEdges)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, candidateaward.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateAwardMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidateaward.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateaward.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateAwardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidateaward.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateAwardMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidateaward.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateAwardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedattachment_edges {
+		edges = append(edges, candidateaward.EdgeAttachmentEdges)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, candidateaward.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateAwardMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidateaward.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	case candidateaward.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateAwardMutation) ClearEdge(name string) error {
+	switch name {
+	case candidateaward.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateAward unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateAwardMutation) ResetEdge(name string) error {
+	switch name {
+	case candidateaward.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	case candidateaward.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateAward edge %s", name)
+}
+
+// CandidateCertificateMutation represents an operation that mutates the CandidateCertificate nodes in the graph.
+type CandidateCertificateMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	name                    *string
+	score                   *string
+	achieved_date           *time.Time
+	clearedFields           map[string]struct{}
+	attachment_edges        map[uuid.UUID]struct{}
+	removedattachment_edges map[uuid.UUID]struct{}
+	clearedattachment_edges bool
+	candidate_edge          *uuid.UUID
+	clearedcandidate_edge   bool
+	done                    bool
+	oldValue                func(context.Context) (*CandidateCertificate, error)
+	predicates              []predicate.CandidateCertificate
+}
+
+var _ ent.Mutation = (*CandidateCertificateMutation)(nil)
+
+// candidatecertificateOption allows management of the mutation configuration using functional options.
+type candidatecertificateOption func(*CandidateCertificateMutation)
+
+// newCandidateCertificateMutation creates new mutation for the CandidateCertificate entity.
+func newCandidateCertificateMutation(c config, op Op, opts ...candidatecertificateOption) *CandidateCertificateMutation {
+	m := &CandidateCertificateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateCertificate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateCertificateID sets the ID field of the mutation.
+func withCandidateCertificateID(id uuid.UUID) candidatecertificateOption {
+	return func(m *CandidateCertificateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateCertificate
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateCertificate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateCertificate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateCertificate sets the old CandidateCertificate of the mutation.
+func withCandidateCertificate(node *CandidateCertificate) candidatecertificateOption {
+	return func(m *CandidateCertificateMutation) {
+		m.oldValue = func(context.Context) (*CandidateCertificate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateCertificateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateCertificateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateCertificate entities.
+func (m *CandidateCertificateMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateCertificateMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateCertificateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateCertificate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateCertificateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateCertificateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateCertificateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateCertificateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateCertificateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateCertificateMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidatecertificate.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateCertificateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidatecertificate.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateCertificateMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateCertificateMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateCertificateMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidatecertificate.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateCertificateMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidatecertificate.FieldDeletedAt)
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (m *CandidateCertificateMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_edge = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *CandidateCertificateMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ClearCandidateID clears the value of the "candidate_id" field.
+func (m *CandidateCertificateMutation) ClearCandidateID() {
+	m.candidate_edge = nil
+	m.clearedFields[candidatecertificate.FieldCandidateID] = struct{}{}
+}
+
+// CandidateIDCleared returns if the "candidate_id" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) CandidateIDCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldCandidateID]
+	return ok
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *CandidateCertificateMutation) ResetCandidateID() {
+	m.candidate_edge = nil
+	delete(m.clearedFields, candidatecertificate.FieldCandidateID)
+}
+
+// SetName sets the "name" field.
+func (m *CandidateCertificateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CandidateCertificateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CandidateCertificateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetScore sets the "score" field.
+func (m *CandidateCertificateMutation) SetScore(s string) {
+	m.score = &s
+}
+
+// Score returns the value of the "score" field in the mutation.
+func (m *CandidateCertificateMutation) Score() (r string, exists bool) {
+	v := m.score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScore returns the old "score" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldScore(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScore: %w", err)
+	}
+	return oldValue.Score, nil
+}
+
+// ClearScore clears the value of the "score" field.
+func (m *CandidateCertificateMutation) ClearScore() {
+	m.score = nil
+	m.clearedFields[candidatecertificate.FieldScore] = struct{}{}
+}
+
+// ScoreCleared returns if the "score" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) ScoreCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldScore]
+	return ok
+}
+
+// ResetScore resets all changes to the "score" field.
+func (m *CandidateCertificateMutation) ResetScore() {
+	m.score = nil
+	delete(m.clearedFields, candidatecertificate.FieldScore)
+}
+
+// SetAchievedDate sets the "achieved_date" field.
+func (m *CandidateCertificateMutation) SetAchievedDate(t time.Time) {
+	m.achieved_date = &t
+}
+
+// AchievedDate returns the value of the "achieved_date" field in the mutation.
+func (m *CandidateCertificateMutation) AchievedDate() (r time.Time, exists bool) {
+	v := m.achieved_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAchievedDate returns the old "achieved_date" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldAchievedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAchievedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAchievedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAchievedDate: %w", err)
+	}
+	return oldValue.AchievedDate, nil
+}
+
+// ClearAchievedDate clears the value of the "achieved_date" field.
+func (m *CandidateCertificateMutation) ClearAchievedDate() {
+	m.achieved_date = nil
+	m.clearedFields[candidatecertificate.FieldAchievedDate] = struct{}{}
+}
+
+// AchievedDateCleared returns if the "achieved_date" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) AchievedDateCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldAchievedDate]
+	return ok
+}
+
+// ResetAchievedDate resets all changes to the "achieved_date" field.
+func (m *CandidateCertificateMutation) ResetAchievedDate() {
+	m.achieved_date = nil
+	delete(m.clearedFields, candidatecertificate.FieldAchievedDate)
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateCertificateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateCertificateMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateCertificateMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateCertificateMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateCertificateMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateCertificateMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateCertificateMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *CandidateCertificateMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *CandidateCertificateMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *CandidateCertificateMutation) CandidateEdgeCleared() bool {
+	return m.CandidateIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *CandidateCertificateMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateCertificateMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *CandidateCertificateMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// Where appends a list predicates to the CandidateCertificateMutation builder.
+func (m *CandidateCertificateMutation) Where(ps ...predicate.CandidateCertificate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateCertificateMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateCertificate).
+func (m *CandidateCertificateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateCertificateMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, candidatecertificate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidatecertificate.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidatecertificate.FieldDeletedAt)
+	}
+	if m.candidate_edge != nil {
+		fields = append(fields, candidatecertificate.FieldCandidateID)
+	}
+	if m.name != nil {
+		fields = append(fields, candidatecertificate.FieldName)
+	}
+	if m.score != nil {
+		fields = append(fields, candidatecertificate.FieldScore)
+	}
+	if m.achieved_date != nil {
+		fields = append(fields, candidatecertificate.FieldAchievedDate)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateCertificateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidatecertificate.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidatecertificate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidatecertificate.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidatecertificate.FieldCandidateID:
+		return m.CandidateID()
+	case candidatecertificate.FieldName:
+		return m.Name()
+	case candidatecertificate.FieldScore:
+		return m.Score()
+	case candidatecertificate.FieldAchievedDate:
+		return m.AchievedDate()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateCertificateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidatecertificate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidatecertificate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidatecertificate.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidatecertificate.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case candidatecertificate.FieldName:
+		return m.OldName(ctx)
+	case candidatecertificate.FieldScore:
+		return m.OldScore(ctx)
+	case candidatecertificate.FieldAchievedDate:
+		return m.OldAchievedDate(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateCertificate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateCertificateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidatecertificate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidatecertificate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidatecertificate.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidatecertificate.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case candidatecertificate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case candidatecertificate.FieldScore:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScore(v)
+		return nil
+	case candidatecertificate.FieldAchievedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAchievedDate(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateCertificate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateCertificateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateCertificateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateCertificateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateCertificate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateCertificateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidatecertificate.FieldUpdatedAt) {
+		fields = append(fields, candidatecertificate.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidatecertificate.FieldDeletedAt) {
+		fields = append(fields, candidatecertificate.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidatecertificate.FieldCandidateID) {
+		fields = append(fields, candidatecertificate.FieldCandidateID)
+	}
+	if m.FieldCleared(candidatecertificate.FieldScore) {
+		fields = append(fields, candidatecertificate.FieldScore)
+	}
+	if m.FieldCleared(candidatecertificate.FieldAchievedDate) {
+		fields = append(fields, candidatecertificate.FieldAchievedDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateCertificateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateCertificateMutation) ClearField(name string) error {
+	switch name {
+	case candidatecertificate.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidatecertificate.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidatecertificate.FieldCandidateID:
+		m.ClearCandidateID()
+		return nil
+	case candidatecertificate.FieldScore:
+		m.ClearScore()
+		return nil
+	case candidatecertificate.FieldAchievedDate:
+		m.ClearAchievedDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateCertificate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateCertificateMutation) ResetField(name string) error {
+	switch name {
+	case candidatecertificate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidatecertificate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidatecertificate.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidatecertificate.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case candidatecertificate.FieldName:
+		m.ResetName()
+		return nil
+	case candidatecertificate.FieldScore:
+		m.ResetScore()
+		return nil
+	case candidatecertificate.FieldAchievedDate:
+		m.ResetAchievedDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateCertificate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateCertificateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.attachment_edges != nil {
+		edges = append(edges, candidatecertificate.EdgeAttachmentEdges)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, candidatecertificate.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateCertificateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidatecertificate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidatecertificate.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateCertificateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidatecertificate.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateCertificateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidatecertificate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateCertificateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedattachment_edges {
+		edges = append(edges, candidatecertificate.EdgeAttachmentEdges)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, candidatecertificate.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateCertificateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidatecertificate.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	case candidatecertificate.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateCertificateMutation) ClearEdge(name string) error {
+	switch name {
+	case candidatecertificate.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateCertificate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateCertificateMutation) ResetEdge(name string) error {
+	switch name {
+	case candidatecertificate.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	case candidatecertificate.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateCertificate edge %s", name)
+}
+
+// CandidateEducateMutation represents an operation that mutates the CandidateEducate nodes in the graph.
+type CandidateEducateMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	school_name             *string
+	major                   *string
+	gpa                     *string
+	location                *string
+	description             *string
+	start_date              *time.Time
+	end_date                *time.Time
+	clearedFields           map[string]struct{}
+	attachment_edges        map[uuid.UUID]struct{}
+	removedattachment_edges map[uuid.UUID]struct{}
+	clearedattachment_edges bool
+	candidate_edge          *uuid.UUID
+	clearedcandidate_edge   bool
+	done                    bool
+	oldValue                func(context.Context) (*CandidateEducate, error)
+	predicates              []predicate.CandidateEducate
+}
+
+var _ ent.Mutation = (*CandidateEducateMutation)(nil)
+
+// candidateeducateOption allows management of the mutation configuration using functional options.
+type candidateeducateOption func(*CandidateEducateMutation)
+
+// newCandidateEducateMutation creates new mutation for the CandidateEducate entity.
+func newCandidateEducateMutation(c config, op Op, opts ...candidateeducateOption) *CandidateEducateMutation {
+	m := &CandidateEducateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateEducate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateEducateID sets the ID field of the mutation.
+func withCandidateEducateID(id uuid.UUID) candidateeducateOption {
+	return func(m *CandidateEducateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateEducate
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateEducate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateEducate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateEducate sets the old CandidateEducate of the mutation.
+func withCandidateEducate(node *CandidateEducate) candidateeducateOption {
+	return func(m *CandidateEducateMutation) {
+		m.oldValue = func(context.Context) (*CandidateEducate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateEducateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateEducateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateEducate entities.
+func (m *CandidateEducateMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateEducateMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateEducateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateEducate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateEducateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateEducateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateEducateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateEducateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateEducateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateEducateMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidateeducate.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateEducateMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateEducateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidateeducate.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateEducateMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateEducateMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateEducateMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidateeducate.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateEducateMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateEducateMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidateeducate.FieldDeletedAt)
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (m *CandidateEducateMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_edge = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *CandidateEducateMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ClearCandidateID clears the value of the "candidate_id" field.
+func (m *CandidateEducateMutation) ClearCandidateID() {
+	m.candidate_edge = nil
+	m.clearedFields[candidateeducate.FieldCandidateID] = struct{}{}
+}
+
+// CandidateIDCleared returns if the "candidate_id" field was cleared in this mutation.
+func (m *CandidateEducateMutation) CandidateIDCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldCandidateID]
+	return ok
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *CandidateEducateMutation) ResetCandidateID() {
+	m.candidate_edge = nil
+	delete(m.clearedFields, candidateeducate.FieldCandidateID)
+}
+
+// SetSchoolName sets the "school_name" field.
+func (m *CandidateEducateMutation) SetSchoolName(s string) {
+	m.school_name = &s
+}
+
+// SchoolName returns the value of the "school_name" field in the mutation.
+func (m *CandidateEducateMutation) SchoolName() (r string, exists bool) {
+	v := m.school_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchoolName returns the old "school_name" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldSchoolName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchoolName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchoolName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchoolName: %w", err)
+	}
+	return oldValue.SchoolName, nil
+}
+
+// ResetSchoolName resets all changes to the "school_name" field.
+func (m *CandidateEducateMutation) ResetSchoolName() {
+	m.school_name = nil
+}
+
+// SetMajor sets the "major" field.
+func (m *CandidateEducateMutation) SetMajor(s string) {
+	m.major = &s
+}
+
+// Major returns the value of the "major" field in the mutation.
+func (m *CandidateEducateMutation) Major() (r string, exists bool) {
+	v := m.major
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMajor returns the old "major" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldMajor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMajor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMajor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMajor: %w", err)
+	}
+	return oldValue.Major, nil
+}
+
+// ClearMajor clears the value of the "major" field.
+func (m *CandidateEducateMutation) ClearMajor() {
+	m.major = nil
+	m.clearedFields[candidateeducate.FieldMajor] = struct{}{}
+}
+
+// MajorCleared returns if the "major" field was cleared in this mutation.
+func (m *CandidateEducateMutation) MajorCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldMajor]
+	return ok
+}
+
+// ResetMajor resets all changes to the "major" field.
+func (m *CandidateEducateMutation) ResetMajor() {
+	m.major = nil
+	delete(m.clearedFields, candidateeducate.FieldMajor)
+}
+
+// SetGpa sets the "gpa" field.
+func (m *CandidateEducateMutation) SetGpa(s string) {
+	m.gpa = &s
+}
+
+// Gpa returns the value of the "gpa" field in the mutation.
+func (m *CandidateEducateMutation) Gpa() (r string, exists bool) {
+	v := m.gpa
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGpa returns the old "gpa" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldGpa(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGpa is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGpa requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGpa: %w", err)
+	}
+	return oldValue.Gpa, nil
+}
+
+// ClearGpa clears the value of the "gpa" field.
+func (m *CandidateEducateMutation) ClearGpa() {
+	m.gpa = nil
+	m.clearedFields[candidateeducate.FieldGpa] = struct{}{}
+}
+
+// GpaCleared returns if the "gpa" field was cleared in this mutation.
+func (m *CandidateEducateMutation) GpaCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldGpa]
+	return ok
+}
+
+// ResetGpa resets all changes to the "gpa" field.
+func (m *CandidateEducateMutation) ResetGpa() {
+	m.gpa = nil
+	delete(m.clearedFields, candidateeducate.FieldGpa)
+}
+
+// SetLocation sets the "location" field.
+func (m *CandidateEducateMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *CandidateEducateMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ClearLocation clears the value of the "location" field.
+func (m *CandidateEducateMutation) ClearLocation() {
+	m.location = nil
+	m.clearedFields[candidateeducate.FieldLocation] = struct{}{}
+}
+
+// LocationCleared returns if the "location" field was cleared in this mutation.
+func (m *CandidateEducateMutation) LocationCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldLocation]
+	return ok
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *CandidateEducateMutation) ResetLocation() {
+	m.location = nil
+	delete(m.clearedFields, candidateeducate.FieldLocation)
+}
+
+// SetDescription sets the "description" field.
+func (m *CandidateEducateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CandidateEducateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *CandidateEducateMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[candidateeducate.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *CandidateEducateMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CandidateEducateMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, candidateeducate.FieldDescription)
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *CandidateEducateMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *CandidateEducateMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ClearStartDate clears the value of the "start_date" field.
+func (m *CandidateEducateMutation) ClearStartDate() {
+	m.start_date = nil
+	m.clearedFields[candidateeducate.FieldStartDate] = struct{}{}
+}
+
+// StartDateCleared returns if the "start_date" field was cleared in this mutation.
+func (m *CandidateEducateMutation) StartDateCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldStartDate]
+	return ok
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *CandidateEducateMutation) ResetStartDate() {
+	m.start_date = nil
+	delete(m.clearedFields, candidateeducate.FieldStartDate)
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *CandidateEducateMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *CandidateEducateMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *CandidateEducateMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[candidateeducate.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *CandidateEducateMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *CandidateEducateMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, candidateeducate.FieldEndDate)
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateEducateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateEducateMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateEducateMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateEducateMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateEducateMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateEducateMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateEducateMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *CandidateEducateMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *CandidateEducateMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *CandidateEducateMutation) CandidateEdgeCleared() bool {
+	return m.CandidateIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *CandidateEducateMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateEducateMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *CandidateEducateMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// Where appends a list predicates to the CandidateEducateMutation builder.
+func (m *CandidateEducateMutation) Where(ps ...predicate.CandidateEducate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateEducateMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateEducate).
+func (m *CandidateEducateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateEducateMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, candidateeducate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidateeducate.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidateeducate.FieldDeletedAt)
+	}
+	if m.candidate_edge != nil {
+		fields = append(fields, candidateeducate.FieldCandidateID)
+	}
+	if m.school_name != nil {
+		fields = append(fields, candidateeducate.FieldSchoolName)
+	}
+	if m.major != nil {
+		fields = append(fields, candidateeducate.FieldMajor)
+	}
+	if m.gpa != nil {
+		fields = append(fields, candidateeducate.FieldGpa)
+	}
+	if m.location != nil {
+		fields = append(fields, candidateeducate.FieldLocation)
+	}
+	if m.description != nil {
+		fields = append(fields, candidateeducate.FieldDescription)
+	}
+	if m.start_date != nil {
+		fields = append(fields, candidateeducate.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, candidateeducate.FieldEndDate)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateEducateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidateeducate.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidateeducate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidateeducate.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidateeducate.FieldCandidateID:
+		return m.CandidateID()
+	case candidateeducate.FieldSchoolName:
+		return m.SchoolName()
+	case candidateeducate.FieldMajor:
+		return m.Major()
+	case candidateeducate.FieldGpa:
+		return m.Gpa()
+	case candidateeducate.FieldLocation:
+		return m.Location()
+	case candidateeducate.FieldDescription:
+		return m.Description()
+	case candidateeducate.FieldStartDate:
+		return m.StartDate()
+	case candidateeducate.FieldEndDate:
+		return m.EndDate()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateEducateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidateeducate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidateeducate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidateeducate.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidateeducate.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case candidateeducate.FieldSchoolName:
+		return m.OldSchoolName(ctx)
+	case candidateeducate.FieldMajor:
+		return m.OldMajor(ctx)
+	case candidateeducate.FieldGpa:
+		return m.OldGpa(ctx)
+	case candidateeducate.FieldLocation:
+		return m.OldLocation(ctx)
+	case candidateeducate.FieldDescription:
+		return m.OldDescription(ctx)
+	case candidateeducate.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case candidateeducate.FieldEndDate:
+		return m.OldEndDate(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateEducate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateEducateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidateeducate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidateeducate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidateeducate.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidateeducate.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case candidateeducate.FieldSchoolName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchoolName(v)
+		return nil
+	case candidateeducate.FieldMajor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMajor(v)
+		return nil
+	case candidateeducate.FieldGpa:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGpa(v)
+		return nil
+	case candidateeducate.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case candidateeducate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case candidateeducate.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case candidateeducate.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateEducate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateEducateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateEducateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateEducateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateEducate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateEducateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidateeducate.FieldUpdatedAt) {
+		fields = append(fields, candidateeducate.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidateeducate.FieldDeletedAt) {
+		fields = append(fields, candidateeducate.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidateeducate.FieldCandidateID) {
+		fields = append(fields, candidateeducate.FieldCandidateID)
+	}
+	if m.FieldCleared(candidateeducate.FieldMajor) {
+		fields = append(fields, candidateeducate.FieldMajor)
+	}
+	if m.FieldCleared(candidateeducate.FieldGpa) {
+		fields = append(fields, candidateeducate.FieldGpa)
+	}
+	if m.FieldCleared(candidateeducate.FieldLocation) {
+		fields = append(fields, candidateeducate.FieldLocation)
+	}
+	if m.FieldCleared(candidateeducate.FieldDescription) {
+		fields = append(fields, candidateeducate.FieldDescription)
+	}
+	if m.FieldCleared(candidateeducate.FieldStartDate) {
+		fields = append(fields, candidateeducate.FieldStartDate)
+	}
+	if m.FieldCleared(candidateeducate.FieldEndDate) {
+		fields = append(fields, candidateeducate.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateEducateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateEducateMutation) ClearField(name string) error {
+	switch name {
+	case candidateeducate.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidateeducate.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidateeducate.FieldCandidateID:
+		m.ClearCandidateID()
+		return nil
+	case candidateeducate.FieldMajor:
+		m.ClearMajor()
+		return nil
+	case candidateeducate.FieldGpa:
+		m.ClearGpa()
+		return nil
+	case candidateeducate.FieldLocation:
+		m.ClearLocation()
+		return nil
+	case candidateeducate.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case candidateeducate.FieldStartDate:
+		m.ClearStartDate()
+		return nil
+	case candidateeducate.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateEducate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateEducateMutation) ResetField(name string) error {
+	switch name {
+	case candidateeducate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidateeducate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidateeducate.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidateeducate.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case candidateeducate.FieldSchoolName:
+		m.ResetSchoolName()
+		return nil
+	case candidateeducate.FieldMajor:
+		m.ResetMajor()
+		return nil
+	case candidateeducate.FieldGpa:
+		m.ResetGpa()
+		return nil
+	case candidateeducate.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case candidateeducate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case candidateeducate.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case candidateeducate.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateEducate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateEducateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.attachment_edges != nil {
+		edges = append(edges, candidateeducate.EdgeAttachmentEdges)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, candidateeducate.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateEducateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidateeducate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateeducate.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateEducateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidateeducate.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateEducateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidateeducate.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateEducateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedattachment_edges {
+		edges = append(edges, candidateeducate.EdgeAttachmentEdges)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, candidateeducate.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateEducateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidateeducate.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	case candidateeducate.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateEducateMutation) ClearEdge(name string) error {
+	switch name {
+	case candidateeducate.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateEducate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateEducateMutation) ResetEdge(name string) error {
+	switch name {
+	case candidateeducate.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	case candidateeducate.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateEducate edge %s", name)
+}
+
+// CandidateExpMutation represents an operation that mutates the CandidateExp nodes in the graph.
+type CandidateExpMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	position                *string
+	company                 *string
+	location                *string
+	description             *string
+	start_date              *time.Time
+	end_date                *time.Time
+	clearedFields           map[string]struct{}
+	attachment_edges        map[uuid.UUID]struct{}
+	removedattachment_edges map[uuid.UUID]struct{}
+	clearedattachment_edges bool
+	candidate_edge          *uuid.UUID
+	clearedcandidate_edge   bool
+	done                    bool
+	oldValue                func(context.Context) (*CandidateExp, error)
+	predicates              []predicate.CandidateExp
+}
+
+var _ ent.Mutation = (*CandidateExpMutation)(nil)
+
+// candidateexpOption allows management of the mutation configuration using functional options.
+type candidateexpOption func(*CandidateExpMutation)
+
+// newCandidateExpMutation creates new mutation for the CandidateExp entity.
+func newCandidateExpMutation(c config, op Op, opts ...candidateexpOption) *CandidateExpMutation {
+	m := &CandidateExpMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateExp,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateExpID sets the ID field of the mutation.
+func withCandidateExpID(id uuid.UUID) candidateexpOption {
+	return func(m *CandidateExpMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateExp
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateExp, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateExp.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateExp sets the old CandidateExp of the mutation.
+func withCandidateExp(node *CandidateExp) candidateexpOption {
+	return func(m *CandidateExpMutation) {
+		m.oldValue = func(context.Context) (*CandidateExp, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateExpMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateExpMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateExp entities.
+func (m *CandidateExpMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateExpMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateExpMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateExp.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateExpMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateExpMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateExpMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateExpMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateExpMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateExpMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidateexp.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateExpMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateExpMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidateexp.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateExpMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateExpMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateExpMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidateexp.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateExpMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateExpMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidateexp.FieldDeletedAt)
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (m *CandidateExpMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_edge = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *CandidateExpMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ClearCandidateID clears the value of the "candidate_id" field.
+func (m *CandidateExpMutation) ClearCandidateID() {
+	m.candidate_edge = nil
+	m.clearedFields[candidateexp.FieldCandidateID] = struct{}{}
+}
+
+// CandidateIDCleared returns if the "candidate_id" field was cleared in this mutation.
+func (m *CandidateExpMutation) CandidateIDCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldCandidateID]
+	return ok
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *CandidateExpMutation) ResetCandidateID() {
+	m.candidate_edge = nil
+	delete(m.clearedFields, candidateexp.FieldCandidateID)
+}
+
+// SetPosition sets the "position" field.
+func (m *CandidateExpMutation) SetPosition(s string) {
+	m.position = &s
+}
+
+// Position returns the value of the "position" field in the mutation.
+func (m *CandidateExpMutation) Position() (r string, exists bool) {
+	v := m.position
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosition returns the old "position" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldPosition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosition: %w", err)
+	}
+	return oldValue.Position, nil
+}
+
+// ResetPosition resets all changes to the "position" field.
+func (m *CandidateExpMutation) ResetPosition() {
+	m.position = nil
+}
+
+// SetCompany sets the "company" field.
+func (m *CandidateExpMutation) SetCompany(s string) {
+	m.company = &s
+}
+
+// Company returns the value of the "company" field in the mutation.
+func (m *CandidateExpMutation) Company() (r string, exists bool) {
+	v := m.company
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompany returns the old "company" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldCompany(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompany is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompany requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompany: %w", err)
+	}
+	return oldValue.Company, nil
+}
+
+// ResetCompany resets all changes to the "company" field.
+func (m *CandidateExpMutation) ResetCompany() {
+	m.company = nil
+}
+
+// SetLocation sets the "location" field.
+func (m *CandidateExpMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *CandidateExpMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ClearLocation clears the value of the "location" field.
+func (m *CandidateExpMutation) ClearLocation() {
+	m.location = nil
+	m.clearedFields[candidateexp.FieldLocation] = struct{}{}
+}
+
+// LocationCleared returns if the "location" field was cleared in this mutation.
+func (m *CandidateExpMutation) LocationCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldLocation]
+	return ok
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *CandidateExpMutation) ResetLocation() {
+	m.location = nil
+	delete(m.clearedFields, candidateexp.FieldLocation)
+}
+
+// SetDescription sets the "description" field.
+func (m *CandidateExpMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CandidateExpMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *CandidateExpMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[candidateexp.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *CandidateExpMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CandidateExpMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, candidateexp.FieldDescription)
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *CandidateExpMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *CandidateExpMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ClearStartDate clears the value of the "start_date" field.
+func (m *CandidateExpMutation) ClearStartDate() {
+	m.start_date = nil
+	m.clearedFields[candidateexp.FieldStartDate] = struct{}{}
+}
+
+// StartDateCleared returns if the "start_date" field was cleared in this mutation.
+func (m *CandidateExpMutation) StartDateCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldStartDate]
+	return ok
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *CandidateExpMutation) ResetStartDate() {
+	m.start_date = nil
+	delete(m.clearedFields, candidateexp.FieldStartDate)
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *CandidateExpMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *CandidateExpMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldEndDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *CandidateExpMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[candidateexp.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *CandidateExpMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *CandidateExpMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, candidateexp.FieldEndDate)
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateExpMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateExpMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateExpMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateExpMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateExpMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateExpMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateExpMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *CandidateExpMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *CandidateExpMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *CandidateExpMutation) CandidateEdgeCleared() bool {
+	return m.CandidateIDCleared() || m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *CandidateExpMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateExpMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *CandidateExpMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// Where appends a list predicates to the CandidateExpMutation builder.
+func (m *CandidateExpMutation) Where(ps ...predicate.CandidateExp) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateExpMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateExp).
+func (m *CandidateExpMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateExpMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, candidateexp.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidateexp.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidateexp.FieldDeletedAt)
+	}
+	if m.candidate_edge != nil {
+		fields = append(fields, candidateexp.FieldCandidateID)
+	}
+	if m.position != nil {
+		fields = append(fields, candidateexp.FieldPosition)
+	}
+	if m.company != nil {
+		fields = append(fields, candidateexp.FieldCompany)
+	}
+	if m.location != nil {
+		fields = append(fields, candidateexp.FieldLocation)
+	}
+	if m.description != nil {
+		fields = append(fields, candidateexp.FieldDescription)
+	}
+	if m.start_date != nil {
+		fields = append(fields, candidateexp.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, candidateexp.FieldEndDate)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateExpMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidateexp.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidateexp.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidateexp.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidateexp.FieldCandidateID:
+		return m.CandidateID()
+	case candidateexp.FieldPosition:
+		return m.Position()
+	case candidateexp.FieldCompany:
+		return m.Company()
+	case candidateexp.FieldLocation:
+		return m.Location()
+	case candidateexp.FieldDescription:
+		return m.Description()
+	case candidateexp.FieldStartDate:
+		return m.StartDate()
+	case candidateexp.FieldEndDate:
+		return m.EndDate()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateExpMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidateexp.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidateexp.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidateexp.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidateexp.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case candidateexp.FieldPosition:
+		return m.OldPosition(ctx)
+	case candidateexp.FieldCompany:
+		return m.OldCompany(ctx)
+	case candidateexp.FieldLocation:
+		return m.OldLocation(ctx)
+	case candidateexp.FieldDescription:
+		return m.OldDescription(ctx)
+	case candidateexp.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case candidateexp.FieldEndDate:
+		return m.OldEndDate(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateExp field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateExpMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidateexp.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidateexp.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidateexp.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidateexp.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case candidateexp.FieldPosition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosition(v)
+		return nil
+	case candidateexp.FieldCompany:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompany(v)
+		return nil
+	case candidateexp.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case candidateexp.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case candidateexp.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case candidateexp.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateExp field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateExpMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateExpMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateExpMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateExp numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateExpMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidateexp.FieldUpdatedAt) {
+		fields = append(fields, candidateexp.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidateexp.FieldDeletedAt) {
+		fields = append(fields, candidateexp.FieldDeletedAt)
+	}
+	if m.FieldCleared(candidateexp.FieldCandidateID) {
+		fields = append(fields, candidateexp.FieldCandidateID)
+	}
+	if m.FieldCleared(candidateexp.FieldLocation) {
+		fields = append(fields, candidateexp.FieldLocation)
+	}
+	if m.FieldCleared(candidateexp.FieldDescription) {
+		fields = append(fields, candidateexp.FieldDescription)
+	}
+	if m.FieldCleared(candidateexp.FieldStartDate) {
+		fields = append(fields, candidateexp.FieldStartDate)
+	}
+	if m.FieldCleared(candidateexp.FieldEndDate) {
+		fields = append(fields, candidateexp.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateExpMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateExpMutation) ClearField(name string) error {
+	switch name {
+	case candidateexp.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidateexp.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case candidateexp.FieldCandidateID:
+		m.ClearCandidateID()
+		return nil
+	case candidateexp.FieldLocation:
+		m.ClearLocation()
+		return nil
+	case candidateexp.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case candidateexp.FieldStartDate:
+		m.ClearStartDate()
+		return nil
+	case candidateexp.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateExp nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateExpMutation) ResetField(name string) error {
+	switch name {
+	case candidateexp.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidateexp.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidateexp.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidateexp.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case candidateexp.FieldPosition:
+		m.ResetPosition()
+		return nil
+	case candidateexp.FieldCompany:
+		m.ResetCompany()
+		return nil
+	case candidateexp.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case candidateexp.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case candidateexp.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case candidateexp.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateExp field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateExpMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.attachment_edges != nil {
+		edges = append(edges, candidateexp.EdgeAttachmentEdges)
+	}
+	if m.candidate_edge != nil {
+		edges = append(edges, candidateexp.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateExpMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidateexp.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case candidateexp.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateExpMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidateexp.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateExpMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidateexp.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateExpMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedattachment_edges {
+		edges = append(edges, candidateexp.EdgeAttachmentEdges)
+	}
+	if m.clearedcandidate_edge {
+		edges = append(edges, candidateexp.EdgeCandidateEdge)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateExpMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidateexp.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	case candidateexp.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateExpMutation) ClearEdge(name string) error {
+	switch name {
+	case candidateexp.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateExp unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateExpMutation) ResetEdge(name string) error {
+	switch name {
+	case candidateexp.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	case candidateexp.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateExp edge %s", name)
 }
 
 // CandidateInterviewMutation represents an operation that mutates the CandidateInterview nodes in the graph.

@@ -180,6 +180,13 @@ func Country(v string) predicate.Candidate {
 	})
 }
 
+// Address applies equality check predicate on the "address" field. It's identical to AddressEQ.
+func Address(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAddress), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -1370,6 +1377,119 @@ func CountryContainsFold(v string) predicate.Candidate {
 	})
 }
 
+// AddressEQ applies the EQ predicate on the "address" field.
+func AddressEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAddress), v))
+	})
+}
+
+// AddressNEQ applies the NEQ predicate on the "address" field.
+func AddressNEQ(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAddress), v))
+	})
+}
+
+// AddressIn applies the In predicate on the "address" field.
+func AddressIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldAddress), v...))
+	})
+}
+
+// AddressNotIn applies the NotIn predicate on the "address" field.
+func AddressNotIn(vs ...string) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldAddress), v...))
+	})
+}
+
+// AddressGT applies the GT predicate on the "address" field.
+func AddressGT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAddress), v))
+	})
+}
+
+// AddressGTE applies the GTE predicate on the "address" field.
+func AddressGTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAddress), v))
+	})
+}
+
+// AddressLT applies the LT predicate on the "address" field.
+func AddressLT(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAddress), v))
+	})
+}
+
+// AddressLTE applies the LTE predicate on the "address" field.
+func AddressLTE(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAddress), v))
+	})
+}
+
+// AddressContains applies the Contains predicate on the "address" field.
+func AddressContains(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldAddress), v))
+	})
+}
+
+// AddressHasPrefix applies the HasPrefix predicate on the "address" field.
+func AddressHasPrefix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldAddress), v))
+	})
+}
+
+// AddressHasSuffix applies the HasSuffix predicate on the "address" field.
+func AddressHasSuffix(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldAddress), v))
+	})
+}
+
+// AddressIsNil applies the IsNil predicate on the "address" field.
+func AddressIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAddress)))
+	})
+}
+
+// AddressNotNil applies the NotNil predicate on the "address" field.
+func AddressNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAddress)))
+	})
+}
+
+// AddressEqualFold applies the EqualFold predicate on the "address" field.
+func AddressEqualFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldAddress), v))
+	})
+}
+
+// AddressContainsFold applies the ContainsFold predicate on the "address" field.
+func AddressContainsFold(v string) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldAddress), v))
+	})
+}
+
 // HasCandidateJobEdges applies the HasEdge predicate on the "candidate_job_edges" edge.
 func HasCandidateJobEdges() predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -1473,6 +1593,118 @@ func HasCandidateSkillEdgesWith(preds ...predicate.EntitySkill) predicate.Candid
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CandidateSkillEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CandidateSkillEdgesTable, CandidateSkillEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateExpEdges applies the HasEdge predicate on the "candidate_exp_edges" edge.
+func HasCandidateExpEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateExpEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateExpEdgesTable, CandidateExpEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateExpEdgesWith applies the HasEdge predicate on the "candidate_exp_edges" edge with a given conditions (other predicates).
+func HasCandidateExpEdgesWith(preds ...predicate.CandidateExp) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateExpEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateExpEdgesTable, CandidateExpEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateEducateEdges applies the HasEdge predicate on the "candidate_educate_edges" edge.
+func HasCandidateEducateEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEducateEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateEducateEdgesTable, CandidateEducateEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateEducateEdgesWith applies the HasEdge predicate on the "candidate_educate_edges" edge with a given conditions (other predicates).
+func HasCandidateEducateEdgesWith(preds ...predicate.CandidateEducate) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEducateEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateEducateEdgesTable, CandidateEducateEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateAwardEdges applies the HasEdge predicate on the "candidate_award_edges" edge.
+func HasCandidateAwardEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateAwardEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateAwardEdgesTable, CandidateAwardEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateAwardEdgesWith applies the HasEdge predicate on the "candidate_award_edges" edge with a given conditions (other predicates).
+func HasCandidateAwardEdgesWith(preds ...predicate.CandidateAward) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateAwardEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateAwardEdgesTable, CandidateAwardEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCandidateCertificateEdges applies the HasEdge predicate on the "candidate_certificate_edges" edge.
+func HasCandidateCertificateEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateCertificateEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateCertificateEdgesTable, CandidateCertificateEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateCertificateEdgesWith applies the HasEdge predicate on the "candidate_certificate_edges" edge with a given conditions (other predicates).
+func HasCandidateCertificateEdgesWith(preds ...predicate.CandidateCertificate) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateCertificateEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateCertificateEdgesTable, CandidateCertificateEdgesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

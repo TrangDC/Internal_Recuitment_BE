@@ -9,6 +9,10 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/user"
@@ -211,6 +215,20 @@ func (cc *CandidateCreate) SetNillableCountry(s *string) *CandidateCreate {
 	return cc
 }
 
+// SetAddress sets the "address" field.
+func (cc *CandidateCreate) SetAddress(s string) *CandidateCreate {
+	cc.mutation.SetAddress(s)
+	return cc
+}
+
+// SetNillableAddress sets the "address" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableAddress(s *string) *CandidateCreate {
+	if s != nil {
+		cc.SetAddress(*s)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	cc.mutation.SetID(u)
@@ -279,6 +297,66 @@ func (cc *CandidateCreate) AddCandidateSkillEdges(e ...*EntitySkill) *CandidateC
 		ids[i] = e[i].ID
 	}
 	return cc.AddCandidateSkillEdgeIDs(ids...)
+}
+
+// AddCandidateExpEdgeIDs adds the "candidate_exp_edges" edge to the CandidateExp entity by IDs.
+func (cc *CandidateCreate) AddCandidateExpEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateExpEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateExpEdges adds the "candidate_exp_edges" edges to the CandidateExp entity.
+func (cc *CandidateCreate) AddCandidateExpEdges(c ...*CandidateExp) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateExpEdgeIDs(ids...)
+}
+
+// AddCandidateEducateEdgeIDs adds the "candidate_educate_edges" edge to the CandidateEducate entity by IDs.
+func (cc *CandidateCreate) AddCandidateEducateEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateEducateEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateEducateEdges adds the "candidate_educate_edges" edges to the CandidateEducate entity.
+func (cc *CandidateCreate) AddCandidateEducateEdges(c ...*CandidateEducate) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateEducateEdgeIDs(ids...)
+}
+
+// AddCandidateAwardEdgeIDs adds the "candidate_award_edges" edge to the CandidateAward entity by IDs.
+func (cc *CandidateCreate) AddCandidateAwardEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateAwardEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateAwardEdges adds the "candidate_award_edges" edges to the CandidateAward entity.
+func (cc *CandidateCreate) AddCandidateAwardEdges(c ...*CandidateAward) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateAwardEdgeIDs(ids...)
+}
+
+// AddCandidateCertificateEdgeIDs adds the "candidate_certificate_edges" edge to the CandidateCertificate entity by IDs.
+func (cc *CandidateCreate) AddCandidateCertificateEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddCandidateCertificateEdgeIDs(ids...)
+	return cc
+}
+
+// AddCandidateCertificateEdges adds the "candidate_certificate_edges" edges to the CandidateCertificate entity.
+func (cc *CandidateCreate) AddCandidateCertificateEdges(c ...*CandidateCertificate) *CandidateCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCandidateCertificateEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -427,6 +505,11 @@ func (cc *CandidateCreate) check() error {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
 		}
 	}
+	if v, ok := cc.mutation.Address(); ok {
+		if err := candidate.AddressValidator(v); err != nil {
+			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -519,6 +602,10 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
 		_node.Country = value
 	}
+	if value, ok := cc.mutation.Address(); ok {
+		_spec.SetField(candidate.FieldAddress, field.TypeString, value)
+		_node.Address = value
+	}
 	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -588,6 +675,82 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: entityskill.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateExpEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateExpEdgesTable,
+			Columns: []string{candidate.CandidateExpEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateexp.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateEducateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateEducateEdgesTable,
+			Columns: []string{candidate.CandidateEducateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateeducate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateAwardEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateAwardEdgesTable,
+			Columns: []string{candidate.CandidateAwardEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidateaward.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CandidateCertificateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateCertificateEdgesTable,
+			Columns: []string{candidate.CandidateCertificateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatecertificate.FieldID,
 				},
 			},
 		}

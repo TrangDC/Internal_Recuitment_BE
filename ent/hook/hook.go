@@ -47,6 +47,58 @@ func (f CandidateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return f(ctx, mv)
 }
 
+// The CandidateAwardFunc type is an adapter to allow the use of ordinary
+// function as CandidateAward mutator.
+type CandidateAwardFunc func(context.Context, *ent.CandidateAwardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateAwardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateAwardMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateAwardMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CandidateCertificateFunc type is an adapter to allow the use of ordinary
+// function as CandidateCertificate mutator.
+type CandidateCertificateFunc func(context.Context, *ent.CandidateCertificateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateCertificateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateCertificateMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateCertificateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CandidateEducateFunc type is an adapter to allow the use of ordinary
+// function as CandidateEducate mutator.
+type CandidateEducateFunc func(context.Context, *ent.CandidateEducateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateEducateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateEducateMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateEducateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CandidateExpFunc type is an adapter to allow the use of ordinary
+// function as CandidateExp mutator.
+type CandidateExpFunc func(context.Context, *ent.CandidateExpMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateExpFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateExpMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateExpMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CandidateInterviewFunc type is an adapter to allow the use of ordinary
 // function as CandidateInterview mutator.
 type CandidateInterviewFunc func(context.Context, *ent.CandidateInterviewMutation) (ent.Value, error)

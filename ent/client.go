@@ -13,6 +13,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -54,6 +58,14 @@ type Client struct {
 	AuditTrail *AuditTrailClient
 	// Candidate is the client for interacting with the Candidate builders.
 	Candidate *CandidateClient
+	// CandidateAward is the client for interacting with the CandidateAward builders.
+	CandidateAward *CandidateAwardClient
+	// CandidateCertificate is the client for interacting with the CandidateCertificate builders.
+	CandidateCertificate *CandidateCertificateClient
+	// CandidateEducate is the client for interacting with the CandidateEducate builders.
+	CandidateEducate *CandidateEducateClient
+	// CandidateExp is the client for interacting with the CandidateExp builders.
+	CandidateExp *CandidateExpClient
 	// CandidateInterview is the client for interacting with the CandidateInterview builders.
 	CandidateInterview *CandidateInterviewClient
 	// CandidateInterviewer is the client for interacting with the CandidateInterviewer builders.
@@ -116,6 +128,10 @@ func (c *Client) init() {
 	c.Attachment = NewAttachmentClient(c.config)
 	c.AuditTrail = NewAuditTrailClient(c.config)
 	c.Candidate = NewCandidateClient(c.config)
+	c.CandidateAward = NewCandidateAwardClient(c.config)
+	c.CandidateCertificate = NewCandidateCertificateClient(c.config)
+	c.CandidateEducate = NewCandidateEducateClient(c.config)
+	c.CandidateExp = NewCandidateExpClient(c.config)
 	c.CandidateInterview = NewCandidateInterviewClient(c.config)
 	c.CandidateInterviewer = NewCandidateInterviewerClient(c.config)
 	c.CandidateJob = NewCandidateJobClient(c.config)
@@ -175,6 +191,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Attachment:           NewAttachmentClient(cfg),
 		AuditTrail:           NewAuditTrailClient(cfg),
 		Candidate:            NewCandidateClient(cfg),
+		CandidateAward:       NewCandidateAwardClient(cfg),
+		CandidateCertificate: NewCandidateCertificateClient(cfg),
+		CandidateEducate:     NewCandidateEducateClient(cfg),
+		CandidateExp:         NewCandidateExpClient(cfg),
 		CandidateInterview:   NewCandidateInterviewClient(cfg),
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
@@ -220,6 +240,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Attachment:           NewAttachmentClient(cfg),
 		AuditTrail:           NewAuditTrailClient(cfg),
 		Candidate:            NewCandidateClient(cfg),
+		CandidateAward:       NewCandidateAwardClient(cfg),
+		CandidateCertificate: NewCandidateCertificateClient(cfg),
+		CandidateEducate:     NewCandidateEducateClient(cfg),
+		CandidateExp:         NewCandidateExpClient(cfg),
 		CandidateInterview:   NewCandidateInterviewClient(cfg),
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
@@ -274,6 +298,10 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Attachment.Use(hooks...)
 	c.AuditTrail.Use(hooks...)
 	c.Candidate.Use(hooks...)
+	c.CandidateAward.Use(hooks...)
+	c.CandidateCertificate.Use(hooks...)
+	c.CandidateEducate.Use(hooks...)
+	c.CandidateExp.Use(hooks...)
 	c.CandidateInterview.Use(hooks...)
 	c.CandidateInterviewer.Use(hooks...)
 	c.CandidateJob.Use(hooks...)
@@ -441,6 +469,54 @@ func (c *AttachmentClient) QueryCandidateEdge(a *Attachment) *CandidateQuery {
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEdgeTable, attachment.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEducateEdge queries the candidate_educate_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateEducateEdge(a *Attachment) *CandidateEducateQuery {
+	query := &CandidateEducateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidateeducate.Table, candidateeducate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateEducateEdgeTable, attachment.CandidateEducateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateAwardEdge queries the candidate_award_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateAwardEdge(a *Attachment) *CandidateAwardQuery {
+	query := &CandidateAwardQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidateaward.Table, candidateaward.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateAwardEdgeTable, attachment.CandidateAwardEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateCertificateEdge queries the candidate_certificate_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateCertificateEdge(a *Attachment) *CandidateCertificateQuery {
+	query := &CandidateCertificateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateCertificateEdgeTable, attachment.CandidateCertificateEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -708,9 +784,561 @@ func (c *CandidateClient) QueryCandidateSkillEdges(ca *Candidate) *EntitySkillQu
 	return query
 }
 
+// QueryCandidateExpEdges queries the candidate_exp_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateExpEdges(ca *Candidate) *CandidateExpQuery {
+	query := &CandidateExpQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidateexp.Table, candidateexp.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateExpEdgesTable, candidate.CandidateExpEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEducateEdges queries the candidate_educate_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateEducateEdges(ca *Candidate) *CandidateEducateQuery {
+	query := &CandidateEducateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidateeducate.Table, candidateeducate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateEducateEdgesTable, candidate.CandidateEducateEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateAwardEdges queries the candidate_award_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateAwardEdges(ca *Candidate) *CandidateAwardQuery {
+	query := &CandidateAwardQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidateaward.Table, candidateaward.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateAwardEdgesTable, candidate.CandidateAwardEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateCertificateEdges queries the candidate_certificate_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateCertificateEdges(ca *Candidate) *CandidateCertificateQuery {
+	query := &CandidateCertificateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateCertificateEdgesTable, candidate.CandidateCertificateEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateClient) Hooks() []Hook {
 	return c.hooks.Candidate
+}
+
+// CandidateAwardClient is a client for the CandidateAward schema.
+type CandidateAwardClient struct {
+	config
+}
+
+// NewCandidateAwardClient returns a client for the CandidateAward from the given config.
+func NewCandidateAwardClient(c config) *CandidateAwardClient {
+	return &CandidateAwardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidateaward.Hooks(f(g(h())))`.
+func (c *CandidateAwardClient) Use(hooks ...Hook) {
+	c.hooks.CandidateAward = append(c.hooks.CandidateAward, hooks...)
+}
+
+// Create returns a builder for creating a CandidateAward entity.
+func (c *CandidateAwardClient) Create() *CandidateAwardCreate {
+	mutation := newCandidateAwardMutation(c.config, OpCreate)
+	return &CandidateAwardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateAward entities.
+func (c *CandidateAwardClient) CreateBulk(builders ...*CandidateAwardCreate) *CandidateAwardCreateBulk {
+	return &CandidateAwardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateAward.
+func (c *CandidateAwardClient) Update() *CandidateAwardUpdate {
+	mutation := newCandidateAwardMutation(c.config, OpUpdate)
+	return &CandidateAwardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateAwardClient) UpdateOne(ca *CandidateAward) *CandidateAwardUpdateOne {
+	mutation := newCandidateAwardMutation(c.config, OpUpdateOne, withCandidateAward(ca))
+	return &CandidateAwardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateAwardClient) UpdateOneID(id uuid.UUID) *CandidateAwardUpdateOne {
+	mutation := newCandidateAwardMutation(c.config, OpUpdateOne, withCandidateAwardID(id))
+	return &CandidateAwardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateAward.
+func (c *CandidateAwardClient) Delete() *CandidateAwardDelete {
+	mutation := newCandidateAwardMutation(c.config, OpDelete)
+	return &CandidateAwardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateAwardClient) DeleteOne(ca *CandidateAward) *CandidateAwardDeleteOne {
+	return c.DeleteOneID(ca.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateAwardClient) DeleteOneID(id uuid.UUID) *CandidateAwardDeleteOne {
+	builder := c.Delete().Where(candidateaward.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateAwardDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateAward.
+func (c *CandidateAwardClient) Query() *CandidateAwardQuery {
+	return &CandidateAwardQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateAward entity by its id.
+func (c *CandidateAwardClient) Get(ctx context.Context, id uuid.UUID) (*CandidateAward, error) {
+	return c.Query().Where(candidateaward.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateAwardClient) GetX(ctx context.Context, id uuid.UUID) *CandidateAward {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateAward.
+func (c *CandidateAwardClient) QueryAttachmentEdges(ca *CandidateAward) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateaward.Table, candidateaward.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidateaward.AttachmentEdgesTable, candidateaward.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateAward.
+func (c *CandidateAwardClient) QueryCandidateEdge(ca *CandidateAward) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateaward.Table, candidateaward.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateaward.CandidateEdgeTable, candidateaward.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateAwardClient) Hooks() []Hook {
+	return c.hooks.CandidateAward
+}
+
+// CandidateCertificateClient is a client for the CandidateCertificate schema.
+type CandidateCertificateClient struct {
+	config
+}
+
+// NewCandidateCertificateClient returns a client for the CandidateCertificate from the given config.
+func NewCandidateCertificateClient(c config) *CandidateCertificateClient {
+	return &CandidateCertificateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatecertificate.Hooks(f(g(h())))`.
+func (c *CandidateCertificateClient) Use(hooks ...Hook) {
+	c.hooks.CandidateCertificate = append(c.hooks.CandidateCertificate, hooks...)
+}
+
+// Create returns a builder for creating a CandidateCertificate entity.
+func (c *CandidateCertificateClient) Create() *CandidateCertificateCreate {
+	mutation := newCandidateCertificateMutation(c.config, OpCreate)
+	return &CandidateCertificateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateCertificate entities.
+func (c *CandidateCertificateClient) CreateBulk(builders ...*CandidateCertificateCreate) *CandidateCertificateCreateBulk {
+	return &CandidateCertificateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateCertificate.
+func (c *CandidateCertificateClient) Update() *CandidateCertificateUpdate {
+	mutation := newCandidateCertificateMutation(c.config, OpUpdate)
+	return &CandidateCertificateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateCertificateClient) UpdateOne(cc *CandidateCertificate) *CandidateCertificateUpdateOne {
+	mutation := newCandidateCertificateMutation(c.config, OpUpdateOne, withCandidateCertificate(cc))
+	return &CandidateCertificateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateCertificateClient) UpdateOneID(id uuid.UUID) *CandidateCertificateUpdateOne {
+	mutation := newCandidateCertificateMutation(c.config, OpUpdateOne, withCandidateCertificateID(id))
+	return &CandidateCertificateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateCertificate.
+func (c *CandidateCertificateClient) Delete() *CandidateCertificateDelete {
+	mutation := newCandidateCertificateMutation(c.config, OpDelete)
+	return &CandidateCertificateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateCertificateClient) DeleteOne(cc *CandidateCertificate) *CandidateCertificateDeleteOne {
+	return c.DeleteOneID(cc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateCertificateClient) DeleteOneID(id uuid.UUID) *CandidateCertificateDeleteOne {
+	builder := c.Delete().Where(candidatecertificate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateCertificateDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateCertificate.
+func (c *CandidateCertificateClient) Query() *CandidateCertificateQuery {
+	return &CandidateCertificateQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateCertificate entity by its id.
+func (c *CandidateCertificateClient) Get(ctx context.Context, id uuid.UUID) (*CandidateCertificate, error) {
+	return c.Query().Where(candidatecertificate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateCertificateClient) GetX(ctx context.Context, id uuid.UUID) *CandidateCertificate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateCertificate.
+func (c *CandidateCertificateClient) QueryAttachmentEdges(cc *CandidateCertificate) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatecertificate.Table, candidatecertificate.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatecertificate.AttachmentEdgesTable, candidatecertificate.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateCertificate.
+func (c *CandidateCertificateClient) QueryCandidateEdge(cc *CandidateCertificate) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatecertificate.Table, candidatecertificate.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatecertificate.CandidateEdgeTable, candidatecertificate.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateCertificateClient) Hooks() []Hook {
+	return c.hooks.CandidateCertificate
+}
+
+// CandidateEducateClient is a client for the CandidateEducate schema.
+type CandidateEducateClient struct {
+	config
+}
+
+// NewCandidateEducateClient returns a client for the CandidateEducate from the given config.
+func NewCandidateEducateClient(c config) *CandidateEducateClient {
+	return &CandidateEducateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidateeducate.Hooks(f(g(h())))`.
+func (c *CandidateEducateClient) Use(hooks ...Hook) {
+	c.hooks.CandidateEducate = append(c.hooks.CandidateEducate, hooks...)
+}
+
+// Create returns a builder for creating a CandidateEducate entity.
+func (c *CandidateEducateClient) Create() *CandidateEducateCreate {
+	mutation := newCandidateEducateMutation(c.config, OpCreate)
+	return &CandidateEducateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateEducate entities.
+func (c *CandidateEducateClient) CreateBulk(builders ...*CandidateEducateCreate) *CandidateEducateCreateBulk {
+	return &CandidateEducateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateEducate.
+func (c *CandidateEducateClient) Update() *CandidateEducateUpdate {
+	mutation := newCandidateEducateMutation(c.config, OpUpdate)
+	return &CandidateEducateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateEducateClient) UpdateOne(ce *CandidateEducate) *CandidateEducateUpdateOne {
+	mutation := newCandidateEducateMutation(c.config, OpUpdateOne, withCandidateEducate(ce))
+	return &CandidateEducateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateEducateClient) UpdateOneID(id uuid.UUID) *CandidateEducateUpdateOne {
+	mutation := newCandidateEducateMutation(c.config, OpUpdateOne, withCandidateEducateID(id))
+	return &CandidateEducateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateEducate.
+func (c *CandidateEducateClient) Delete() *CandidateEducateDelete {
+	mutation := newCandidateEducateMutation(c.config, OpDelete)
+	return &CandidateEducateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateEducateClient) DeleteOne(ce *CandidateEducate) *CandidateEducateDeleteOne {
+	return c.DeleteOneID(ce.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateEducateClient) DeleteOneID(id uuid.UUID) *CandidateEducateDeleteOne {
+	builder := c.Delete().Where(candidateeducate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateEducateDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateEducate.
+func (c *CandidateEducateClient) Query() *CandidateEducateQuery {
+	return &CandidateEducateQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateEducate entity by its id.
+func (c *CandidateEducateClient) Get(ctx context.Context, id uuid.UUID) (*CandidateEducate, error) {
+	return c.Query().Where(candidateeducate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateEducateClient) GetX(ctx context.Context, id uuid.UUID) *CandidateEducate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateEducate.
+func (c *CandidateEducateClient) QueryAttachmentEdges(ce *CandidateEducate) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ce.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateeducate.Table, candidateeducate.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidateeducate.AttachmentEdgesTable, candidateeducate.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ce.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateEducate.
+func (c *CandidateEducateClient) QueryCandidateEdge(ce *CandidateEducate) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ce.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateeducate.Table, candidateeducate.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateeducate.CandidateEdgeTable, candidateeducate.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ce.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateEducateClient) Hooks() []Hook {
+	return c.hooks.CandidateEducate
+}
+
+// CandidateExpClient is a client for the CandidateExp schema.
+type CandidateExpClient struct {
+	config
+}
+
+// NewCandidateExpClient returns a client for the CandidateExp from the given config.
+func NewCandidateExpClient(c config) *CandidateExpClient {
+	return &CandidateExpClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidateexp.Hooks(f(g(h())))`.
+func (c *CandidateExpClient) Use(hooks ...Hook) {
+	c.hooks.CandidateExp = append(c.hooks.CandidateExp, hooks...)
+}
+
+// Create returns a builder for creating a CandidateExp entity.
+func (c *CandidateExpClient) Create() *CandidateExpCreate {
+	mutation := newCandidateExpMutation(c.config, OpCreate)
+	return &CandidateExpCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateExp entities.
+func (c *CandidateExpClient) CreateBulk(builders ...*CandidateExpCreate) *CandidateExpCreateBulk {
+	return &CandidateExpCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateExp.
+func (c *CandidateExpClient) Update() *CandidateExpUpdate {
+	mutation := newCandidateExpMutation(c.config, OpUpdate)
+	return &CandidateExpUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateExpClient) UpdateOne(ce *CandidateExp) *CandidateExpUpdateOne {
+	mutation := newCandidateExpMutation(c.config, OpUpdateOne, withCandidateExp(ce))
+	return &CandidateExpUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateExpClient) UpdateOneID(id uuid.UUID) *CandidateExpUpdateOne {
+	mutation := newCandidateExpMutation(c.config, OpUpdateOne, withCandidateExpID(id))
+	return &CandidateExpUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateExp.
+func (c *CandidateExpClient) Delete() *CandidateExpDelete {
+	mutation := newCandidateExpMutation(c.config, OpDelete)
+	return &CandidateExpDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateExpClient) DeleteOne(ce *CandidateExp) *CandidateExpDeleteOne {
+	return c.DeleteOneID(ce.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateExpClient) DeleteOneID(id uuid.UUID) *CandidateExpDeleteOne {
+	builder := c.Delete().Where(candidateexp.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateExpDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateExp.
+func (c *CandidateExpClient) Query() *CandidateExpQuery {
+	return &CandidateExpQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateExp entity by its id.
+func (c *CandidateExpClient) Get(ctx context.Context, id uuid.UUID) (*CandidateExp, error) {
+	return c.Query().Where(candidateexp.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateExpClient) GetX(ctx context.Context, id uuid.UUID) *CandidateExp {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateExp.
+func (c *CandidateExpClient) QueryAttachmentEdges(ce *CandidateExp) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ce.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateexp.Table, candidateexp.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidateexp.AttachmentEdgesTable, candidateexp.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ce.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateExp.
+func (c *CandidateExpClient) QueryCandidateEdge(ce *CandidateExp) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ce.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidateexp.Table, candidateexp.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidateexp.CandidateEdgeTable, candidateexp.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(ce.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateExpClient) Hooks() []Hook {
+	return c.hooks.CandidateExp
 }
 
 // CandidateInterviewClient is a client for the CandidateInterview schema.

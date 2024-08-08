@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"trec/ent"
 	"trec/ent/candidatejob"
@@ -91,7 +92,37 @@ func (r *candidateResolver) ReferenceUser(ctx context.Context, obj *ent.Candidat
 	return obj.Edges.ReferenceUserEdge, nil
 }
 
+// CandidateExp is the resolver for the candidate_exp field.
+func (r *candidateResolver) CandidateExp(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateExp, error) {
+	panic(fmt.Errorf("not implemented: CandidateExp - candidate_exp"))
+}
+
+// CandidateEducate is the resolver for the candidate_educate field.
+func (r *candidateResolver) CandidateEducate(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateEducate, error) {
+	panic(fmt.Errorf("not implemented: CandidateEducate - candidate_educate"))
+}
+
+// CandidateAward is the resolver for the candidate_award field.
+func (r *candidateResolver) CandidateAward(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateAward, error) {
+	panic(fmt.Errorf("not implemented: CandidateAward - candidate_award"))
+}
+
+// CandidateCertificate is the resolver for the candidate_certificate field.
+func (r *candidateResolver) CandidateCertificate(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateCertificate, error) {
+	panic(fmt.Errorf("not implemented: CandidateCertificate - candidate_certificate"))
+}
+
 // Candidate returns graphql1.CandidateResolver implementation.
 func (r *Resolver) Candidate() graphql1.CandidateResolver { return &candidateResolver{r} }
 
 type candidateResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *candidateResolver) Address(ctx context.Context, obj *ent.Candidate) (string, error) {
+	panic(fmt.Errorf("not implemented: Address - address"))
+}

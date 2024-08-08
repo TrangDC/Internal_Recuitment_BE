@@ -68,6 +68,11 @@ input NewCandidateInput{
   country: String!
   entity_skill_records: [EntitySkillRecordInput!]
   attachments: [NewAttachmentInput!]
+  address: String!
+  candidate_exp: [CandidateExpInput!]!
+  candidate_educate: [CandidateEducateInput!]!
+  candidate_award: [CandidateAwardInput!]!
+  candidate_certificate: [CandidateCertificateInput!]!
 }
 
 input UpdateCandidateInput {
@@ -83,6 +88,11 @@ input UpdateCandidateInput {
   country: String!
   entity_skill_records: [EntitySkillRecordInput!]
   attachments: [NewAttachmentInput!]
+  address: String!
+  candidate_exp: [CandidateExpInput!]!
+  candidate_educate: [CandidateEducateInput!]!
+  candidate_award: [CandidateAwardInput!]!
+  candidate_certificate: [CandidateCertificateInput!]!
 }
 
 input CandidateFilter {
@@ -137,6 +147,11 @@ type Candidate {
   attachments: [Attachment!]
   entity_skill_types: [EntitySkillType!]
   reference_user: User
+  address: String!
+  candidate_exp: [CandidateExp!]
+  candidate_educate: [CandidateEducate!]
+  candidate_award: [CandidateAward!]
+  candidate_certificate: [CandidateCertificate!]
   created_at: Time!
   updated_at: Time!
   deleted_at: Time

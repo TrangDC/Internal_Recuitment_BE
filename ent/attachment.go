@@ -8,6 +8,9 @@ import (
 	"time"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -37,7 +40,8 @@ type Attachment struct {
 	RelationID uuid.UUID `json:"relation_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AttachmentQuery when eager-loading is set.
-	Edges AttachmentEdges `json:"edges"`
+	Edges                          AttachmentEdges `json:"edges"`
+	candidate_exp_attachment_edges *uuid.UUID
 }
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -50,11 +54,17 @@ type AttachmentEdges struct {
 	CandidateInterviewEdge *CandidateInterview `json:"candidate_interview_edge,omitempty"`
 	// CandidateEdge holds the value of the candidate_edge edge.
 	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
+	// CandidateEducateEdge holds the value of the candidate_educate_edge edge.
+	CandidateEducateEdge *CandidateEducate `json:"candidate_educate_edge,omitempty"`
+	// CandidateAwardEdge holds the value of the candidate_award_edge edge.
+	CandidateAwardEdge *CandidateAward `json:"candidate_award_edge,omitempty"`
+	// CandidateCertificateEdge holds the value of the candidate_certificate_edge edge.
+	CandidateCertificateEdge *CandidateCertificate `json:"candidate_certificate_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [4]map[string]int
+	totalCount [7]map[string]int
 }
 
 // CandidateJobEdgeOrErr returns the CandidateJobEdge value or an error if the edge
@@ -109,6 +119,45 @@ func (e AttachmentEdges) CandidateEdgeOrErr() (*Candidate, error) {
 	return nil, &NotLoadedError{edge: "candidate_edge"}
 }
 
+// CandidateEducateEdgeOrErr returns the CandidateEducateEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateEducateEdgeOrErr() (*CandidateEducate, error) {
+	if e.loadedTypes[4] {
+		if e.CandidateEducateEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidateeducate.Label}
+		}
+		return e.CandidateEducateEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_educate_edge"}
+}
+
+// CandidateAwardEdgeOrErr returns the CandidateAwardEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateAwardEdgeOrErr() (*CandidateAward, error) {
+	if e.loadedTypes[5] {
+		if e.CandidateAwardEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidateaward.Label}
+		}
+		return e.CandidateAwardEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_award_edge"}
+}
+
+// CandidateCertificateEdgeOrErr returns the CandidateCertificateEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateCertificateEdgeOrErr() (*CandidateCertificate, error) {
+	if e.loadedTypes[6] {
+		if e.CandidateCertificateEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidatecertificate.Label}
+		}
+		return e.CandidateCertificateEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_certificate_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Attachment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -120,6 +169,8 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case attachment.FieldID, attachment.FieldDocumentID, attachment.FieldRelationID:
 			values[i] = new(uuid.UUID)
+		case attachment.ForeignKeys[0]: // candidate_exp_attachment_edges
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
 		}
@@ -183,6 +234,13 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				a.RelationID = *value
 			}
+		case attachment.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field candidate_exp_attachment_edges", values[i])
+			} else if value.Valid {
+				a.candidate_exp_attachment_edges = new(uuid.UUID)
+				*a.candidate_exp_attachment_edges = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
@@ -206,6 +264,21 @@ func (a *Attachment) QueryCandidateInterviewEdge() *CandidateInterviewQuery {
 // QueryCandidateEdge queries the "candidate_edge" edge of the Attachment entity.
 func (a *Attachment) QueryCandidateEdge() *CandidateQuery {
 	return (&AttachmentClient{config: a.config}).QueryCandidateEdge(a)
+}
+
+// QueryCandidateEducateEdge queries the "candidate_educate_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateEducateEdge() *CandidateEducateQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateEducateEdge(a)
+}
+
+// QueryCandidateAwardEdge queries the "candidate_award_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateAwardEdge() *CandidateAwardQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateAwardEdge(a)
+}
+
+// QueryCandidateCertificateEdge queries the "candidate_certificate_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateCertificateEdge() *CandidateCertificateQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateCertificateEdge(a)
 }
 
 // Update returns a builder for updating this Attachment.

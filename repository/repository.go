@@ -34,6 +34,10 @@ type Repository interface {
 	HiringTeam() HiringTeamRepository
 	HiringTeamApprover() HiringTeamApproverRepository
 	RecTeam() RecTeamRepository
+	CandidateExp() CandidateExpRepository
+	CandidateEducate() CandidateEducateRepository
+	CandidateAward() CandidateAwardRepository
+	CandidateCertificate() CandidateCertificateRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -67,6 +71,10 @@ type RepoImpl struct {
 	hiringTeam           HiringTeamRepository
 	hiringTeamApprover   HiringTeamApproverRepository
 	recTeam              RecTeamRepository
+	candidateExp         CandidateExpRepository
+	candidateEducate     CandidateEducateRepository
+	candidateAward       CandidateAwardRepository
+	candidateCertificate CandidateCertificateRepository
 }
 
 // NewRepository creates new repository registry
@@ -97,6 +105,10 @@ func NewRepository(entClient *ent.Client) Repository {
 		hiringTeam:           NewHiringTeamRepository(entClient),
 		hiringTeamApprover:   NewHiringTeamApproverRepository(entClient),
 		recTeam:              NewRecTeamRepository(entClient),
+		candidateExp:         NewCandidateExpRepository(entClient),
+		candidateEducate:     NewCandidateEducateRepository(entClient),
+		candidateAward:       NewCandidateAwardRepository(entClient),
+		candidateCertificate: NewCandidateCertificateRepository(entClient),
 	}
 }
 
@@ -196,6 +208,22 @@ func (r *RepoImpl) RecTeam() RecTeamRepository {
 	return r.recTeam
 }
 
+func (r *RepoImpl) CandidateExp() CandidateExpRepository {
+	return r.candidateExp
+}
+
+func (r *RepoImpl) CandidateEducate() CandidateEducateRepository {
+	return r.candidateEducate
+}
+
+func (r *RepoImpl) CandidateAward() CandidateAwardRepository {
+	return r.candidateAward
+}
+
+func (r *RepoImpl) CandidateCertificate() CandidateCertificateRepository {
+	return r.candidateCertificate
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -240,6 +268,10 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		hiringTeam:           NewHiringTeamRepository(tx.Client()),
 		hiringTeamApprover:   NewHiringTeamApproverRepository(tx.Client()),
 		recTeam:              NewRecTeamRepository(tx.Client()),
+		candidateExp:         NewCandidateExpRepository(tx.Client()),
+		candidateEducate:     NewCandidateEducateRepository(tx.Client()),
+		candidateAward:       NewCandidateAwardRepository(tx.Client()),
+		candidateCertificate: NewCandidateCertificateRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

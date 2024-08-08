@@ -6,6 +6,7 @@ type Configurations struct {
 	AzureADOAuth AzureADOAuthConfig `mapstructure:"azureAD"`
 	AzureStorage AzureStorageConfig `mapstructure:"azureStorage"`
 	ServiceBus   ServiceBusConfig   `mapstructure:"serviceBus"`
+	Talena       TalenaConfig       `mapstructure:"talena"`
 }
 
 type AppConfig struct {
@@ -44,4 +45,10 @@ type AzureStorageConfig struct {
 
 type ServiceBusConfig struct {
 	ConnectionString string `mapstructure:"connectionString"`
+}
+
+type TalenaConfig struct {
+	Email    string `mapstructure:"email"`
+	Password string `mapstructure:"password"`
+	Host     string `mapstructure:"host"`
 }

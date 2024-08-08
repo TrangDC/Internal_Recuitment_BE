@@ -1,0 +1,14 @@
+type CandidateAward {
+  id: ID!
+  name: String!
+  achieved_date: Time
+  created_at: Time!
+  updated_at: Time!
+}
+
+input CandidateAwardInput {
+  id: ID!
+  name: String!
+  achieved_date: Time
+  attachments: [NewAttachmentInput!]!
+}

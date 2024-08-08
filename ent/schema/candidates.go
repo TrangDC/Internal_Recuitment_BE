@@ -28,6 +28,7 @@ func (Candidate) Fields() []ent.Field {
 		field.Time("recruit_time").Optional().Annotations(entgql.OrderField("recruit_time")),
 		field.String("description").MaxLen(512).Optional(),
 		field.String("country").MaxLen(256).Optional(),
+		field.String("address").MaxLen(256).Optional(),
 	}
 }
 
@@ -38,6 +39,10 @@ func (Candidate) Edges() []ent.Edge {
 		edge.From("reference_user_edge", User.Type).Ref("candidate_reference_edges").Unique().Field("reference_uid"),
 		edge.To("attachment_edges", Attachment.Type),
 		edge.To("candidate_skill_edges", EntitySkill.Type),
+		edge.To("candidate_exp_edges", CandidateExp.Type),
+		edge.To("candidate_educate_edges", CandidateEducate.Type),
+		edge.To("candidate_award_edges", CandidateAward.Type),
+		edge.To("candidate_certificate_edges", CandidateCertificate.Type),
 	}
 }
 

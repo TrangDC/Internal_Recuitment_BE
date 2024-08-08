@@ -16,8 +16,9 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
 		{Name: "document_name", Type: field.TypeString, Size: 256},
-		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates"}},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "candidate_exp_attachment_edges", Type: field.TypeUUID, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
 	AttachmentsTable = &schema.Table{
@@ -29,6 +30,30 @@ var (
 				Symbol:     "attachments_candidates_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_awards_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateAwardsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_certificates_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateCertificatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_educates_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateEducatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_exps_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[8]},
+				RefColumns: []*schema.Column{CandidateExpsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
@@ -95,6 +120,7 @@ var (
 		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "country", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
@@ -105,8 +131,114 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidates_users_candidate_reference_edges",
-				Columns:    []*schema.Column{CandidatesColumns[15]},
+				Columns:    []*schema.Column{CandidatesColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateAwardsColumns holds the columns for the "candidate_awards" table.
+	CandidateAwardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "achieved_date", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateAwardsTable holds the schema information for the "candidate_awards" table.
+	CandidateAwardsTable = &schema.Table{
+		Name:       "candidate_awards",
+		Columns:    CandidateAwardsColumns,
+		PrimaryKey: []*schema.Column{CandidateAwardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_awards_candidates_candidate_award_edges",
+				Columns:    []*schema.Column{CandidateAwardsColumns[6]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateCertificatesColumns holds the columns for the "candidate_certificates" table.
+	CandidateCertificatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "score", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "achieved_date", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateCertificatesTable holds the schema information for the "candidate_certificates" table.
+	CandidateCertificatesTable = &schema.Table{
+		Name:       "candidate_certificates",
+		Columns:    CandidateCertificatesColumns,
+		PrimaryKey: []*schema.Column{CandidateCertificatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_certificates_candidates_candidate_certificate_edges",
+				Columns:    []*schema.Column{CandidateCertificatesColumns[7]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateEducatesColumns holds the columns for the "candidate_educates" table.
+	CandidateEducatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "school_name", Type: field.TypeString, Size: 256},
+		{Name: "major", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "gpa", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
+		{Name: "start_date", Type: field.TypeTime, Nullable: true},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateEducatesTable holds the schema information for the "candidate_educates" table.
+	CandidateEducatesTable = &schema.Table{
+		Name:       "candidate_educates",
+		Columns:    CandidateEducatesColumns,
+		PrimaryKey: []*schema.Column{CandidateEducatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_educates_candidates_candidate_educate_edges",
+				Columns:    []*schema.Column{CandidateEducatesColumns[11]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateExpsColumns holds the columns for the "candidate_exps" table.
+	CandidateExpsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "position", Type: field.TypeString, Size: 256},
+		{Name: "company", Type: field.TypeString, Size: 256},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
+		{Name: "start_date", Type: field.TypeTime, Nullable: true},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateExpsTable holds the schema information for the "candidate_exps" table.
+	CandidateExpsTable = &schema.Table{
+		Name:       "candidate_exps",
+		Columns:    CandidateExpsColumns,
+		PrimaryKey: []*schema.Column{CandidateExpsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_exps_candidates_candidate_exp_edges",
+				Columns:    []*schema.Column{CandidateExpsColumns[10]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -791,6 +923,10 @@ var (
 		AttachmentsTable,
 		AuditTrailsTable,
 		CandidatesTable,
+		CandidateAwardsTable,
+		CandidateCertificatesTable,
+		CandidateEducatesTable,
+		CandidateExpsTable,
 		CandidateInterviewsTable,
 		CandidateInterviewersTable,
 		CandidateJobsTable,
@@ -819,11 +955,19 @@ var (
 
 func init() {
 	AttachmentsTable.ForeignKeys[0].RefTable = CandidatesTable
-	AttachmentsTable.ForeignKeys[1].RefTable = CandidateInterviewsTable
-	AttachmentsTable.ForeignKeys[2].RefTable = CandidateJobsTable
-	AttachmentsTable.ForeignKeys[3].RefTable = CandidateJobFeedbacksTable
+	AttachmentsTable.ForeignKeys[1].RefTable = CandidateAwardsTable
+	AttachmentsTable.ForeignKeys[2].RefTable = CandidateCertificatesTable
+	AttachmentsTable.ForeignKeys[3].RefTable = CandidateEducatesTable
+	AttachmentsTable.ForeignKeys[4].RefTable = CandidateExpsTable
+	AttachmentsTable.ForeignKeys[5].RefTable = CandidateInterviewsTable
+	AttachmentsTable.ForeignKeys[6].RefTable = CandidateJobsTable
+	AttachmentsTable.ForeignKeys[7].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
 	CandidatesTable.ForeignKeys[0].RefTable = UsersTable
+	CandidateAwardsTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateCertificatesTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateEducatesTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateExpsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateInterviewsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable

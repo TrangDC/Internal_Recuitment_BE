@@ -37,18 +37,26 @@ type CandidateService interface {
 }
 
 type candidateSvcImpl struct {
-	attachmentSvc AttachmentService
-	repoRegistry  repository.Repository
-	dtoRegistry   dto.Dto
-	logger        *zap.Logger
+	attachmentSvc           AttachmentService
+	candidateExpSvc         CandidateExpService
+	candidateEducateSvc     CandidateEducateService
+	candidateAwardSvc       CandidateAwardService
+	candidateCertificateSvc CandidateCertificateService
+	repoRegistry            repository.Repository
+	dtoRegistry             dto.Dto
+	logger                  *zap.Logger
 }
 
 func NewCandidateService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateService {
 	return &candidateSvcImpl{
-		attachmentSvc: NewAttachmentService(repoRegistry, logger),
-		repoRegistry:  repoRegistry,
-		dtoRegistry:   dtoRegistry,
-		logger:        logger,
+		attachmentSvc:           NewAttachmentService(repoRegistry, logger),
+		candidateExpSvc:         NewCandidateExpService(logger),
+		candidateEducateSvc:     NewCandidateEducateService(logger),
+		candidateAwardSvc:       NewCandidateAwardService(logger),
+		candidateCertificateSvc: NewCandidateCertificateService(logger),
+		repoRegistry:            repoRegistry,
+		dtoRegistry:             dtoRegistry,
+		logger:                  logger,
 	}
 }
 
@@ -70,11 +78,24 @@ func (svc *candidateSvcImpl) CreateCandidate(ctx context.Context, input *ent.New
 		if err != nil {
 			return err
 		}
-		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, nil, attachment.RelationTypeCandidates)
-		if err != nil {
+		if err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, nil, attachment.RelationTypeCandidates); err != nil {
 			return err
 		}
-		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeCandidate)
+		if err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeCandidate); err != nil {
+			return err
+		}
+		if err = svc.candidateExpSvc.ProcessCandidateExpInput(ctx, record.ID, input.CandidateExp, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateEducateSvc.ProcessCandidateEducateInput(ctx, record.ID, input.CandidateEducate, []*ent.CandidateEducate{}, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateAwardSvc.ProcessCandidateAwardInput(ctx, record.ID, input.CandidateAward, []*ent.CandidateAward{}, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateCertificateSvc.ProcessCandidateCertificateInput(ctx, record.ID, input.CandidateCertificate, []*ent.CandidateCertificate{}, repoRegistry); err != nil {
+			return err
+		}
 		return err
 	})
 	if err != nil {
@@ -117,7 +138,21 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 		if err != nil {
 			return err
 		}
-		err = repoRegistry.Candidate().DeleteRelationCandidate(ctx, record.ID)
+		if err = repoRegistry.Candidate().DeleteRelationCandidate(ctx, record.ID); err != nil {
+			return err
+		}
+		if err = svc.candidateExpSvc.ProcessCandidateExpInput(ctx, record.ID, []*ent.CandidateExpInput{}, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateEducateSvc.ProcessCandidateEducateInput(ctx, record.ID, []*ent.CandidateEducateInput{}, record.Edges.CandidateEducateEdges, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateAwardSvc.ProcessCandidateAwardInput(ctx, record.ID, []*ent.CandidateAwardInput{}, record.Edges.CandidateAwardEdges, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateCertificateSvc.ProcessCandidateCertificateInput(ctx, record.ID, []*ent.CandidateCertificateInput{}, record.Edges.CandidateCertificateEdges, repoRegistry); err != nil {
+			return err
+		}
 		return err
 	})
 	jsonString, err := svc.dtoRegistry.Candidate().AuditTrailDelete(record)
@@ -134,7 +169,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 
 func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID, note string) (*ent.CandidateResponse, error) {
 	var result *ent.Candidate
-	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+	record, err := svc.repoRegistry.Candidate().GetCandidateForUpdate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
@@ -155,11 +190,24 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 		if err != nil {
 			return err
 		}
-		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, record.Edges.AttachmentEdges, attachment.RelationTypeCandidates)
-		if err != nil {
+		if err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, record.Edges.AttachmentEdges, attachment.RelationTypeCandidates); err != nil {
 			return err
 		}
-		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, record.Edges.CandidateSkillEdges, entityskill.EntityTypeCandidate)
+		if err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, record.Edges.CandidateSkillEdges, entityskill.EntityTypeCandidate); err != nil {
+			return err
+		}
+		if err = svc.candidateExpSvc.ProcessCandidateExpInput(ctx, record.ID, input.CandidateExp, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateEducateSvc.ProcessCandidateEducateInput(ctx, record.ID, input.CandidateEducate, record.Edges.CandidateEducateEdges, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateAwardSvc.ProcessCandidateAwardInput(ctx, record.ID, input.CandidateAward, record.Edges.CandidateAwardEdges, repoRegistry); err != nil {
+			return err
+		}
+		if err = svc.candidateCertificateSvc.ProcessCandidateCertificateInput(ctx, record.ID, input.CandidateCertificate, record.Edges.CandidateCertificateEdges, repoRegistry); err != nil {
+			return err
+		}
 		return err
 	})
 	if err != nil {
