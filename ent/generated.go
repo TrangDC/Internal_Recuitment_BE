@@ -252,14 +252,14 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
-	HiringJobID  []string       `json:"hiring_job_id"`
-	HiringTeamID []string       `json:"hiring_team_id"`
-	Priority     []int          `json:"priority"`
-	SkillID      []string       `json:"skill_id"`
-	FromDate     *time.Time     `json:"from_date"`
-	ToDate       *time.Time     `json:"to_date"`
-	Location     []LocationEnum `json:"location"`
-	CreatedByIds []string       `json:"created_by_ids"`
+	HiringJobID   []string       `json:"hiring_job_id"`
+	HiringTeamIds []string       `json:"hiring_team_ids"`
+	Priority      []int          `json:"priority"`
+	SkillID       []string       `json:"skill_id"`
+	FromDate      *time.Time     `json:"from_date"`
+	ToDate        *time.Time     `json:"to_date"`
+	Location      []LocationEnum `json:"location"`
+	CreatedByIds  []string       `json:"created_by_ids"`
 }
 
 type CandidateJobGroupByStatusFreeWord struct {

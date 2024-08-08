@@ -752,8 +752,8 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		})
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
 	}
-	if input.HiringTeamID != nil {
-		hiringTeamIds := lo.Map(input.HiringTeamID, func(id string, index int) uuid.UUID {
+	if input.HiringTeamIds != nil {
+		hiringTeamIds := lo.Map(input.HiringTeamIds, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
