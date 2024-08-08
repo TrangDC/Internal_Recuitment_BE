@@ -15,6 +15,18 @@ type AuditTrail func(*sql.Selector)
 // Candidate is the predicate function for candidate builders.
 type Candidate func(*sql.Selector)
 
+// CandidateAward is the predicate function for candidateaward builders.
+type CandidateAward func(*sql.Selector)
+
+// CandidateCertificate is the predicate function for candidatecertificate builders.
+type CandidateCertificate func(*sql.Selector)
+
+// CandidateEducate is the predicate function for candidateeducate builders.
+type CandidateEducate func(*sql.Selector)
+
+// CandidateExp is the predicate function for candidateexp builders.
+type CandidateExp func(*sql.Selector)
+
 // CandidateInterview is the predicate function for candidateinterview builders.
 type CandidateInterview func(*sql.Selector)
 

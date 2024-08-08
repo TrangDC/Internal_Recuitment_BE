@@ -1,0 +1,21 @@
+type CandidateExp {
+  id: ID!
+  position: String!
+  company: String!
+  location: String!
+  start_date: Time
+  end_date: Time
+  description: String!
+  created_at: Time!
+  updated_at: Time!
+}
+
+input CandidateExpInput {
+  id: ID!
+  position: String!
+  company: String!
+  location: String!
+  start_date: Time
+  end_date: Time
+  description: String!
+}

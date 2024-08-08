@@ -44,6 +44,8 @@ const (
 	FieldDescription = "description"
 	// FieldCountry holds the string denoting the country field in the database.
 	FieldCountry = "country"
+	// FieldAddress holds the string denoting the address field in the database.
+	FieldAddress = "address"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// EdgeReferenceUserEdge holds the string denoting the reference_user_edge edge name in mutations.
@@ -52,6 +54,14 @@ const (
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeCandidateSkillEdges holds the string denoting the candidate_skill_edges edge name in mutations.
 	EdgeCandidateSkillEdges = "candidate_skill_edges"
+	// EdgeCandidateExpEdges holds the string denoting the candidate_exp_edges edge name in mutations.
+	EdgeCandidateExpEdges = "candidate_exp_edges"
+	// EdgeCandidateEducateEdges holds the string denoting the candidate_educate_edges edge name in mutations.
+	EdgeCandidateEducateEdges = "candidate_educate_edges"
+	// EdgeCandidateAwardEdges holds the string denoting the candidate_award_edges edge name in mutations.
+	EdgeCandidateAwardEdges = "candidate_award_edges"
+	// EdgeCandidateCertificateEdges holds the string denoting the candidate_certificate_edges edge name in mutations.
+	EdgeCandidateCertificateEdges = "candidate_certificate_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -82,6 +92,34 @@ const (
 	CandidateSkillEdgesInverseTable = "entity_skills"
 	// CandidateSkillEdgesColumn is the table column denoting the candidate_skill_edges relation/edge.
 	CandidateSkillEdgesColumn = "entity_id"
+	// CandidateExpEdgesTable is the table that holds the candidate_exp_edges relation/edge.
+	CandidateExpEdgesTable = "candidate_exps"
+	// CandidateExpEdgesInverseTable is the table name for the CandidateExp entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateexp" package.
+	CandidateExpEdgesInverseTable = "candidate_exps"
+	// CandidateExpEdgesColumn is the table column denoting the candidate_exp_edges relation/edge.
+	CandidateExpEdgesColumn = "candidate_id"
+	// CandidateEducateEdgesTable is the table that holds the candidate_educate_edges relation/edge.
+	CandidateEducateEdgesTable = "candidate_educates"
+	// CandidateEducateEdgesInverseTable is the table name for the CandidateEducate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateeducate" package.
+	CandidateEducateEdgesInverseTable = "candidate_educates"
+	// CandidateEducateEdgesColumn is the table column denoting the candidate_educate_edges relation/edge.
+	CandidateEducateEdgesColumn = "candidate_id"
+	// CandidateAwardEdgesTable is the table that holds the candidate_award_edges relation/edge.
+	CandidateAwardEdgesTable = "candidate_awards"
+	// CandidateAwardEdgesInverseTable is the table name for the CandidateAward entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateaward" package.
+	CandidateAwardEdgesInverseTable = "candidate_awards"
+	// CandidateAwardEdgesColumn is the table column denoting the candidate_award_edges relation/edge.
+	CandidateAwardEdgesColumn = "candidate_id"
+	// CandidateCertificateEdgesTable is the table that holds the candidate_certificate_edges relation/edge.
+	CandidateCertificateEdgesTable = "candidate_certificates"
+	// CandidateCertificateEdgesInverseTable is the table name for the CandidateCertificate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatecertificate" package.
+	CandidateCertificateEdgesInverseTable = "candidate_certificates"
+	// CandidateCertificateEdgesColumn is the table column denoting the candidate_certificate_edges relation/edge.
+	CandidateCertificateEdgesColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for candidate fields.
@@ -102,6 +140,7 @@ var Columns = []string{
 	FieldRecruitTime,
 	FieldDescription,
 	FieldCountry,
+	FieldAddress,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -131,6 +170,8 @@ var (
 	DescriptionValidator func(string) error
 	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	CountryValidator func(string) error
+	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	AddressValidator func(string) error
 )
 
 // ReferenceType defines the type for the "reference_type" enum field.

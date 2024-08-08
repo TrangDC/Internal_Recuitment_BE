@@ -1,0 +1,16 @@
+type CandidateCertificate {
+  id: ID!
+  name: String!
+  score: String!
+  achieved_date: Time
+  created_at: Time!
+  updated_at: Time!
+}
+
+input CandidateCertificateInput {
+  id: ID!
+  name: String!
+  score: String!
+  achieved_date: Time
+  attachments: [NewAttachmentInput!]!
+}

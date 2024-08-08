@@ -117,7 +117,7 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 				}
 			}
 			serviceRegistry := service.NewService(azureADOAuthClient, objectStorageClient, serviceBusClient, i18n, entClient, logger, configs)
-			restController := rest.NewRestController(serviceRegistry, configs.AzureADOAuth.ClientRedirectUrl, logger)
+			restController := rest.NewRestController(serviceRegistry, configs, logger)
 
 			// GraphQL schema resolver handler.
 			resolverHandler := handler.NewDefaultServer(resolver.NewSchema(serviceRegistry, entClient, validator, validationTranslator, logger))
@@ -159,6 +159,11 @@ func NewServerCmd(configs *config.Configurations, logger *zap.Logger, i18n model
 					// 	c.JSON(http.StatusOK, gin.H{"raw_query": c.Request.URL.RawQuery})
 					// })
 				}
+			}
+
+			talenaRouter := r.Group("/talena")
+			{
+				talenaRouter.GET("/login", restController.Talena().TalenaLogin)
 			}
 
 			graphqlRouter := r.Group("/graphql")

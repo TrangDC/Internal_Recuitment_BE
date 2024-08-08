@@ -9,6 +9,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -71,7 +75,7 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     a.ID,
 		Type:   "Attachment",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 4),
+		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(a.CreatedAt); err != nil {
@@ -167,6 +171,36 @@ func (a *Attachment) Node(ctx context.Context) (node *Node, err error) {
 	err = a.QueryCandidateEdge().
 		Select(candidate.FieldID).
 		Scan(ctx, &node.Edges[3].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		Type: "CandidateEducate",
+		Name: "candidate_educate_edge",
+	}
+	err = a.QueryCandidateEducateEdge().
+		Select(candidateeducate.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		Type: "CandidateAward",
+		Name: "candidate_award_edge",
+	}
+	err = a.QueryCandidateAwardEdge().
+		Select(candidateaward.FieldID).
+		Scan(ctx, &node.Edges[5].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[6] = &Edge{
+		Type: "CandidateCertificate",
+		Name: "candidate_certificate_edge",
+	}
+	err = a.QueryCandidateCertificateEdge().
+		Select(candidatecertificate.FieldID).
+		Scan(ctx, &node.Edges[6].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -270,8 +304,8 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Candidate",
-		Fields: make([]*Field, 15),
-		Edges:  make([]*Edge, 4),
+		Fields: make([]*Field, 16),
+		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreatedAt); err != nil {
@@ -394,6 +428,14 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "country",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(c.Address); err != nil {
+		return nil, err
+	}
+	node.Fields[15] = &Field{
+		Type:  "string",
+		Name:  "address",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "CandidateJob",
 		Name: "candidate_job_edges",
@@ -431,6 +473,442 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	err = c.QueryCandidateSkillEdges().
 		Select(entityskill.FieldID).
 		Scan(ctx, &node.Edges[3].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		Type: "CandidateExp",
+		Name: "candidate_exp_edges",
+	}
+	err = c.QueryCandidateExpEdges().
+		Select(candidateexp.FieldID).
+		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		Type: "CandidateEducate",
+		Name: "candidate_educate_edges",
+	}
+	err = c.QueryCandidateEducateEdges().
+		Select(candidateeducate.FieldID).
+		Scan(ctx, &node.Edges[5].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[6] = &Edge{
+		Type: "CandidateAward",
+		Name: "candidate_award_edges",
+	}
+	err = c.QueryCandidateAwardEdges().
+		Select(candidateaward.FieldID).
+		Scan(ctx, &node.Edges[6].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[7] = &Edge{
+		Type: "CandidateCertificate",
+		Name: "candidate_certificate_edges",
+	}
+	err = c.QueryCandidateCertificateEdges().
+		Select(candidatecertificate.FieldID).
+		Scan(ctx, &node.Edges[7].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (ca *CandidateAward) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ca.ID,
+		Type:   "CandidateAward",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ca.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ca.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ca.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ca.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ca.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ca.AchievedDate); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "time.Time",
+		Name:  "achieved_date",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = ca.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = ca.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (cc *CandidateCertificate) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     cc.ID,
+		Type:   "CandidateCertificate",
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(cc.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.Score); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "score",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cc.AchievedDate); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "time.Time",
+		Name:  "achieved_date",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = cc.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = cc.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (ce *CandidateEducate) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ce.ID,
+		Type:   "CandidateEducate",
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ce.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.SchoolName); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "school_name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Major); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "major",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Gpa); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "string",
+		Name:  "gpa",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Location); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "location",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.StartDate); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "time.Time",
+		Name:  "start_date",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.EndDate); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "time.Time",
+		Name:  "end_date",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = ce.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = ce.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (ce *CandidateExp) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ce.ID,
+		Type:   "CandidateExp",
+		Fields: make([]*Field, 10),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ce.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Position); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "position",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Company); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "company",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Location); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "string",
+		Name:  "location",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.StartDate); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "time.Time",
+		Name:  "start_date",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.EndDate); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "time.Time",
+		Name:  "end_date",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Attachment",
+		Name: "attachment_edges",
+	}
+	err = ce.QueryAttachmentEdges().
+		Select(attachment.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = ce.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -3006,6 +3484,54 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case candidateaward.Table:
+		query := c.CandidateAward.Query().
+			Where(candidateaward.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateAward")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case candidatecertificate.Table:
+		query := c.CandidateCertificate.Query().
+			Where(candidatecertificate.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateCertificate")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case candidateeducate.Table:
+		query := c.CandidateEducate.Query().
+			Where(candidateeducate.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateEducate")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case candidateexp.Table:
+		query := c.CandidateExp.Query().
+			Where(candidateexp.ID(id))
+		query, err := query.CollectFields(ctx, "CandidateExp")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case candidateinterview.Table:
 		query := c.CandidateInterview.Query().
 			Where(candidateinterview.ID(id))
@@ -3391,6 +3917,70 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.Candidate.Query().
 			Where(candidate.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Candidate")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidateaward.Table:
+		query := c.CandidateAward.Query().
+			Where(candidateaward.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateAward")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidatecertificate.Table:
+		query := c.CandidateCertificate.Query().
+			Where(candidatecertificate.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateCertificate")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidateeducate.Table:
+		query := c.CandidateEducate.Query().
+			Where(candidateeducate.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateEducate")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case candidateexp.Table:
+		query := c.CandidateExp.Query().
+			Where(candidateexp.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "CandidateExp")
 		if err != nil {
 			return nil, err
 		}

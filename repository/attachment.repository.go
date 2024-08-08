@@ -14,6 +14,7 @@ type AttachmentRepository interface {
 	// mutation
 	CreateAttachment(ctx context.Context, input []*ent.NewAttachmentInput, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
 	RemoveAttachment(ctx context.Context, relationId uuid.UUID) error
+	RemoveBulkAttachment(ctx context.Context, ids []uuid.UUID) error
 	// query
 	GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error)
 	GetAttachments(ctx context.Context, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
@@ -52,8 +53,8 @@ func (rps *attachmentRepoImpl) BuildUpdate() *ent.AttachmentUpdate {
 	return rps.client.Attachment.Update().SetUpdatedAt(time.Now())
 }
 
-func (rps *attachmentRepoImpl) BuildDelete() *ent.AttachmentUpdate {
-	return rps.client.Attachment.Update().SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+func (rps *attachmentRepoImpl) BuildDelete() *ent.AttachmentDelete {
+	return rps.client.Attachment.Delete()
 }
 
 func (rps *attachmentRepoImpl) BuildQuery() *ent.AttachmentQuery {
@@ -101,7 +102,13 @@ func (rps *attachmentRepoImpl) CreateAttachment(ctx context.Context, input []*en
 }
 
 func (rps *attachmentRepoImpl) RemoveAttachment(ctx context.Context, relationId uuid.UUID) error {
-	return rps.BuildDelete().Where(attachment.RelationIDEQ(relationId)).Exec(ctx)
+	_, err := rps.BuildDelete().Where(attachment.RelationIDEQ(relationId)).Exec(ctx)
+	return err
+}
+
+func (rps *attachmentRepoImpl) RemoveBulkAttachment(ctx context.Context, ids []uuid.UUID) error {
+	_, err := rps.BuildDelete().Where(attachment.IDIn(ids...)).Exec(ctx)
+	return err
 }
 
 func (rps *attachmentRepoImpl) GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error) {

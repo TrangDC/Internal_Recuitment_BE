@@ -36,6 +36,12 @@ const (
 	EdgeCandidateInterviewEdge = "candidate_interview_edge"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
+	// EdgeCandidateEducateEdge holds the string denoting the candidate_educate_edge edge name in mutations.
+	EdgeCandidateEducateEdge = "candidate_educate_edge"
+	// EdgeCandidateAwardEdge holds the string denoting the candidate_award_edge edge name in mutations.
+	EdgeCandidateAwardEdge = "candidate_award_edge"
+	// EdgeCandidateCertificateEdge holds the string denoting the candidate_certificate_edge edge name in mutations.
+	EdgeCandidateCertificateEdge = "candidate_certificate_edge"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
 	// CandidateJobEdgeTable is the table that holds the candidate_job_edge relation/edge.
@@ -66,6 +72,27 @@ const (
 	CandidateEdgeInverseTable = "candidates"
 	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
 	CandidateEdgeColumn = "relation_id"
+	// CandidateEducateEdgeTable is the table that holds the candidate_educate_edge relation/edge.
+	CandidateEducateEdgeTable = "attachments"
+	// CandidateEducateEdgeInverseTable is the table name for the CandidateEducate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateeducate" package.
+	CandidateEducateEdgeInverseTable = "candidate_educates"
+	// CandidateEducateEdgeColumn is the table column denoting the candidate_educate_edge relation/edge.
+	CandidateEducateEdgeColumn = "relation_id"
+	// CandidateAwardEdgeTable is the table that holds the candidate_award_edge relation/edge.
+	CandidateAwardEdgeTable = "attachments"
+	// CandidateAwardEdgeInverseTable is the table name for the CandidateAward entity.
+	// It exists in this package in order to avoid circular dependency with the "candidateaward" package.
+	CandidateAwardEdgeInverseTable = "candidate_awards"
+	// CandidateAwardEdgeColumn is the table column denoting the candidate_award_edge relation/edge.
+	CandidateAwardEdgeColumn = "relation_id"
+	// CandidateCertificateEdgeTable is the table that holds the candidate_certificate_edge relation/edge.
+	CandidateCertificateEdgeTable = "attachments"
+	// CandidateCertificateEdgeInverseTable is the table name for the CandidateCertificate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatecertificate" package.
+	CandidateCertificateEdgeInverseTable = "candidate_certificates"
+	// CandidateCertificateEdgeColumn is the table column denoting the candidate_certificate_edge relation/edge.
+	CandidateCertificateEdgeColumn = "relation_id"
 )
 
 // Columns holds all SQL columns for attachment fields.
@@ -80,10 +107,21 @@ var Columns = []string{
 	FieldRelationID,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "attachments"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"candidate_exp_attachment_edges",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -105,6 +143,9 @@ const (
 	RelationTypeCandidateJobs         RelationType = "candidate_jobs"
 	RelationTypeCandidateJobFeedbacks RelationType = "candidate_job_feedbacks"
 	RelationTypeCandidates            RelationType = "candidates"
+	RelationTypeCandidateEducates     RelationType = "candidate_educates"
+	RelationTypeCandidateAwards       RelationType = "candidate_awards"
+	RelationTypeCandidateCertificates RelationType = "candidate_certificates"
 )
 
 func (rt RelationType) String() string {
@@ -114,7 +155,7 @@ func (rt RelationType) String() string {
 // RelationTypeValidator is a validator for the "relation_type" field enum values. It is called by the builders before save.
 func RelationTypeValidator(rt RelationType) error {
 	switch rt {
-	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks, RelationTypeCandidates:
+	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks, RelationTypeCandidates, RelationTypeCandidateEducates, RelationTypeCandidateAwards, RelationTypeCandidateCertificates:
 		return nil
 	default:
 		return fmt.Errorf("attachment: invalid enum value for relation_type field: %q", rt)

@@ -83,6 +83,21 @@ type Base64Response struct {
 	Data string `json:"data"`
 }
 
+type CandidateAwardInput struct {
+	ID           string                `json:"id"`
+	Name         string                `json:"name"`
+	AchievedDate *time.Time            `json:"achieved_date"`
+	Attachments  []*NewAttachmentInput `json:"attachments"`
+}
+
+type CandidateCertificateInput struct {
+	ID           string                `json:"id"`
+	Name         string                `json:"name"`
+	Score        string                `json:"score"`
+	AchievedDate *time.Time            `json:"achieved_date"`
+	Attachments  []*NewAttachmentInput `json:"attachments"`
+}
+
 type CandidateConversionRateReport struct {
 	ID             string `json:"id"`
 	HiringTeamName string `json:"hiring_team_name"`
@@ -99,6 +114,28 @@ type CandidateConversionRateReportEdge struct {
 
 type CandidateConversionRateReportResponse struct {
 	Data []*ReportNumberByType `json:"data"`
+}
+
+type CandidateEducateInput struct {
+	ID          string                `json:"id"`
+	SchoolName  string                `json:"school_name"`
+	Major       string                `json:"major"`
+	Gpa         string                `json:"gpa"`
+	StartDate   *time.Time            `json:"start_date"`
+	EndDate     *time.Time            `json:"end_date"`
+	Location    string                `json:"location"`
+	Description string                `json:"description"`
+	Attachments []*NewAttachmentInput `json:"attachments"`
+}
+
+type CandidateExpInput struct {
+	ID          string     `json:"id"`
+	Position    string     `json:"position"`
+	Company     string     `json:"company"`
+	Location    string     `json:"location"`
+	StartDate   *time.Time `json:"start_date"`
+	EndDate     *time.Time `json:"end_date"`
+	Description string     `json:"description"`
 }
 
 type CandidateFilter struct {
@@ -518,18 +555,23 @@ type NewAttachmentInput struct {
 }
 
 type NewCandidateInput struct {
-	Name               string                    `json:"name"`
-	Email              string                    `json:"email"`
-	Phone              string                    `json:"phone"`
-	Dob                *time.Time                `json:"dob"`
-	ReferenceType      CandidateReferenceType    `json:"reference_type"`
-	ReferenceValue     string                    `json:"reference_value"`
-	ReferenceUID       string                    `json:"reference_uid"`
-	RecruitTime        *time.Time                `json:"recruit_time"`
-	Description        string                    `json:"description"`
-	Country            string                    `json:"country"`
-	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
-	Attachments        []*NewAttachmentInput     `json:"attachments"`
+	Name                 string                       `json:"name"`
+	Email                string                       `json:"email"`
+	Phone                string                       `json:"phone"`
+	Dob                  *time.Time                   `json:"dob"`
+	ReferenceType        CandidateReferenceType       `json:"reference_type"`
+	ReferenceValue       string                       `json:"reference_value"`
+	ReferenceUID         string                       `json:"reference_uid"`
+	RecruitTime          *time.Time                   `json:"recruit_time"`
+	Description          string                       `json:"description"`
+	Country              string                       `json:"country"`
+	EntitySkillRecords   []*EntitySkillRecordInput    `json:"entity_skill_records"`
+	Attachments          []*NewAttachmentInput        `json:"attachments"`
+	Address              string                       `json:"address"`
+	CandidateExp         []*CandidateExpInput         `json:"candidate_exp"`
+	CandidateEducate     []*CandidateEducateInput     `json:"candidate_educate"`
+	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
+	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -912,18 +954,23 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateInput struct {
-	Name               string                    `json:"name"`
-	Email              string                    `json:"email"`
-	Phone              string                    `json:"phone"`
-	Dob                *time.Time                `json:"dob"`
-	ReferenceType      CandidateReferenceType    `json:"reference_type"`
-	ReferenceValue     string                    `json:"reference_value"`
-	ReferenceUID       string                    `json:"reference_uid"`
-	RecruitTime        *time.Time                `json:"recruit_time"`
-	Description        string                    `json:"description"`
-	Country            string                    `json:"country"`
-	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
-	Attachments        []*NewAttachmentInput     `json:"attachments"`
+	Name                 string                       `json:"name"`
+	Email                string                       `json:"email"`
+	Phone                string                       `json:"phone"`
+	Dob                  *time.Time                   `json:"dob"`
+	ReferenceType        CandidateReferenceType       `json:"reference_type"`
+	ReferenceValue       string                       `json:"reference_value"`
+	ReferenceUID         string                       `json:"reference_uid"`
+	RecruitTime          *time.Time                   `json:"recruit_time"`
+	Description          string                       `json:"description"`
+	Country              string                       `json:"country"`
+	EntitySkillRecords   []*EntitySkillRecordInput    `json:"entity_skill_records"`
+	Attachments          []*NewAttachmentInput        `json:"attachments"`
+	Address              string                       `json:"address"`
+	CandidateExp         []*CandidateExpInput         `json:"candidate_exp"`
+	CandidateEducate     []*CandidateEducateInput     `json:"candidate_educate"`
+	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
+	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
 }
 
 type UpdateCandidateInterviewInput struct {

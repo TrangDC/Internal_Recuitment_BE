@@ -17,7 +17,6 @@ import (
 	"trec/ent/skilltype"
 
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 )
 
 type CandidateRepository interface {
@@ -30,6 +29,7 @@ type CandidateRepository interface {
 	DeleteRelationCandidate(ctx context.Context, candidateId uuid.UUID) error
 	// query
 	GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error)
+	GetCandidateForUpdate(ctx context.Context, id uuid.UUID) (*ent.Candidate, error)
 	BuildQuery() *ent.CandidateQuery
 	BuildBaseQuery() *ent.CandidateQuery
 	BuildCount(ctx context.Context, query *ent.CandidateQuery) (int, error)
@@ -100,6 +100,18 @@ func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
 				},
 			)
 		},
+	).WithCandidateExpEdges().WithCandidateEducateEdges(
+		func(query *ent.CandidateEducateQuery) {
+			query.WithAttachmentEdges()
+		},
+	).WithCandidateAwardEdges(
+		func(query *ent.CandidateAwardQuery) {
+			query.WithAttachmentEdges()
+		},
+	).WithCandidateCertificateEdges(
+		func(query *ent.CandidateCertificateQuery) {
+			query.WithAttachmentEdges()
+		},
 	)
 }
 
@@ -140,7 +152,8 @@ func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.New
 		SetCountry(strings.TrimSpace(input.Country)).
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
-		SetDescription(strings.TrimSpace(input.Description))
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetAddress(strings.TrimSpace(input.Address))
 	if input.Dob != nil && !input.Dob.IsZero() {
 		create.SetDob(*input.Dob)
 	}
@@ -161,7 +174,8 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		SetCountry(strings.TrimSpace(input.Country)).
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
-		SetDescription(strings.TrimSpace(input.Description))
+		SetDescription(strings.TrimSpace(input.Description)).
+		SetAddress(strings.TrimSpace(input.Address))
 	if input.Dob != nil && !input.Dob.IsZero() {
 		update.SetDob(*input.Dob)
 	} else {
@@ -183,45 +197,7 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 func (rps candidateRepoImpl) DeleteCandidate(ctx context.Context, record *ent.Candidate) error {
 	_, err := rps.BuildUpdateOne(ctx, record).
 		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	candidateJobIds := lo.Map(record.Edges.CandidateJobEdges, func(v *ent.CandidateJob, index int) uuid.UUID {
-		return v.ID
-	})
-	_, err = rps.client.CandidateJob.Update().Where(candidatejob.CandidateID(record.ID)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	_, err = rps.client.CandidateJobFeedback.Update().Where(candidatejobfeedback.CandidateJobIDIn(candidateJobIds...)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	_, err = rps.client.CandidateJobStep.Update().Where(candidatejobstep.CandidateJobID(record.ID)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	attachmentRelationIds := candidateJobIds
-	attachmentRelationIds = append(attachmentRelationIds, record.ID)
-	_, err = rps.client.Attachment.Update().Where(attachment.RelationIDIn(attachmentRelationIds...)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	_, err = rps.client.CandidateInterview.Update().Where(candidateinterview.CandidateJobIDIn(candidateJobIds...)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	_, err = rps.client.EntitySkill.Update().Where(entityskill.EntityIDEQ(record.ID)).
-		SetUpdatedAt(time.Now().UTC()).SetDeletedAt(time.Now().UTC()).Save(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (rps candidateRepoImpl) SetBlackListCandidate(ctx context.Context, record *ent.Candidate, isBlackList bool) (*ent.Candidate, error) {
@@ -266,6 +242,39 @@ func (rps candidateRepoImpl) DeleteRelationCandidate(ctx context.Context, candid
 // query
 func (rps candidateRepoImpl) GetCandidate(ctx context.Context, candidateId uuid.UUID) (*ent.Candidate, error) {
 	return rps.BuildQuery().Where(candidate.IDEQ(candidateId)).First(ctx)
+}
+
+func (rps candidateRepoImpl) GetCandidateForUpdate(ctx context.Context, id uuid.UUID) (*ent.Candidate, error) {
+	query := rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil()).WithAttachmentEdges(
+		func(query *ent.AttachmentQuery) {
+			query.Where(attachment.DeletedAtIsNil())
+		},
+	).WithCandidateSkillEdges(
+		func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+				func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+						func(stq *ent.SkillTypeQuery) {
+							stq.Where(skilltype.DeletedAtIsNil())
+						},
+					)
+				},
+			)
+		},
+	).WithCandidateExpEdges().WithCandidateEducateEdges(
+		func(query *ent.CandidateEducateQuery) {
+			query.WithAttachmentEdges()
+		},
+	).WithCandidateAwardEdges(
+		func(query *ent.CandidateAwardQuery) {
+			query.WithAttachmentEdges()
+		},
+	).WithCandidateCertificateEdges(
+		func(query *ent.CandidateCertificateQuery) {
+			query.WithAttachmentEdges()
+		},
+	)
+	return query.Where(candidate.IDEQ(id)).First(ctx)
 }
 
 // common function

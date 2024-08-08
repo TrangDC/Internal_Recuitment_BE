@@ -13,6 +13,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -1226,6 +1230,1214 @@ func (c *Candidate) ToEdge(order *CandidateOrder) *CandidateEdge {
 	return &CandidateEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// CandidateAwardEdge is the edge representation of CandidateAward.
+type CandidateAwardEdge struct {
+	Node   *CandidateAward `json:"node"`
+	Cursor Cursor          `json:"cursor"`
+}
+
+// CandidateAwardConnection is the connection containing edges to CandidateAward.
+type CandidateAwardConnection struct {
+	Edges      []*CandidateAwardEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
+	TotalCount int                   `json:"totalCount"`
+}
+
+func (c *CandidateAwardConnection) build(nodes []*CandidateAward, pager *candidateawardPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateAward
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateAward {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateAward {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateAwardEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateAwardEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateAwardPaginateOption enables pagination customization.
+type CandidateAwardPaginateOption func(*candidateawardPager) error
+
+// WithCandidateAwardOrder configures pagination ordering.
+func WithCandidateAwardOrder(order *CandidateAwardOrder) CandidateAwardPaginateOption {
+	if order == nil {
+		order = DefaultCandidateAwardOrder
+	}
+	o := *order
+	return func(pager *candidateawardPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateAwardOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateAwardFilter configures pagination filter.
+func WithCandidateAwardFilter(filter func(*CandidateAwardQuery) (*CandidateAwardQuery, error)) CandidateAwardPaginateOption {
+	return func(pager *candidateawardPager) error {
+		if filter == nil {
+			return errors.New("CandidateAwardQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidateawardPager struct {
+	order  *CandidateAwardOrder
+	filter func(*CandidateAwardQuery) (*CandidateAwardQuery, error)
+}
+
+func newCandidateAwardPager(opts []CandidateAwardPaginateOption) (*candidateawardPager, error) {
+	pager := &candidateawardPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateAwardOrder
+	}
+	return pager, nil
+}
+
+func (p *candidateawardPager) applyFilter(query *CandidateAwardQuery) (*CandidateAwardQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidateawardPager) toCursor(ca *CandidateAward) Cursor {
+	return p.order.Field.toCursor(ca)
+}
+
+func (p *candidateawardPager) applyCursors(query *CandidateAwardQuery, after, before *Cursor) *CandidateAwardQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateAwardOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidateawardPager) applyOrder(query *CandidateAwardQuery, reverse bool) *CandidateAwardQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateAwardOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateAwardOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidateawardPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateAwardOrder.Field {
+			b.Comma().Ident(DefaultCandidateAwardOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateAward.
+func (ca *CandidateAwardQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateAwardPaginateOption,
+) (*CandidateAwardConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateAwardPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ca, err = pager.applyFilter(ca); err != nil {
+		return nil, err
+	}
+	conn := &CandidateAwardConnection{Edges: []*CandidateAwardEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ca.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ca = pager.applyCursors(ca, after, before)
+	ca = pager.applyOrder(ca, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ca.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ca.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ca.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateAwardOrderFieldCreatedAt orders CandidateAward by created_at.
+	CandidateAwardOrderFieldCreatedAt = &CandidateAwardOrderField{
+		field: candidateaward.FieldCreatedAt,
+		toCursor: func(ca *CandidateAward) Cursor {
+			return Cursor{
+				ID:    ca.ID,
+				Value: ca.CreatedAt,
+			}
+		},
+	}
+	// CandidateAwardOrderFieldUpdatedAt orders CandidateAward by updated_at.
+	CandidateAwardOrderFieldUpdatedAt = &CandidateAwardOrderField{
+		field: candidateaward.FieldUpdatedAt,
+		toCursor: func(ca *CandidateAward) Cursor {
+			return Cursor{
+				ID:    ca.ID,
+				Value: ca.UpdatedAt,
+			}
+		},
+	}
+	// CandidateAwardOrderFieldDeletedAt orders CandidateAward by deleted_at.
+	CandidateAwardOrderFieldDeletedAt = &CandidateAwardOrderField{
+		field: candidateaward.FieldDeletedAt,
+		toCursor: func(ca *CandidateAward) Cursor {
+			return Cursor{
+				ID:    ca.ID,
+				Value: ca.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateAwardOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidateaward.FieldCreatedAt:
+		str = "created_at"
+	case candidateaward.FieldUpdatedAt:
+		str = "updated_at"
+	case candidateaward.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateAwardOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateAwardOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateAwardOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateAwardOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateAwardOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateAwardOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateAwardOrderField", str)
+	}
+	return nil
+}
+
+// CandidateAwardOrderField defines the ordering field of CandidateAward.
+type CandidateAwardOrderField struct {
+	field    string
+	toCursor func(*CandidateAward) Cursor
+}
+
+// CandidateAwardOrder defines the ordering of CandidateAward.
+type CandidateAwardOrder struct {
+	Direction OrderDirection            `json:"direction"`
+	Field     *CandidateAwardOrderField `json:"field"`
+}
+
+// DefaultCandidateAwardOrder is the default ordering of CandidateAward.
+var DefaultCandidateAwardOrder = &CandidateAwardOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateAwardOrderField{
+		field: candidateaward.FieldID,
+		toCursor: func(ca *CandidateAward) Cursor {
+			return Cursor{ID: ca.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateAward into CandidateAwardEdge.
+func (ca *CandidateAward) ToEdge(order *CandidateAwardOrder) *CandidateAwardEdge {
+	if order == nil {
+		order = DefaultCandidateAwardOrder
+	}
+	return &CandidateAwardEdge{
+		Node:   ca,
+		Cursor: order.Field.toCursor(ca),
+	}
+}
+
+// CandidateCertificateEdge is the edge representation of CandidateCertificate.
+type CandidateCertificateEdge struct {
+	Node   *CandidateCertificate `json:"node"`
+	Cursor Cursor                `json:"cursor"`
+}
+
+// CandidateCertificateConnection is the connection containing edges to CandidateCertificate.
+type CandidateCertificateConnection struct {
+	Edges      []*CandidateCertificateEdge `json:"edges"`
+	PageInfo   PageInfo                    `json:"pageInfo"`
+	TotalCount int                         `json:"totalCount"`
+}
+
+func (c *CandidateCertificateConnection) build(nodes []*CandidateCertificate, pager *candidatecertificatePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateCertificate
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateCertificate {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateCertificate {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateCertificateEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateCertificateEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateCertificatePaginateOption enables pagination customization.
+type CandidateCertificatePaginateOption func(*candidatecertificatePager) error
+
+// WithCandidateCertificateOrder configures pagination ordering.
+func WithCandidateCertificateOrder(order *CandidateCertificateOrder) CandidateCertificatePaginateOption {
+	if order == nil {
+		order = DefaultCandidateCertificateOrder
+	}
+	o := *order
+	return func(pager *candidatecertificatePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateCertificateOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateCertificateFilter configures pagination filter.
+func WithCandidateCertificateFilter(filter func(*CandidateCertificateQuery) (*CandidateCertificateQuery, error)) CandidateCertificatePaginateOption {
+	return func(pager *candidatecertificatePager) error {
+		if filter == nil {
+			return errors.New("CandidateCertificateQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatecertificatePager struct {
+	order  *CandidateCertificateOrder
+	filter func(*CandidateCertificateQuery) (*CandidateCertificateQuery, error)
+}
+
+func newCandidateCertificatePager(opts []CandidateCertificatePaginateOption) (*candidatecertificatePager, error) {
+	pager := &candidatecertificatePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateCertificateOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatecertificatePager) applyFilter(query *CandidateCertificateQuery) (*CandidateCertificateQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatecertificatePager) toCursor(cc *CandidateCertificate) Cursor {
+	return p.order.Field.toCursor(cc)
+}
+
+func (p *candidatecertificatePager) applyCursors(query *CandidateCertificateQuery, after, before *Cursor) *CandidateCertificateQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateCertificateOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatecertificatePager) applyOrder(query *CandidateCertificateQuery, reverse bool) *CandidateCertificateQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateCertificateOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateCertificateOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatecertificatePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateCertificateOrder.Field {
+			b.Comma().Ident(DefaultCandidateCertificateOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateCertificate.
+func (cc *CandidateCertificateQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateCertificatePaginateOption,
+) (*CandidateCertificateConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateCertificatePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if cc, err = pager.applyFilter(cc); err != nil {
+		return nil, err
+	}
+	conn := &CandidateCertificateConnection{Edges: []*CandidateCertificateEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = cc.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	cc = pager.applyCursors(cc, after, before)
+	cc = pager.applyOrder(cc, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		cc.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cc.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := cc.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateCertificateOrderFieldCreatedAt orders CandidateCertificate by created_at.
+	CandidateCertificateOrderFieldCreatedAt = &CandidateCertificateOrderField{
+		field: candidatecertificate.FieldCreatedAt,
+		toCursor: func(cc *CandidateCertificate) Cursor {
+			return Cursor{
+				ID:    cc.ID,
+				Value: cc.CreatedAt,
+			}
+		},
+	}
+	// CandidateCertificateOrderFieldUpdatedAt orders CandidateCertificate by updated_at.
+	CandidateCertificateOrderFieldUpdatedAt = &CandidateCertificateOrderField{
+		field: candidatecertificate.FieldUpdatedAt,
+		toCursor: func(cc *CandidateCertificate) Cursor {
+			return Cursor{
+				ID:    cc.ID,
+				Value: cc.UpdatedAt,
+			}
+		},
+	}
+	// CandidateCertificateOrderFieldDeletedAt orders CandidateCertificate by deleted_at.
+	CandidateCertificateOrderFieldDeletedAt = &CandidateCertificateOrderField{
+		field: candidatecertificate.FieldDeletedAt,
+		toCursor: func(cc *CandidateCertificate) Cursor {
+			return Cursor{
+				ID:    cc.ID,
+				Value: cc.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateCertificateOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatecertificate.FieldCreatedAt:
+		str = "created_at"
+	case candidatecertificate.FieldUpdatedAt:
+		str = "updated_at"
+	case candidatecertificate.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateCertificateOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateCertificateOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateCertificateOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateCertificateOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateCertificateOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateCertificateOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateCertificateOrderField", str)
+	}
+	return nil
+}
+
+// CandidateCertificateOrderField defines the ordering field of CandidateCertificate.
+type CandidateCertificateOrderField struct {
+	field    string
+	toCursor func(*CandidateCertificate) Cursor
+}
+
+// CandidateCertificateOrder defines the ordering of CandidateCertificate.
+type CandidateCertificateOrder struct {
+	Direction OrderDirection                  `json:"direction"`
+	Field     *CandidateCertificateOrderField `json:"field"`
+}
+
+// DefaultCandidateCertificateOrder is the default ordering of CandidateCertificate.
+var DefaultCandidateCertificateOrder = &CandidateCertificateOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateCertificateOrderField{
+		field: candidatecertificate.FieldID,
+		toCursor: func(cc *CandidateCertificate) Cursor {
+			return Cursor{ID: cc.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateCertificate into CandidateCertificateEdge.
+func (cc *CandidateCertificate) ToEdge(order *CandidateCertificateOrder) *CandidateCertificateEdge {
+	if order == nil {
+		order = DefaultCandidateCertificateOrder
+	}
+	return &CandidateCertificateEdge{
+		Node:   cc,
+		Cursor: order.Field.toCursor(cc),
+	}
+}
+
+// CandidateEducateEdge is the edge representation of CandidateEducate.
+type CandidateEducateEdge struct {
+	Node   *CandidateEducate `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// CandidateEducateConnection is the connection containing edges to CandidateEducate.
+type CandidateEducateConnection struct {
+	Edges      []*CandidateEducateEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *CandidateEducateConnection) build(nodes []*CandidateEducate, pager *candidateeducatePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateEducate
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateEducate {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateEducate {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateEducateEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateEducateEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateEducatePaginateOption enables pagination customization.
+type CandidateEducatePaginateOption func(*candidateeducatePager) error
+
+// WithCandidateEducateOrder configures pagination ordering.
+func WithCandidateEducateOrder(order *CandidateEducateOrder) CandidateEducatePaginateOption {
+	if order == nil {
+		order = DefaultCandidateEducateOrder
+	}
+	o := *order
+	return func(pager *candidateeducatePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateEducateOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateEducateFilter configures pagination filter.
+func WithCandidateEducateFilter(filter func(*CandidateEducateQuery) (*CandidateEducateQuery, error)) CandidateEducatePaginateOption {
+	return func(pager *candidateeducatePager) error {
+		if filter == nil {
+			return errors.New("CandidateEducateQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidateeducatePager struct {
+	order  *CandidateEducateOrder
+	filter func(*CandidateEducateQuery) (*CandidateEducateQuery, error)
+}
+
+func newCandidateEducatePager(opts []CandidateEducatePaginateOption) (*candidateeducatePager, error) {
+	pager := &candidateeducatePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateEducateOrder
+	}
+	return pager, nil
+}
+
+func (p *candidateeducatePager) applyFilter(query *CandidateEducateQuery) (*CandidateEducateQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidateeducatePager) toCursor(ce *CandidateEducate) Cursor {
+	return p.order.Field.toCursor(ce)
+}
+
+func (p *candidateeducatePager) applyCursors(query *CandidateEducateQuery, after, before *Cursor) *CandidateEducateQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateEducateOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidateeducatePager) applyOrder(query *CandidateEducateQuery, reverse bool) *CandidateEducateQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateEducateOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateEducateOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidateeducatePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateEducateOrder.Field {
+			b.Comma().Ident(DefaultCandidateEducateOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateEducate.
+func (ce *CandidateEducateQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateEducatePaginateOption,
+) (*CandidateEducateConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateEducatePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ce, err = pager.applyFilter(ce); err != nil {
+		return nil, err
+	}
+	conn := &CandidateEducateConnection{Edges: []*CandidateEducateEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ce.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ce = pager.applyCursors(ce, after, before)
+	ce = pager.applyOrder(ce, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ce.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ce.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ce.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateEducateOrderFieldCreatedAt orders CandidateEducate by created_at.
+	CandidateEducateOrderFieldCreatedAt = &CandidateEducateOrderField{
+		field: candidateeducate.FieldCreatedAt,
+		toCursor: func(ce *CandidateEducate) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.CreatedAt,
+			}
+		},
+	}
+	// CandidateEducateOrderFieldUpdatedAt orders CandidateEducate by updated_at.
+	CandidateEducateOrderFieldUpdatedAt = &CandidateEducateOrderField{
+		field: candidateeducate.FieldUpdatedAt,
+		toCursor: func(ce *CandidateEducate) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.UpdatedAt,
+			}
+		},
+	}
+	// CandidateEducateOrderFieldDeletedAt orders CandidateEducate by deleted_at.
+	CandidateEducateOrderFieldDeletedAt = &CandidateEducateOrderField{
+		field: candidateeducate.FieldDeletedAt,
+		toCursor: func(ce *CandidateEducate) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateEducateOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidateeducate.FieldCreatedAt:
+		str = "created_at"
+	case candidateeducate.FieldUpdatedAt:
+		str = "updated_at"
+	case candidateeducate.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateEducateOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateEducateOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateEducateOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateEducateOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateEducateOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateEducateOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateEducateOrderField", str)
+	}
+	return nil
+}
+
+// CandidateEducateOrderField defines the ordering field of CandidateEducate.
+type CandidateEducateOrderField struct {
+	field    string
+	toCursor func(*CandidateEducate) Cursor
+}
+
+// CandidateEducateOrder defines the ordering of CandidateEducate.
+type CandidateEducateOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *CandidateEducateOrderField `json:"field"`
+}
+
+// DefaultCandidateEducateOrder is the default ordering of CandidateEducate.
+var DefaultCandidateEducateOrder = &CandidateEducateOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateEducateOrderField{
+		field: candidateeducate.FieldID,
+		toCursor: func(ce *CandidateEducate) Cursor {
+			return Cursor{ID: ce.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateEducate into CandidateEducateEdge.
+func (ce *CandidateEducate) ToEdge(order *CandidateEducateOrder) *CandidateEducateEdge {
+	if order == nil {
+		order = DefaultCandidateEducateOrder
+	}
+	return &CandidateEducateEdge{
+		Node:   ce,
+		Cursor: order.Field.toCursor(ce),
+	}
+}
+
+// CandidateExpEdge is the edge representation of CandidateExp.
+type CandidateExpEdge struct {
+	Node   *CandidateExp `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// CandidateExpConnection is the connection containing edges to CandidateExp.
+type CandidateExpConnection struct {
+	Edges      []*CandidateExpEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+func (c *CandidateExpConnection) build(nodes []*CandidateExp, pager *candidateexpPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateExp
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateExp {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateExp {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateExpEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateExpEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateExpPaginateOption enables pagination customization.
+type CandidateExpPaginateOption func(*candidateexpPager) error
+
+// WithCandidateExpOrder configures pagination ordering.
+func WithCandidateExpOrder(order *CandidateExpOrder) CandidateExpPaginateOption {
+	if order == nil {
+		order = DefaultCandidateExpOrder
+	}
+	o := *order
+	return func(pager *candidateexpPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateExpOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateExpFilter configures pagination filter.
+func WithCandidateExpFilter(filter func(*CandidateExpQuery) (*CandidateExpQuery, error)) CandidateExpPaginateOption {
+	return func(pager *candidateexpPager) error {
+		if filter == nil {
+			return errors.New("CandidateExpQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidateexpPager struct {
+	order  *CandidateExpOrder
+	filter func(*CandidateExpQuery) (*CandidateExpQuery, error)
+}
+
+func newCandidateExpPager(opts []CandidateExpPaginateOption) (*candidateexpPager, error) {
+	pager := &candidateexpPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateExpOrder
+	}
+	return pager, nil
+}
+
+func (p *candidateexpPager) applyFilter(query *CandidateExpQuery) (*CandidateExpQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidateexpPager) toCursor(ce *CandidateExp) Cursor {
+	return p.order.Field.toCursor(ce)
+}
+
+func (p *candidateexpPager) applyCursors(query *CandidateExpQuery, after, before *Cursor) *CandidateExpQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateExpOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidateexpPager) applyOrder(query *CandidateExpQuery, reverse bool) *CandidateExpQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateExpOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateExpOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidateexpPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateExpOrder.Field {
+			b.Comma().Ident(DefaultCandidateExpOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateExp.
+func (ce *CandidateExpQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateExpPaginateOption,
+) (*CandidateExpConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateExpPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ce, err = pager.applyFilter(ce); err != nil {
+		return nil, err
+	}
+	conn := &CandidateExpConnection{Edges: []*CandidateExpEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ce.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ce = pager.applyCursors(ce, after, before)
+	ce = pager.applyOrder(ce, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ce.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ce.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ce.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateExpOrderFieldCreatedAt orders CandidateExp by created_at.
+	CandidateExpOrderFieldCreatedAt = &CandidateExpOrderField{
+		field: candidateexp.FieldCreatedAt,
+		toCursor: func(ce *CandidateExp) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.CreatedAt,
+			}
+		},
+	}
+	// CandidateExpOrderFieldUpdatedAt orders CandidateExp by updated_at.
+	CandidateExpOrderFieldUpdatedAt = &CandidateExpOrderField{
+		field: candidateexp.FieldUpdatedAt,
+		toCursor: func(ce *CandidateExp) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.UpdatedAt,
+			}
+		},
+	}
+	// CandidateExpOrderFieldDeletedAt orders CandidateExp by deleted_at.
+	CandidateExpOrderFieldDeletedAt = &CandidateExpOrderField{
+		field: candidateexp.FieldDeletedAt,
+		toCursor: func(ce *CandidateExp) Cursor {
+			return Cursor{
+				ID:    ce.ID,
+				Value: ce.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateExpOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidateexp.FieldCreatedAt:
+		str = "created_at"
+	case candidateexp.FieldUpdatedAt:
+		str = "updated_at"
+	case candidateexp.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateExpOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateExpOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateExpOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateExpOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateExpOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateExpOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateExpOrderField", str)
+	}
+	return nil
+}
+
+// CandidateExpOrderField defines the ordering field of CandidateExp.
+type CandidateExpOrderField struct {
+	field    string
+	toCursor func(*CandidateExp) Cursor
+}
+
+// CandidateExpOrder defines the ordering of CandidateExp.
+type CandidateExpOrder struct {
+	Direction OrderDirection          `json:"direction"`
+	Field     *CandidateExpOrderField `json:"field"`
+}
+
+// DefaultCandidateExpOrder is the default ordering of CandidateExp.
+var DefaultCandidateExpOrder = &CandidateExpOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateExpOrderField{
+		field: candidateexp.FieldID,
+		toCursor: func(ce *CandidateExp) Cursor {
+			return Cursor{ID: ce.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateExp into CandidateExpEdge.
+func (ce *CandidateExp) ToEdge(order *CandidateExpOrder) *CandidateExpEdge {
+	if order == nil {
+		order = DefaultCandidateExpOrder
+	}
+	return &CandidateExpEdge{
+		Node:   ce,
+		Cursor: order.Field.toCursor(ce),
 	}
 }
 

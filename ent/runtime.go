@@ -7,6 +7,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidateaward"
+	"trec/ent/candidatecertificate"
+	"trec/ent/candidateeducate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -142,6 +146,164 @@ func init() {
 	candidateDescCountry := candidateFields[11].Descriptor()
 	// candidate.CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	candidate.CountryValidator = candidateDescCountry.Validators[0].(func(string) error)
+	// candidateDescAddress is the schema descriptor for address field.
+	candidateDescAddress := candidateFields[12].Descriptor()
+	// candidate.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	candidate.AddressValidator = candidateDescAddress.Validators[0].(func(string) error)
+	candidateawardMixin := schema.CandidateAward{}.Mixin()
+	candidateawardMixinFields0 := candidateawardMixin[0].Fields()
+	_ = candidateawardMixinFields0
+	candidateawardFields := schema.CandidateAward{}.Fields()
+	_ = candidateawardFields
+	// candidateawardDescCreatedAt is the schema descriptor for created_at field.
+	candidateawardDescCreatedAt := candidateawardMixinFields0[1].Descriptor()
+	// candidateaward.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidateaward.DefaultCreatedAt = candidateawardDescCreatedAt.Default.(func() time.Time)
+	// candidateawardDescName is the schema descriptor for name field.
+	candidateawardDescName := candidateawardFields[1].Descriptor()
+	// candidateaward.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	candidateaward.NameValidator = func() func(string) error {
+		validators := candidateawardDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	candidatecertificateMixin := schema.CandidateCertificate{}.Mixin()
+	candidatecertificateMixinFields0 := candidatecertificateMixin[0].Fields()
+	_ = candidatecertificateMixinFields0
+	candidatecertificateFields := schema.CandidateCertificate{}.Fields()
+	_ = candidatecertificateFields
+	// candidatecertificateDescCreatedAt is the schema descriptor for created_at field.
+	candidatecertificateDescCreatedAt := candidatecertificateMixinFields0[1].Descriptor()
+	// candidatecertificate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidatecertificate.DefaultCreatedAt = candidatecertificateDescCreatedAt.Default.(func() time.Time)
+	// candidatecertificateDescName is the schema descriptor for name field.
+	candidatecertificateDescName := candidatecertificateFields[1].Descriptor()
+	// candidatecertificate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	candidatecertificate.NameValidator = func() func(string) error {
+		validators := candidatecertificateDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidatecertificateDescScore is the schema descriptor for score field.
+	candidatecertificateDescScore := candidatecertificateFields[2].Descriptor()
+	// candidatecertificate.ScoreValidator is a validator for the "score" field. It is called by the builders before save.
+	candidatecertificate.ScoreValidator = candidatecertificateDescScore.Validators[0].(func(string) error)
+	candidateeducateMixin := schema.CandidateEducate{}.Mixin()
+	candidateeducateMixinFields0 := candidateeducateMixin[0].Fields()
+	_ = candidateeducateMixinFields0
+	candidateeducateFields := schema.CandidateEducate{}.Fields()
+	_ = candidateeducateFields
+	// candidateeducateDescCreatedAt is the schema descriptor for created_at field.
+	candidateeducateDescCreatedAt := candidateeducateMixinFields0[1].Descriptor()
+	// candidateeducate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidateeducate.DefaultCreatedAt = candidateeducateDescCreatedAt.Default.(func() time.Time)
+	// candidateeducateDescSchoolName is the schema descriptor for school_name field.
+	candidateeducateDescSchoolName := candidateeducateFields[1].Descriptor()
+	// candidateeducate.SchoolNameValidator is a validator for the "school_name" field. It is called by the builders before save.
+	candidateeducate.SchoolNameValidator = func() func(string) error {
+		validators := candidateeducateDescSchoolName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(school_name string) error {
+			for _, fn := range fns {
+				if err := fn(school_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateeducateDescMajor is the schema descriptor for major field.
+	candidateeducateDescMajor := candidateeducateFields[2].Descriptor()
+	// candidateeducate.MajorValidator is a validator for the "major" field. It is called by the builders before save.
+	candidateeducate.MajorValidator = candidateeducateDescMajor.Validators[0].(func(string) error)
+	// candidateeducateDescGpa is the schema descriptor for gpa field.
+	candidateeducateDescGpa := candidateeducateFields[3].Descriptor()
+	// candidateeducate.GpaValidator is a validator for the "gpa" field. It is called by the builders before save.
+	candidateeducate.GpaValidator = candidateeducateDescGpa.Validators[0].(func(string) error)
+	// candidateeducateDescLocation is the schema descriptor for location field.
+	candidateeducateDescLocation := candidateeducateFields[4].Descriptor()
+	// candidateeducate.LocationValidator is a validator for the "location" field. It is called by the builders before save.
+	candidateeducate.LocationValidator = candidateeducateDescLocation.Validators[0].(func(string) error)
+	// candidateeducateDescDescription is the schema descriptor for description field.
+	candidateeducateDescDescription := candidateeducateFields[5].Descriptor()
+	// candidateeducate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	candidateeducate.DescriptionValidator = candidateeducateDescDescription.Validators[0].(func(string) error)
+	candidateexpMixin := schema.CandidateExp{}.Mixin()
+	candidateexpMixinFields0 := candidateexpMixin[0].Fields()
+	_ = candidateexpMixinFields0
+	candidateexpFields := schema.CandidateExp{}.Fields()
+	_ = candidateexpFields
+	// candidateexpDescCreatedAt is the schema descriptor for created_at field.
+	candidateexpDescCreatedAt := candidateexpMixinFields0[1].Descriptor()
+	// candidateexp.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidateexp.DefaultCreatedAt = candidateexpDescCreatedAt.Default.(func() time.Time)
+	// candidateexpDescPosition is the schema descriptor for position field.
+	candidateexpDescPosition := candidateexpFields[1].Descriptor()
+	// candidateexp.PositionValidator is a validator for the "position" field. It is called by the builders before save.
+	candidateexp.PositionValidator = func() func(string) error {
+		validators := candidateexpDescPosition.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(position string) error {
+			for _, fn := range fns {
+				if err := fn(position); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateexpDescCompany is the schema descriptor for company field.
+	candidateexpDescCompany := candidateexpFields[2].Descriptor()
+	// candidateexp.CompanyValidator is a validator for the "company" field. It is called by the builders before save.
+	candidateexp.CompanyValidator = func() func(string) error {
+		validators := candidateexpDescCompany.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(company string) error {
+			for _, fn := range fns {
+				if err := fn(company); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidateexpDescLocation is the schema descriptor for location field.
+	candidateexpDescLocation := candidateexpFields[3].Descriptor()
+	// candidateexp.LocationValidator is a validator for the "location" field. It is called by the builders before save.
+	candidateexp.LocationValidator = candidateexpDescLocation.Validators[0].(func(string) error)
+	// candidateexpDescDescription is the schema descriptor for description field.
+	candidateexpDescDescription := candidateexpFields[4].Descriptor()
+	// candidateexp.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	candidateexp.DescriptionValidator = candidateexpDescDescription.Validators[0].(func(string) error)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
 	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
 	_ = candidateinterviewMixinFields0
