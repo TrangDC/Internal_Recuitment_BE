@@ -173,6 +173,13 @@ func Description(v string) predicate.Candidate {
 	})
 }
 
+// Avatar applies equality check predicate on the "avatar" field. It's identical to AvatarEQ.
+func Avatar(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAvatar), v))
+	})
+}
+
 // Country applies equality check predicate on the "country" field. It's identical to CountryEQ.
 func Country(v string) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
@@ -1261,6 +1268,84 @@ func DescriptionEqualFold(v string) predicate.Candidate {
 func DescriptionContainsFold(v string) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
+	})
+}
+
+// AvatarEQ applies the EQ predicate on the "avatar" field.
+func AvatarEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarNEQ applies the NEQ predicate on the "avatar" field.
+func AvatarNEQ(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarIn applies the In predicate on the "avatar" field.
+func AvatarIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldAvatar), v...))
+	})
+}
+
+// AvatarNotIn applies the NotIn predicate on the "avatar" field.
+func AvatarNotIn(vs ...uuid.UUID) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldAvatar), v...))
+	})
+}
+
+// AvatarGT applies the GT predicate on the "avatar" field.
+func AvatarGT(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarGTE applies the GTE predicate on the "avatar" field.
+func AvatarGTE(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarLT applies the LT predicate on the "avatar" field.
+func AvatarLT(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarLTE applies the LTE predicate on the "avatar" field.
+func AvatarLTE(v uuid.UUID) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAvatar), v))
+	})
+}
+
+// AvatarIsNil applies the IsNil predicate on the "avatar" field.
+func AvatarIsNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAvatar)))
+	})
+}
+
+// AvatarNotNil applies the NotNil predicate on the "avatar" field.
+func AvatarNotNil() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAvatar)))
 	})
 }
 

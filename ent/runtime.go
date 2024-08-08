@@ -143,11 +143,11 @@ func init() {
 	// candidate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidate.DescriptionValidator = candidateDescDescription.Validators[0].(func(string) error)
 	// candidateDescCountry is the schema descriptor for country field.
-	candidateDescCountry := candidateFields[11].Descriptor()
+	candidateDescCountry := candidateFields[12].Descriptor()
 	// candidate.CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	candidate.CountryValidator = candidateDescCountry.Validators[0].(func(string) error)
 	// candidateDescAddress is the schema descriptor for address field.
-	candidateDescAddress := candidateFields[12].Descriptor()
+	candidateDescAddress := candidateFields[13].Descriptor()
 	// candidate.AddressValidator is a validator for the "address" field. It is called by the builders before save.
 	candidate.AddressValidator = candidateDescAddress.Validators[0].(func(string) error)
 	candidateawardMixin := schema.CandidateAward{}.Mixin()

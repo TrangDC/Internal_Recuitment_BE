@@ -2158,6 +2158,7 @@ type CandidateMutation struct {
 	reference_value                    *string
 	recruit_time                       *time.Time
 	description                        *string
+	avatar                             *uuid.UUID
 	country                            *string
 	address                            *string
 	clearedFields                      map[string]struct{}
@@ -2901,6 +2902,55 @@ func (m *CandidateMutation) ResetDescription() {
 	delete(m.clearedFields, candidate.FieldDescription)
 }
 
+// SetAvatar sets the "avatar" field.
+func (m *CandidateMutation) SetAvatar(u uuid.UUID) {
+	m.avatar = &u
+}
+
+// Avatar returns the value of the "avatar" field in the mutation.
+func (m *CandidateMutation) Avatar() (r uuid.UUID, exists bool) {
+	v := m.avatar
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAvatar returns the old "avatar" field's value of the Candidate entity.
+// If the Candidate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateMutation) OldAvatar(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAvatar is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAvatar requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAvatar: %w", err)
+	}
+	return oldValue.Avatar, nil
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (m *CandidateMutation) ClearAvatar() {
+	m.avatar = nil
+	m.clearedFields[candidate.FieldAvatar] = struct{}{}
+}
+
+// AvatarCleared returns if the "avatar" field was cleared in this mutation.
+func (m *CandidateMutation) AvatarCleared() bool {
+	_, ok := m.clearedFields[candidate.FieldAvatar]
+	return ok
+}
+
+// ResetAvatar resets all changes to the "avatar" field.
+func (m *CandidateMutation) ResetAvatar() {
+	m.avatar = nil
+	delete(m.clearedFields, candidate.FieldAvatar)
+}
+
 // SetCountry sets the "country" field.
 func (m *CandidateMutation) SetCountry(s string) {
 	m.country = &s
@@ -3435,7 +3485,7 @@ func (m *CandidateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, candidate.FieldCreatedAt)
 	}
@@ -3477,6 +3527,9 @@ func (m *CandidateMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, candidate.FieldDescription)
+	}
+	if m.avatar != nil {
+		fields = append(fields, candidate.FieldAvatar)
 	}
 	if m.country != nil {
 		fields = append(fields, candidate.FieldCountry)
@@ -3520,6 +3573,8 @@ func (m *CandidateMutation) Field(name string) (ent.Value, bool) {
 		return m.RecruitTime()
 	case candidate.FieldDescription:
 		return m.Description()
+	case candidate.FieldAvatar:
+		return m.Avatar()
 	case candidate.FieldCountry:
 		return m.Country()
 	case candidate.FieldAddress:
@@ -3561,6 +3616,8 @@ func (m *CandidateMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRecruitTime(ctx)
 	case candidate.FieldDescription:
 		return m.OldDescription(ctx)
+	case candidate.FieldAvatar:
+		return m.OldAvatar(ctx)
 	case candidate.FieldCountry:
 		return m.OldCountry(ctx)
 	case candidate.FieldAddress:
@@ -3672,6 +3729,13 @@ func (m *CandidateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
+	case candidate.FieldAvatar:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAvatar(v)
+		return nil
 	case candidate.FieldCountry:
 		v, ok := value.(string)
 		if !ok {
@@ -3740,6 +3804,9 @@ func (m *CandidateMutation) ClearedFields() []string {
 	if m.FieldCleared(candidate.FieldDescription) {
 		fields = append(fields, candidate.FieldDescription)
 	}
+	if m.FieldCleared(candidate.FieldAvatar) {
+		fields = append(fields, candidate.FieldAvatar)
+	}
 	if m.FieldCleared(candidate.FieldCountry) {
 		fields = append(fields, candidate.FieldCountry)
 	}
@@ -3783,6 +3850,9 @@ func (m *CandidateMutation) ClearField(name string) error {
 		return nil
 	case candidate.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case candidate.FieldAvatar:
+		m.ClearAvatar()
 		return nil
 	case candidate.FieldCountry:
 		m.ClearCountry()
@@ -3839,6 +3909,9 @@ func (m *CandidateMutation) ResetField(name string) error {
 		return nil
 	case candidate.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case candidate.FieldAvatar:
+		m.ResetAvatar()
 		return nil
 	case candidate.FieldCountry:
 		m.ResetCountry()

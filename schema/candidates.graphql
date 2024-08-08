@@ -73,6 +73,7 @@ input NewCandidateInput{
   candidate_educate: [CandidateEducateInput!]!
   candidate_award: [CandidateAwardInput!]!
   candidate_certificate: [CandidateCertificateInput!]!
+  avatar: String!
 }
 
 input UpdateCandidateInput {
@@ -93,6 +94,7 @@ input UpdateCandidateInput {
   candidate_educate: [CandidateEducateInput!]!
   candidate_award: [CandidateAwardInput!]!
   candidate_certificate: [CandidateCertificateInput!]!
+  avatar: String!
 }
 
 input CandidateFilter {
@@ -152,6 +154,7 @@ type Candidate {
   candidate_educate: [CandidateEducate!]
   candidate_award: [CandidateAward!]
   candidate_certificate: [CandidateCertificate!]
+  avatar: String!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
