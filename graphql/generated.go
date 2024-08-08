@@ -6218,7 +6218,7 @@ enum CandidateJobOrderByAdditionalField {
 
 input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
-  hiring_team_id: [ID!]
+  hiring_team_ids: [ID!]
   priority: [Int!]
   skill_id: [ID!]
   from_date: Time
@@ -42304,7 +42304,7 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"hiring_job_id", "hiring_team_id", "priority", "skill_id", "from_date", "to_date", "location", "created_by_ids"}
+	fieldsInOrder := [...]string{"hiring_job_id", "hiring_team_ids", "priority", "skill_id", "from_date", "to_date", "location", "created_by_ids"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42319,11 +42319,11 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 			if err != nil {
 				return it, err
 			}
-		case "hiring_team_id":
+		case "hiring_team_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
-			it.HiringTeamID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_ids"))
+			it.HiringTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
