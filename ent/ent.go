@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -67,6 +68,7 @@ func columnChecker(table string) func(string) error {
 		candidatecertificate.Table: candidatecertificate.ValidColumn,
 		candidateeducate.Table:     candidateeducate.ValidColumn,
 		candidateexp.Table:         candidateexp.ValidColumn,
+		candidatehistorycall.Table: candidatehistorycall.ValidColumn,
 		candidateinterview.Table:   candidateinterview.ValidColumn,
 		candidateinterviewer.Table: candidateinterviewer.ValidColumn,
 		candidatejob.Table:         candidatejob.ValidColumn,

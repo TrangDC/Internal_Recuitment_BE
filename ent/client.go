@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -66,6 +67,8 @@ type Client struct {
 	CandidateEducate *CandidateEducateClient
 	// CandidateExp is the client for interacting with the CandidateExp builders.
 	CandidateExp *CandidateExpClient
+	// CandidateHistoryCall is the client for interacting with the CandidateHistoryCall builders.
+	CandidateHistoryCall *CandidateHistoryCallClient
 	// CandidateInterview is the client for interacting with the CandidateInterview builders.
 	CandidateInterview *CandidateInterviewClient
 	// CandidateInterviewer is the client for interacting with the CandidateInterviewer builders.
@@ -132,6 +135,7 @@ func (c *Client) init() {
 	c.CandidateCertificate = NewCandidateCertificateClient(c.config)
 	c.CandidateEducate = NewCandidateEducateClient(c.config)
 	c.CandidateExp = NewCandidateExpClient(c.config)
+	c.CandidateHistoryCall = NewCandidateHistoryCallClient(c.config)
 	c.CandidateInterview = NewCandidateInterviewClient(c.config)
 	c.CandidateInterviewer = NewCandidateInterviewerClient(c.config)
 	c.CandidateJob = NewCandidateJobClient(c.config)
@@ -195,6 +199,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateCertificate: NewCandidateCertificateClient(cfg),
 		CandidateEducate:     NewCandidateEducateClient(cfg),
 		CandidateExp:         NewCandidateExpClient(cfg),
+		CandidateHistoryCall: NewCandidateHistoryCallClient(cfg),
 		CandidateInterview:   NewCandidateInterviewClient(cfg),
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
@@ -244,6 +249,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateCertificate: NewCandidateCertificateClient(cfg),
 		CandidateEducate:     NewCandidateEducateClient(cfg),
 		CandidateExp:         NewCandidateExpClient(cfg),
+		CandidateHistoryCall: NewCandidateHistoryCallClient(cfg),
 		CandidateInterview:   NewCandidateInterviewClient(cfg),
 		CandidateInterviewer: NewCandidateInterviewerClient(cfg),
 		CandidateJob:         NewCandidateJobClient(cfg),
@@ -302,6 +308,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateCertificate.Use(hooks...)
 	c.CandidateEducate.Use(hooks...)
 	c.CandidateExp.Use(hooks...)
+	c.CandidateHistoryCall.Use(hooks...)
 	c.CandidateInterview.Use(hooks...)
 	c.CandidateInterviewer.Use(hooks...)
 	c.CandidateJob.Use(hooks...)
@@ -517,6 +524,22 @@ func (c *AttachmentClient) QueryCandidateCertificateEdge(a *Attachment) *Candida
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateCertificateEdgeTable, attachment.CandidateCertificateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateHistoryCallEdge queries the candidate_history_call_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateHistoryCallEdge(a *Attachment) *CandidateHistoryCallQuery {
+	query := &CandidateHistoryCallQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateHistoryCallEdgeTable, attachment.CandidateHistoryCallEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -841,6 +864,22 @@ func (c *CandidateClient) QueryCandidateCertificateEdges(ca *Candidate) *Candida
 			sqlgraph.From(candidate.Table, candidate.FieldID, id),
 			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateCertificateEdgesTable, candidate.CandidateCertificateEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateHistoryCallEdges queries the candidate_history_call_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateHistoryCallEdges(ca *Candidate) *CandidateHistoryCallQuery {
+	query := &CandidateHistoryCallQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateHistoryCallEdgesTable, candidate.CandidateHistoryCallEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
 		return fromV, nil
@@ -1339,6 +1378,128 @@ func (c *CandidateExpClient) QueryCandidateEdge(ce *CandidateExp) *CandidateQuer
 // Hooks returns the client hooks.
 func (c *CandidateExpClient) Hooks() []Hook {
 	return c.hooks.CandidateExp
+}
+
+// CandidateHistoryCallClient is a client for the CandidateHistoryCall schema.
+type CandidateHistoryCallClient struct {
+	config
+}
+
+// NewCandidateHistoryCallClient returns a client for the CandidateHistoryCall from the given config.
+func NewCandidateHistoryCallClient(c config) *CandidateHistoryCallClient {
+	return &CandidateHistoryCallClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatehistorycall.Hooks(f(g(h())))`.
+func (c *CandidateHistoryCallClient) Use(hooks ...Hook) {
+	c.hooks.CandidateHistoryCall = append(c.hooks.CandidateHistoryCall, hooks...)
+}
+
+// Create returns a builder for creating a CandidateHistoryCall entity.
+func (c *CandidateHistoryCallClient) Create() *CandidateHistoryCallCreate {
+	mutation := newCandidateHistoryCallMutation(c.config, OpCreate)
+	return &CandidateHistoryCallCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateHistoryCall entities.
+func (c *CandidateHistoryCallClient) CreateBulk(builders ...*CandidateHistoryCallCreate) *CandidateHistoryCallCreateBulk {
+	return &CandidateHistoryCallCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) Update() *CandidateHistoryCallUpdate {
+	mutation := newCandidateHistoryCallMutation(c.config, OpUpdate)
+	return &CandidateHistoryCallUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateHistoryCallClient) UpdateOne(chc *CandidateHistoryCall) *CandidateHistoryCallUpdateOne {
+	mutation := newCandidateHistoryCallMutation(c.config, OpUpdateOne, withCandidateHistoryCall(chc))
+	return &CandidateHistoryCallUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateHistoryCallClient) UpdateOneID(id uuid.UUID) *CandidateHistoryCallUpdateOne {
+	mutation := newCandidateHistoryCallMutation(c.config, OpUpdateOne, withCandidateHistoryCallID(id))
+	return &CandidateHistoryCallUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) Delete() *CandidateHistoryCallDelete {
+	mutation := newCandidateHistoryCallMutation(c.config, OpDelete)
+	return &CandidateHistoryCallDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateHistoryCallClient) DeleteOne(chc *CandidateHistoryCall) *CandidateHistoryCallDeleteOne {
+	return c.DeleteOneID(chc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateHistoryCallClient) DeleteOneID(id uuid.UUID) *CandidateHistoryCallDeleteOne {
+	builder := c.Delete().Where(candidatehistorycall.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateHistoryCallDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) Query() *CandidateHistoryCallQuery {
+	return &CandidateHistoryCallQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateHistoryCall entity by its id.
+func (c *CandidateHistoryCallClient) Get(ctx context.Context, id uuid.UUID) (*CandidateHistoryCall, error) {
+	return c.Query().Where(candidatehistorycall.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateHistoryCallClient) GetX(ctx context.Context, id uuid.UUID) *CandidateHistoryCall {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) QueryAttachmentEdges(chc *CandidateHistoryCall) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := chc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatehistorycall.Table, candidatehistorycall.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatehistorycall.AttachmentEdgesTable, candidatehistorycall.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(chc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) QueryCandidateEdge(chc *CandidateHistoryCall) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := chc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatehistorycall.Table, candidatehistorycall.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatehistorycall.CandidateEdgeTable, candidatehistorycall.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(chc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateHistoryCallClient) Hooks() []Hook {
+	return c.hooks.CandidateHistoryCall
 }
 
 // CandidateInterviewClient is a client for the CandidateInterview schema.

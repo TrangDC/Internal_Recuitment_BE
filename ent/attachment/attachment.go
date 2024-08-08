@@ -42,6 +42,8 @@ const (
 	EdgeCandidateAwardEdge = "candidate_award_edge"
 	// EdgeCandidateCertificateEdge holds the string denoting the candidate_certificate_edge edge name in mutations.
 	EdgeCandidateCertificateEdge = "candidate_certificate_edge"
+	// EdgeCandidateHistoryCallEdge holds the string denoting the candidate_history_call_edge edge name in mutations.
+	EdgeCandidateHistoryCallEdge = "candidate_history_call_edge"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
 	// CandidateJobEdgeTable is the table that holds the candidate_job_edge relation/edge.
@@ -93,6 +95,13 @@ const (
 	CandidateCertificateEdgeInverseTable = "candidate_certificates"
 	// CandidateCertificateEdgeColumn is the table column denoting the candidate_certificate_edge relation/edge.
 	CandidateCertificateEdgeColumn = "relation_id"
+	// CandidateHistoryCallEdgeTable is the table that holds the candidate_history_call_edge relation/edge.
+	CandidateHistoryCallEdgeTable = "attachments"
+	// CandidateHistoryCallEdgeInverseTable is the table name for the CandidateHistoryCall entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatehistorycall" package.
+	CandidateHistoryCallEdgeInverseTable = "candidate_history_calls"
+	// CandidateHistoryCallEdgeColumn is the table column denoting the candidate_history_call_edge relation/edge.
+	CandidateHistoryCallEdgeColumn = "relation_id"
 )
 
 // Columns holds all SQL columns for attachment fields.

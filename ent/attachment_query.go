@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidateaward"
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -38,6 +39,7 @@ type AttachmentQuery struct {
 	withCandidateEducateEdge     *CandidateEducateQuery
 	withCandidateAwardEdge       *CandidateAwardQuery
 	withCandidateCertificateEdge *CandidateCertificateQuery
+	withCandidateHistoryCallEdge *CandidateHistoryCallQuery
 	withFKs                      bool
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*Attachment) error
@@ -224,6 +226,28 @@ func (aq *AttachmentQuery) QueryCandidateCertificateEdge() *CandidateCertificate
 			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
 			sqlgraph.To(candidatecertificate.Table, candidatecertificate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateCertificateEdgeTable, attachment.CandidateCertificateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCandidateHistoryCallEdge chains the current query on the "candidate_history_call_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateHistoryCallEdge() *CandidateHistoryCallQuery {
+	query := &CandidateHistoryCallQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateHistoryCallEdgeTable, attachment.CandidateHistoryCallEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -419,6 +443,7 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		withCandidateEducateEdge:     aq.withCandidateEducateEdge.Clone(),
 		withCandidateAwardEdge:       aq.withCandidateAwardEdge.Clone(),
 		withCandidateCertificateEdge: aq.withCandidateCertificateEdge.Clone(),
+		withCandidateHistoryCallEdge: aq.withCandidateHistoryCallEdge.Clone(),
 		// clone intermediate query.
 		sql:    aq.sql.Clone(),
 		path:   aq.path,
@@ -503,6 +528,17 @@ func (aq *AttachmentQuery) WithCandidateCertificateEdge(opts ...func(*CandidateC
 	return aq
 }
 
+// WithCandidateHistoryCallEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_history_call_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateHistoryCallEdge(opts ...func(*CandidateHistoryCallQuery)) *AttachmentQuery {
+	query := &CandidateHistoryCallQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateHistoryCallEdge = query
+	return aq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -577,7 +613,7 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 		nodes       = []*Attachment{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			aq.withCandidateJobEdge != nil,
 			aq.withCandidateJobFeedbackEdge != nil,
 			aq.withCandidateInterviewEdge != nil,
@@ -585,9 +621,10 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 			aq.withCandidateEducateEdge != nil,
 			aq.withCandidateAwardEdge != nil,
 			aq.withCandidateCertificateEdge != nil,
+			aq.withCandidateHistoryCallEdge != nil,
 		}
 	)
-	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil {
+	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil || aq.withCandidateHistoryCallEdge != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -653,6 +690,12 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if query := aq.withCandidateCertificateEdge; query != nil {
 		if err := aq.loadCandidateCertificateEdge(ctx, query, nodes, nil,
 			func(n *Attachment, e *CandidateCertificate) { n.Edges.CandidateCertificateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateHistoryCallEdge; query != nil {
+		if err := aq.loadCandidateHistoryCallEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateHistoryCall) { n.Edges.CandidateHistoryCallEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -831,6 +874,32 @@ func (aq *AttachmentQuery) loadCandidateCertificateEdge(ctx context.Context, que
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
 	query.Where(candidatecertificate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateHistoryCallEdge(ctx context.Context, query *CandidateHistoryCallQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateHistoryCall)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidatehistorycall.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

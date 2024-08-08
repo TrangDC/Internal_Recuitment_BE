@@ -789,6 +789,34 @@ func HasCandidateCertificateEdgeWith(preds ...predicate.CandidateCertificate) pr
 	})
 }
 
+// HasCandidateHistoryCallEdge applies the HasEdge predicate on the "candidate_history_call_edge" edge.
+func HasCandidateHistoryCallEdge() predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateHistoryCallEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateHistoryCallEdgeTable, CandidateHistoryCallEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateHistoryCallEdgeWith applies the HasEdge predicate on the "candidate_history_call_edge" edge with a given conditions (other predicates).
+func HasCandidateHistoryCallEdgeWith(preds ...predicate.CandidateHistoryCall) predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateHistoryCallEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateHistoryCallEdgeTable, CandidateHistoryCallEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Attachment) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {

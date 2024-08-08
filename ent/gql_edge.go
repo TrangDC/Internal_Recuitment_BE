@@ -64,6 +64,14 @@ func (a *Attachment) CandidateCertificateEdge(ctx context.Context) (*CandidateCe
 	return result, MaskNotFound(err)
 }
 
+func (a *Attachment) CandidateHistoryCallEdge(ctx context.Context) (*CandidateHistoryCall, error) {
+	result, err := a.Edges.CandidateHistoryCallEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateHistoryCallEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
 	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -164,6 +172,18 @@ func (c *Candidate) CandidateCertificateEdges(ctx context.Context) (result []*Ca
 	return result, err
 }
 
+func (c *Candidate) CandidateHistoryCallEdges(ctx context.Context) (result []*CandidateHistoryCall, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateHistoryCallEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateHistoryCallEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateHistoryCallEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (ca *CandidateAward) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ca.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
@@ -240,6 +260,26 @@ func (ce *CandidateExp) CandidateEdge(ctx context.Context) (*Candidate, error) {
 	result, err := ce.Edges.CandidateEdgeOrErr()
 	if IsNotLoaded(err) {
 		result, err = ce.QueryCandidateEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (chc *CandidateHistoryCall) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = chc.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = chc.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = chc.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (chc *CandidateHistoryCall) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := chc.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = chc.QueryCandidateEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

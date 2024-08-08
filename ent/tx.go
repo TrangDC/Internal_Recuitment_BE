@@ -28,6 +28,8 @@ type Tx struct {
 	CandidateEducate *CandidateEducateClient
 	// CandidateExp is the client for interacting with the CandidateExp builders.
 	CandidateExp *CandidateExpClient
+	// CandidateHistoryCall is the client for interacting with the CandidateHistoryCall builders.
+	CandidateHistoryCall *CandidateHistoryCallClient
 	// CandidateInterview is the client for interacting with the CandidateInterview builders.
 	CandidateInterview *CandidateInterviewClient
 	// CandidateInterviewer is the client for interacting with the CandidateInterviewer builders.
@@ -212,6 +214,7 @@ func (tx *Tx) init() {
 	tx.CandidateCertificate = NewCandidateCertificateClient(tx.config)
 	tx.CandidateEducate = NewCandidateEducateClient(tx.config)
 	tx.CandidateExp = NewCandidateExpClient(tx.config)
+	tx.CandidateHistoryCall = NewCandidateHistoryCallClient(tx.config)
 	tx.CandidateInterview = NewCandidateInterviewClient(tx.config)
 	tx.CandidateInterviewer = NewCandidateInterviewerClient(tx.config)
 	tx.CandidateJob = NewCandidateJobClient(tx.config)

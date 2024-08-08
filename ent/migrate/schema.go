@@ -57,6 +57,12 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:     "attachments_candidate_history_calls_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateHistoryCallsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "attachments_candidate_interviews_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
 				RefColumns: []*schema.Column{CandidateInterviewsColumns[0]},
@@ -239,6 +245,34 @@ var (
 			{
 				Symbol:     "candidate_exps_candidates_candidate_exp_edges",
 				Columns:    []*schema.Column{CandidateExpsColumns[10]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateHistoryCallsColumns holds the columns for the "candidate_history_calls" table.
+	CandidateHistoryCallsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "contact_to", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
+		{Name: "type", Type: field.TypeEnum, Nullable: true, Enums: []string{"candidate", "others"}},
+		{Name: "date", Type: field.TypeTime, Nullable: true},
+		{Name: "start_time", Type: field.TypeTime, Nullable: true},
+		{Name: "end_time", Type: field.TypeTime, Nullable: true},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// CandidateHistoryCallsTable holds the schema information for the "candidate_history_calls" table.
+	CandidateHistoryCallsTable = &schema.Table{
+		Name:       "candidate_history_calls",
+		Columns:    CandidateHistoryCallsColumns,
+		PrimaryKey: []*schema.Column{CandidateHistoryCallsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_history_calls_candidates_candidate_history_call_edges",
+				Columns:    []*schema.Column{CandidateHistoryCallsColumns[10]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -928,6 +962,7 @@ var (
 		CandidateCertificatesTable,
 		CandidateEducatesTable,
 		CandidateExpsTable,
+		CandidateHistoryCallsTable,
 		CandidateInterviewsTable,
 		CandidateInterviewersTable,
 		CandidateJobsTable,
@@ -960,15 +995,17 @@ func init() {
 	AttachmentsTable.ForeignKeys[2].RefTable = CandidateCertificatesTable
 	AttachmentsTable.ForeignKeys[3].RefTable = CandidateEducatesTable
 	AttachmentsTable.ForeignKeys[4].RefTable = CandidateExpsTable
-	AttachmentsTable.ForeignKeys[5].RefTable = CandidateInterviewsTable
-	AttachmentsTable.ForeignKeys[6].RefTable = CandidateJobsTable
-	AttachmentsTable.ForeignKeys[7].RefTable = CandidateJobFeedbacksTable
+	AttachmentsTable.ForeignKeys[5].RefTable = CandidateHistoryCallsTable
+	AttachmentsTable.ForeignKeys[6].RefTable = CandidateInterviewsTable
+	AttachmentsTable.ForeignKeys[7].RefTable = CandidateJobsTable
+	AttachmentsTable.ForeignKeys[8].RefTable = CandidateJobFeedbacksTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
 	CandidatesTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateAwardsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateCertificatesTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateEducatesTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateExpsTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateHistoryCallsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateInterviewsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable

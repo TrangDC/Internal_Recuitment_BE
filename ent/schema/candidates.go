@@ -44,6 +44,7 @@ func (Candidate) Edges() []ent.Edge {
 		edge.To("candidate_educate_edges", CandidateEducate.Type),
 		edge.To("candidate_award_edges", CandidateAward.Type),
 		edge.To("candidate_certificate_edges", CandidateCertificate.Type),
+		edge.To("candidate_history_call_edges", CandidateHistoryCall.Type),
 	}
 }
 

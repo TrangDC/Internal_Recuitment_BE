@@ -99,6 +99,19 @@ func (f CandidateExpFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return f(ctx, mv)
 }
 
+// The CandidateHistoryCallFunc type is an adapter to allow the use of ordinary
+// function as CandidateHistoryCall mutator.
+type CandidateHistoryCallFunc func(context.Context, *ent.CandidateHistoryCallMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateHistoryCallFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateHistoryCallMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateHistoryCallMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CandidateInterviewFunc type is an adapter to allow the use of ordinary
 // function as CandidateInterview mutator.
 type CandidateInterviewFunc func(context.Context, *ent.CandidateInterviewMutation) (ent.Value, error)

@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -2438,6 +2439,308 @@ func (ce *CandidateExp) ToEdge(order *CandidateExpOrder) *CandidateExpEdge {
 	return &CandidateExpEdge{
 		Node:   ce,
 		Cursor: order.Field.toCursor(ce),
+	}
+}
+
+// CandidateHistoryCallEdge is the edge representation of CandidateHistoryCall.
+type CandidateHistoryCallEdge struct {
+	Node   *CandidateHistoryCall `json:"node"`
+	Cursor Cursor                `json:"cursor"`
+}
+
+// CandidateHistoryCallConnection is the connection containing edges to CandidateHistoryCall.
+type CandidateHistoryCallConnection struct {
+	Edges      []*CandidateHistoryCallEdge `json:"edges"`
+	PageInfo   PageInfo                    `json:"pageInfo"`
+	TotalCount int                         `json:"totalCount"`
+}
+
+func (c *CandidateHistoryCallConnection) build(nodes []*CandidateHistoryCall, pager *candidatehistorycallPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateHistoryCall
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateHistoryCall {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateHistoryCall {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateHistoryCallEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateHistoryCallEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateHistoryCallPaginateOption enables pagination customization.
+type CandidateHistoryCallPaginateOption func(*candidatehistorycallPager) error
+
+// WithCandidateHistoryCallOrder configures pagination ordering.
+func WithCandidateHistoryCallOrder(order *CandidateHistoryCallOrder) CandidateHistoryCallPaginateOption {
+	if order == nil {
+		order = DefaultCandidateHistoryCallOrder
+	}
+	o := *order
+	return func(pager *candidatehistorycallPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateHistoryCallOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateHistoryCallFilter configures pagination filter.
+func WithCandidateHistoryCallFilter(filter func(*CandidateHistoryCallQuery) (*CandidateHistoryCallQuery, error)) CandidateHistoryCallPaginateOption {
+	return func(pager *candidatehistorycallPager) error {
+		if filter == nil {
+			return errors.New("CandidateHistoryCallQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatehistorycallPager struct {
+	order  *CandidateHistoryCallOrder
+	filter func(*CandidateHistoryCallQuery) (*CandidateHistoryCallQuery, error)
+}
+
+func newCandidateHistoryCallPager(opts []CandidateHistoryCallPaginateOption) (*candidatehistorycallPager, error) {
+	pager := &candidatehistorycallPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateHistoryCallOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatehistorycallPager) applyFilter(query *CandidateHistoryCallQuery) (*CandidateHistoryCallQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatehistorycallPager) toCursor(chc *CandidateHistoryCall) Cursor {
+	return p.order.Field.toCursor(chc)
+}
+
+func (p *candidatehistorycallPager) applyCursors(query *CandidateHistoryCallQuery, after, before *Cursor) *CandidateHistoryCallQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateHistoryCallOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatehistorycallPager) applyOrder(query *CandidateHistoryCallQuery, reverse bool) *CandidateHistoryCallQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateHistoryCallOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateHistoryCallOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatehistorycallPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateHistoryCallOrder.Field {
+			b.Comma().Ident(DefaultCandidateHistoryCallOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateHistoryCall.
+func (chc *CandidateHistoryCallQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateHistoryCallPaginateOption,
+) (*CandidateHistoryCallConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateHistoryCallPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if chc, err = pager.applyFilter(chc); err != nil {
+		return nil, err
+	}
+	conn := &CandidateHistoryCallConnection{Edges: []*CandidateHistoryCallEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = chc.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	chc = pager.applyCursors(chc, after, before)
+	chc = pager.applyOrder(chc, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		chc.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := chc.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := chc.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateHistoryCallOrderFieldCreatedAt orders CandidateHistoryCall by created_at.
+	CandidateHistoryCallOrderFieldCreatedAt = &CandidateHistoryCallOrderField{
+		field: candidatehistorycall.FieldCreatedAt,
+		toCursor: func(chc *CandidateHistoryCall) Cursor {
+			return Cursor{
+				ID:    chc.ID,
+				Value: chc.CreatedAt,
+			}
+		},
+	}
+	// CandidateHistoryCallOrderFieldUpdatedAt orders CandidateHistoryCall by updated_at.
+	CandidateHistoryCallOrderFieldUpdatedAt = &CandidateHistoryCallOrderField{
+		field: candidatehistorycall.FieldUpdatedAt,
+		toCursor: func(chc *CandidateHistoryCall) Cursor {
+			return Cursor{
+				ID:    chc.ID,
+				Value: chc.UpdatedAt,
+			}
+		},
+	}
+	// CandidateHistoryCallOrderFieldDeletedAt orders CandidateHistoryCall by deleted_at.
+	CandidateHistoryCallOrderFieldDeletedAt = &CandidateHistoryCallOrderField{
+		field: candidatehistorycall.FieldDeletedAt,
+		toCursor: func(chc *CandidateHistoryCall) Cursor {
+			return Cursor{
+				ID:    chc.ID,
+				Value: chc.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateHistoryCallOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatehistorycall.FieldCreatedAt:
+		str = "created_at"
+	case candidatehistorycall.FieldUpdatedAt:
+		str = "updated_at"
+	case candidatehistorycall.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateHistoryCallOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateHistoryCallOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateHistoryCallOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateHistoryCallOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateHistoryCallOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateHistoryCallOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateHistoryCallOrderField", str)
+	}
+	return nil
+}
+
+// CandidateHistoryCallOrderField defines the ordering field of CandidateHistoryCall.
+type CandidateHistoryCallOrderField struct {
+	field    string
+	toCursor func(*CandidateHistoryCall) Cursor
+}
+
+// CandidateHistoryCallOrder defines the ordering of CandidateHistoryCall.
+type CandidateHistoryCallOrder struct {
+	Direction OrderDirection                  `json:"direction"`
+	Field     *CandidateHistoryCallOrderField `json:"field"`
+}
+
+// DefaultCandidateHistoryCallOrder is the default ordering of CandidateHistoryCall.
+var DefaultCandidateHistoryCallOrder = &CandidateHistoryCallOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateHistoryCallOrderField{
+		field: candidatehistorycall.FieldID,
+		toCursor: func(chc *CandidateHistoryCall) Cursor {
+			return Cursor{ID: chc.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateHistoryCall into CandidateHistoryCallEdge.
+func (chc *CandidateHistoryCall) ToEdge(order *CandidateHistoryCallOrder) *CandidateHistoryCallEdge {
+	if order == nil {
+		order = DefaultCandidateHistoryCallOrder
+	}
+	return &CandidateHistoryCallEdge{
+		Node:   chc,
+		Cursor: order.Field.toCursor(chc),
 	}
 }
 

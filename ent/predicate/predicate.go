@@ -27,6 +27,9 @@ type CandidateEducate func(*sql.Selector)
 // CandidateExp is the predicate function for candidateexp builders.
 type CandidateExp func(*sql.Selector)
 
+// CandidateHistoryCall is the predicate function for candidatehistorycall builders.
+type CandidateHistoryCall func(*sql.Selector)
+
 // CandidateInterview is the predicate function for candidateinterview builders.
 type CandidateInterview func(*sql.Selector)
 

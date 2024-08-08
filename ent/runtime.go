@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatecertificate"
 	"trec/ent/candidateeducate"
 	"trec/ent/candidateexp"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -304,6 +305,23 @@ func init() {
 	candidateexpDescDescription := candidateexpFields[4].Descriptor()
 	// candidateexp.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidateexp.DescriptionValidator = candidateexpDescDescription.Validators[0].(func(string) error)
+	candidatehistorycallMixin := schema.CandidateHistoryCall{}.Mixin()
+	candidatehistorycallMixinFields0 := candidatehistorycallMixin[0].Fields()
+	_ = candidatehistorycallMixinFields0
+	candidatehistorycallFields := schema.CandidateHistoryCall{}.Fields()
+	_ = candidatehistorycallFields
+	// candidatehistorycallDescCreatedAt is the schema descriptor for created_at field.
+	candidatehistorycallDescCreatedAt := candidatehistorycallMixinFields0[1].Descriptor()
+	// candidatehistorycall.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidatehistorycall.DefaultCreatedAt = candidatehistorycallDescCreatedAt.Default.(func() time.Time)
+	// candidatehistorycallDescContactTo is the schema descriptor for contact_to field.
+	candidatehistorycallDescContactTo := candidatehistorycallFields[1].Descriptor()
+	// candidatehistorycall.ContactToValidator is a validator for the "contact_to" field. It is called by the builders before save.
+	candidatehistorycall.ContactToValidator = candidatehistorycallDescContactTo.Validators[0].(func(string) error)
+	// candidatehistorycallDescDescription is the schema descriptor for description field.
+	candidatehistorycallDescDescription := candidatehistorycallFields[2].Descriptor()
+	// candidatehistorycall.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	candidatehistorycall.DescriptionValidator = candidatehistorycallDescDescription.Validators[0].(func(string) error)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
 	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
 	_ = candidateinterviewMixinFields0
