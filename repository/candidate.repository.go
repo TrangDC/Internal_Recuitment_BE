@@ -163,6 +163,9 @@ func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.New
 	if input.RecruitTime != nil && !input.RecruitTime.IsZero() {
 		create.SetRecruitTime(*input.RecruitTime)
 	}
+	if input.Avatar != "" {
+		create.SetAvatar(uuid.MustParse(input.Avatar))
+	}
 	return create.Save(ctx)
 }
 
@@ -190,6 +193,11 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		update.SetRecruitTime(*input.RecruitTime)
 	} else {
 		update.ClearRecruitTime()
+	}
+	if input.Avatar != "" {
+		update.SetAvatar(uuid.MustParse(input.Avatar))
+	} else {
+		update.ClearAvatar()
 	}
 	return update.Save(ctx)
 }

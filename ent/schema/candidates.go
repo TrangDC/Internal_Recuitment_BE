@@ -27,6 +27,7 @@ func (Candidate) Fields() []ent.Field {
 		field.UUID("reference_uid", uuid.UUID{}).Optional(),
 		field.Time("recruit_time").Optional().Annotations(entgql.OrderField("recruit_time")),
 		field.String("description").MaxLen(512).Optional(),
+		field.UUID("avatar", uuid.UUID{}).Optional(),
 		field.String("country").MaxLen(256).Optional(),
 		field.String("address").MaxLen(256).Optional(),
 	}

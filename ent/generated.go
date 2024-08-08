@@ -572,6 +572,7 @@ type NewCandidateInput struct {
 	CandidateEducate     []*CandidateEducateInput     `json:"candidate_educate"`
 	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
 	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
+	Avatar               string                       `json:"avatar"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -971,6 +972,7 @@ type UpdateCandidateInput struct {
 	CandidateEducate     []*CandidateEducateInput     `json:"candidate_educate"`
 	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
 	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
+	Avatar               string                       `json:"avatar"`
 }
 
 type UpdateCandidateInterviewInput struct {

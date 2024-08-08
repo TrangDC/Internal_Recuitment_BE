@@ -119,6 +119,7 @@ var (
 		{Name: "reference_value", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "recruit_time", Type: field.TypeTime, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
+		{Name: "avatar", Type: field.TypeUUID, Nullable: true},
 		{Name: "country", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "address", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
@@ -131,7 +132,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidates_users_candidate_reference_edges",
-				Columns:    []*schema.Column{CandidatesColumns[16]},
+				Columns:    []*schema.Column{CandidatesColumns[17]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

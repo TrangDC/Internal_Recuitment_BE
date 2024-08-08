@@ -42,6 +42,8 @@ const (
 	FieldRecruitTime = "recruit_time"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldAvatar holds the string denoting the avatar field in the database.
+	FieldAvatar = "avatar"
 	// FieldCountry holds the string denoting the country field in the database.
 	FieldCountry = "country"
 	// FieldAddress holds the string denoting the address field in the database.
@@ -139,6 +141,7 @@ var Columns = []string{
 	FieldReferenceUID,
 	FieldRecruitTime,
 	FieldDescription,
+	FieldAvatar,
 	FieldCountry,
 	FieldAddress,
 }

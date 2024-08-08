@@ -243,6 +243,26 @@ func (cu *CandidateUpdate) ClearDescription() *CandidateUpdate {
 	return cu
 }
 
+// SetAvatar sets the "avatar" field.
+func (cu *CandidateUpdate) SetAvatar(u uuid.UUID) *CandidateUpdate {
+	cu.mutation.SetAvatar(u)
+	return cu
+}
+
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableAvatar(u *uuid.UUID) *CandidateUpdate {
+	if u != nil {
+		cu.SetAvatar(*u)
+	}
+	return cu
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (cu *CandidateUpdate) ClearAvatar() *CandidateUpdate {
+	cu.mutation.ClearAvatar()
+	return cu
+}
+
 // SetCountry sets the "country" field.
 func (cu *CandidateUpdate) SetCountry(s string) *CandidateUpdate {
 	cu.mutation.SetCountry(s)
@@ -744,6 +764,12 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.DescriptionCleared() {
 		_spec.ClearField(candidate.FieldDescription, field.TypeString)
+	}
+	if value, ok := cu.mutation.Avatar(); ok {
+		_spec.SetField(candidate.FieldAvatar, field.TypeUUID, value)
+	}
+	if cu.mutation.AvatarCleared() {
+		_spec.ClearField(candidate.FieldAvatar, field.TypeUUID)
 	}
 	if value, ok := cu.mutation.Country(); ok {
 		_spec.SetField(candidate.FieldCountry, field.TypeString, value)
@@ -1395,6 +1421,26 @@ func (cuo *CandidateUpdateOne) ClearDescription() *CandidateUpdateOne {
 	return cuo
 }
 
+// SetAvatar sets the "avatar" field.
+func (cuo *CandidateUpdateOne) SetAvatar(u uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.SetAvatar(u)
+	return cuo
+}
+
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableAvatar(u *uuid.UUID) *CandidateUpdateOne {
+	if u != nil {
+		cuo.SetAvatar(*u)
+	}
+	return cuo
+}
+
+// ClearAvatar clears the value of the "avatar" field.
+func (cuo *CandidateUpdateOne) ClearAvatar() *CandidateUpdateOne {
+	cuo.mutation.ClearAvatar()
+	return cuo
+}
+
 // SetCountry sets the "country" field.
 func (cuo *CandidateUpdateOne) SetCountry(s string) *CandidateUpdateOne {
 	cuo.mutation.SetCountry(s)
@@ -1926,6 +1972,12 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if cuo.mutation.DescriptionCleared() {
 		_spec.ClearField(candidate.FieldDescription, field.TypeString)
+	}
+	if value, ok := cuo.mutation.Avatar(); ok {
+		_spec.SetField(candidate.FieldAvatar, field.TypeUUID, value)
+	}
+	if cuo.mutation.AvatarCleared() {
+		_spec.ClearField(candidate.FieldAvatar, field.TypeUUID)
 	}
 	if value, ok := cuo.mutation.Country(); ok {
 		_spec.SetField(candidate.FieldCountry, field.TypeString, value)

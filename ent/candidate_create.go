@@ -201,6 +201,20 @@ func (cc *CandidateCreate) SetNillableDescription(s *string) *CandidateCreate {
 	return cc
 }
 
+// SetAvatar sets the "avatar" field.
+func (cc *CandidateCreate) SetAvatar(u uuid.UUID) *CandidateCreate {
+	cc.mutation.SetAvatar(u)
+	return cc
+}
+
+// SetNillableAvatar sets the "avatar" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableAvatar(u *uuid.UUID) *CandidateCreate {
+	if u != nil {
+		cc.SetAvatar(*u)
+	}
+	return cc
+}
+
 // SetCountry sets the "country" field.
 func (cc *CandidateCreate) SetCountry(s string) *CandidateCreate {
 	cc.mutation.SetCountry(s)
@@ -597,6 +611,10 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Description(); ok {
 		_spec.SetField(candidate.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := cc.mutation.Avatar(); ok {
+		_spec.SetField(candidate.FieldAvatar, field.TypeUUID, value)
+		_node.Avatar = value
 	}
 	if value, ok := cc.mutation.Country(); ok {
 		_spec.SetField(candidate.FieldCountry, field.TypeString, value)

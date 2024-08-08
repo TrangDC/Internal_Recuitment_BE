@@ -46,6 +46,8 @@ type Candidate struct {
 	RecruitTime time.Time `json:"recruit_time,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Avatar holds the value of the "avatar" field.
+	Avatar uuid.UUID `json:"avatar,omitempty"`
 	// Country holds the value of the "country" field.
 	Country string `json:"country,omitempty"`
 	// Address holds the value of the "address" field.
@@ -175,7 +177,7 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate, candidate.FieldRecruitTime:
 			values[i] = new(sql.NullTime)
-		case candidate.FieldID, candidate.FieldReferenceUID:
+		case candidate.FieldID, candidate.FieldReferenceUID, candidate.FieldAvatar:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Candidate", columns[i])
@@ -281,6 +283,12 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				c.Description = value.String
+			}
+		case candidate.FieldAvatar:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field avatar", values[i])
+			} else if value != nil {
+				c.Avatar = *value
 			}
 		case candidate.FieldCountry:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -403,6 +411,9 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(c.Description)
+	builder.WriteString(", ")
+	builder.WriteString("avatar=")
+	builder.WriteString(fmt.Sprintf("%v", c.Avatar))
 	builder.WriteString(", ")
 	builder.WriteString("country=")
 	builder.WriteString(c.Country)
