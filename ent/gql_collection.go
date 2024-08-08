@@ -105,6 +105,16 @@ func (a *AttachmentQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			a.withCandidateHistoryCallEdge = query
+		case "candidateNoteEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateNoteQuery{config: a.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			a.withCandidateNoteEdge = query
 		}
 	}
 	return nil
@@ -357,6 +367,18 @@ func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.Operation
 				return err
 			}
 			c.WithNamedCandidateHistoryCallEdges(alias, func(wq *CandidateHistoryCallQuery) {
+				*wq = *query
+			})
+		case "candidateNoteEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateNoteQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedCandidateNoteEdges(alias, func(wq *CandidateNoteQuery) {
 				*wq = *query
 			})
 		}
@@ -1402,6 +1424,107 @@ func newCandidateJobStepPaginateArgs(rv map[string]interface{}) *candidatejobste
 		case *CandidateJobStepOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithCandidateJobStepOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (cn *CandidateNoteQuery) CollectFields(ctx context.Context, satisfies ...string) (*CandidateNoteQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return cn, nil
+	}
+	if err := cn.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return cn, nil
+}
+
+func (cn *CandidateNoteQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "candidateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: cn.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cn.withCandidateEdge = query
+		case "createdByEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: cn.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cn.withCreatedByEdge = query
+		case "attachmentEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &AttachmentQuery{config: cn.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cn.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type candidatenotePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CandidateNotePaginateOption
+}
+
+func newCandidateNotePaginateArgs(rv map[string]interface{}) *candidatenotePaginateArgs {
+	args := &candidatenotePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &CandidateNoteOrder{Field: &CandidateNoteOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithCandidateNoteOrder(order))
+			}
+		case *CandidateNoteOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithCandidateNoteOrder(v))
 			}
 		}
 	}
@@ -3140,6 +3263,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.withRecTeams = query
+		case "candidateNoteEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateNoteQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedCandidateNoteEdges(alias, func(wq *CandidateNoteQuery) {
+				*wq = *query
+			})
 		case "interviewUsers":
 			var (
 				alias = field.Alias

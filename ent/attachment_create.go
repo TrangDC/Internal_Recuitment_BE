@@ -16,6 +16,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatenote"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -259,6 +260,25 @@ func (ac *AttachmentCreate) SetNillableCandidateHistoryCallEdgeID(id *uuid.UUID)
 // SetCandidateHistoryCallEdge sets the "candidate_history_call_edge" edge to the CandidateHistoryCall entity.
 func (ac *AttachmentCreate) SetCandidateHistoryCallEdge(c *CandidateHistoryCall) *AttachmentCreate {
 	return ac.SetCandidateHistoryCallEdgeID(c.ID)
+}
+
+// SetCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID.
+func (ac *AttachmentCreate) SetCandidateNoteEdgeID(id uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetCandidateNoteEdgeID(id)
+	return ac
+}
+
+// SetNillableCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableCandidateNoteEdgeID(id *uuid.UUID) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetCandidateNoteEdgeID(*id)
+	}
+	return ac
+}
+
+// SetCandidateNoteEdge sets the "candidate_note_edge" edge to the CandidateNote entity.
+func (ac *AttachmentCreate) SetCandidateNoteEdge(c *CandidateNote) *AttachmentCreate {
+	return ac.SetCandidateNoteEdgeID(c.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -579,6 +599,26 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RelationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CandidateNoteEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateNoteEdgeTable,
+			Columns: []string{attachment.CandidateNoteEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
 				},
 			},
 		}

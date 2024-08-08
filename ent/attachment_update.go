@@ -16,6 +16,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatenote"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -267,6 +268,25 @@ func (au *AttachmentUpdate) SetCandidateHistoryCallEdge(c *CandidateHistoryCall)
 	return au.SetCandidateHistoryCallEdgeID(c.ID)
 }
 
+// SetCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID.
+func (au *AttachmentUpdate) SetCandidateNoteEdgeID(id uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetCandidateNoteEdgeID(id)
+	return au
+}
+
+// SetNillableCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableCandidateNoteEdgeID(id *uuid.UUID) *AttachmentUpdate {
+	if id != nil {
+		au = au.SetCandidateNoteEdgeID(*id)
+	}
+	return au
+}
+
+// SetCandidateNoteEdge sets the "candidate_note_edge" edge to the CandidateNote entity.
+func (au *AttachmentUpdate) SetCandidateNoteEdge(c *CandidateNote) *AttachmentUpdate {
+	return au.SetCandidateNoteEdgeID(c.ID)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (au *AttachmentUpdate) Mutation() *AttachmentMutation {
 	return au.mutation
@@ -317,6 +337,12 @@ func (au *AttachmentUpdate) ClearCandidateCertificateEdge() *AttachmentUpdate {
 // ClearCandidateHistoryCallEdge clears the "candidate_history_call_edge" edge to the CandidateHistoryCall entity.
 func (au *AttachmentUpdate) ClearCandidateHistoryCallEdge() *AttachmentUpdate {
 	au.mutation.ClearCandidateHistoryCallEdge()
+	return au
+}
+
+// ClearCandidateNoteEdge clears the "candidate_note_edge" edge to the CandidateNote entity.
+func (au *AttachmentUpdate) ClearCandidateNoteEdge() *AttachmentUpdate {
+	au.mutation.ClearCandidateNoteEdge()
 	return au
 }
 
@@ -714,6 +740,41 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if au.mutation.CandidateNoteEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateNoteEdgeTable,
+			Columns: []string{attachment.CandidateNoteEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CandidateNoteEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateNoteEdgeTable,
+			Columns: []string{attachment.CandidateNoteEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{attachment.Label}
@@ -963,6 +1024,25 @@ func (auo *AttachmentUpdateOne) SetCandidateHistoryCallEdge(c *CandidateHistoryC
 	return auo.SetCandidateHistoryCallEdgeID(c.ID)
 }
 
+// SetCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID.
+func (auo *AttachmentUpdateOne) SetCandidateNoteEdgeID(id uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetCandidateNoteEdgeID(id)
+	return auo
+}
+
+// SetNillableCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by ID if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableCandidateNoteEdgeID(id *uuid.UUID) *AttachmentUpdateOne {
+	if id != nil {
+		auo = auo.SetCandidateNoteEdgeID(*id)
+	}
+	return auo
+}
+
+// SetCandidateNoteEdge sets the "candidate_note_edge" edge to the CandidateNote entity.
+func (auo *AttachmentUpdateOne) SetCandidateNoteEdge(c *CandidateNote) *AttachmentUpdateOne {
+	return auo.SetCandidateNoteEdgeID(c.ID)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (auo *AttachmentUpdateOne) Mutation() *AttachmentMutation {
 	return auo.mutation
@@ -1013,6 +1093,12 @@ func (auo *AttachmentUpdateOne) ClearCandidateCertificateEdge() *AttachmentUpdat
 // ClearCandidateHistoryCallEdge clears the "candidate_history_call_edge" edge to the CandidateHistoryCall entity.
 func (auo *AttachmentUpdateOne) ClearCandidateHistoryCallEdge() *AttachmentUpdateOne {
 	auo.mutation.ClearCandidateHistoryCallEdge()
+	return auo
+}
+
+// ClearCandidateNoteEdge clears the "candidate_note_edge" edge to the CandidateNote entity.
+func (auo *AttachmentUpdateOne) ClearCandidateNoteEdge() *AttachmentUpdateOne {
+	auo.mutation.ClearCandidateNoteEdge()
 	return auo
 }
 
@@ -1432,6 +1518,41 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CandidateNoteEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateNoteEdgeTable,
+			Columns: []string{attachment.CandidateNoteEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CandidateNoteEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   attachment.CandidateNoteEdgeTable,
+			Columns: []string{attachment.CandidateNoteEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
 				},
 			},
 		}

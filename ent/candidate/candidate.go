@@ -66,6 +66,8 @@ const (
 	EdgeCandidateCertificateEdges = "candidate_certificate_edges"
 	// EdgeCandidateHistoryCallEdges holds the string denoting the candidate_history_call_edges edge name in mutations.
 	EdgeCandidateHistoryCallEdges = "candidate_history_call_edges"
+	// EdgeCandidateNoteEdges holds the string denoting the candidate_note_edges edge name in mutations.
+	EdgeCandidateNoteEdges = "candidate_note_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -131,6 +133,13 @@ const (
 	CandidateHistoryCallEdgesInverseTable = "candidate_history_calls"
 	// CandidateHistoryCallEdgesColumn is the table column denoting the candidate_history_call_edges relation/edge.
 	CandidateHistoryCallEdgesColumn = "candidate_id"
+	// CandidateNoteEdgesTable is the table that holds the candidate_note_edges relation/edge.
+	CandidateNoteEdgesTable = "candidate_notes"
+	// CandidateNoteEdgesInverseTable is the table name for the CandidateNote entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatenote" package.
+	CandidateNoteEdgesInverseTable = "candidate_notes"
+	// CandidateNoteEdgesColumn is the table column denoting the candidate_note_edges relation/edge.
+	CandidateNoteEdgesColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for candidate fields.

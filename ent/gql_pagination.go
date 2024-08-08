@@ -23,6 +23,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/candidatenote"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -4265,6 +4266,308 @@ func (cjs *CandidateJobStep) ToEdge(order *CandidateJobStepOrder) *CandidateJobS
 	return &CandidateJobStepEdge{
 		Node:   cjs,
 		Cursor: order.Field.toCursor(cjs),
+	}
+}
+
+// CandidateNoteEdge is the edge representation of CandidateNote.
+type CandidateNoteEdge struct {
+	Node   *CandidateNote `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// CandidateNoteConnection is the connection containing edges to CandidateNote.
+type CandidateNoteConnection struct {
+	Edges      []*CandidateNoteEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *CandidateNoteConnection) build(nodes []*CandidateNote, pager *candidatenotePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CandidateNote
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CandidateNote {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CandidateNote {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CandidateNoteEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CandidateNoteEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CandidateNotePaginateOption enables pagination customization.
+type CandidateNotePaginateOption func(*candidatenotePager) error
+
+// WithCandidateNoteOrder configures pagination ordering.
+func WithCandidateNoteOrder(order *CandidateNoteOrder) CandidateNotePaginateOption {
+	if order == nil {
+		order = DefaultCandidateNoteOrder
+	}
+	o := *order
+	return func(pager *candidatenotePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCandidateNoteOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCandidateNoteFilter configures pagination filter.
+func WithCandidateNoteFilter(filter func(*CandidateNoteQuery) (*CandidateNoteQuery, error)) CandidateNotePaginateOption {
+	return func(pager *candidatenotePager) error {
+		if filter == nil {
+			return errors.New("CandidateNoteQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type candidatenotePager struct {
+	order  *CandidateNoteOrder
+	filter func(*CandidateNoteQuery) (*CandidateNoteQuery, error)
+}
+
+func newCandidateNotePager(opts []CandidateNotePaginateOption) (*candidatenotePager, error) {
+	pager := &candidatenotePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCandidateNoteOrder
+	}
+	return pager, nil
+}
+
+func (p *candidatenotePager) applyFilter(query *CandidateNoteQuery) (*CandidateNoteQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *candidatenotePager) toCursor(cn *CandidateNote) Cursor {
+	return p.order.Field.toCursor(cn)
+}
+
+func (p *candidatenotePager) applyCursors(query *CandidateNoteQuery, after, before *Cursor) *CandidateNoteQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCandidateNoteOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *candidatenotePager) applyOrder(query *CandidateNoteQuery, reverse bool) *CandidateNoteQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCandidateNoteOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCandidateNoteOrder.Field.field))
+	}
+	return query
+}
+
+func (p *candidatenotePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCandidateNoteOrder.Field {
+			b.Comma().Ident(DefaultCandidateNoteOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CandidateNote.
+func (cn *CandidateNoteQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CandidateNotePaginateOption,
+) (*CandidateNoteConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCandidateNotePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if cn, err = pager.applyFilter(cn); err != nil {
+		return nil, err
+	}
+	conn := &CandidateNoteConnection{Edges: []*CandidateNoteEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = cn.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	cn = pager.applyCursors(cn, after, before)
+	cn = pager.applyOrder(cn, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		cn.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cn.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := cn.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// CandidateNoteOrderFieldCreatedAt orders CandidateNote by created_at.
+	CandidateNoteOrderFieldCreatedAt = &CandidateNoteOrderField{
+		field: candidatenote.FieldCreatedAt,
+		toCursor: func(cn *CandidateNote) Cursor {
+			return Cursor{
+				ID:    cn.ID,
+				Value: cn.CreatedAt,
+			}
+		},
+	}
+	// CandidateNoteOrderFieldUpdatedAt orders CandidateNote by updated_at.
+	CandidateNoteOrderFieldUpdatedAt = &CandidateNoteOrderField{
+		field: candidatenote.FieldUpdatedAt,
+		toCursor: func(cn *CandidateNote) Cursor {
+			return Cursor{
+				ID:    cn.ID,
+				Value: cn.UpdatedAt,
+			}
+		},
+	}
+	// CandidateNoteOrderFieldDeletedAt orders CandidateNote by deleted_at.
+	CandidateNoteOrderFieldDeletedAt = &CandidateNoteOrderField{
+		field: candidatenote.FieldDeletedAt,
+		toCursor: func(cn *CandidateNote) Cursor {
+			return Cursor{
+				ID:    cn.ID,
+				Value: cn.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CandidateNoteOrderField) String() string {
+	var str string
+	switch f.field {
+	case candidatenote.FieldCreatedAt:
+		str = "created_at"
+	case candidatenote.FieldUpdatedAt:
+		str = "updated_at"
+	case candidatenote.FieldDeletedAt:
+		str = "deleted_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CandidateNoteOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CandidateNoteOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CandidateNoteOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *CandidateNoteOrderFieldCreatedAt
+	case "updated_at":
+		*f = *CandidateNoteOrderFieldUpdatedAt
+	case "deleted_at":
+		*f = *CandidateNoteOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid CandidateNoteOrderField", str)
+	}
+	return nil
+}
+
+// CandidateNoteOrderField defines the ordering field of CandidateNote.
+type CandidateNoteOrderField struct {
+	field    string
+	toCursor func(*CandidateNote) Cursor
+}
+
+// CandidateNoteOrder defines the ordering of CandidateNote.
+type CandidateNoteOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *CandidateNoteOrderField `json:"field"`
+}
+
+// DefaultCandidateNoteOrder is the default ordering of CandidateNote.
+var DefaultCandidateNoteOrder = &CandidateNoteOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CandidateNoteOrderField{
+		field: candidatenote.FieldID,
+		toCursor: func(cn *CandidateNote) Cursor {
+			return Cursor{ID: cn.ID}
+		},
+	},
+}
+
+// ToEdge converts CandidateNote into CandidateNoteEdge.
+func (cn *CandidateNote) ToEdge(order *CandidateNoteOrder) *CandidateNoteEdge {
+	if order == nil {
+		order = DefaultCandidateNoteOrder
+	}
+	return &CandidateNoteEdge{
+		Node:   cn,
+		Cursor: order.Field.toCursor(cn),
 	}
 }
 

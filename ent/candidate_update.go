@@ -15,6 +15,7 @@ import (
 	"trec/ent/candidateexp"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatenote"
 	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -443,6 +444,21 @@ func (cu *CandidateUpdate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCa
 	return cu.AddCandidateHistoryCallEdgeIDs(ids...)
 }
 
+// AddCandidateNoteEdgeIDs adds the "candidate_note_edges" edge to the CandidateNote entity by IDs.
+func (cu *CandidateUpdate) AddCandidateNoteEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddCandidateNoteEdgeIDs(ids...)
+	return cu
+}
+
+// AddCandidateNoteEdges adds the "candidate_note_edges" edges to the CandidateNote entity.
+func (cu *CandidateUpdate) AddCandidateNoteEdges(c ...*CandidateNote) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCandidateNoteEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
@@ -620,6 +636,27 @@ func (cu *CandidateUpdate) RemoveCandidateHistoryCallEdges(c ...*CandidateHistor
 		ids[i] = c[i].ID
 	}
 	return cu.RemoveCandidateHistoryCallEdgeIDs(ids...)
+}
+
+// ClearCandidateNoteEdges clears all "candidate_note_edges" edges to the CandidateNote entity.
+func (cu *CandidateUpdate) ClearCandidateNoteEdges() *CandidateUpdate {
+	cu.mutation.ClearCandidateNoteEdges()
+	return cu
+}
+
+// RemoveCandidateNoteEdgeIDs removes the "candidate_note_edges" edge to CandidateNote entities by IDs.
+func (cu *CandidateUpdate) RemoveCandidateNoteEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveCandidateNoteEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveCandidateNoteEdges removes "candidate_note_edges" edges to CandidateNote entities.
+func (cu *CandidateUpdate) RemoveCandidateNoteEdges(c ...*CandidateNote) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCandidateNoteEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1287,6 +1324,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.CandidateNoteEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCandidateNoteEdgesIDs(); len(nodes) > 0 && !cu.mutation.CandidateNoteEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CandidateNoteEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidate.Label}
@@ -1711,6 +1802,21 @@ func (cuo *CandidateUpdateOne) AddCandidateHistoryCallEdges(c ...*CandidateHisto
 	return cuo.AddCandidateHistoryCallEdgeIDs(ids...)
 }
 
+// AddCandidateNoteEdgeIDs adds the "candidate_note_edges" edge to the CandidateNote entity by IDs.
+func (cuo *CandidateUpdateOne) AddCandidateNoteEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddCandidateNoteEdgeIDs(ids...)
+	return cuo
+}
+
+// AddCandidateNoteEdges adds the "candidate_note_edges" edges to the CandidateNote entity.
+func (cuo *CandidateUpdateOne) AddCandidateNoteEdges(c ...*CandidateNote) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCandidateNoteEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
@@ -1888,6 +1994,27 @@ func (cuo *CandidateUpdateOne) RemoveCandidateHistoryCallEdges(c ...*CandidateHi
 		ids[i] = c[i].ID
 	}
 	return cuo.RemoveCandidateHistoryCallEdgeIDs(ids...)
+}
+
+// ClearCandidateNoteEdges clears all "candidate_note_edges" edges to the CandidateNote entity.
+func (cuo *CandidateUpdateOne) ClearCandidateNoteEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearCandidateNoteEdges()
+	return cuo
+}
+
+// RemoveCandidateNoteEdgeIDs removes the "candidate_note_edges" edge to CandidateNote entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveCandidateNoteEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveCandidateNoteEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveCandidateNoteEdges removes "candidate_note_edges" edges to CandidateNote entities.
+func (cuo *CandidateUpdateOne) RemoveCandidateNoteEdges(c ...*CandidateNote) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCandidateNoteEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -2577,6 +2704,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CandidateNoteEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCandidateNoteEdgesIDs(); len(nodes) > 0 && !cuo.mutation.CandidateNoteEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CandidateNoteEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.CandidateNoteEdgesTable,
+			Columns: []string{candidate.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
 				},
 			},
 		}

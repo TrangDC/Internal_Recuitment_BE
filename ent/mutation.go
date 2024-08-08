@@ -21,6 +21,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/candidatenote"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -68,6 +69,7 @@ const (
 	TypeCandidateJob         = "CandidateJob"
 	TypeCandidateJobFeedback = "CandidateJobFeedback"
 	TypeCandidateJobStep     = "CandidateJobStep"
+	TypeCandidateNote        = "CandidateNote"
 	TypeEmailRoleAttribute   = "EmailRoleAttribute"
 	TypeEmailTemplate        = "EmailTemplate"
 	TypeEntityPermission     = "EntityPermission"
@@ -117,6 +119,8 @@ type AttachmentMutation struct {
 	clearedcandidate_certificate_edge  bool
 	candidate_history_call_edge        *uuid.UUID
 	clearedcandidate_history_call_edge bool
+	candidate_note_edge                *uuid.UUID
+	clearedcandidate_note_edge         bool
 	done                               bool
 	oldValue                           func(context.Context) (*Attachment, error)
 	predicates                         []predicate.Attachment
@@ -470,12 +474,12 @@ func (m *AttachmentMutation) ResetRelationType() {
 
 // SetRelationID sets the "relation_id" field.
 func (m *AttachmentMutation) SetRelationID(u uuid.UUID) {
-	m.candidate_job_feedback_edge = &u
+	m.candidate_note_edge = &u
 }
 
 // RelationID returns the value of the "relation_id" field in the mutation.
 func (m *AttachmentMutation) RelationID() (r uuid.UUID, exists bool) {
-	v := m.candidate_job_feedback_edge
+	v := m.candidate_note_edge
 	if v == nil {
 		return
 	}
@@ -501,7 +505,7 @@ func (m *AttachmentMutation) OldRelationID(ctx context.Context) (v uuid.UUID, er
 
 // ClearRelationID clears the value of the "relation_id" field.
 func (m *AttachmentMutation) ClearRelationID() {
-	m.candidate_job_feedback_edge = nil
+	m.candidate_note_edge = nil
 	m.clearedFields[attachment.FieldRelationID] = struct{}{}
 }
 
@@ -513,7 +517,7 @@ func (m *AttachmentMutation) RelationIDCleared() bool {
 
 // ResetRelationID resets all changes to the "relation_id" field.
 func (m *AttachmentMutation) ResetRelationID() {
-	m.candidate_job_feedback_edge = nil
+	m.candidate_note_edge = nil
 	delete(m.clearedFields, attachment.FieldRelationID)
 }
 
@@ -829,6 +833,45 @@ func (m *AttachmentMutation) ResetCandidateHistoryCallEdge() {
 	m.clearedcandidate_history_call_edge = false
 }
 
+// SetCandidateNoteEdgeID sets the "candidate_note_edge" edge to the CandidateNote entity by id.
+func (m *AttachmentMutation) SetCandidateNoteEdgeID(id uuid.UUID) {
+	m.candidate_note_edge = &id
+}
+
+// ClearCandidateNoteEdge clears the "candidate_note_edge" edge to the CandidateNote entity.
+func (m *AttachmentMutation) ClearCandidateNoteEdge() {
+	m.clearedcandidate_note_edge = true
+}
+
+// CandidateNoteEdgeCleared reports if the "candidate_note_edge" edge to the CandidateNote entity was cleared.
+func (m *AttachmentMutation) CandidateNoteEdgeCleared() bool {
+	return m.RelationIDCleared() || m.clearedcandidate_note_edge
+}
+
+// CandidateNoteEdgeID returns the "candidate_note_edge" edge ID in the mutation.
+func (m *AttachmentMutation) CandidateNoteEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_note_edge != nil {
+		return *m.candidate_note_edge, true
+	}
+	return
+}
+
+// CandidateNoteEdgeIDs returns the "candidate_note_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateNoteEdgeID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) CandidateNoteEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_note_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateNoteEdge resets all changes to the "candidate_note_edge" edge.
+func (m *AttachmentMutation) ResetCandidateNoteEdge() {
+	m.candidate_note_edge = nil
+	m.clearedcandidate_note_edge = false
+}
+
 // Where appends a list predicates to the AttachmentMutation builder.
 func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
 	m.predicates = append(m.predicates, ps...)
@@ -867,7 +910,7 @@ func (m *AttachmentMutation) Fields() []string {
 	if m.relation_type != nil {
 		fields = append(fields, attachment.FieldRelationType)
 	}
-	if m.candidate_job_feedback_edge != nil {
+	if m.candidate_note_edge != nil {
 		fields = append(fields, attachment.FieldRelationID)
 	}
 	return fields
@@ -1070,7 +1113,7 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.candidate_job_edge != nil {
 		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
@@ -1094,6 +1137,9 @@ func (m *AttachmentMutation) AddedEdges() []string {
 	}
 	if m.candidate_history_call_edge != nil {
 		edges = append(edges, attachment.EdgeCandidateHistoryCallEdge)
+	}
+	if m.candidate_note_edge != nil {
+		edges = append(edges, attachment.EdgeCandidateNoteEdge)
 	}
 	return edges
 }
@@ -1134,13 +1180,17 @@ func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_history_call_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case attachment.EdgeCandidateNoteEdge:
+		if id := m.candidate_note_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	return edges
 }
 
@@ -1152,7 +1202,7 @@ func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedcandidate_job_edge {
 		edges = append(edges, attachment.EdgeCandidateJobEdge)
 	}
@@ -1177,6 +1227,9 @@ func (m *AttachmentMutation) ClearedEdges() []string {
 	if m.clearedcandidate_history_call_edge {
 		edges = append(edges, attachment.EdgeCandidateHistoryCallEdge)
 	}
+	if m.clearedcandidate_note_edge {
+		edges = append(edges, attachment.EdgeCandidateNoteEdge)
+	}
 	return edges
 }
 
@@ -1200,6 +1253,8 @@ func (m *AttachmentMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_certificate_edge
 	case attachment.EdgeCandidateHistoryCallEdge:
 		return m.clearedcandidate_history_call_edge
+	case attachment.EdgeCandidateNoteEdge:
+		return m.clearedcandidate_note_edge
 	}
 	return false
 }
@@ -1232,6 +1287,9 @@ func (m *AttachmentMutation) ClearEdge(name string) error {
 	case attachment.EdgeCandidateHistoryCallEdge:
 		m.ClearCandidateHistoryCallEdge()
 		return nil
+	case attachment.EdgeCandidateNoteEdge:
+		m.ClearCandidateNoteEdge()
+		return nil
 	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
 }
@@ -1263,6 +1321,9 @@ func (m *AttachmentMutation) ResetEdge(name string) error {
 		return nil
 	case attachment.EdgeCandidateHistoryCallEdge:
 		m.ResetCandidateHistoryCallEdge()
+		return nil
+	case attachment.EdgeCandidateNoteEdge:
+		m.ResetCandidateNoteEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
@@ -2249,6 +2310,9 @@ type CandidateMutation struct {
 	candidate_history_call_edges        map[uuid.UUID]struct{}
 	removedcandidate_history_call_edges map[uuid.UUID]struct{}
 	clearedcandidate_history_call_edges bool
+	candidate_note_edges                map[uuid.UUID]struct{}
+	removedcandidate_note_edges         map[uuid.UUID]struct{}
+	clearedcandidate_note_edges         bool
 	done                                bool
 	oldValue                            func(context.Context) (*Candidate, error)
 	predicates                          []predicate.Candidate
@@ -3584,6 +3648,60 @@ func (m *CandidateMutation) ResetCandidateHistoryCallEdges() {
 	m.removedcandidate_history_call_edges = nil
 }
 
+// AddCandidateNoteEdgeIDs adds the "candidate_note_edges" edge to the CandidateNote entity by ids.
+func (m *CandidateMutation) AddCandidateNoteEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_note_edges == nil {
+		m.candidate_note_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_note_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateNoteEdges clears the "candidate_note_edges" edge to the CandidateNote entity.
+func (m *CandidateMutation) ClearCandidateNoteEdges() {
+	m.clearedcandidate_note_edges = true
+}
+
+// CandidateNoteEdgesCleared reports if the "candidate_note_edges" edge to the CandidateNote entity was cleared.
+func (m *CandidateMutation) CandidateNoteEdgesCleared() bool {
+	return m.clearedcandidate_note_edges
+}
+
+// RemoveCandidateNoteEdgeIDs removes the "candidate_note_edges" edge to the CandidateNote entity by IDs.
+func (m *CandidateMutation) RemoveCandidateNoteEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_note_edges == nil {
+		m.removedcandidate_note_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_note_edges, ids[i])
+		m.removedcandidate_note_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateNoteEdges returns the removed IDs of the "candidate_note_edges" edge to the CandidateNote entity.
+func (m *CandidateMutation) RemovedCandidateNoteEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_note_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateNoteEdgesIDs returns the "candidate_note_edges" edge IDs in the mutation.
+func (m *CandidateMutation) CandidateNoteEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_note_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateNoteEdges resets all changes to the "candidate_note_edges" edge.
+func (m *CandidateMutation) ResetCandidateNoteEdges() {
+	m.candidate_note_edges = nil
+	m.clearedcandidate_note_edges = false
+	m.removedcandidate_note_edges = nil
+}
+
 // Where appends a list predicates to the CandidateMutation builder.
 func (m *CandidateMutation) Where(ps ...predicate.Candidate) {
 	m.predicates = append(m.predicates, ps...)
@@ -4043,7 +4161,7 @@ func (m *CandidateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.candidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -4070,6 +4188,9 @@ func (m *CandidateMutation) AddedEdges() []string {
 	}
 	if m.candidate_history_call_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateHistoryCallEdges)
+	}
+	if m.candidate_note_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateNoteEdges)
 	}
 	return edges
 }
@@ -4130,13 +4251,19 @@ func (m *CandidateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateNoteEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_note_edges))
+		for id := range m.candidate_note_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -4160,6 +4287,9 @@ func (m *CandidateMutation) RemovedEdges() []string {
 	}
 	if m.removedcandidate_history_call_edges != nil {
 		edges = append(edges, candidate.EdgeCandidateHistoryCallEdges)
+	}
+	if m.removedcandidate_note_edges != nil {
+		edges = append(edges, candidate.EdgeCandidateNoteEdges)
 	}
 	return edges
 }
@@ -4216,13 +4346,19 @@ func (m *CandidateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidate.EdgeCandidateNoteEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_note_edges))
+		for id := range m.removedcandidate_note_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedcandidate_job_edges {
 		edges = append(edges, candidate.EdgeCandidateJobEdges)
 	}
@@ -4250,6 +4386,9 @@ func (m *CandidateMutation) ClearedEdges() []string {
 	if m.clearedcandidate_history_call_edges {
 		edges = append(edges, candidate.EdgeCandidateHistoryCallEdges)
 	}
+	if m.clearedcandidate_note_edges {
+		edges = append(edges, candidate.EdgeCandidateNoteEdges)
+	}
 	return edges
 }
 
@@ -4275,6 +4414,8 @@ func (m *CandidateMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_certificate_edges
 	case candidate.EdgeCandidateHistoryCallEdges:
 		return m.clearedcandidate_history_call_edges
+	case candidate.EdgeCandidateNoteEdges:
+		return m.clearedcandidate_note_edges
 	}
 	return false
 }
@@ -4320,6 +4461,9 @@ func (m *CandidateMutation) ResetEdge(name string) error {
 		return nil
 	case candidate.EdgeCandidateHistoryCallEdges:
 		m.ResetCandidateHistoryCallEdges()
+		return nil
+	case candidate.EdgeCandidateNoteEdges:
+		m.ResetCandidateNoteEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate edge %s", name)
@@ -14737,6 +14881,897 @@ func (m *CandidateJobStepMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJobStep edge %s", name)
+}
+
+// CandidateNoteMutation represents an operation that mutates the CandidateNote nodes in the graph.
+type CandidateNoteMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	name                    *string
+	description             *string
+	clearedFields           map[string]struct{}
+	candidate_edge          *uuid.UUID
+	clearedcandidate_edge   bool
+	created_by_edge         *uuid.UUID
+	clearedcreated_by_edge  bool
+	attachment_edges        map[uuid.UUID]struct{}
+	removedattachment_edges map[uuid.UUID]struct{}
+	clearedattachment_edges bool
+	done                    bool
+	oldValue                func(context.Context) (*CandidateNote, error)
+	predicates              []predicate.CandidateNote
+}
+
+var _ ent.Mutation = (*CandidateNoteMutation)(nil)
+
+// candidatenoteOption allows management of the mutation configuration using functional options.
+type candidatenoteOption func(*CandidateNoteMutation)
+
+// newCandidateNoteMutation creates new mutation for the CandidateNote entity.
+func newCandidateNoteMutation(c config, op Op, opts ...candidatenoteOption) *CandidateNoteMutation {
+	m := &CandidateNoteMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCandidateNote,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCandidateNoteID sets the ID field of the mutation.
+func withCandidateNoteID(id uuid.UUID) candidatenoteOption {
+	return func(m *CandidateNoteMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CandidateNote
+		)
+		m.oldValue = func(ctx context.Context) (*CandidateNote, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CandidateNote.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCandidateNote sets the old CandidateNote of the mutation.
+func withCandidateNote(node *CandidateNote) candidatenoteOption {
+	return func(m *CandidateNoteMutation) {
+		m.oldValue = func(context.Context) (*CandidateNote, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CandidateNoteMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CandidateNoteMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CandidateNote entities.
+func (m *CandidateNoteMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CandidateNoteMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CandidateNoteMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CandidateNote.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CandidateNoteMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CandidateNoteMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CandidateNoteMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CandidateNoteMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CandidateNoteMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *CandidateNoteMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[candidatenote.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *CandidateNoteMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[candidatenote.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CandidateNoteMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, candidatenote.FieldUpdatedAt)
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *CandidateNoteMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *CandidateNoteMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *CandidateNoteMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[candidatenote.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *CandidateNoteMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[candidatenote.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *CandidateNoteMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, candidatenote.FieldDeletedAt)
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (m *CandidateNoteMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_edge = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *CandidateNoteMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *CandidateNoteMutation) ResetCandidateID() {
+	m.candidate_edge = nil
+}
+
+// SetCreatedByID sets the "created_by_id" field.
+func (m *CandidateNoteMutation) SetCreatedByID(u uuid.UUID) {
+	m.created_by_edge = &u
+}
+
+// CreatedByID returns the value of the "created_by_id" field in the mutation.
+func (m *CandidateNoteMutation) CreatedByID() (r uuid.UUID, exists bool) {
+	v := m.created_by_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedByID returns the old "created_by_id" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldCreatedByID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
+	}
+	return oldValue.CreatedByID, nil
+}
+
+// ResetCreatedByID resets all changes to the "created_by_id" field.
+func (m *CandidateNoteMutation) ResetCreatedByID() {
+	m.created_by_edge = nil
+}
+
+// SetName sets the "name" field.
+func (m *CandidateNoteMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CandidateNoteMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CandidateNoteMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *CandidateNoteMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CandidateNoteMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the CandidateNote entity.
+// If the CandidateNote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateNoteMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CandidateNoteMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
+func (m *CandidateNoteMutation) SetCandidateEdgeID(id uuid.UUID) {
+	m.candidate_edge = &id
+}
+
+// ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
+func (m *CandidateNoteMutation) ClearCandidateEdge() {
+	m.clearedcandidate_edge = true
+}
+
+// CandidateEdgeCleared reports if the "candidate_edge" edge to the Candidate entity was cleared.
+func (m *CandidateNoteMutation) CandidateEdgeCleared() bool {
+	return m.clearedcandidate_edge
+}
+
+// CandidateEdgeID returns the "candidate_edge" edge ID in the mutation.
+func (m *CandidateNoteMutation) CandidateEdgeID() (id uuid.UUID, exists bool) {
+	if m.candidate_edge != nil {
+		return *m.candidate_edge, true
+	}
+	return
+}
+
+// CandidateEdgeIDs returns the "candidate_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CandidateEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateNoteMutation) CandidateEdgeIDs() (ids []uuid.UUID) {
+	if id := m.candidate_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCandidateEdge resets all changes to the "candidate_edge" edge.
+func (m *CandidateNoteMutation) ResetCandidateEdge() {
+	m.candidate_edge = nil
+	m.clearedcandidate_edge = false
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by id.
+func (m *CandidateNoteMutation) SetCreatedByEdgeID(id uuid.UUID) {
+	m.created_by_edge = &id
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (m *CandidateNoteMutation) ClearCreatedByEdge() {
+	m.clearedcreated_by_edge = true
+}
+
+// CreatedByEdgeCleared reports if the "created_by_edge" edge to the User entity was cleared.
+func (m *CandidateNoteMutation) CreatedByEdgeCleared() bool {
+	return m.clearedcreated_by_edge
+}
+
+// CreatedByEdgeID returns the "created_by_edge" edge ID in the mutation.
+func (m *CandidateNoteMutation) CreatedByEdgeID() (id uuid.UUID, exists bool) {
+	if m.created_by_edge != nil {
+		return *m.created_by_edge, true
+	}
+	return
+}
+
+// CreatedByEdgeIDs returns the "created_by_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatedByEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateNoteMutation) CreatedByEdgeIDs() (ids []uuid.UUID) {
+	if id := m.created_by_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreatedByEdge resets all changes to the "created_by_edge" edge.
+func (m *CandidateNoteMutation) ResetCreatedByEdge() {
+	m.created_by_edge = nil
+	m.clearedcreated_by_edge = false
+}
+
+// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
+func (m *CandidateNoteMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.attachment_edges == nil {
+		m.attachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateNoteMutation) ClearAttachmentEdges() {
+	m.clearedattachment_edges = true
+}
+
+// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
+func (m *CandidateNoteMutation) AttachmentEdgesCleared() bool {
+	return m.clearedattachment_edges
+}
+
+// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
+func (m *CandidateNoteMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
+	if m.removedattachment_edges == nil {
+		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment_edges, ids[i])
+		m.removedattachment_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
+func (m *CandidateNoteMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
+func (m *CandidateNoteMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.attachment_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
+func (m *CandidateNoteMutation) ResetAttachmentEdges() {
+	m.attachment_edges = nil
+	m.clearedattachment_edges = false
+	m.removedattachment_edges = nil
+}
+
+// Where appends a list predicates to the CandidateNoteMutation builder.
+func (m *CandidateNoteMutation) Where(ps ...predicate.CandidateNote) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *CandidateNoteMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CandidateNote).
+func (m *CandidateNoteMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CandidateNoteMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, candidatenote.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, candidatenote.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, candidatenote.FieldDeletedAt)
+	}
+	if m.candidate_edge != nil {
+		fields = append(fields, candidatenote.FieldCandidateID)
+	}
+	if m.created_by_edge != nil {
+		fields = append(fields, candidatenote.FieldCreatedByID)
+	}
+	if m.name != nil {
+		fields = append(fields, candidatenote.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, candidatenote.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CandidateNoteMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case candidatenote.FieldCreatedAt:
+		return m.CreatedAt()
+	case candidatenote.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case candidatenote.FieldDeletedAt:
+		return m.DeletedAt()
+	case candidatenote.FieldCandidateID:
+		return m.CandidateID()
+	case candidatenote.FieldCreatedByID:
+		return m.CreatedByID()
+	case candidatenote.FieldName:
+		return m.Name()
+	case candidatenote.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CandidateNoteMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case candidatenote.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case candidatenote.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case candidatenote.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case candidatenote.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case candidatenote.FieldCreatedByID:
+		return m.OldCreatedByID(ctx)
+	case candidatenote.FieldName:
+		return m.OldName(ctx)
+	case candidatenote.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown CandidateNote field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateNoteMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case candidatenote.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case candidatenote.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case candidatenote.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case candidatenote.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case candidatenote.FieldCreatedByID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedByID(v)
+		return nil
+	case candidatenote.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case candidatenote.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateNote field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CandidateNoteMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CandidateNoteMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CandidateNoteMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CandidateNote numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CandidateNoteMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(candidatenote.FieldUpdatedAt) {
+		fields = append(fields, candidatenote.FieldUpdatedAt)
+	}
+	if m.FieldCleared(candidatenote.FieldDeletedAt) {
+		fields = append(fields, candidatenote.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CandidateNoteMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CandidateNoteMutation) ClearField(name string) error {
+	switch name {
+	case candidatenote.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	case candidatenote.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateNote nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CandidateNoteMutation) ResetField(name string) error {
+	switch name {
+	case candidatenote.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case candidatenote.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case candidatenote.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case candidatenote.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case candidatenote.FieldCreatedByID:
+		m.ResetCreatedByID()
+		return nil
+	case candidatenote.FieldName:
+		m.ResetName()
+		return nil
+	case candidatenote.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateNote field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CandidateNoteMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.candidate_edge != nil {
+		edges = append(edges, candidatenote.EdgeCandidateEdge)
+	}
+	if m.created_by_edge != nil {
+		edges = append(edges, candidatenote.EdgeCreatedByEdge)
+	}
+	if m.attachment_edges != nil {
+		edges = append(edges, candidatenote.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CandidateNoteMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case candidatenote.EdgeCandidateEdge:
+		if id := m.candidate_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case candidatenote.EdgeCreatedByEdge:
+		if id := m.created_by_edge; id != nil {
+			return []ent.Value{*id}
+		}
+	case candidatenote.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.attachment_edges))
+		for id := range m.attachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CandidateNoteMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedattachment_edges != nil {
+		edges = append(edges, candidatenote.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CandidateNoteMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case candidatenote.EdgeAttachmentEdges:
+		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
+		for id := range m.removedattachment_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CandidateNoteMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedcandidate_edge {
+		edges = append(edges, candidatenote.EdgeCandidateEdge)
+	}
+	if m.clearedcreated_by_edge {
+		edges = append(edges, candidatenote.EdgeCreatedByEdge)
+	}
+	if m.clearedattachment_edges {
+		edges = append(edges, candidatenote.EdgeAttachmentEdges)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CandidateNoteMutation) EdgeCleared(name string) bool {
+	switch name {
+	case candidatenote.EdgeCandidateEdge:
+		return m.clearedcandidate_edge
+	case candidatenote.EdgeCreatedByEdge:
+		return m.clearedcreated_by_edge
+	case candidatenote.EdgeAttachmentEdges:
+		return m.clearedattachment_edges
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CandidateNoteMutation) ClearEdge(name string) error {
+	switch name {
+	case candidatenote.EdgeCandidateEdge:
+		m.ClearCandidateEdge()
+		return nil
+	case candidatenote.EdgeCreatedByEdge:
+		m.ClearCreatedByEdge()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateNote unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CandidateNoteMutation) ResetEdge(name string) error {
+	switch name {
+	case candidatenote.EdgeCandidateEdge:
+		m.ResetCandidateEdge()
+		return nil
+	case candidatenote.EdgeCreatedByEdge:
+		m.ResetCreatedByEdge()
+		return nil
+	case candidatenote.EdgeAttachmentEdges:
+		m.ResetAttachmentEdges()
+		return nil
+	}
+	return fmt.Errorf("unknown CandidateNote edge %s", name)
 }
 
 // EmailRoleAttributeMutation represents an operation that mutates the EmailRoleAttribute nodes in the graph.
@@ -30083,6 +31118,9 @@ type UserMutation struct {
 	clearedleader_rec_edge             bool
 	rec_teams                          *uuid.UUID
 	clearedrec_teams                   bool
+	candidate_note_edges               map[uuid.UUID]struct{}
+	removedcandidate_note_edges        map[uuid.UUID]struct{}
+	clearedcandidate_note_edges        bool
 	interview_users                    map[uuid.UUID]struct{}
 	removedinterview_users             map[uuid.UUID]struct{}
 	clearedinterview_users             bool
@@ -31340,6 +32378,60 @@ func (m *UserMutation) ResetRecTeams() {
 	m.clearedrec_teams = false
 }
 
+// AddCandidateNoteEdgeIDs adds the "candidate_note_edges" edge to the CandidateNote entity by ids.
+func (m *UserMutation) AddCandidateNoteEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_note_edges == nil {
+		m.candidate_note_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_note_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateNoteEdges clears the "candidate_note_edges" edge to the CandidateNote entity.
+func (m *UserMutation) ClearCandidateNoteEdges() {
+	m.clearedcandidate_note_edges = true
+}
+
+// CandidateNoteEdgesCleared reports if the "candidate_note_edges" edge to the CandidateNote entity was cleared.
+func (m *UserMutation) CandidateNoteEdgesCleared() bool {
+	return m.clearedcandidate_note_edges
+}
+
+// RemoveCandidateNoteEdgeIDs removes the "candidate_note_edges" edge to the CandidateNote entity by IDs.
+func (m *UserMutation) RemoveCandidateNoteEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_note_edges == nil {
+		m.removedcandidate_note_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_note_edges, ids[i])
+		m.removedcandidate_note_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateNoteEdges returns the removed IDs of the "candidate_note_edges" edge to the CandidateNote entity.
+func (m *UserMutation) RemovedCandidateNoteEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_note_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateNoteEdgesIDs returns the "candidate_note_edges" edge IDs in the mutation.
+func (m *UserMutation) CandidateNoteEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_note_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateNoteEdges resets all changes to the "candidate_note_edges" edge.
+func (m *UserMutation) ResetCandidateNoteEdges() {
+	m.candidate_note_edges = nil
+	m.clearedcandidate_note_edges = false
+	m.removedcandidate_note_edges = nil
+}
+
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by ids.
 func (m *UserMutation) AddInterviewUserIDs(ids ...uuid.UUID) {
 	if m.interview_users == nil {
@@ -31860,7 +32952,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -31902,6 +32994,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.rec_teams != nil {
 		edges = append(edges, user.EdgeRecTeams)
+	}
+	if m.candidate_note_edges != nil {
+		edges = append(edges, user.EdgeCandidateNoteEdges)
 	}
 	if m.interview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -32000,6 +33095,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.rec_teams; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeCandidateNoteEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_note_edges))
+		for id := range m.candidate_note_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.interview_users))
 		for id := range m.interview_users {
@@ -32030,7 +33131,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -32063,6 +33164,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedapprovers_hiring_teams != nil {
 		edges = append(edges, user.EdgeApproversHiringTeams)
+	}
+	if m.removedcandidate_note_edges != nil {
+		edges = append(edges, user.EdgeCandidateNoteEdges)
 	}
 	if m.removedinterview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -32149,6 +33253,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCandidateNoteEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_note_edges))
+		for id := range m.removedcandidate_note_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.removedinterview_users))
 		for id := range m.removedinterview_users {
@@ -32179,7 +33289,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 19)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -32221,6 +33331,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedrec_teams {
 		edges = append(edges, user.EdgeRecTeams)
+	}
+	if m.clearedcandidate_note_edges {
+		edges = append(edges, user.EdgeCandidateNoteEdges)
 	}
 	if m.clearedinterview_users {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -32269,6 +33382,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedleader_rec_edge
 	case user.EdgeRecTeams:
 		return m.clearedrec_teams
+	case user.EdgeCandidateNoteEdges:
+		return m.clearedcandidate_note_edges
 	case user.EdgeInterviewUsers:
 		return m.clearedinterview_users
 	case user.EdgeRoleUsers:
@@ -32343,6 +33458,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeRecTeams:
 		m.ResetRecTeams()
+		return nil
+	case user.EdgeCandidateNoteEdges:
+		m.ResetCandidateNoteEdges()
 		return nil
 	case user.EdgeInterviewUsers:
 		m.ResetInterviewUsers()
