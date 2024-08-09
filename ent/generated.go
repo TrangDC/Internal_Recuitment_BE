@@ -208,7 +208,8 @@ type CandidateInterviewCalendarFilter struct {
 }
 
 type CandidateInterviewFilter struct {
-	CandidateJobID string     `json:"candidate_job_id"`
+	CandidateJobID *string    `json:"candidate_job_id"`
+	CandidateID    *string    `json:"candidate_id"`
 	InterviewDate  *time.Time `json:"interview_date"`
 	StartFrom      *time.Time `json:"start_from"`
 	EndAt          *time.Time `json:"end_at"`
@@ -260,7 +261,8 @@ type CandidateJobByOrder struct {
 }
 
 type CandidateJobFeedbackFilter struct {
-	CandidateJobID string  `json:"candidate_job_id"`
+	CandidateJobID *string `json:"candidate_job_id"`
+	CandidateID    *string `json:"candidate_id"`
 	CreatedBy      *string `json:"created_by"`
 }
 

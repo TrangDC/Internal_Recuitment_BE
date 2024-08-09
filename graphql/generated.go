@@ -7101,7 +7101,8 @@ input UpdateCandidateInterviewScheduleInput {
 }
 
 input CandidateInterviewFilter {
-  candidate_job_id: ID!
+  candidate_job_id: ID
+  candidate_id: ID
   interview_date: Time
   start_from: Time
   end_at: Time
@@ -7421,7 +7422,8 @@ input CandidateJobFeedbackOrder {
 }
 
 input CandidateJobFeedbackFilter {
-  candidate_job_id: ID!
+  candidate_job_id: ID
+  candidate_id: ID
   created_by: ID
 }
 
@@ -48067,7 +48069,7 @@ func (ec *executionContext) unmarshalInputCandidateInterviewFilter(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_job_id", "interview_date", "start_from", "end_at", "interviewer", "from_date", "to_date"}
+	fieldsInOrder := [...]string{"candidate_job_id", "candidate_id", "interview_date", "start_from", "end_at", "interviewer", "from_date", "to_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48078,7 +48080,15 @@ func (ec *executionContext) unmarshalInputCandidateInterviewFilter(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_job_id"))
-			it.CandidateJobID, err = ec.unmarshalNID2string(ctx, v)
+			it.CandidateJobID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
+			it.CandidateID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48343,7 +48353,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFeedbackFilter(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_job_id", "created_by"}
+	fieldsInOrder := [...]string{"candidate_job_id", "candidate_id", "created_by"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48354,7 +48364,15 @@ func (ec *executionContext) unmarshalInputCandidateJobFeedbackFilter(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_job_id"))
-			it.CandidateJobID, err = ec.unmarshalNID2string(ctx, v)
+			it.CandidateJobID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_id"))
+			it.CandidateID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

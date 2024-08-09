@@ -32,7 +32,8 @@ input CandidateJobFeedbackOrder {
 }
 
 input CandidateJobFeedbackFilter {
-  candidate_job_id: ID!
+  candidate_job_id: ID
+  candidate_id: ID
   created_by: ID
 }
 
