@@ -61,7 +61,8 @@ func (rps candidateEducateRepoImpl) BuildBulkCreate(ctx context.Context, input [
 			SetGpa(strings.TrimSpace(v.Gpa)).
 			SetCandidateID(candidateId).
 			SetLocation(strings.TrimSpace(v.Location)).
-			SetOrderID(v.OrderID)
+			SetOrderID(v.OrderID).
+			SetIsCurrent(v.IsCurrent)
 		if !v.StartDate.IsZero() {
 			create.SetStartDate(*v.StartDate)
 		}
@@ -110,7 +111,8 @@ func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input [
 			SetGpa(strings.TrimSpace(v.Gpa)).
 			SetLocation(strings.TrimSpace(v.Location)).
 			SetDescription(strings.TrimSpace(v.Description)).
-			SetOrderID(v.OrderID)
+			SetOrderID(v.OrderID).
+			SetIsCurrent(v.IsCurrent)
 		if !v.StartDate.IsZero() {
 			update.SetStartDate(*v.StartDate)
 		} else {

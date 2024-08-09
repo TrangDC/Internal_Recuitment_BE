@@ -7,6 +7,7 @@ type CandidateExp {
   end_date: Time
   description: String!
   order_id: Int!
+  is_current: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -20,4 +21,5 @@ input CandidateExpInput {
   end_date: Time
   description: String!
   order_id: Int!
+  is_current: Boolean!
 }

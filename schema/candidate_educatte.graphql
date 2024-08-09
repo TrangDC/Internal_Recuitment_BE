@@ -9,6 +9,7 @@ type CandidateEducate {
   description: String!
   attachments: [Attachment!]!
   order_id: Int!
+  is_current: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -24,4 +25,5 @@ input CandidateEducateInput {
   description: String!
   attachments: [NewAttachmentInput!]!
   order_id: Int!
+  is_current: Boolean!
 }

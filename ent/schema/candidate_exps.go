@@ -23,6 +23,7 @@ func (CandidateExp) Fields() []ent.Field {
 		field.Time("start_date").Optional(),
 		field.Time("end_date").Optional(),
 		field.Int("order_id").Optional(),
+		field.Bool("is_current").Default(false),
 	}
 }
 

@@ -244,6 +244,20 @@ func (ceu *CandidateEducateUpdate) ClearOrderID() *CandidateEducateUpdate {
 	return ceu
 }
 
+// SetIsCurrent sets the "is_current" field.
+func (ceu *CandidateEducateUpdate) SetIsCurrent(b bool) *CandidateEducateUpdate {
+	ceu.mutation.SetIsCurrent(b)
+	return ceu
+}
+
+// SetNillableIsCurrent sets the "is_current" field if the given value is not nil.
+func (ceu *CandidateEducateUpdate) SetNillableIsCurrent(b *bool) *CandidateEducateUpdate {
+	if b != nil {
+		ceu.SetIsCurrent(*b)
+	}
+	return ceu
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (ceu *CandidateEducateUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateEducateUpdate {
 	ceu.mutation.AddAttachmentEdgeIDs(ids...)
@@ -477,6 +491,9 @@ func (ceu *CandidateEducateUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if ceu.mutation.OrderIDCleared() {
 		_spec.ClearField(candidateeducate.FieldOrderID, field.TypeInt)
+	}
+	if value, ok := ceu.mutation.IsCurrent(); ok {
+		_spec.SetField(candidateeducate.FieldIsCurrent, field.TypeBool, value)
 	}
 	if ceu.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -799,6 +816,20 @@ func (ceuo *CandidateEducateUpdateOne) ClearOrderID() *CandidateEducateUpdateOne
 	return ceuo
 }
 
+// SetIsCurrent sets the "is_current" field.
+func (ceuo *CandidateEducateUpdateOne) SetIsCurrent(b bool) *CandidateEducateUpdateOne {
+	ceuo.mutation.SetIsCurrent(b)
+	return ceuo
+}
+
+// SetNillableIsCurrent sets the "is_current" field if the given value is not nil.
+func (ceuo *CandidateEducateUpdateOne) SetNillableIsCurrent(b *bool) *CandidateEducateUpdateOne {
+	if b != nil {
+		ceuo.SetIsCurrent(*b)
+	}
+	return ceuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (ceuo *CandidateEducateUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateEducateUpdateOne {
 	ceuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -1062,6 +1093,9 @@ func (ceuo *CandidateEducateUpdateOne) sqlSave(ctx context.Context) (_node *Cand
 	}
 	if ceuo.mutation.OrderIDCleared() {
 		_spec.ClearField(candidateeducate.FieldOrderID, field.TypeInt)
+	}
+	if value, ok := ceuo.mutation.IsCurrent(); ok {
+		_spec.SetField(candidateeducate.FieldIsCurrent, field.TypeBool, value)
 	}
 	if ceuo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

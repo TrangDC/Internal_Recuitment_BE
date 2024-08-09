@@ -33,6 +33,8 @@ const (
 	FieldEndDate = "end_date"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
+	// FieldIsCurrent holds the string denoting the is_current field in the database.
+	FieldIsCurrent = "is_current"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the candidateexp in the database.
@@ -60,6 +62,7 @@ var Columns = []string{
 	FieldStartDate,
 	FieldEndDate,
 	FieldOrderID,
+	FieldIsCurrent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -83,4 +86,6 @@ var (
 	LocationValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
+	// DefaultIsCurrent holds the default value on creation for the "is_current" field.
+	DefaultIsCurrent bool
 )

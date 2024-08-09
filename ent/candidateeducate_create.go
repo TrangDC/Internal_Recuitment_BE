@@ -183,6 +183,20 @@ func (cec *CandidateEducateCreate) SetNillableOrderID(i *int) *CandidateEducateC
 	return cec
 }
 
+// SetIsCurrent sets the "is_current" field.
+func (cec *CandidateEducateCreate) SetIsCurrent(b bool) *CandidateEducateCreate {
+	cec.mutation.SetIsCurrent(b)
+	return cec
+}
+
+// SetNillableIsCurrent sets the "is_current" field if the given value is not nil.
+func (cec *CandidateEducateCreate) SetNillableIsCurrent(b *bool) *CandidateEducateCreate {
+	if b != nil {
+		cec.SetIsCurrent(*b)
+	}
+	return cec
+}
+
 // SetID sets the "id" field.
 func (cec *CandidateEducateCreate) SetID(u uuid.UUID) *CandidateEducateCreate {
 	cec.mutation.SetID(u)
@@ -304,6 +318,10 @@ func (cec *CandidateEducateCreate) defaults() {
 		v := candidateeducate.DefaultCreatedAt()
 		cec.mutation.SetCreatedAt(v)
 	}
+	if _, ok := cec.mutation.IsCurrent(); !ok {
+		v := candidateeducate.DefaultIsCurrent
+		cec.mutation.SetIsCurrent(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -338,6 +356,9 @@ func (cec *CandidateEducateCreate) check() error {
 		if err := candidateeducate.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.description": %w`, err)}
 		}
+	}
+	if _, ok := cec.mutation.IsCurrent(); !ok {
+		return &ValidationError{Name: "is_current", err: errors.New(`ent: missing required field "CandidateEducate.is_current"`)}
 	}
 	return nil
 }
@@ -418,6 +439,10 @@ func (cec *CandidateEducateCreate) createSpec() (*CandidateEducate, *sqlgraph.Cr
 	if value, ok := cec.mutation.OrderID(); ok {
 		_spec.SetField(candidateeducate.FieldOrderID, field.TypeInt, value)
 		_node.OrderID = value
+	}
+	if value, ok := cec.mutation.IsCurrent(); ok {
+		_spec.SetField(candidateeducate.FieldIsCurrent, field.TypeBool, value)
+		_node.IsCurrent = value
 	}
 	if nodes := cec.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
