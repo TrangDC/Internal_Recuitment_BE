@@ -512,5 +512,11 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			})
 			candidateQuery.Where(candidate.ReferenceTypeIn(referenceTypes...))
 		}
+		if input.Gender != nil {
+			genders := lo.Map(input.Gender, func(v ent.CandidateGenderEnum, index int) candidate.Gender {
+				return candidate.Gender(v)
+			})
+			candidateQuery = candidateQuery.Where(candidate.GenderIn(genders...))
+		}
 	}
 }

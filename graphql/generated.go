@@ -167,6 +167,7 @@ type ComplexityRoot struct {
 		Dob                  func(childComplexity int) int
 		Email                func(childComplexity int) int
 		EntitySkillTypes     func(childComplexity int) int
+		Gender               func(childComplexity int) int
 		HiringJobTitle       func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		IsAbleToDelete       func(childComplexity int) int
@@ -1185,6 +1186,7 @@ type CandidateResolver interface {
 	CandidateAward(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateAward, error)
 	CandidateCertificate(ctx context.Context, obj *ent.Candidate) ([]*ent.CandidateCertificate, error)
 	Avatar(ctx context.Context, obj *ent.Candidate) (string, error)
+	Gender(ctx context.Context, obj *ent.Candidate) (ent.CandidateGenderEnum, error)
 }
 type CandidateAwardResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateAward) (string, error)
@@ -1904,6 +1906,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Candidate.EntitySkillTypes(childComplexity), true
+
+	case "Candidate.gender":
+		if e.complexity.Candidate.Gender == nil {
+			break
+		}
+
+		return e.complexity.Candidate.Gender(childComplexity), true
 
 	case "Candidate.hiring_job_title":
 		if e.complexity.Candidate.HiringJobTitle == nil {
@@ -7403,6 +7412,12 @@ input UpdateCandidateNoteInput {
   new
 }
 
+enum CandidateGenderEnum {
+  male
+  female
+  others
+}
+
 enum CandidateOrderField {
   name
   dob
@@ -7468,6 +7483,7 @@ input NewCandidateInput{
   candidate_award: [CandidateAwardInput!]!
   candidate_certificate: [CandidateCertificateInput!]!
   avatar: String!
+  gender: CandidateGenderEnum!
 }
 
 input UpdateCandidateInput {
@@ -7489,6 +7505,7 @@ input UpdateCandidateInput {
   candidate_award: [CandidateAwardInput!]!
   candidate_certificate: [CandidateCertificateInput!]!
   avatar: String!
+  gender: CandidateGenderEnum!
 }
 
 input CandidateFilter {
@@ -7510,6 +7527,7 @@ input CandidateFilter {
   skill_type_ids: [ID!]
   skill_ids: [ID!]
   reference_type: [CandidateReferenceType!]
+  gender: [CandidateGenderEnum!]
 }
 
 input CandidateFreeWord {
@@ -7549,6 +7567,7 @@ type Candidate {
   candidate_award: [CandidateAward!]
   candidate_certificate: [CandidateCertificate!]
   avatar: String!
+  gender: CandidateGenderEnum!
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
@@ -15340,6 +15359,50 @@ func (ec *executionContext) fieldContext_Candidate_avatar(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Candidate_gender(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Candidate_gender(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Candidate().Gender(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.CandidateGenderEnum)
+	fc.Result = res
+	return ec.marshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Candidate_gender(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Candidate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateGenderEnum does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Candidate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.Candidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Candidate_created_at(ctx, field)
 	if err != nil {
@@ -16644,6 +16707,8 @@ func (ec *executionContext) fieldContext_CandidateEdge_node(ctx context.Context,
 				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
 			case "avatar":
 				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "gender":
+				return ec.fieldContext_Candidate_gender(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -18062,6 +18127,8 @@ func (ec *executionContext) fieldContext_CandidateHistoryCall_candidate(ctx cont
 				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
 			case "avatar":
 				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "gender":
+				return ec.fieldContext_Candidate_gender(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -20270,6 +20337,8 @@ func (ec *executionContext) fieldContext_CandidateJob_candidate(ctx context.Cont
 				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
 			case "avatar":
 				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "gender":
+				return ec.fieldContext_Candidate_gender(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -23440,6 +23509,8 @@ func (ec *executionContext) fieldContext_CandidateNote_candidate(ctx context.Con
 				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
 			case "avatar":
 				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "gender":
+				return ec.fieldContext_Candidate_gender(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -24190,6 +24261,8 @@ func (ec *executionContext) fieldContext_CandidateResponse_data(ctx context.Cont
 				return ec.fieldContext_Candidate_candidate_certificate(ctx, field)
 			case "avatar":
 				return ec.fieldContext_Candidate_avatar(ctx, field)
+			case "gender":
+				return ec.fieldContext_Candidate_gender(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Candidate_created_at(ctx, field)
 			case "updated_at":
@@ -47016,7 +47089,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date", "skill_type_ids", "skill_ids", "reference_type"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date", "skill_type_ids", "skill_ids", "reference_type", "gender"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47164,6 +47237,14 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reference_type"))
 			it.ReferenceType, err = ec.unmarshalOCandidateReferenceType2ᚕtrecᚋentᚐCandidateReferenceTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalOCandidateGenderEnum2ᚕtrecᚋentᚐCandidateGenderEnumᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48860,7 +48941,7 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "entity_skill_records", "attachments", "address", "candidate_exp", "candidate_educate", "candidate_award", "candidate_certificate", "avatar"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "entity_skill_records", "attachments", "address", "candidate_exp", "candidate_educate", "candidate_award", "candidate_certificate", "avatar", "gender"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49008,6 +49089,14 @@ func (ec *executionContext) unmarshalInputNewCandidateInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatar"))
 			it.Avatar, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50592,7 +50681,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "entity_skill_records", "attachments", "address", "candidate_exp", "candidate_educate", "candidate_award", "candidate_certificate", "avatar"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob", "reference_type", "reference_value", "reference_uid", "recruit_time", "description", "country", "entity_skill_records", "attachments", "address", "candidate_exp", "candidate_educate", "candidate_award", "candidate_certificate", "avatar", "gender"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -50740,6 +50829,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatar"))
 			it.Avatar, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gender":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			it.Gender, err = ec.unmarshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52813,6 +52910,26 @@ func (ec *executionContext) _Candidate(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._Candidate_avatar(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "gender":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Candidate_gender(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -62528,6 +62645,16 @@ func (ec *executionContext) unmarshalNCandidateExpInput2ᚖtrecᚋentᚐCandidat
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx context.Context, v interface{}) (ent.CandidateGenderEnum, error) {
+	var res ent.CandidateGenderEnum
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx context.Context, sel ast.SelectionSet, v ent.CandidateGenderEnum) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNCandidateHistoryCall2ᚖtrecᚋentᚐCandidateHistoryCall(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateHistoryCall) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -66824,6 +66951,73 @@ func (ec *executionContext) unmarshalOCandidateFreeWord2ᚖtrecᚋentᚐCandidat
 	}
 	res, err := ec.unmarshalInputCandidateFreeWord(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCandidateGenderEnum2ᚕtrecᚋentᚐCandidateGenderEnumᚄ(ctx context.Context, v interface{}) ([]ent.CandidateGenderEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ent.CandidateGenderEnum, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCandidateGenderEnum2ᚕtrecᚋentᚐCandidateGenderEnumᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.CandidateGenderEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateGenderEnum2trecᚋentᚐCandidateGenderEnum(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOCandidateHistoryCallFilter2ᚖtrecᚋentᚐCandidateHistoryCallFilter(ctx context.Context, v interface{}) (*ent.CandidateHistoryCallFilter, error) {

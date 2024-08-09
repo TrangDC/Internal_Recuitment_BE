@@ -305,6 +305,20 @@ func (cu *CandidateUpdate) ClearAddress() *CandidateUpdate {
 	return cu
 }
 
+// SetGender sets the "gender" field.
+func (cu *CandidateUpdate) SetGender(c candidate.Gender) *CandidateUpdate {
+	cu.mutation.SetGender(c)
+	return cu
+}
+
+// SetNillableGender sets the "gender" field if the given value is not nil.
+func (cu *CandidateUpdate) SetNillableGender(c *candidate.Gender) *CandidateUpdate {
+	if c != nil {
+		cu.SetGender(*c)
+	}
+	return cu
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cu *CandidateUpdate) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
 	cu.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -761,6 +775,11 @@ func (cu *CandidateUpdate) check() error {
 			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
 		}
 	}
+	if v, ok := cu.mutation.Gender(); ok {
+		if err := candidate.GenderValidator(v); err != nil {
+			return &ValidationError{Name: "gender", err: fmt.Errorf(`ent: validator failed for field "Candidate.gender": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -856,6 +875,9 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.AddressCleared() {
 		_spec.ClearField(candidate.FieldAddress, field.TypeString)
+	}
+	if value, ok := cu.mutation.Gender(); ok {
+		_spec.SetField(candidate.FieldGender, field.TypeEnum, value)
 	}
 	if cu.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1663,6 +1685,20 @@ func (cuo *CandidateUpdateOne) ClearAddress() *CandidateUpdateOne {
 	return cuo
 }
 
+// SetGender sets the "gender" field.
+func (cuo *CandidateUpdateOne) SetGender(c candidate.Gender) *CandidateUpdateOne {
+	cuo.mutation.SetGender(c)
+	return cuo
+}
+
+// SetNillableGender sets the "gender" field if the given value is not nil.
+func (cuo *CandidateUpdateOne) SetNillableGender(c *candidate.Gender) *CandidateUpdateOne {
+	if c != nil {
+		cuo.SetGender(*c)
+	}
+	return cuo
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by IDs.
 func (cuo *CandidateUpdateOne) AddCandidateJobEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
 	cuo.mutation.AddCandidateJobEdgeIDs(ids...)
@@ -2132,6 +2168,11 @@ func (cuo *CandidateUpdateOne) check() error {
 			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
 		}
 	}
+	if v, ok := cuo.mutation.Gender(); ok {
+		if err := candidate.GenderValidator(v); err != nil {
+			return &ValidationError{Name: "gender", err: fmt.Errorf(`ent: validator failed for field "Candidate.gender": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2244,6 +2285,9 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 	}
 	if cuo.mutation.AddressCleared() {
 		_spec.ClearField(candidate.FieldAddress, field.TypeString)
+	}
+	if value, ok := cuo.mutation.Gender(); ok {
+		_spec.SetField(candidate.FieldGender, field.TypeEnum, value)
 	}
 	if cuo.mutation.CandidateJobEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

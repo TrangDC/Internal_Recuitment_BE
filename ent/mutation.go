@@ -2283,6 +2283,7 @@ type CandidateMutation struct {
 	avatar                              *uuid.UUID
 	country                             *string
 	address                             *string
+	gender                              *candidate.Gender
 	clearedFields                       map[string]struct{}
 	candidate_job_edges                 map[uuid.UUID]struct{}
 	removedcandidate_job_edges          map[uuid.UUID]struct{}
@@ -3177,6 +3178,42 @@ func (m *CandidateMutation) ResetAddress() {
 	delete(m.clearedFields, candidate.FieldAddress)
 }
 
+// SetGender sets the "gender" field.
+func (m *CandidateMutation) SetGender(c candidate.Gender) {
+	m.gender = &c
+}
+
+// Gender returns the value of the "gender" field in the mutation.
+func (m *CandidateMutation) Gender() (r candidate.Gender, exists bool) {
+	v := m.gender
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGender returns the old "gender" field's value of the Candidate entity.
+// If the Candidate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateMutation) OldGender(ctx context.Context) (v candidate.Gender, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGender is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGender requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGender: %w", err)
+	}
+	return oldValue.Gender, nil
+}
+
+// ResetGender resets all changes to the "gender" field.
+func (m *CandidateMutation) ResetGender() {
+	m.gender = nil
+}
+
 // AddCandidateJobEdgeIDs adds the "candidate_job_edges" edge to the CandidateJob entity by ids.
 func (m *CandidateMutation) AddCandidateJobEdgeIDs(ids ...uuid.UUID) {
 	if m.candidate_job_edges == nil {
@@ -3721,7 +3758,7 @@ func (m *CandidateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, candidate.FieldCreatedAt)
 	}
@@ -3773,6 +3810,9 @@ func (m *CandidateMutation) Fields() []string {
 	if m.address != nil {
 		fields = append(fields, candidate.FieldAddress)
 	}
+	if m.gender != nil {
+		fields = append(fields, candidate.FieldGender)
+	}
 	return fields
 }
 
@@ -3815,6 +3855,8 @@ func (m *CandidateMutation) Field(name string) (ent.Value, bool) {
 		return m.Country()
 	case candidate.FieldAddress:
 		return m.Address()
+	case candidate.FieldGender:
+		return m.Gender()
 	}
 	return nil, false
 }
@@ -3858,6 +3900,8 @@ func (m *CandidateMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCountry(ctx)
 	case candidate.FieldAddress:
 		return m.OldAddress(ctx)
+	case candidate.FieldGender:
+		return m.OldGender(ctx)
 	}
 	return nil, fmt.Errorf("unknown Candidate field %s", name)
 }
@@ -3985,6 +4029,13 @@ func (m *CandidateMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAddress(v)
+		return nil
+	case candidate.FieldGender:
+		v, ok := value.(candidate.Gender)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGender(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)
@@ -4154,6 +4205,9 @@ func (m *CandidateMutation) ResetField(name string) error {
 		return nil
 	case candidate.FieldAddress:
 		m.ResetAddress()
+		return nil
+	case candidate.FieldGender:
+		m.ResetGender()
 		return nil
 	}
 	return fmt.Errorf("unknown Candidate field %s", name)

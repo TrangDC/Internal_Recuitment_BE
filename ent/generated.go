@@ -161,6 +161,7 @@ type CandidateFilter struct {
 	SkillTypeIds        []string                   `json:"skill_type_ids"`
 	SkillIds            []string                   `json:"skill_ids"`
 	ReferenceType       []CandidateReferenceType   `json:"reference_type"`
+	Gender              []CandidateGenderEnum      `json:"gender"`
 }
 
 type CandidateFreeWord struct {
@@ -614,6 +615,7 @@ type NewCandidateInput struct {
 	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
 	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
 	Avatar               string                       `json:"avatar"`
+	Gender               CandidateGenderEnum          `json:"gender"`
 }
 
 type NewCandidateInterview4CalendarInput struct {
@@ -1031,6 +1033,7 @@ type UpdateCandidateInput struct {
 	CandidateAward       []*CandidateAwardInput       `json:"candidate_award"`
 	CandidateCertificate []*CandidateCertificateInput `json:"candidate_certificate"`
 	Avatar               string                       `json:"avatar"`
+	Gender               CandidateGenderEnum          `json:"gender"`
 }
 
 type UpdateCandidateInterviewInput struct {
@@ -1319,6 +1322,49 @@ func (e *AttachmentRelationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateGenderEnum string
+
+const (
+	CandidateGenderEnumMale   CandidateGenderEnum = "male"
+	CandidateGenderEnumFemale CandidateGenderEnum = "female"
+	CandidateGenderEnumOthers CandidateGenderEnum = "others"
+)
+
+var AllCandidateGenderEnum = []CandidateGenderEnum{
+	CandidateGenderEnumMale,
+	CandidateGenderEnumFemale,
+	CandidateGenderEnumOthers,
+}
+
+func (e CandidateGenderEnum) IsValid() bool {
+	switch e {
+	case CandidateGenderEnumMale, CandidateGenderEnumFemale, CandidateGenderEnumOthers:
+		return true
+	}
+	return false
+}
+
+func (e CandidateGenderEnum) String() string {
+	return string(e)
+}
+
+func (e *CandidateGenderEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateGenderEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateGenderEnum", str)
+	}
+	return nil
+}
+
+func (e CandidateGenderEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

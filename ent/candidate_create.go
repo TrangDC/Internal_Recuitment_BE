@@ -245,6 +245,20 @@ func (cc *CandidateCreate) SetNillableAddress(s *string) *CandidateCreate {
 	return cc
 }
 
+// SetGender sets the "gender" field.
+func (cc *CandidateCreate) SetGender(c candidate.Gender) *CandidateCreate {
+	cc.mutation.SetGender(c)
+	return cc
+}
+
+// SetNillableGender sets the "gender" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableGender(c *candidate.Gender) *CandidateCreate {
+	if c != nil {
+		cc.SetGender(*c)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	cc.mutation.SetID(u)
@@ -494,6 +508,10 @@ func (cc *CandidateCreate) defaults() {
 		v := candidate.DefaultReferenceType
 		cc.mutation.SetReferenceType(v)
 	}
+	if _, ok := cc.mutation.Gender(); !ok {
+		v := candidate.DefaultGender
+		cc.mutation.SetGender(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -554,6 +572,14 @@ func (cc *CandidateCreate) check() error {
 	if v, ok := cc.mutation.Address(); ok {
 		if err := candidate.AddressValidator(v); err != nil {
 			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.Gender(); !ok {
+		return &ValidationError{Name: "gender", err: errors.New(`ent: missing required field "Candidate.gender"`)}
+	}
+	if v, ok := cc.mutation.Gender(); ok {
+		if err := candidate.GenderValidator(v); err != nil {
+			return &ValidationError{Name: "gender", err: fmt.Errorf(`ent: validator failed for field "Candidate.gender": %w`, err)}
 		}
 	}
 	return nil
@@ -655,6 +681,10 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Address(); ok {
 		_spec.SetField(candidate.FieldAddress, field.TypeString, value)
 		_node.Address = value
+	}
+	if value, ok := cc.mutation.Gender(); ok {
+		_spec.SetField(candidate.FieldGender, field.TypeEnum, value)
+		_node.Gender = value
 	}
 	if nodes := cc.mutation.CandidateJobEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
