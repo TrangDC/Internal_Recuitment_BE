@@ -20,6 +20,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldCandidateID holds the string denoting the candidate_id field in the database.
 	FieldCandidateID = "candidate_id"
 	// FieldContactTo holds the string denoting the contact_to field in the database.
@@ -73,6 +75,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
+	FieldName,
 	FieldCandidateID,
 	FieldContactTo,
 	FieldDescription,
@@ -96,6 +99,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
 	// ContactToValidator is a validator for the "contact_to" field. It is called by the builders before save.
 	ContactToValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.

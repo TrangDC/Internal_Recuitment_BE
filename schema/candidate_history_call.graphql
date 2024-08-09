@@ -23,10 +23,12 @@ input CandidateHistoryCallFilter {
 
 input CandidateHistoryCallFreeWord {
   description: String
+  name: String
 }
 
 type CandidateHistoryCall {
   id: ID!
+  name: String!
   candidate_id: ID!
   type: CandidateHistoryCallTypeEnum!
   contact_to: String!
@@ -42,6 +44,7 @@ type CandidateHistoryCall {
 }
 
 input NewCandidateHistoryCallInput {
+  name: String!
   candidate_id: ID!
   type: CandidateHistoryCallTypeEnum!
   contact_to: String!
@@ -52,6 +55,7 @@ input NewCandidateHistoryCallInput {
 }
 
 input UpdateCandidateHistoryCallInput {
+  name: String!
   contact_to: String!
   type: CandidateHistoryCallTypeEnum!
   date: Time!

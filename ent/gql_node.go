@@ -1015,7 +1015,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	node = &Node{
 		ID:     chc.ID,
 		Type:   "CandidateHistoryCall",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 12),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -1043,10 +1043,18 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 		Name:  "deleted_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(chc.CandidateID); err != nil {
+	if buf, err = json.Marshal(chc.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(chc.CandidateID); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "candidate_id",
 		Value: string(buf),
@@ -1054,7 +1062,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.ContactTo); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "string",
 		Name:  "contact_to",
 		Value: string(buf),
@@ -1062,7 +1070,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.Description); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "string",
 		Name:  "description",
 		Value: string(buf),
@@ -1070,7 +1078,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.Type); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "candidatehistorycall.Type",
 		Name:  "type",
 		Value: string(buf),
@@ -1078,7 +1086,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.Date); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "time.Time",
 		Name:  "date",
 		Value: string(buf),
@@ -1086,7 +1094,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.StartTime); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "time.Time",
 		Name:  "start_time",
 		Value: string(buf),
@@ -1094,7 +1102,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.EndTime); err != nil {
 		return nil, err
 	}
-	node.Fields[9] = &Field{
+	node.Fields[10] = &Field{
 		Type:  "time.Time",
 		Name:  "end_time",
 		Value: string(buf),
@@ -1102,7 +1110,7 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	if buf, err = json.Marshal(chc.CreatedByID); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[11] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "created_by_id",
 		Value: string(buf),

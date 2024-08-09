@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -274,6 +275,11 @@ func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, 
 // GetAllCandidateNotes is the resolver for the GetAllCandidateNotes field.
 func (r *queryResolver) GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error) {
 	return r.serviceRegistry.CandidateNote().GetCandidateNotes(ctx, pagination, filter, freeWord, orderBy)
+}
+
+// GetAllCandidateActivities is the resolver for the GetAllCandidateActivities field.
+func (r *queryResolver) GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy *ent.CandidateActivityOrder) (*ent.CandidateActivityResponseGetAll, error) {
+	panic(fmt.Errorf("not implemented: GetAllCandidateActivities - GetAllCandidateActivities"))
 }
 
 // Query returns graphql1.QueryResolver implementation.

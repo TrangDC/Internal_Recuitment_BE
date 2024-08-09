@@ -66,6 +66,20 @@ func (chcc *CandidateHistoryCallCreate) SetNillableDeletedAt(t *time.Time) *Cand
 	return chcc
 }
 
+// SetName sets the "name" field.
+func (chcc *CandidateHistoryCallCreate) SetName(s string) *CandidateHistoryCallCreate {
+	chcc.mutation.SetName(s)
+	return chcc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (chcc *CandidateHistoryCallCreate) SetNillableName(s *string) *CandidateHistoryCallCreate {
+	if s != nil {
+		chcc.SetName(*s)
+	}
+	return chcc
+}
+
 // SetCandidateID sets the "candidate_id" field.
 func (chcc *CandidateHistoryCallCreate) SetCandidateID(u uuid.UUID) *CandidateHistoryCallCreate {
 	chcc.mutation.SetCandidateID(u)
@@ -325,6 +339,11 @@ func (chcc *CandidateHistoryCallCreate) check() error {
 	if _, ok := chcc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CandidateHistoryCall.created_at"`)}
 	}
+	if v, ok := chcc.mutation.Name(); ok {
+		if err := candidatehistorycall.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.name": %w`, err)}
+		}
+	}
 	if v, ok := chcc.mutation.ContactTo(); ok {
 		if err := candidatehistorycall.ContactToValidator(v); err != nil {
 			return &ValidationError{Name: "contact_to", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.contact_to": %w`, err)}
@@ -387,6 +406,10 @@ func (chcc *CandidateHistoryCallCreate) createSpec() (*CandidateHistoryCall, *sq
 	if value, ok := chcc.mutation.DeletedAt(); ok {
 		_spec.SetField(candidatehistorycall.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
+	}
+	if value, ok := chcc.mutation.Name(); ok {
+		_spec.SetField(candidatehistorycall.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if value, ok := chcc.mutation.ContactTo(); ok {
 		_spec.SetField(candidatehistorycall.FieldContactTo, field.TypeString, value)

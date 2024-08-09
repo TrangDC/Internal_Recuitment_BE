@@ -92,6 +92,9 @@ type Query {
 
   # CandidateNote
   GetAllCandidateNotes(pagination: PaginationInput, filter: CandidateNoteFilter, freeWord: CandidateNoteFreeWord, orderBy: CandidateNoteOrder): CandidateNoteResponseGetAll!
+
+  # CandidateActivity
+  GetAllCandidateActivities(pagination: PaginationInput, filter: CandidateActivityFilter!, freeWord: CandidateActivityFreeWord, orderBy: CandidateActivityOrder): CandidateActivityResponseGetAll!
 }
 
 # Path: schema/query.graphql

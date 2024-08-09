@@ -15,6 +15,7 @@ type CandidateHistoryCall struct {
 // Fields of the CandidateHistoryCall. NOTE : Part of the public API ( ultimately exposed to end job
 func (CandidateHistoryCall) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("name").MaxLen(256).Optional(),
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
 		field.String("contact_to").MaxLen(256).Optional(),
 		field.String("description").MaxLen(512).Optional(),

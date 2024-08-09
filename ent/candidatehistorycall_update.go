@@ -72,6 +72,26 @@ func (chcu *CandidateHistoryCallUpdate) ClearDeletedAt() *CandidateHistoryCallUp
 	return chcu
 }
 
+// SetName sets the "name" field.
+func (chcu *CandidateHistoryCallUpdate) SetName(s string) *CandidateHistoryCallUpdate {
+	chcu.mutation.SetName(s)
+	return chcu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (chcu *CandidateHistoryCallUpdate) SetNillableName(s *string) *CandidateHistoryCallUpdate {
+	if s != nil {
+		chcu.SetName(*s)
+	}
+	return chcu
+}
+
+// ClearName clears the value of the "name" field.
+func (chcu *CandidateHistoryCallUpdate) ClearName() *CandidateHistoryCallUpdate {
+	chcu.mutation.ClearName()
+	return chcu
+}
+
 // SetCandidateID sets the "candidate_id" field.
 func (chcu *CandidateHistoryCallUpdate) SetCandidateID(u uuid.UUID) *CandidateHistoryCallUpdate {
 	chcu.mutation.SetCandidateID(u)
@@ -385,6 +405,11 @@ func (chcu *CandidateHistoryCallUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (chcu *CandidateHistoryCallUpdate) check() error {
+	if v, ok := chcu.mutation.Name(); ok {
+		if err := candidatehistorycall.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.name": %w`, err)}
+		}
+	}
 	if v, ok := chcu.mutation.ContactTo(); ok {
 		if err := candidatehistorycall.ContactToValidator(v); err != nil {
 			return &ValidationError{Name: "contact_to", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.contact_to": %w`, err)}
@@ -432,6 +457,12 @@ func (chcu *CandidateHistoryCallUpdate) sqlSave(ctx context.Context) (n int, err
 	}
 	if chcu.mutation.DeletedAtCleared() {
 		_spec.ClearField(candidatehistorycall.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := chcu.mutation.Name(); ok {
+		_spec.SetField(candidatehistorycall.FieldName, field.TypeString, value)
+	}
+	if chcu.mutation.NameCleared() {
+		_spec.ClearField(candidatehistorycall.FieldName, field.TypeString)
 	}
 	if value, ok := chcu.mutation.ContactTo(); ok {
 		_spec.SetField(candidatehistorycall.FieldContactTo, field.TypeString, value)
@@ -649,6 +680,26 @@ func (chcuo *CandidateHistoryCallUpdateOne) SetNillableDeletedAt(t *time.Time) *
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (chcuo *CandidateHistoryCallUpdateOne) ClearDeletedAt() *CandidateHistoryCallUpdateOne {
 	chcuo.mutation.ClearDeletedAt()
+	return chcuo
+}
+
+// SetName sets the "name" field.
+func (chcuo *CandidateHistoryCallUpdateOne) SetName(s string) *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.SetName(s)
+	return chcuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (chcuo *CandidateHistoryCallUpdateOne) SetNillableName(s *string) *CandidateHistoryCallUpdateOne {
+	if s != nil {
+		chcuo.SetName(*s)
+	}
+	return chcuo
+}
+
+// ClearName clears the value of the "name" field.
+func (chcuo *CandidateHistoryCallUpdateOne) ClearName() *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.ClearName()
 	return chcuo
 }
 
@@ -978,6 +1029,11 @@ func (chcuo *CandidateHistoryCallUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (chcuo *CandidateHistoryCallUpdateOne) check() error {
+	if v, ok := chcuo.mutation.Name(); ok {
+		if err := candidatehistorycall.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.name": %w`, err)}
+		}
+	}
 	if v, ok := chcuo.mutation.ContactTo(); ok {
 		if err := candidatehistorycall.ContactToValidator(v); err != nil {
 			return &ValidationError{Name: "contact_to", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.contact_to": %w`, err)}
@@ -1042,6 +1098,12 @@ func (chcuo *CandidateHistoryCallUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if chcuo.mutation.DeletedAtCleared() {
 		_spec.ClearField(candidatehistorycall.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := chcuo.mutation.Name(); ok {
+		_spec.SetField(candidatehistorycall.FieldName, field.TypeString, value)
+	}
+	if chcuo.mutation.NameCleared() {
+		_spec.ClearField(candidatehistorycall.FieldName, field.TypeString)
 	}
 	if value, ok := chcuo.mutation.ContactTo(); ok {
 		_spec.SetField(candidatehistorycall.FieldContactTo, field.TypeString, value)
