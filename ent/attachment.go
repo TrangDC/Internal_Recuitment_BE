@@ -15,6 +15,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatenote"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -63,11 +64,13 @@ type AttachmentEdges struct {
 	CandidateCertificateEdge *CandidateCertificate `json:"candidate_certificate_edge,omitempty"`
 	// CandidateHistoryCallEdge holds the value of the candidate_history_call_edge edge.
 	CandidateHistoryCallEdge *CandidateHistoryCall `json:"candidate_history_call_edge,omitempty"`
+	// CandidateNoteEdge holds the value of the candidate_note_edge edge.
+	CandidateNoteEdge *CandidateNote `json:"candidate_note_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 	// totalCount holds the count of the edges above.
-	totalCount [8]map[string]int
+	totalCount [9]map[string]int
 }
 
 // CandidateJobEdgeOrErr returns the CandidateJobEdge value or an error if the edge
@@ -172,6 +175,19 @@ func (e AttachmentEdges) CandidateHistoryCallEdgeOrErr() (*CandidateHistoryCall,
 		return e.CandidateHistoryCallEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "candidate_history_call_edge"}
+}
+
+// CandidateNoteEdgeOrErr returns the CandidateNoteEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AttachmentEdges) CandidateNoteEdgeOrErr() (*CandidateNote, error) {
+	if e.loadedTypes[8] {
+		if e.CandidateNoteEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidatenote.Label}
+		}
+		return e.CandidateNoteEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_note_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -300,6 +316,11 @@ func (a *Attachment) QueryCandidateCertificateEdge() *CandidateCertificateQuery 
 // QueryCandidateHistoryCallEdge queries the "candidate_history_call_edge" edge of the Attachment entity.
 func (a *Attachment) QueryCandidateHistoryCallEdge() *CandidateHistoryCallQuery {
 	return (&AttachmentClient{config: a.config}).QueryCandidateHistoryCallEdge(a)
+}
+
+// QueryCandidateNoteEdge queries the "candidate_note_edge" edge of the Attachment entity.
+func (a *Attachment) QueryCandidateNoteEdge() *CandidateNoteQuery {
+	return (&AttachmentClient{config: a.config}).QueryCandidateNoteEdge(a)
 }
 
 // Update returns a builder for updating this Attachment.

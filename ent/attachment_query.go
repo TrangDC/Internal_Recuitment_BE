@@ -15,6 +15,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatenote"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -40,6 +41,7 @@ type AttachmentQuery struct {
 	withCandidateAwardEdge       *CandidateAwardQuery
 	withCandidateCertificateEdge *CandidateCertificateQuery
 	withCandidateHistoryCallEdge *CandidateHistoryCallQuery
+	withCandidateNoteEdge        *CandidateNoteQuery
 	withFKs                      bool
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*Attachment) error
@@ -255,6 +257,28 @@ func (aq *AttachmentQuery) QueryCandidateHistoryCallEdge() *CandidateHistoryCall
 	return query
 }
 
+// QueryCandidateNoteEdge chains the current query on the "candidate_note_edge" edge.
+func (aq *AttachmentQuery) QueryCandidateNoteEdge() *CandidateNoteQuery {
+	query := &CandidateNoteQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
+			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateNoteEdgeTable, attachment.CandidateNoteEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Attachment entity from the query.
 // Returns a *NotFoundError when no Attachment was found.
 func (aq *AttachmentQuery) First(ctx context.Context) (*Attachment, error) {
@@ -444,6 +468,7 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		withCandidateAwardEdge:       aq.withCandidateAwardEdge.Clone(),
 		withCandidateCertificateEdge: aq.withCandidateCertificateEdge.Clone(),
 		withCandidateHistoryCallEdge: aq.withCandidateHistoryCallEdge.Clone(),
+		withCandidateNoteEdge:        aq.withCandidateNoteEdge.Clone(),
 		// clone intermediate query.
 		sql:    aq.sql.Clone(),
 		path:   aq.path,
@@ -539,6 +564,17 @@ func (aq *AttachmentQuery) WithCandidateHistoryCallEdge(opts ...func(*CandidateH
 	return aq
 }
 
+// WithCandidateNoteEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_note_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AttachmentQuery) WithCandidateNoteEdge(opts ...func(*CandidateNoteQuery)) *AttachmentQuery {
+	query := &CandidateNoteQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCandidateNoteEdge = query
+	return aq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -613,7 +649,7 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 		nodes       = []*Attachment{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			aq.withCandidateJobEdge != nil,
 			aq.withCandidateJobFeedbackEdge != nil,
 			aq.withCandidateInterviewEdge != nil,
@@ -622,9 +658,10 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 			aq.withCandidateAwardEdge != nil,
 			aq.withCandidateCertificateEdge != nil,
 			aq.withCandidateHistoryCallEdge != nil,
+			aq.withCandidateNoteEdge != nil,
 		}
 	)
-	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil || aq.withCandidateHistoryCallEdge != nil {
+	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil || aq.withCandidateHistoryCallEdge != nil || aq.withCandidateNoteEdge != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -696,6 +733,12 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if query := aq.withCandidateHistoryCallEdge; query != nil {
 		if err := aq.loadCandidateHistoryCallEdge(ctx, query, nodes, nil,
 			func(n *Attachment, e *CandidateHistoryCall) { n.Edges.CandidateHistoryCallEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCandidateNoteEdge; query != nil {
+		if err := aq.loadCandidateNoteEdge(ctx, query, nodes, nil,
+			func(n *Attachment, e *CandidateNote) { n.Edges.CandidateNoteEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -900,6 +943,32 @@ func (aq *AttachmentQuery) loadCandidateHistoryCallEdge(ctx context.Context, que
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
 	query.Where(candidatehistorycall.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "relation_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *AttachmentQuery) loadCandidateNoteEdge(ctx context.Context, query *CandidateNoteQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *CandidateNote)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Attachment)
+	for i := range nodes {
+		fk := nodes[i].RelationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidatenote.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

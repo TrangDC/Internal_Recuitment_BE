@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/candidatenote"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -375,6 +376,37 @@ func init() {
 	candidatejobstepDescCreatedAt := candidatejobstepMixinFields0[1].Descriptor()
 	// candidatejobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatejobstep.DefaultCreatedAt = candidatejobstepDescCreatedAt.Default.(func() time.Time)
+	candidatenoteMixin := schema.CandidateNote{}.Mixin()
+	candidatenoteMixinFields0 := candidatenoteMixin[0].Fields()
+	_ = candidatenoteMixinFields0
+	candidatenoteFields := schema.CandidateNote{}.Fields()
+	_ = candidatenoteFields
+	// candidatenoteDescCreatedAt is the schema descriptor for created_at field.
+	candidatenoteDescCreatedAt := candidatenoteMixinFields0[1].Descriptor()
+	// candidatenote.DefaultCreatedAt holds the default value on creation for the created_at field.
+	candidatenote.DefaultCreatedAt = candidatenoteDescCreatedAt.Default.(func() time.Time)
+	// candidatenoteDescName is the schema descriptor for name field.
+	candidatenoteDescName := candidatenoteFields[2].Descriptor()
+	// candidatenote.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	candidatenote.NameValidator = func() func(string) error {
+		validators := candidatenoteDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// candidatenoteDescDescription is the schema descriptor for description field.
+	candidatenoteDescDescription := candidatenoteFields[3].Descriptor()
+	// candidatenote.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	candidatenote.DescriptionValidator = candidatenoteDescDescription.Validators[0].(func(string) error)
 	emailroleattributeMixin := schema.EmailRoleAttribute{}.Mixin()
 	emailroleattributeMixinFields0 := emailroleattributeMixin[0].Fields()
 	_ = emailroleattributeMixinFields0

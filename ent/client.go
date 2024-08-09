@@ -23,6 +23,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
+	"trec/ent/candidatenote"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -79,6 +80,8 @@ type Client struct {
 	CandidateJobFeedback *CandidateJobFeedbackClient
 	// CandidateJobStep is the client for interacting with the CandidateJobStep builders.
 	CandidateJobStep *CandidateJobStepClient
+	// CandidateNote is the client for interacting with the CandidateNote builders.
+	CandidateNote *CandidateNoteClient
 	// EmailRoleAttribute is the client for interacting with the EmailRoleAttribute builders.
 	EmailRoleAttribute *EmailRoleAttributeClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
@@ -141,6 +144,7 @@ func (c *Client) init() {
 	c.CandidateJob = NewCandidateJobClient(c.config)
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
+	c.CandidateNote = NewCandidateNoteClient(c.config)
 	c.EmailRoleAttribute = NewEmailRoleAttributeClient(c.config)
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.EntityPermission = NewEntityPermissionClient(c.config)
@@ -205,6 +209,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		CandidateNote:        NewCandidateNoteClient(cfg),
 		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
 		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
@@ -255,6 +260,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateJob:         NewCandidateJobClient(cfg),
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
+		CandidateNote:        NewCandidateNoteClient(cfg),
 		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
 		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
@@ -314,6 +320,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateJob.Use(hooks...)
 	c.CandidateJobFeedback.Use(hooks...)
 	c.CandidateJobStep.Use(hooks...)
+	c.CandidateNote.Use(hooks...)
 	c.EmailRoleAttribute.Use(hooks...)
 	c.EmailTemplate.Use(hooks...)
 	c.EntityPermission.Use(hooks...)
@@ -540,6 +547,22 @@ func (c *AttachmentClient) QueryCandidateHistoryCallEdge(a *Attachment) *Candida
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
 			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateHistoryCallEdgeTable, attachment.CandidateHistoryCallEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateNoteEdge queries the candidate_note_edge edge of a Attachment.
+func (c *AttachmentClient) QueryCandidateNoteEdge(a *Attachment) *CandidateNoteQuery {
+	query := &CandidateNoteQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attachment.CandidateNoteEdgeTable, attachment.CandidateNoteEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -880,6 +903,22 @@ func (c *CandidateClient) QueryCandidateHistoryCallEdges(ca *Candidate) *Candida
 			sqlgraph.From(candidate.Table, candidate.FieldID, id),
 			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateHistoryCallEdgesTable, candidate.CandidateHistoryCallEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateNoteEdges queries the candidate_note_edges edge of a Candidate.
+func (c *CandidateClient) QueryCandidateNoteEdges(ca *Candidate) *CandidateNoteQuery {
+	query := &CandidateNoteQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateNoteEdgesTable, candidate.CandidateNoteEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
 		return fromV, nil
@@ -2238,6 +2277,144 @@ func (c *CandidateJobStepClient) QueryCandidateJobEdge(cjs *CandidateJobStep) *C
 // Hooks returns the client hooks.
 func (c *CandidateJobStepClient) Hooks() []Hook {
 	return c.hooks.CandidateJobStep
+}
+
+// CandidateNoteClient is a client for the CandidateNote schema.
+type CandidateNoteClient struct {
+	config
+}
+
+// NewCandidateNoteClient returns a client for the CandidateNote from the given config.
+func NewCandidateNoteClient(c config) *CandidateNoteClient {
+	return &CandidateNoteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `candidatenote.Hooks(f(g(h())))`.
+func (c *CandidateNoteClient) Use(hooks ...Hook) {
+	c.hooks.CandidateNote = append(c.hooks.CandidateNote, hooks...)
+}
+
+// Create returns a builder for creating a CandidateNote entity.
+func (c *CandidateNoteClient) Create() *CandidateNoteCreate {
+	mutation := newCandidateNoteMutation(c.config, OpCreate)
+	return &CandidateNoteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CandidateNote entities.
+func (c *CandidateNoteClient) CreateBulk(builders ...*CandidateNoteCreate) *CandidateNoteCreateBulk {
+	return &CandidateNoteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CandidateNote.
+func (c *CandidateNoteClient) Update() *CandidateNoteUpdate {
+	mutation := newCandidateNoteMutation(c.config, OpUpdate)
+	return &CandidateNoteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CandidateNoteClient) UpdateOne(cn *CandidateNote) *CandidateNoteUpdateOne {
+	mutation := newCandidateNoteMutation(c.config, OpUpdateOne, withCandidateNote(cn))
+	return &CandidateNoteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CandidateNoteClient) UpdateOneID(id uuid.UUID) *CandidateNoteUpdateOne {
+	mutation := newCandidateNoteMutation(c.config, OpUpdateOne, withCandidateNoteID(id))
+	return &CandidateNoteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CandidateNote.
+func (c *CandidateNoteClient) Delete() *CandidateNoteDelete {
+	mutation := newCandidateNoteMutation(c.config, OpDelete)
+	return &CandidateNoteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CandidateNoteClient) DeleteOne(cn *CandidateNote) *CandidateNoteDeleteOne {
+	return c.DeleteOneID(cn.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CandidateNoteClient) DeleteOneID(id uuid.UUID) *CandidateNoteDeleteOne {
+	builder := c.Delete().Where(candidatenote.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CandidateNoteDeleteOne{builder}
+}
+
+// Query returns a query builder for CandidateNote.
+func (c *CandidateNoteClient) Query() *CandidateNoteQuery {
+	return &CandidateNoteQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a CandidateNote entity by its id.
+func (c *CandidateNoteClient) Get(ctx context.Context, id uuid.UUID) (*CandidateNote, error) {
+	return c.Query().Where(candidatenote.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CandidateNoteClient) GetX(ctx context.Context, id uuid.UUID) *CandidateNote {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a CandidateNote.
+func (c *CandidateNoteClient) QueryCandidateEdge(cn *CandidateNote) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cn.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatenote.Table, candidatenote.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatenote.CandidateEdgeTable, candidatenote.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cn.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreatedByEdge queries the created_by_edge edge of a CandidateNote.
+func (c *CandidateNoteClient) QueryCreatedByEdge(cn *CandidateNote) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cn.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatenote.Table, candidatenote.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatenote.CreatedByEdgeTable, candidatenote.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cn.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttachmentEdges queries the attachment_edges edge of a CandidateNote.
+func (c *CandidateNoteClient) QueryAttachmentEdges(cn *CandidateNote) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cn.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatenote.Table, candidatenote.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidatenote.AttachmentEdgesTable, candidatenote.AttachmentEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cn.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CandidateNoteClient) Hooks() []Hook {
+	return c.hooks.CandidateNote
 }
 
 // EmailRoleAttributeClient is a client for the EmailRoleAttribute schema.
@@ -4638,6 +4815,22 @@ func (c *UserClient) QueryRecTeams(u *User) *RecTeamQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(recteam.Table, recteam.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, user.RecTeamsTable, user.RecTeamsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateNoteEdges queries the candidate_note_edges edge of a User.
+func (c *UserClient) QueryCandidateNoteEdges(u *User) *CandidateNoteQuery {
+	query := &CandidateNoteQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateNoteEdgesTable, user.CandidateNoteEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

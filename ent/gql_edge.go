@@ -72,6 +72,14 @@ func (a *Attachment) CandidateHistoryCallEdge(ctx context.Context) (*CandidateHi
 	return result, MaskNotFound(err)
 }
 
+func (a *Attachment) CandidateNoteEdge(ctx context.Context) (*CandidateNote, error) {
+	result, err := a.Edges.CandidateNoteEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = a.QueryCandidateNoteEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (at *AuditTrail) UserEdge(ctx context.Context) (*User, error) {
 	result, err := at.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -180,6 +188,18 @@ func (c *Candidate) CandidateHistoryCallEdges(ctx context.Context) (result []*Ca
 	}
 	if IsNotLoaded(err) {
 		result, err = c.QueryCandidateHistoryCallEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (c *Candidate) CandidateNoteEdges(ctx context.Context) (result []*CandidateNote, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedCandidateNoteEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.CandidateNoteEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryCandidateNoteEdges().All(ctx)
 	}
 	return result, err
 }
@@ -458,6 +478,34 @@ func (cjs *CandidateJobStep) CandidateJobEdge(ctx context.Context) (*CandidateJo
 		result, err = cjs.QueryCandidateJobEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (cn *CandidateNote) CandidateEdge(ctx context.Context) (*Candidate, error) {
+	result, err := cn.Edges.CandidateEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cn.QueryCandidateEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (cn *CandidateNote) CreatedByEdge(ctx context.Context) (*User, error) {
+	result, err := cn.Edges.CreatedByEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cn.QueryCreatedByEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (cn *CandidateNote) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = cn.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = cn.Edges.AttachmentEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = cn.QueryAttachmentEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (era *EmailRoleAttribute) EmailTemplateEdge(ctx context.Context) (*EmailTemplate, error) {
@@ -1030,6 +1078,18 @@ func (u *User) RecTeams(ctx context.Context) (*RecTeam, error) {
 		result, err = u.QueryRecTeams().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (u *User) CandidateNoteEdges(ctx context.Context) (result []*CandidateNote, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateNoteEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateNoteEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateNoteEdges().All(ctx)
+	}
+	return result, err
 }
 
 func (u *User) InterviewUsers(ctx context.Context) (result []*CandidateInterviewer, err error) {

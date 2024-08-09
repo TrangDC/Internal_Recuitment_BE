@@ -15,6 +15,7 @@ import (
 	"trec/ent/candidateexp"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatenote"
 	"trec/ent/entityskill"
 	"trec/ent/predicate"
 	"trec/ent/user"
@@ -43,6 +44,7 @@ type CandidateQuery struct {
 	withCandidateAwardEdges            *CandidateAwardQuery
 	withCandidateCertificateEdges      *CandidateCertificateQuery
 	withCandidateHistoryCallEdges      *CandidateHistoryCallQuery
+	withCandidateNoteEdges             *CandidateNoteQuery
 	modifiers                          []func(*sql.Selector)
 	loadTotal                          []func(context.Context, []*Candidate) error
 	withNamedCandidateJobEdges         map[string]*CandidateJobQuery
@@ -53,6 +55,7 @@ type CandidateQuery struct {
 	withNamedCandidateAwardEdges       map[string]*CandidateAwardQuery
 	withNamedCandidateCertificateEdges map[string]*CandidateCertificateQuery
 	withNamedCandidateHistoryCallEdges map[string]*CandidateHistoryCallQuery
+	withNamedCandidateNoteEdges        map[string]*CandidateNoteQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -287,6 +290,28 @@ func (cq *CandidateQuery) QueryCandidateHistoryCallEdges() *CandidateHistoryCall
 	return query
 }
 
+// QueryCandidateNoteEdges chains the current query on the "candidate_note_edges" edge.
+func (cq *CandidateQuery) QueryCandidateNoteEdges() *CandidateNoteQuery {
+	query := &CandidateNoteQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, selector),
+			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.CandidateNoteEdgesTable, candidate.CandidateNoteEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Candidate entity from the query.
 // Returns a *NotFoundError when no Candidate was found.
 func (cq *CandidateQuery) First(ctx context.Context) (*Candidate, error) {
@@ -477,6 +502,7 @@ func (cq *CandidateQuery) Clone() *CandidateQuery {
 		withCandidateAwardEdges:       cq.withCandidateAwardEdges.Clone(),
 		withCandidateCertificateEdges: cq.withCandidateCertificateEdges.Clone(),
 		withCandidateHistoryCallEdges: cq.withCandidateHistoryCallEdges.Clone(),
+		withCandidateNoteEdges:        cq.withCandidateNoteEdges.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
@@ -583,6 +609,17 @@ func (cq *CandidateQuery) WithCandidateHistoryCallEdges(opts ...func(*CandidateH
 	return cq
 }
 
+// WithCandidateNoteEdges tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_note_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithCandidateNoteEdges(opts ...func(*CandidateNoteQuery)) *CandidateQuery {
+	query := &CandidateNoteQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withCandidateNoteEdges = query
+	return cq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -656,7 +693,7 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 	var (
 		nodes       = []*Candidate{}
 		_spec       = cq.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			cq.withCandidateJobEdges != nil,
 			cq.withReferenceUserEdge != nil,
 			cq.withAttachmentEdges != nil,
@@ -666,6 +703,7 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 			cq.withCandidateAwardEdges != nil,
 			cq.withCandidateCertificateEdges != nil,
 			cq.withCandidateHistoryCallEdges != nil,
+			cq.withCandidateNoteEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -761,6 +799,15 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 			return nil, err
 		}
 	}
+	if query := cq.withCandidateNoteEdges; query != nil {
+		if err := cq.loadCandidateNoteEdges(ctx, query, nodes,
+			func(n *Candidate) { n.Edges.CandidateNoteEdges = []*CandidateNote{} },
+			func(n *Candidate, e *CandidateNote) {
+				n.Edges.CandidateNoteEdges = append(n.Edges.CandidateNoteEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range cq.withNamedCandidateJobEdges {
 		if err := cq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *Candidate) { n.appendNamedCandidateJobEdges(name) },
@@ -814,6 +861,13 @@ func (cq *CandidateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ca
 		if err := cq.loadCandidateHistoryCallEdges(ctx, query, nodes,
 			func(n *Candidate) { n.appendNamedCandidateHistoryCallEdges(name) },
 			func(n *Candidate, e *CandidateHistoryCall) { n.appendNamedCandidateHistoryCallEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedCandidateNoteEdges {
+		if err := cq.loadCandidateNoteEdges(ctx, query, nodes,
+			func(n *Candidate) { n.appendNamedCandidateNoteEdges(name) },
+			func(n *Candidate, e *CandidateNote) { n.appendNamedCandidateNoteEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1068,6 +1122,33 @@ func (cq *CandidateQuery) loadCandidateHistoryCallEdges(ctx context.Context, que
 	}
 	return nil
 }
+func (cq *CandidateQuery) loadCandidateNoteEdges(ctx context.Context, query *CandidateNoteQuery, nodes []*Candidate, init func(*Candidate), assign func(*Candidate, *CandidateNote)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Candidate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateNote(func(s *sql.Selector) {
+		s.Where(sql.InValues(candidate.CandidateNoteEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CandidateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (cq *CandidateQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := cq.querySpec()
@@ -1281,6 +1362,20 @@ func (cq *CandidateQuery) WithNamedCandidateHistoryCallEdges(name string, opts .
 		cq.withNamedCandidateHistoryCallEdges = make(map[string]*CandidateHistoryCallQuery)
 	}
 	cq.withNamedCandidateHistoryCallEdges[name] = query
+	return cq
+}
+
+// WithNamedCandidateNoteEdges tells the query-builder to eager-load the nodes that are connected to the "candidate_note_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CandidateQuery) WithNamedCandidateNoteEdges(name string, opts ...func(*CandidateNoteQuery)) *CandidateQuery {
+	query := &CandidateNoteQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedCandidateNoteEdges == nil {
+		cq.withNamedCandidateNoteEdges = make(map[string]*CandidateNoteQuery)
+	}
+	cq.withNamedCandidateNoteEdges[name] = query
 	return cq
 }
 

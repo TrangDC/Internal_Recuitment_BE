@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
+	"trec/ent/candidatenote"
 	"trec/ent/entitypermission"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
@@ -377,6 +378,21 @@ func (uc *UserCreate) SetNillableRecTeamsID(id *uuid.UUID) *UserCreate {
 // SetRecTeams sets the "rec_teams" edge to the RecTeam entity.
 func (uc *UserCreate) SetRecTeams(r *RecTeam) *UserCreate {
 	return uc.SetRecTeamsID(r.ID)
+}
+
+// AddCandidateNoteEdgeIDs adds the "candidate_note_edges" edge to the CandidateNote entity by IDs.
+func (uc *UserCreate) AddCandidateNoteEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCandidateNoteEdgeIDs(ids...)
+	return uc
+}
+
+// AddCandidateNoteEdges adds the "candidate_note_edges" edges to the CandidateNote entity.
+func (uc *UserCreate) AddCandidateNoteEdges(c ...*CandidateNote) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCandidateNoteEdgeIDs(ids...)
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
@@ -918,6 +934,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.RecTeamID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CandidateNoteEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateNoteEdgesTable,
+			Columns: []string{user.CandidateNoteEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.InterviewUsersIDs(); len(nodes) > 0 {

@@ -16,7 +16,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
 		{Name: "document_name", Type: field.TypeString, Size: 256},
-		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates"}},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates", "candidate_notes"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "candidate_exp_attachment_edges", Type: field.TypeUUID, Nullable: true},
 	}
@@ -78,6 +78,12 @@ var (
 				Symbol:     "attachments_candidate_job_feedbacks_attachment_edges",
 				Columns:    []*schema.Column{AttachmentsColumns[7]},
 				RefColumns: []*schema.Column{CandidateJobFeedbacksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_candidate_notes_attachment_edges",
+				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				RefColumns: []*schema.Column{CandidateNotesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -443,6 +449,37 @@ var (
 				Columns:    []*schema.Column{CandidateJobStepsColumns[5]},
 				RefColumns: []*schema.Column{CandidateJobsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CandidateNotesColumns holds the columns for the "candidate_notes" table.
+	CandidateNotesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 256},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "candidate_id", Type: field.TypeUUID},
+		{Name: "created_by_id", Type: field.TypeUUID},
+	}
+	// CandidateNotesTable holds the schema information for the "candidate_notes" table.
+	CandidateNotesTable = &schema.Table{
+		Name:       "candidate_notes",
+		Columns:    CandidateNotesColumns,
+		PrimaryKey: []*schema.Column{CandidateNotesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "candidate_notes_candidates_candidate_note_edges",
+				Columns:    []*schema.Column{CandidateNotesColumns[6]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "candidate_notes_users_candidate_note_edges",
+				Columns:    []*schema.Column{CandidateNotesColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -968,6 +1005,7 @@ var (
 		CandidateJobsTable,
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
+		CandidateNotesTable,
 		EmailRoleAttributesTable,
 		EmailTemplatesTable,
 		EntityPermissionsTable,
@@ -999,6 +1037,7 @@ func init() {
 	AttachmentsTable.ForeignKeys[6].RefTable = CandidateInterviewsTable
 	AttachmentsTable.ForeignKeys[7].RefTable = CandidateJobsTable
 	AttachmentsTable.ForeignKeys[8].RefTable = CandidateJobFeedbacksTable
+	AttachmentsTable.ForeignKeys[9].RefTable = CandidateNotesTable
 	AuditTrailsTable.ForeignKeys[0].RefTable = UsersTable
 	CandidatesTable.ForeignKeys[0].RefTable = UsersTable
 	CandidateAwardsTable.ForeignKeys[0].RefTable = CandidatesTable
@@ -1016,6 +1055,8 @@ func init() {
 	CandidateJobFeedbacksTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateJobFeedbacksTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateJobStepsTable.ForeignKeys[0].RefTable = CandidateJobsTable
+	CandidateNotesTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateNotesTable.ForeignKeys[1].RefTable = UsersTable
 	EmailRoleAttributesTable.ForeignKeys[0].RefTable = EmailTemplatesTable
 	EmailRoleAttributesTable.ForeignKeys[1].RefTable = RolesTable
 	EntityPermissionsTable.ForeignKeys[0].RefTable = PermissionsTable

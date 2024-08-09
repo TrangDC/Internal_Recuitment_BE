@@ -43,6 +43,7 @@ func (User) Edges() []ent.Edge {
 		edge.From("approvers_hiring_teams", HiringTeam.Type).Ref("approvers_users").Through("hiring_team_approvers", HiringTeamApprover.Type),
 		edge.To("leader_rec_edge", RecTeam.Type).Unique(),
 		edge.From("rec_teams", RecTeam.Type).Ref("rec_member_edges").Unique().Field("rec_team_id"),
+		edge.To("candidate_note_edges", CandidateNote.Type),
 	}
 }
 

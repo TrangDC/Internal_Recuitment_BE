@@ -62,6 +62,8 @@ const (
 	EdgeLeaderRecEdge = "leader_rec_edge"
 	// EdgeRecTeams holds the string denoting the rec_teams edge name in mutations.
 	EdgeRecTeams = "rec_teams"
+	// EdgeCandidateNoteEdges holds the string denoting the candidate_note_edges edge name in mutations.
+	EdgeCandidateNoteEdges = "candidate_note_edges"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
@@ -162,6 +164,13 @@ const (
 	RecTeamsInverseTable = "rec_teams"
 	// RecTeamsColumn is the table column denoting the rec_teams relation/edge.
 	RecTeamsColumn = "rec_team_id"
+	// CandidateNoteEdgesTable is the table that holds the candidate_note_edges relation/edge.
+	CandidateNoteEdgesTable = "candidate_notes"
+	// CandidateNoteEdgesInverseTable is the table name for the CandidateNote entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatenote" package.
+	CandidateNoteEdgesInverseTable = "candidate_notes"
+	// CandidateNoteEdgesColumn is the table column denoting the candidate_note_edges relation/edge.
+	CandidateNoteEdgesColumn = "created_by_id"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.
