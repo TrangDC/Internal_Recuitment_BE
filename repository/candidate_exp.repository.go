@@ -47,7 +47,8 @@ func (rps candidateExpRepoImpl) BuildBulkCreate(ctx context.Context, input []*en
 			SetCompany(strings.TrimSpace(v.Company)).
 			SetLocation(strings.TrimSpace(v.Location)).
 			SetDescription(strings.TrimSpace(v.Description)).
-			SetOrderID(v.OrderID)
+			SetOrderID(v.OrderID).
+			SetIsCurrent(v.IsCurrent)
 		if !v.StartDate.IsZero() {
 			create.SetStartDate(*v.StartDate)
 		}
@@ -67,7 +68,8 @@ func (rps candidateExpRepoImpl) BuildBulkUpdate(ctx context.Context, input []*en
 			SetCompany(strings.TrimSpace(v.Company)).
 			SetLocation(strings.TrimSpace(v.Location)).
 			SetDescription(strings.TrimSpace(v.Description)).
-			SetOrderID(v.OrderID)
+			SetOrderID(v.OrderID).
+			SetIsCurrent(v.IsCurrent)
 		if !v.StartDate.IsZero() {
 			update.SetStartDate(*v.StartDate)
 		} else {

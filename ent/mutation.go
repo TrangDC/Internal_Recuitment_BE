@@ -6468,6 +6468,7 @@ type CandidateEducateMutation struct {
 	end_date                *time.Time
 	order_id                *int
 	addorder_id             *int
+	is_current              *bool
 	clearedFields           map[string]struct{}
 	attachment_edges        map[uuid.UUID]struct{}
 	removedattachment_edges map[uuid.UUID]struct{}
@@ -7166,6 +7167,42 @@ func (m *CandidateEducateMutation) ResetOrderID() {
 	delete(m.clearedFields, candidateeducate.FieldOrderID)
 }
 
+// SetIsCurrent sets the "is_current" field.
+func (m *CandidateEducateMutation) SetIsCurrent(b bool) {
+	m.is_current = &b
+}
+
+// IsCurrent returns the value of the "is_current" field in the mutation.
+func (m *CandidateEducateMutation) IsCurrent() (r bool, exists bool) {
+	v := m.is_current
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsCurrent returns the old "is_current" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldIsCurrent(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsCurrent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsCurrent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsCurrent: %w", err)
+	}
+	return oldValue.IsCurrent, nil
+}
+
+// ResetIsCurrent resets all changes to the "is_current" field.
+func (m *CandidateEducateMutation) ResetIsCurrent() {
+	m.is_current = nil
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateEducateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -7278,7 +7315,7 @@ func (m *CandidateEducateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateEducateMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, candidateeducate.FieldCreatedAt)
 	}
@@ -7315,6 +7352,9 @@ func (m *CandidateEducateMutation) Fields() []string {
 	if m.order_id != nil {
 		fields = append(fields, candidateeducate.FieldOrderID)
 	}
+	if m.is_current != nil {
+		fields = append(fields, candidateeducate.FieldIsCurrent)
+	}
 	return fields
 }
 
@@ -7347,6 +7387,8 @@ func (m *CandidateEducateMutation) Field(name string) (ent.Value, bool) {
 		return m.EndDate()
 	case candidateeducate.FieldOrderID:
 		return m.OrderID()
+	case candidateeducate.FieldIsCurrent:
+		return m.IsCurrent()
 	}
 	return nil, false
 }
@@ -7380,6 +7422,8 @@ func (m *CandidateEducateMutation) OldField(ctx context.Context, name string) (e
 		return m.OldEndDate(ctx)
 	case candidateeducate.FieldOrderID:
 		return m.OldOrderID(ctx)
+	case candidateeducate.FieldIsCurrent:
+		return m.OldIsCurrent(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateEducate field %s", name)
 }
@@ -7472,6 +7516,13 @@ func (m *CandidateEducateMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderID(v)
+		return nil
+	case candidateeducate.FieldIsCurrent:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsCurrent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate field %s", name)
@@ -7636,6 +7687,9 @@ func (m *CandidateEducateMutation) ResetField(name string) error {
 	case candidateeducate.FieldOrderID:
 		m.ResetOrderID()
 		return nil
+	case candidateeducate.FieldIsCurrent:
+		m.ResetIsCurrent()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate field %s", name)
 }
@@ -7759,6 +7813,7 @@ type CandidateExpMutation struct {
 	end_date              *time.Time
 	order_id              *int
 	addorder_id           *int
+	is_current            *bool
 	clearedFields         map[string]struct{}
 	candidate_edge        *uuid.UUID
 	clearedcandidate_edge bool
@@ -8392,6 +8447,42 @@ func (m *CandidateExpMutation) ResetOrderID() {
 	delete(m.clearedFields, candidateexp.FieldOrderID)
 }
 
+// SetIsCurrent sets the "is_current" field.
+func (m *CandidateExpMutation) SetIsCurrent(b bool) {
+	m.is_current = &b
+}
+
+// IsCurrent returns the value of the "is_current" field in the mutation.
+func (m *CandidateExpMutation) IsCurrent() (r bool, exists bool) {
+	v := m.is_current
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsCurrent returns the old "is_current" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldIsCurrent(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsCurrent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsCurrent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsCurrent: %w", err)
+	}
+	return oldValue.IsCurrent, nil
+}
+
+// ResetIsCurrent resets all changes to the "is_current" field.
+func (m *CandidateExpMutation) ResetIsCurrent() {
+	m.is_current = nil
+}
+
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
 func (m *CandidateExpMutation) SetCandidateEdgeID(id uuid.UUID) {
 	m.candidate_edge = &id
@@ -8450,7 +8541,7 @@ func (m *CandidateExpMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateExpMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, candidateexp.FieldCreatedAt)
 	}
@@ -8484,6 +8575,9 @@ func (m *CandidateExpMutation) Fields() []string {
 	if m.order_id != nil {
 		fields = append(fields, candidateexp.FieldOrderID)
 	}
+	if m.is_current != nil {
+		fields = append(fields, candidateexp.FieldIsCurrent)
+	}
 	return fields
 }
 
@@ -8514,6 +8608,8 @@ func (m *CandidateExpMutation) Field(name string) (ent.Value, bool) {
 		return m.EndDate()
 	case candidateexp.FieldOrderID:
 		return m.OrderID()
+	case candidateexp.FieldIsCurrent:
+		return m.IsCurrent()
 	}
 	return nil, false
 }
@@ -8545,6 +8641,8 @@ func (m *CandidateExpMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldEndDate(ctx)
 	case candidateexp.FieldOrderID:
 		return m.OldOrderID(ctx)
+	case candidateexp.FieldIsCurrent:
+		return m.OldIsCurrent(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateExp field %s", name)
 }
@@ -8630,6 +8728,13 @@ func (m *CandidateExpMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderID(v)
+		return nil
+	case candidateexp.FieldIsCurrent:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsCurrent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp field %s", name)
@@ -8778,6 +8883,9 @@ func (m *CandidateExpMutation) ResetField(name string) error {
 		return nil
 	case candidateexp.FieldOrderID:
 		m.ResetOrderID()
+		return nil
+	case candidateexp.FieldIsCurrent:
+		m.ResetIsCurrent()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp field %s", name)

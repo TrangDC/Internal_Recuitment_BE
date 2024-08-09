@@ -763,7 +763,7 @@ func (ce *CandidateEducate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ce.ID,
 		Type:   "CandidateEducate",
-		Fields: make([]*Field, 12),
+		Fields: make([]*Field, 13),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -863,6 +863,14 @@ func (ce *CandidateEducate) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "order_id",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(ce.IsCurrent); err != nil {
+		return nil, err
+	}
+	node.Fields[12] = &Field{
+		Type:  "bool",
+		Name:  "is_current",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Attachment",
 		Name: "attachment_edges",
@@ -890,7 +898,7 @@ func (ce *CandidateExp) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ce.ID,
 		Type:   "CandidateExp",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 12),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -980,6 +988,14 @@ func (ce *CandidateExp) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[10] = &Field{
 		Type:  "int",
 		Name:  "order_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ce.IsCurrent); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "bool",
+		Name:  "is_current",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

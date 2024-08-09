@@ -159,6 +159,13 @@ func OrderID(v int) predicate.CandidateExp {
 	})
 }
 
+// IsCurrent applies equality check predicate on the "is_current" field. It's identical to IsCurrentEQ.
+func IsCurrent(v bool) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsCurrent), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CandidateExp {
 	return predicate.CandidateExp(func(s *sql.Selector) {
@@ -1084,6 +1091,20 @@ func OrderIDIsNil() predicate.CandidateExp {
 func OrderIDNotNil() predicate.CandidateExp {
 	return predicate.CandidateExp(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldOrderID)))
+	})
+}
+
+// IsCurrentEQ applies the EQ predicate on the "is_current" field.
+func IsCurrentEQ(v bool) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsCurrent), v))
+	})
+}
+
+// IsCurrentNEQ applies the NEQ predicate on the "is_current" field.
+func IsCurrentNEQ(v bool) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsCurrent), v))
 	})
 }
 

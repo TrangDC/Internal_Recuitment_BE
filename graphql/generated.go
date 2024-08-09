@@ -235,6 +235,7 @@ type ComplexityRoot struct {
 		EndDate     func(childComplexity int) int
 		Gpa         func(childComplexity int) int
 		ID          func(childComplexity int) int
+		IsCurrent   func(childComplexity int) int
 		Location    func(childComplexity int) int
 		Major       func(childComplexity int) int
 		OrderID     func(childComplexity int) int
@@ -249,6 +250,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		EndDate     func(childComplexity int) int
 		ID          func(childComplexity int) int
+		IsCurrent   func(childComplexity int) int
 		Location    func(childComplexity int) int
 		OrderID     func(childComplexity int) int
 		Position    func(childComplexity int) int
@@ -2236,6 +2238,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateEducate.ID(childComplexity), true
 
+	case "CandidateEducate.is_current":
+		if e.complexity.CandidateEducate.IsCurrent == nil {
+			break
+		}
+
+		return e.complexity.CandidateEducate.IsCurrent(childComplexity), true
+
 	case "CandidateEducate.location":
 		if e.complexity.CandidateEducate.Location == nil {
 			break
@@ -2312,6 +2321,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateExp.ID(childComplexity), true
+
+	case "CandidateExp.is_current":
+		if e.complexity.CandidateExp.IsCurrent == nil {
+			break
+		}
+
+		return e.complexity.CandidateExp.IsCurrent(childComplexity), true
 
 	case "CandidateExp.location":
 		if e.complexity.CandidateExp.Location == nil {
@@ -6820,6 +6836,7 @@ input CandidateCertificateInput {
   description: String!
   attachments: [Attachment!]!
   order_id: Int!
+  is_current: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -6835,6 +6852,7 @@ input CandidateEducateInput {
   description: String!
   attachments: [NewAttachmentInput!]!
   order_id: Int!
+  is_current: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_exp.graphql", Input: `type CandidateExp {
@@ -6846,6 +6864,7 @@ input CandidateEducateInput {
   end_date: Time
   description: String!
   order_id: Int!
+  is_current: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -6859,6 +6878,7 @@ input CandidateExpInput {
   end_date: Time
   description: String!
   order_id: Int!
+  is_current: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_history_call.graphql", Input: `enum CandidateHistoryCallTypeEnum {
@@ -15125,6 +15145,8 @@ func (ec *executionContext) fieldContext_Candidate_candidate_exp(ctx context.Con
 				return ec.fieldContext_CandidateExp_description(ctx, field)
 			case "order_id":
 				return ec.fieldContext_CandidateExp_order_id(ctx, field)
+			case "is_current":
+				return ec.fieldContext_CandidateExp_is_current(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateExp_created_at(ctx, field)
 			case "updated_at":
@@ -15192,6 +15214,8 @@ func (ec *executionContext) fieldContext_Candidate_candidate_educate(ctx context
 				return ec.fieldContext_CandidateEducate_attachments(ctx, field)
 			case "order_id":
 				return ec.fieldContext_CandidateEducate_order_id(ctx, field)
+			case "is_current":
+				return ec.fieldContext_CandidateEducate_is_current(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateEducate_created_at(ctx, field)
 			case "updated_at":
@@ -17212,6 +17236,50 @@ func (ec *executionContext) fieldContext_CandidateEducate_order_id(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateEducate_is_current(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEducate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateEducate_is_current(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCurrent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateEducate_is_current(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateEducate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateEducate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEducate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateEducate_created_at(ctx, field)
 	if err != nil {
@@ -17641,6 +17709,50 @@ func (ec *executionContext) fieldContext_CandidateExp_order_id(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateExp_is_current(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateExp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateExp_is_current(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsCurrent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateExp_is_current(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateExp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -46909,7 +47021,7 @@ func (ec *executionContext) unmarshalInputCandidateEducateInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "school_name", "major", "gpa", "start_date", "end_date", "location", "description", "attachments", "order_id"}
+	fieldsInOrder := [...]string{"id", "school_name", "major", "gpa", "start_date", "end_date", "location", "description", "attachments", "order_id", "is_current"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46996,6 +47108,14 @@ func (ec *executionContext) unmarshalInputCandidateEducateInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "is_current":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_current"))
+			it.IsCurrent, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -47009,7 +47129,7 @@ func (ec *executionContext) unmarshalInputCandidateExpInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "position", "company", "location", "start_date", "end_date", "description", "order_id"}
+	fieldsInOrder := [...]string{"id", "position", "company", "location", "start_date", "end_date", "description", "order_id", "is_current"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47077,6 +47197,14 @@ func (ec *executionContext) unmarshalInputCandidateExpInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
 			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_current":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_current"))
+			it.IsCurrent, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -53459,6 +53587,13 @@ func (ec *executionContext) _CandidateEducate(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "is_current":
+
+			out.Values[i] = ec._CandidateEducate_is_current(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._CandidateEducate_created_at(ctx, field, obj)
@@ -53553,6 +53688,13 @@ func (ec *executionContext) _CandidateExp(ctx context.Context, sel ast.Selection
 		case "order_id":
 
 			out.Values[i] = ec._CandidateExp_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "is_current":
+
+			out.Values[i] = ec._CandidateExp_is_current(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

@@ -253,6 +253,10 @@ func init() {
 	candidateeducateDescDescription := candidateeducateFields[5].Descriptor()
 	// candidateeducate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidateeducate.DescriptionValidator = candidateeducateDescDescription.Validators[0].(func(string) error)
+	// candidateeducateDescIsCurrent is the schema descriptor for is_current field.
+	candidateeducateDescIsCurrent := candidateeducateFields[9].Descriptor()
+	// candidateeducate.DefaultIsCurrent holds the default value on creation for the is_current field.
+	candidateeducate.DefaultIsCurrent = candidateeducateDescIsCurrent.Default.(bool)
 	candidateexpMixin := schema.CandidateExp{}.Mixin()
 	candidateexpMixinFields0 := candidateexpMixin[0].Fields()
 	_ = candidateexpMixinFields0
@@ -306,6 +310,10 @@ func init() {
 	candidateexpDescDescription := candidateexpFields[4].Descriptor()
 	// candidateexp.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidateexp.DescriptionValidator = candidateexpDescDescription.Validators[0].(func(string) error)
+	// candidateexpDescIsCurrent is the schema descriptor for is_current field.
+	candidateexpDescIsCurrent := candidateexpFields[8].Descriptor()
+	// candidateexp.DefaultIsCurrent holds the default value on creation for the is_current field.
+	candidateexp.DefaultIsCurrent = candidateexpDescIsCurrent.Default.(bool)
 	candidatehistorycallMixin := schema.CandidateHistoryCall{}.Mixin()
 	candidatehistorycallMixinFields0 := candidatehistorycallMixin[0].Fields()
 	_ = candidatehistorycallMixinFields0

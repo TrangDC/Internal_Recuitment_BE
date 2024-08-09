@@ -129,6 +129,7 @@ type CandidateEducateInput struct {
 	Description string                `json:"description"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
 	OrderID     int                   `json:"order_id"`
+	IsCurrent   bool                  `json:"is_current"`
 }
 
 type CandidateExpInput struct {
@@ -140,6 +141,7 @@ type CandidateExpInput struct {
 	EndDate     *time.Time `json:"end_date"`
 	Description string     `json:"description"`
 	OrderID     int        `json:"order_id"`
+	IsCurrent   bool       `json:"is_current"`
 }
 
 type CandidateFilter struct {

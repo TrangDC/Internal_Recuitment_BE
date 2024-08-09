@@ -40,6 +40,8 @@ type CandidateExp struct {
 	EndDate time.Time `json:"end_date,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID int `json:"order_id,omitempty"`
+	// IsCurrent holds the value of the "is_current" field.
+	IsCurrent bool `json:"is_current,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateExpQuery when eager-loading is set.
 	Edges CandidateExpEdges `json:"edges"`
@@ -74,6 +76,8 @@ func (*CandidateExp) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidateexp.FieldIsCurrent:
+			values[i] = new(sql.NullBool)
 		case candidateexp.FieldOrderID:
 			values[i] = new(sql.NullInt64)
 		case candidateexp.FieldPosition, candidateexp.FieldCompany, candidateexp.FieldLocation, candidateexp.FieldDescription:
@@ -169,6 +173,12 @@ func (ce *CandidateExp) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ce.OrderID = int(value.Int64)
 			}
+		case candidateexp.FieldIsCurrent:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_current", values[i])
+			} else if value.Valid {
+				ce.IsCurrent = value.Bool
+			}
 		}
 	}
 	return nil
@@ -234,6 +244,9 @@ func (ce *CandidateExp) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", ce.OrderID))
+	builder.WriteString(", ")
+	builder.WriteString("is_current=")
+	builder.WriteString(fmt.Sprintf("%v", ce.IsCurrent))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -209,6 +209,7 @@ var (
 		{Name: "start_date", Type: field.TypeTime, Nullable: true},
 		{Name: "end_date", Type: field.TypeTime, Nullable: true},
 		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "is_current", Type: field.TypeBool, Default: false},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateEducatesTable holds the schema information for the "candidate_educates" table.
@@ -219,7 +220,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_educates_candidates_candidate_educate_edges",
-				Columns:    []*schema.Column{CandidateEducatesColumns[12]},
+				Columns:    []*schema.Column{CandidateEducatesColumns[13]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -238,6 +239,7 @@ var (
 		{Name: "start_date", Type: field.TypeTime, Nullable: true},
 		{Name: "end_date", Type: field.TypeTime, Nullable: true},
 		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "is_current", Type: field.TypeBool, Default: false},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateExpsTable holds the schema information for the "candidate_exps" table.
@@ -248,7 +250,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_exps_candidates_candidate_exp_edges",
-				Columns:    []*schema.Column{CandidateExpsColumns[11]},
+				Columns:    []*schema.Column{CandidateExpsColumns[12]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
