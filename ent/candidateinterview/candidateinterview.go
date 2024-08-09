@@ -141,13 +141,14 @@ const DefaultCandidateJobStatus = CandidateJobStatusApplied
 
 // CandidateJobStatus values.
 const (
-	CandidateJobStatusApplied      CandidateJobStatus = "applied"
-	CandidateJobStatusInterviewing CandidateJobStatus = "interviewing"
-	CandidateJobStatusOffering     CandidateJobStatus = "offering"
-	CandidateJobStatusHired        CandidateJobStatus = "hired"
-	CandidateJobStatusKiv          CandidateJobStatus = "kiv"
-	CandidateJobStatusOfferLost    CandidateJobStatus = "offer_lost"
-	CandidateJobStatusExStaff      CandidateJobStatus = "ex_staff"
+	CandidateJobStatusApplied         CandidateJobStatus = "applied"
+	CandidateJobStatusInterviewing    CandidateJobStatus = "interviewing"
+	CandidateJobStatusOffering        CandidateJobStatus = "offering"
+	CandidateJobStatusHired           CandidateJobStatus = "hired"
+	CandidateJobStatusFailedCv        CandidateJobStatus = "failed_cv"
+	CandidateJobStatusFailedInterview CandidateJobStatus = "failed_interview"
+	CandidateJobStatusOfferLost       CandidateJobStatus = "offer_lost"
+	CandidateJobStatusExStaff         CandidateJobStatus = "ex_staff"
 )
 
 func (cjs CandidateJobStatus) String() string {
@@ -157,7 +158,7 @@ func (cjs CandidateJobStatus) String() string {
 // CandidateJobStatusValidator is a validator for the "candidate_job_status" field enum values. It is called by the builders before save.
 func CandidateJobStatusValidator(cjs CandidateJobStatus) error {
 	switch cjs {
-	case CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusHired, CandidateJobStatusKiv, CandidateJobStatusOfferLost, CandidateJobStatusExStaff:
+	case CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusHired, CandidateJobStatusFailedCv, CandidateJobStatusFailedInterview, CandidateJobStatusOfferLost, CandidateJobStatusExStaff:
 		return nil
 	default:
 		return fmt.Errorf("candidateinterview: invalid enum value for candidate_job_status field: %q", cjs)

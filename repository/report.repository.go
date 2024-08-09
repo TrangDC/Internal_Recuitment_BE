@@ -209,8 +209,8 @@ func (rps reportRepoImpl) ReportApplication(ctx context.Context, fromDate, toDat
 				result.Offering = count
 			case candidatejob.StatusHired.String():
 				result.Hired = count
-			case candidatejob.StatusKiv.String():
-				result.Kiv = count
+			case "kiv":
+				result.Kiv = 0
 			case candidatejob.StatusOfferLost.String():
 				result.OfferLost = count
 			case candidatejob.StatusOffering.String():

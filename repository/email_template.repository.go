@@ -218,14 +218,14 @@ func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, 
 	var result []*ent.EmailTemplate
 	var eventTrigger emailtemplate.Event
 	isTrigger := false
-	if oldRecord.Status == candidatejob.StatusApplied && record.Status == candidatejob.StatusKiv {
+	/*if oldRecord.Status == candidatejob.StatusApplied && record.Status == candidatejob.StatusKiv {
 		eventTrigger = emailtemplate.EventCandidateAppliedToKiv
 		isTrigger = true
 	}
 	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusKiv {
 		eventTrigger = emailtemplate.EventCandidateInterviewingToKiv
 		isTrigger = true
-	}
+	}*/
 	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusOffering {
 		eventTrigger = emailtemplate.EventCandidateInterviewingToOffering
 		isTrigger = true

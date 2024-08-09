@@ -530,8 +530,11 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		Hired: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
 			return candidateJob.Status == candidatejob.StatusHired
 		}),
-		Kiv: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
-			return candidateJob.Status == candidatejob.StatusKiv
+		FailedCv: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusFailedCv
+		}),
+		FailedInterview: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
+			return candidateJob.Status == candidatejob.StatusFailedInterview
 		}),
 		OfferLost: lo.Filter(candidateJobs, func(candidateJob *ent.CandidateJob, index int) bool {
 			return candidateJob.Status == candidatejob.StatusOfferLost
@@ -550,13 +553,14 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		}),
 	}
 	edges = &ent.CandidateJobGroupByStatus{
-		Hired:        svc.Pagination(sampleEdges.Hired, page, perPage),
-		Kiv:          svc.Pagination(sampleEdges.Kiv, page, perPage),
-		OfferLost:    svc.Pagination(sampleEdges.OfferLost, page, perPage),
-		Offering:     svc.Pagination(sampleEdges.Offering, page, perPage),
-		ExStaff:      svc.Pagination(sampleEdges.ExStaff, page, perPage),
-		Applied:      svc.Pagination(sampleEdges.Applied, page, perPage),
-		Interviewing: svc.Pagination(sampleEdges.Interviewing, page, perPage),
+		Hired:           svc.Pagination(sampleEdges.Hired, page, perPage),
+		FailedCv:        svc.Pagination(sampleEdges.FailedCv, page, perPage),
+		FailedInterview: svc.Pagination(sampleEdges.FailedInterview, page, perPage),
+		OfferLost:       svc.Pagination(sampleEdges.OfferLost, page, perPage),
+		Offering:        svc.Pagination(sampleEdges.Offering, page, perPage),
+		ExStaff:         svc.Pagination(sampleEdges.ExStaff, page, perPage),
+		Applied:         svc.Pagination(sampleEdges.Applied, page, perPage),
+		Interviewing:    svc.Pagination(sampleEdges.Interviewing, page, perPage),
 	}
 	result = &ent.CandidateJobGroupByStatusResponse{
 		Data: edges,
@@ -634,12 +638,20 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOfferLost
 			}),
 		},
-		Kiv: &ent.CandidateJobGroupInterviewFeedback{
+		FailedCv: &ent.CandidateJobGroupInterviewFeedback{
 			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusKiv
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusFailedCv
 			}),
 			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusKiv
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusFailedCv
+			}),
+		},
+		FailedInterview: &ent.CandidateJobGroupInterviewFeedback{
+			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
+				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusFailedInterview
+			}),
+			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
+				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusFailedInterview
 			}),
 		},
 		ExStaff: &ent.CandidateJobGroupInterviewFeedback{

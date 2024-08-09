@@ -1,6 +1,7 @@
 enum CandidateJobStatusEnded {
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
 }
@@ -17,12 +18,14 @@ enum CandidateJobStatusAbleToClose {
 
 enum CandidateJobStatusFailed {
   offer_lost
-  kiv
+  failed_cv
+  failed_interview
 }
 
 enum CandidateJobStatus {
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
   applied
@@ -119,7 +122,8 @@ type CandidateJobGroupInterviewFeedback {
 
 type CandidateJobGroupByInterview {
   hired: CandidateJobGroupInterviewFeedback
-  kiv: CandidateJobGroupInterviewFeedback
+  failed_cv: CandidateJobGroupInterviewFeedback
+  failed_interview: CandidateJobGroupInterviewFeedback
   offer_lost: CandidateJobGroupInterviewFeedback
   ex_staff: CandidateJobGroupInterviewFeedback
   applied: CandidateJobGroupInterviewFeedback
@@ -129,7 +133,8 @@ type CandidateJobGroupByInterview {
 
 type CandidateJobGroupByStatus {
   hired: [CandidateJob!]
-  kiv: [CandidateJob!]
+  failed_cv: [CandidateJob!]
+  failed_interview: [CandidateJob!]
   offer_lost: [CandidateJob!]
   ex_staff: [CandidateJob!]
   applied: [CandidateJob!]

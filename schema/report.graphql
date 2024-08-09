@@ -58,9 +58,9 @@ type CandidateConversionRateReportResponse {
 }
 
 input ReportFilter {
- filter_period: ReportFilterPeriod!
- from_date: Time!
- to_date: Time!
+  filter_period: ReportFilterPeriod!
+  from_date: Time!
+  to_date: Time!
 }
 
 # new schema

@@ -328,13 +328,14 @@ type CandidateJobFreeWord struct {
 }
 
 type CandidateJobGroupByInterview struct {
-	Hired        *CandidateJobGroupInterviewFeedback `json:"hired"`
-	Kiv          *CandidateJobGroupInterviewFeedback `json:"kiv"`
-	OfferLost    *CandidateJobGroupInterviewFeedback `json:"offer_lost"`
-	ExStaff      *CandidateJobGroupInterviewFeedback `json:"ex_staff"`
-	Applied      *CandidateJobGroupInterviewFeedback `json:"applied"`
-	Interviewing *CandidateJobGroupInterviewFeedback `json:"interviewing"`
-	Offering     *CandidateJobGroupInterviewFeedback `json:"offering"`
+	Hired           *CandidateJobGroupInterviewFeedback `json:"hired"`
+	FailedCv        *CandidateJobGroupInterviewFeedback `json:"failed_cv"`
+	FailedInterview *CandidateJobGroupInterviewFeedback `json:"failed_interview"`
+	OfferLost       *CandidateJobGroupInterviewFeedback `json:"offer_lost"`
+	ExStaff         *CandidateJobGroupInterviewFeedback `json:"ex_staff"`
+	Applied         *CandidateJobGroupInterviewFeedback `json:"applied"`
+	Interviewing    *CandidateJobGroupInterviewFeedback `json:"interviewing"`
+	Offering        *CandidateJobGroupInterviewFeedback `json:"offering"`
 }
 
 type CandidateJobGroupByInterviewResponse struct {
@@ -342,13 +343,14 @@ type CandidateJobGroupByInterviewResponse struct {
 }
 
 type CandidateJobGroupByStatus struct {
-	Hired        []*CandidateJob `json:"hired"`
-	Kiv          []*CandidateJob `json:"kiv"`
-	OfferLost    []*CandidateJob `json:"offer_lost"`
-	ExStaff      []*CandidateJob `json:"ex_staff"`
-	Applied      []*CandidateJob `json:"applied"`
-	Interviewing []*CandidateJob `json:"interviewing"`
-	Offering     []*CandidateJob `json:"offering"`
+	Hired           []*CandidateJob `json:"hired"`
+	FailedCv        []*CandidateJob `json:"failed_cv"`
+	FailedInterview []*CandidateJob `json:"failed_interview"`
+	OfferLost       []*CandidateJob `json:"offer_lost"`
+	ExStaff         []*CandidateJob `json:"ex_staff"`
+	Applied         []*CandidateJob `json:"applied"`
+	Interviewing    []*CandidateJob `json:"interviewing"`
+	Offering        []*CandidateJob `json:"offering"`
 }
 
 type CandidateJobGroupByStatusFilter struct {
@@ -1792,19 +1794,21 @@ func (e CandidateJobOrderByField) MarshalGQL(w io.Writer) {
 type CandidateJobStatus string
 
 const (
-	CandidateJobStatusHired        CandidateJobStatus = "hired"
-	CandidateJobStatusKiv          CandidateJobStatus = "kiv"
-	CandidateJobStatusOfferLost    CandidateJobStatus = "offer_lost"
-	CandidateJobStatusExStaff      CandidateJobStatus = "ex_staff"
-	CandidateJobStatusApplied      CandidateJobStatus = "applied"
-	CandidateJobStatusInterviewing CandidateJobStatus = "interviewing"
-	CandidateJobStatusOffering     CandidateJobStatus = "offering"
-	CandidateJobStatusNew          CandidateJobStatus = "new"
+	CandidateJobStatusHired           CandidateJobStatus = "hired"
+	CandidateJobStatusFailedCv        CandidateJobStatus = "failed_cv"
+	CandidateJobStatusFailedInterview CandidateJobStatus = "failed_interview"
+	CandidateJobStatusOfferLost       CandidateJobStatus = "offer_lost"
+	CandidateJobStatusExStaff         CandidateJobStatus = "ex_staff"
+	CandidateJobStatusApplied         CandidateJobStatus = "applied"
+	CandidateJobStatusInterviewing    CandidateJobStatus = "interviewing"
+	CandidateJobStatusOffering        CandidateJobStatus = "offering"
+	CandidateJobStatusNew             CandidateJobStatus = "new"
 )
 
 var AllCandidateJobStatus = []CandidateJobStatus{
 	CandidateJobStatusHired,
-	CandidateJobStatusKiv,
+	CandidateJobStatusFailedCv,
+	CandidateJobStatusFailedInterview,
 	CandidateJobStatusOfferLost,
 	CandidateJobStatusExStaff,
 	CandidateJobStatusApplied,
@@ -1815,7 +1819,7 @@ var AllCandidateJobStatus = []CandidateJobStatus{
 
 func (e CandidateJobStatus) IsValid() bool {
 	switch e {
-	case CandidateJobStatusHired, CandidateJobStatusKiv, CandidateJobStatusOfferLost, CandidateJobStatusExStaff, CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusNew:
+	case CandidateJobStatusHired, CandidateJobStatusFailedCv, CandidateJobStatusFailedInterview, CandidateJobStatusOfferLost, CandidateJobStatusExStaff, CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusNew:
 		return true
 	}
 	return false
@@ -1927,22 +1931,24 @@ func (e CandidateJobStatusEditable) MarshalGQL(w io.Writer) {
 type CandidateJobStatusEnded string
 
 const (
-	CandidateJobStatusEndedHired     CandidateJobStatusEnded = "hired"
-	CandidateJobStatusEndedKiv       CandidateJobStatusEnded = "kiv"
-	CandidateJobStatusEndedOfferLost CandidateJobStatusEnded = "offer_lost"
-	CandidateJobStatusEndedExStaff   CandidateJobStatusEnded = "ex_staff"
+	CandidateJobStatusEndedHired           CandidateJobStatusEnded = "hired"
+	CandidateJobStatusEndedFailedCv        CandidateJobStatusEnded = "failed_cv"
+	CandidateJobStatusEndedFailedInterview CandidateJobStatusEnded = "failed_interview"
+	CandidateJobStatusEndedOfferLost       CandidateJobStatusEnded = "offer_lost"
+	CandidateJobStatusEndedExStaff         CandidateJobStatusEnded = "ex_staff"
 )
 
 var AllCandidateJobStatusEnded = []CandidateJobStatusEnded{
 	CandidateJobStatusEndedHired,
-	CandidateJobStatusEndedKiv,
+	CandidateJobStatusEndedFailedCv,
+	CandidateJobStatusEndedFailedInterview,
 	CandidateJobStatusEndedOfferLost,
 	CandidateJobStatusEndedExStaff,
 }
 
 func (e CandidateJobStatusEnded) IsValid() bool {
 	switch e {
-	case CandidateJobStatusEndedHired, CandidateJobStatusEndedKiv, CandidateJobStatusEndedOfferLost, CandidateJobStatusEndedExStaff:
+	case CandidateJobStatusEndedHired, CandidateJobStatusEndedFailedCv, CandidateJobStatusEndedFailedInterview, CandidateJobStatusEndedOfferLost, CandidateJobStatusEndedExStaff:
 		return true
 	}
 	return false
@@ -1972,18 +1978,20 @@ func (e CandidateJobStatusEnded) MarshalGQL(w io.Writer) {
 type CandidateJobStatusFailed string
 
 const (
-	CandidateJobStatusFailedOfferLost CandidateJobStatusFailed = "offer_lost"
-	CandidateJobStatusFailedKiv       CandidateJobStatusFailed = "kiv"
+	CandidateJobStatusFailedOfferLost       CandidateJobStatusFailed = "offer_lost"
+	CandidateJobStatusFailedFailedCv        CandidateJobStatusFailed = "failed_cv"
+	CandidateJobStatusFailedFailedInterview CandidateJobStatusFailed = "failed_interview"
 )
 
 var AllCandidateJobStatusFailed = []CandidateJobStatusFailed{
 	CandidateJobStatusFailedOfferLost,
-	CandidateJobStatusFailedKiv,
+	CandidateJobStatusFailedFailedCv,
+	CandidateJobStatusFailedFailedInterview,
 }
 
 func (e CandidateJobStatusFailed) IsValid() bool {
 	switch e {
-	case CandidateJobStatusFailedOfferLost, CandidateJobStatusFailedKiv:
+	case CandidateJobStatusFailedOfferLost, CandidateJobStatusFailedFailedCv, CandidateJobStatusFailedFailedInterview:
 		return true
 	}
 	return false
@@ -2256,14 +2264,15 @@ func (e CandidateReferenceType) MarshalGQL(w io.Writer) {
 type CandidateStatusEnum string
 
 const (
-	CandidateStatusEnumApplied      CandidateStatusEnum = "applied"
-	CandidateStatusEnumInterviewing CandidateStatusEnum = "interviewing"
-	CandidateStatusEnumOffering     CandidateStatusEnum = "offering"
-	CandidateStatusEnumHired        CandidateStatusEnum = "hired"
-	CandidateStatusEnumKiv          CandidateStatusEnum = "kiv"
-	CandidateStatusEnumOfferLost    CandidateStatusEnum = "offer_lost"
-	CandidateStatusEnumExStaff      CandidateStatusEnum = "ex_staff"
-	CandidateStatusEnumNew          CandidateStatusEnum = "new"
+	CandidateStatusEnumApplied         CandidateStatusEnum = "applied"
+	CandidateStatusEnumInterviewing    CandidateStatusEnum = "interviewing"
+	CandidateStatusEnumOffering        CandidateStatusEnum = "offering"
+	CandidateStatusEnumHired           CandidateStatusEnum = "hired"
+	CandidateStatusEnumFailedCv        CandidateStatusEnum = "failed_cv"
+	CandidateStatusEnumFailedInterview CandidateStatusEnum = "failed_interview"
+	CandidateStatusEnumOfferLost       CandidateStatusEnum = "offer_lost"
+	CandidateStatusEnumExStaff         CandidateStatusEnum = "ex_staff"
+	CandidateStatusEnumNew             CandidateStatusEnum = "new"
 )
 
 var AllCandidateStatusEnum = []CandidateStatusEnum{
@@ -2271,7 +2280,8 @@ var AllCandidateStatusEnum = []CandidateStatusEnum{
 	CandidateStatusEnumInterviewing,
 	CandidateStatusEnumOffering,
 	CandidateStatusEnumHired,
-	CandidateStatusEnumKiv,
+	CandidateStatusEnumFailedCv,
+	CandidateStatusEnumFailedInterview,
 	CandidateStatusEnumOfferLost,
 	CandidateStatusEnumExStaff,
 	CandidateStatusEnumNew,
@@ -2279,7 +2289,7 @@ var AllCandidateStatusEnum = []CandidateStatusEnum{
 
 func (e CandidateStatusEnum) IsValid() bool {
 	switch e {
-	case CandidateStatusEnumApplied, CandidateStatusEnumInterviewing, CandidateStatusEnumOffering, CandidateStatusEnumHired, CandidateStatusEnumKiv, CandidateStatusEnumOfferLost, CandidateStatusEnumExStaff, CandidateStatusEnumNew:
+	case CandidateStatusEnumApplied, CandidateStatusEnumInterviewing, CandidateStatusEnumOffering, CandidateStatusEnumHired, CandidateStatusEnumFailedCv, CandidateStatusEnumFailedInterview, CandidateStatusEnumOfferLost, CandidateStatusEnumExStaff, CandidateStatusEnumNew:
 		return true
 	}
 	return false

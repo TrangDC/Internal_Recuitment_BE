@@ -17,7 +17,7 @@ func (CandidateJobFeedback) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("candidate_job_id", uuid.UUID{}).Optional(),
 		field.UUID("created_by", uuid.UUID{}).Optional(),
-		field.Enum("candidate_job_status").Values("applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff").Default("applied"),
+		field.Enum("candidate_job_status").Values("applied", "interviewing", "offering", "hired", "failed_cv", "failed_interview", "offer_lost", "ex_staff").Default("applied"),
 		field.Text("feedback"),
 	}
 }

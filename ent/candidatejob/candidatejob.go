@@ -142,13 +142,14 @@ const DefaultStatus = StatusApplied
 
 // Status values.
 const (
-	StatusApplied      Status = "applied"
-	StatusInterviewing Status = "interviewing"
-	StatusOffering     Status = "offering"
-	StatusHired        Status = "hired"
-	StatusKiv          Status = "kiv"
-	StatusOfferLost    Status = "offer_lost"
-	StatusExStaff      Status = "ex_staff"
+	StatusApplied         Status = "applied"
+	StatusInterviewing    Status = "interviewing"
+	StatusOffering        Status = "offering"
+	StatusHired           Status = "hired"
+	StatusFailedCv        Status = "failed_cv"
+	StatusFailedInterview Status = "failed_interview"
+	StatusOfferLost       Status = "offer_lost"
+	StatusExStaff         Status = "ex_staff"
 )
 
 func (s Status) String() string {
@@ -158,7 +159,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusApplied, StatusInterviewing, StatusOffering, StatusHired, StatusKiv, StatusOfferLost, StatusExStaff:
+	case StatusApplied, StatusInterviewing, StatusOffering, StatusHired, StatusFailedCv, StatusFailedInterview, StatusOfferLost, StatusExStaff:
 		return nil
 	default:
 		return fmt.Errorf("candidatejob: invalid enum value for status field: %q", s)
