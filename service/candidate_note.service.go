@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"trec/dto"
 	"trec/ent"
 	"trec/ent/attachment"
+	"trec/ent/audittrail"
 	"trec/ent/candidatenote"
 	"trec/internal/util"
 	"trec/repository"
@@ -25,13 +27,15 @@ type CandidateNoteService interface {
 type candidateNoteSvcImpl struct {
 	attachmentSvc AttachmentService
 	repoRegistry  repository.Repository
+	dtoRegistry   dto.Dto
 	logger        *zap.Logger
 }
 
-func NewCandidateNoteService(repoRegistry repository.Repository, logger *zap.Logger) CandidateNoteService {
+func NewCandidateNoteService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateNoteService {
 	return &candidateNoteSvcImpl{
 		attachmentSvc: NewAttachmentService(repoRegistry, logger),
 		repoRegistry:  repoRegistry,
+		dtoRegistry:   dtoRegistry,
 		logger:        logger,
 	}
 }
@@ -54,6 +58,14 @@ func (svc *candidateNoteSvcImpl) CreateCandidateNote(ctx context.Context, input 
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.CandidateNote().GetCandidateNote(ctx, candidateNote.ID)
+	jsonStr, err := svc.dtoRegistry.CandidateNote().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeCreate, "")
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
 	return &ent.CandidateNoteResponse{Data: result}, nil
 }
 
@@ -75,6 +87,14 @@ func (svc *candidateNoteSvcImpl) UpdateCandidateNote(ctx context.Context, id uui
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.CandidateNote().GetCandidateNote(ctx, id)
+	jsonStr, err := svc.dtoRegistry.CandidateNote().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
 	return &ent.CandidateNoteResponse{Data: result}, nil
 }
 
@@ -94,6 +114,14 @@ func (svc *candidateNoteSvcImpl) DeleteCandidateNote(ctx context.Context, id uui
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonStr, err := svc.dtoRegistry.CandidateNote().AuditTrailDelete(record)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error())
 	}
 	return nil
 }
