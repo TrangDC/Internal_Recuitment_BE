@@ -225,7 +225,7 @@ func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedbacks(ctx context.Con
 	var edges []*ent.CandidateJobFeedbackEdge
 	var page int
 	var perPage int
-	query := svc.repoRegistry.CandidateJobFeedback().BuildQuery().Where(candidatejobfeedback.CandidateJobID(uuid.MustParse(filter.CandidateJobID)))
+	query := svc.repoRegistry.CandidateJobFeedback().BuildQuery()
 	svc.validPermissionGet(payload, query)
 	svc.filter(query, filter)
 	svc.freeWord(query, freeWord)
@@ -292,6 +292,12 @@ func (svc *candidateJobFeedbackSvcImpl) freeWord(candidateJobFeedbackQuery *ent.
 func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.CandidateJobFeedbackQuery, input *ent.CandidateJobFeedbackFilter) {
 	if input.CreatedBy != nil {
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedByEQ(uuid.MustParse(*input.CreatedBy)))
+	}
+	if input.CandidateJobID != nil {
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.CandidateJobIDEQ(uuid.MustParse(*input.CandidateJobID)))
+	}
+	if input.CandidateID != nil {
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.IDEQ(uuid.MustParse(*input.CandidateID))))
 	}
 }
 

@@ -486,15 +486,18 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 	var edges []*ent.CandidateInterviewEdge
 	var page int
 	var perPage int
-	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(filter.CandidateJobID))
-	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_not_found", http.StatusNotFound, util.ErrorFlagNotFound)
+	query := svc.repoRegistry.CandidateInterview().BuildQuery()
+	if filter.CandidateJobID != nil {
+		candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(*filter.CandidateJobID))
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_not_found", http.StatusNotFound, util.ErrorFlagNotFound)
+		}
+		query.Where(
+			candidateinterview.CandidateJobIDEQ(uuid.MustParse(*filter.CandidateJobID)),
+			candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(candidateJob.Status.String())),
+		)
 	}
-	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(
-		candidateinterview.CandidateJobIDEQ(uuid.MustParse(filter.CandidateJobID)),
-		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(candidateJob.Status.String())),
-	)
 	svc.validPermissionGet(payload, query)
 	var newFilter models.CandidateInterviewFilter
 	jsonString, _ := json.Marshal(filter)
@@ -719,6 +722,9 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 	}
 	if input.HiringJobId != nil {
 		candidateInterviewQuery.Where(candidateinterview.CandidateJobIDEQ(uuid.MustParse(*input.HiringJobId)))
+	}
+	if input.CandidateId != nil {
+		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateIDEQ(uuid.MustParse(*input.CandidateId))))
 	}
 }
 

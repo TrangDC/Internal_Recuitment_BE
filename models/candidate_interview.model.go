@@ -17,6 +17,7 @@ type CandidateInterviewFilter struct {
 	HiringJobId       *string    `json:"hiring_job_id"`
 	InterviewDateFrom *time.Time `json:"interview_date_from"`
 	InterviewDateTo   *time.Time `json:"interview_date_to"`
+	CandidateId       *string    `json:"candidate_id"`
 }
 
 type CandidateInterviewInputValidate struct {
