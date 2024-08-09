@@ -12,9 +12,14 @@ import (
 )
 
 type CandidateNoteRepository interface {
+	// mutation
 	CreateCandidateNote(ctx context.Context, input ent.NewCandidateNoteInput) (*ent.CandidateNote, error)
 	UpdateCandidateNote(ctx context.Context, candidateNote *ent.CandidateNote, input ent.UpdateCandidateNoteInput) error
 	DeleteCandidateNote(ctx context.Context, candidateNote *ent.CandidateNote) error
+	// query
+	BuildQuery() *ent.CandidateNoteQuery
+	BuildCount(ctx context.Context, query *ent.CandidateNoteQuery) (int, error)
+	BuildList(ctx context.Context, query *ent.CandidateNoteQuery) ([]*ent.CandidateNote, error)
 	GetCandidateNote(ctx context.Context, candidateNoteID uuid.UUID) (*ent.CandidateNote, error)
 }
 
@@ -65,6 +70,14 @@ func (rps *candidateNoteRepoImpl) BuildQuery() *ent.CandidateNoteQuery {
 		WithCandidateEdge().
 		WithCreatedByEdge().
 		WithAttachmentEdges()
+}
+
+func (rps *candidateNoteRepoImpl) BuildCount(ctx context.Context, query *ent.CandidateNoteQuery) (int, error) {
+	return query.Count(ctx)
+}
+
+func (rps *candidateNoteRepoImpl) BuildList(ctx context.Context, query *ent.CandidateNoteQuery) ([]*ent.CandidateNote, error) {
+	return query.All(ctx)
 }
 
 func (rps *candidateNoteRepoImpl) GetCandidateNote(ctx context.Context, candidateNoteID uuid.UUID) (*ent.CandidateNote, error) {

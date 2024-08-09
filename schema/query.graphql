@@ -89,6 +89,9 @@ type Query {
   ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
   ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
   ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
+
+  # CandidateNote
+  GetAllCandidateNotes(pagination: PaginationInput, filter: CandidateNoteFilter, freeWord: CandidateNoteFreeWord, orderBy: CandidateNoteOrder): CandidateNoteResponseGetAll!
 }
 
 # Path: schema/query.graphql

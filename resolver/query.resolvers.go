@@ -271,6 +271,11 @@ func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, 
 	return r.serviceRegistry.Report().ReportCandidateConversionRateTable(ctx, pagination, orderBy)
 }
 
+// GetAllCandidateNotes is the resolver for the GetAllCandidateNotes field.
+func (r *queryResolver) GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error) {
+	return r.serviceRegistry.CandidateNote().GetCandidateNotes(ctx, pagination, filter, freeWord, orderBy)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

@@ -1,3 +1,7 @@
+enum CandidateNoteOrderField {
+  created_at
+}
+
 type CandidateNote {
   id: ID!
   candidate: Candidate!
@@ -13,6 +17,16 @@ type CandidateNoteResponse {
   data: CandidateNote!
 }
 
+type CandidateNoteEdge {
+  node: CandidateNote!
+  cursor: Cursor!
+}
+
+type CandidateNoteResponseGetAll {
+  edges: [CandidateNoteEdge!]!
+  pagination: Pagination!
+}
+
 input NewCandidateNoteInput {
   candidate_id: ID!
   name: String!
@@ -24,4 +38,19 @@ input UpdateCandidateNoteInput {
   name: String!
   description: String!
   attachments: [NewAttachmentInput!]
+}
+
+input CandidateNoteFilter {
+  candidate_id: ID
+  from_date: Time
+  to_date: Time
+}
+
+input CandidateNoteFreeWord {
+  name: String
+}
+
+input CandidateNoteOrder {
+  field: CandidateNoteOrderField!
+  direction: OrderDirection!
 }
