@@ -40,6 +40,8 @@ type CandidateEducate struct {
 	StartDate time.Time `json:"start_date,omitempty"`
 	// EndDate holds the value of the "end_date" field.
 	EndDate time.Time `json:"end_date,omitempty"`
+	// OrderID holds the value of the "order_id" field.
+	OrderID int `json:"order_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateEducateQuery when eager-loading is set.
 	Edges CandidateEducateEdges `json:"edges"`
@@ -87,6 +89,8 @@ func (*CandidateEducate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidateeducate.FieldOrderID:
+			values[i] = new(sql.NullInt64)
 		case candidateeducate.FieldSchoolName, candidateeducate.FieldMajor, candidateeducate.FieldGpa, candidateeducate.FieldLocation, candidateeducate.FieldDescription:
 			values[i] = new(sql.NullString)
 		case candidateeducate.FieldCreatedAt, candidateeducate.FieldUpdatedAt, candidateeducate.FieldDeletedAt, candidateeducate.FieldStartDate, candidateeducate.FieldEndDate:
@@ -180,6 +184,12 @@ func (ce *CandidateEducate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ce.EndDate = value.Time
 			}
+		case candidateeducate.FieldOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+			} else if value.Valid {
+				ce.OrderID = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -250,6 +260,9 @@ func (ce *CandidateEducate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("end_date=")
 	builder.WriteString(ce.EndDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", ce.OrderID))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidateexp"
 	"trec/ent/predicate"
@@ -183,19 +182,31 @@ func (ceu *CandidateExpUpdate) ClearEndDate() *CandidateExpUpdate {
 	return ceu
 }
 
-// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
-func (ceu *CandidateExpUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateExpUpdate {
-	ceu.mutation.AddAttachmentEdgeIDs(ids...)
+// SetOrderID sets the "order_id" field.
+func (ceu *CandidateExpUpdate) SetOrderID(i int) *CandidateExpUpdate {
+	ceu.mutation.ResetOrderID()
+	ceu.mutation.SetOrderID(i)
 	return ceu
 }
 
-// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
-func (ceu *CandidateExpUpdate) AddAttachmentEdges(a ...*Attachment) *CandidateExpUpdate {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (ceu *CandidateExpUpdate) SetNillableOrderID(i *int) *CandidateExpUpdate {
+	if i != nil {
+		ceu.SetOrderID(*i)
 	}
-	return ceu.AddAttachmentEdgeIDs(ids...)
+	return ceu
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (ceu *CandidateExpUpdate) AddOrderID(i int) *CandidateExpUpdate {
+	ceu.mutation.AddOrderID(i)
+	return ceu
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (ceu *CandidateExpUpdate) ClearOrderID() *CandidateExpUpdate {
+	ceu.mutation.ClearOrderID()
+	return ceu
 }
 
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
@@ -220,27 +231,6 @@ func (ceu *CandidateExpUpdate) SetCandidateEdge(c *Candidate) *CandidateExpUpdat
 // Mutation returns the CandidateExpMutation object of the builder.
 func (ceu *CandidateExpUpdate) Mutation() *CandidateExpMutation {
 	return ceu.mutation
-}
-
-// ClearAttachmentEdges clears all "attachment_edges" edges to the Attachment entity.
-func (ceu *CandidateExpUpdate) ClearAttachmentEdges() *CandidateExpUpdate {
-	ceu.mutation.ClearAttachmentEdges()
-	return ceu
-}
-
-// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to Attachment entities by IDs.
-func (ceu *CandidateExpUpdate) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateExpUpdate {
-	ceu.mutation.RemoveAttachmentEdgeIDs(ids...)
-	return ceu
-}
-
-// RemoveAttachmentEdges removes "attachment_edges" edges to Attachment entities.
-func (ceu *CandidateExpUpdate) RemoveAttachmentEdges(a ...*Attachment) *CandidateExpUpdate {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return ceu.RemoveAttachmentEdgeIDs(ids...)
 }
 
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
@@ -394,59 +384,14 @@ func (ceu *CandidateExpUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if ceu.mutation.EndDateCleared() {
 		_spec.ClearField(candidateexp.FieldEndDate, field.TypeTime)
 	}
-	if ceu.mutation.AttachmentEdgesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ceu.mutation.OrderID(); ok {
+		_spec.SetField(candidateexp.FieldOrderID, field.TypeInt, value)
 	}
-	if nodes := ceu.mutation.RemovedAttachmentEdgesIDs(); len(nodes) > 0 && !ceu.mutation.AttachmentEdgesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ceu.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateexp.FieldOrderID, field.TypeInt, value)
 	}
-	if nodes := ceu.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if ceu.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateexp.FieldOrderID, field.TypeInt)
 	}
 	if ceu.mutation.CandidateEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -654,19 +599,31 @@ func (ceuo *CandidateExpUpdateOne) ClearEndDate() *CandidateExpUpdateOne {
 	return ceuo
 }
 
-// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
-func (ceuo *CandidateExpUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateExpUpdateOne {
-	ceuo.mutation.AddAttachmentEdgeIDs(ids...)
+// SetOrderID sets the "order_id" field.
+func (ceuo *CandidateExpUpdateOne) SetOrderID(i int) *CandidateExpUpdateOne {
+	ceuo.mutation.ResetOrderID()
+	ceuo.mutation.SetOrderID(i)
 	return ceuo
 }
 
-// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
-func (ceuo *CandidateExpUpdateOne) AddAttachmentEdges(a ...*Attachment) *CandidateExpUpdateOne {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (ceuo *CandidateExpUpdateOne) SetNillableOrderID(i *int) *CandidateExpUpdateOne {
+	if i != nil {
+		ceuo.SetOrderID(*i)
 	}
-	return ceuo.AddAttachmentEdgeIDs(ids...)
+	return ceuo
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (ceuo *CandidateExpUpdateOne) AddOrderID(i int) *CandidateExpUpdateOne {
+	ceuo.mutation.AddOrderID(i)
+	return ceuo
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (ceuo *CandidateExpUpdateOne) ClearOrderID() *CandidateExpUpdateOne {
+	ceuo.mutation.ClearOrderID()
+	return ceuo
 }
 
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
@@ -691,27 +648,6 @@ func (ceuo *CandidateExpUpdateOne) SetCandidateEdge(c *Candidate) *CandidateExpU
 // Mutation returns the CandidateExpMutation object of the builder.
 func (ceuo *CandidateExpUpdateOne) Mutation() *CandidateExpMutation {
 	return ceuo.mutation
-}
-
-// ClearAttachmentEdges clears all "attachment_edges" edges to the Attachment entity.
-func (ceuo *CandidateExpUpdateOne) ClearAttachmentEdges() *CandidateExpUpdateOne {
-	ceuo.mutation.ClearAttachmentEdges()
-	return ceuo
-}
-
-// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to Attachment entities by IDs.
-func (ceuo *CandidateExpUpdateOne) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateExpUpdateOne {
-	ceuo.mutation.RemoveAttachmentEdgeIDs(ids...)
-	return ceuo
-}
-
-// RemoveAttachmentEdges removes "attachment_edges" edges to Attachment entities.
-func (ceuo *CandidateExpUpdateOne) RemoveAttachmentEdges(a ...*Attachment) *CandidateExpUpdateOne {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return ceuo.RemoveAttachmentEdgeIDs(ids...)
 }
 
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
@@ -895,59 +831,14 @@ func (ceuo *CandidateExpUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 	if ceuo.mutation.EndDateCleared() {
 		_spec.ClearField(candidateexp.FieldEndDate, field.TypeTime)
 	}
-	if ceuo.mutation.AttachmentEdgesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ceuo.mutation.OrderID(); ok {
+		_spec.SetField(candidateexp.FieldOrderID, field.TypeInt, value)
 	}
-	if nodes := ceuo.mutation.RemovedAttachmentEdgesIDs(); len(nodes) > 0 && !ceuo.mutation.AttachmentEdgesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ceuo.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateexp.FieldOrderID, field.TypeInt, value)
 	}
-	if nodes := ceuo.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if ceuo.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateexp.FieldOrderID, field.TypeInt)
 	}
 	if ceuo.mutation.CandidateEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

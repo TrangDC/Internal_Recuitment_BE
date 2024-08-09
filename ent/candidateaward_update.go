@@ -117,6 +117,33 @@ func (cau *CandidateAwardUpdate) ClearAchievedDate() *CandidateAwardUpdate {
 	return cau
 }
 
+// SetOrderID sets the "order_id" field.
+func (cau *CandidateAwardUpdate) SetOrderID(i int) *CandidateAwardUpdate {
+	cau.mutation.ResetOrderID()
+	cau.mutation.SetOrderID(i)
+	return cau
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (cau *CandidateAwardUpdate) SetNillableOrderID(i *int) *CandidateAwardUpdate {
+	if i != nil {
+		cau.SetOrderID(*i)
+	}
+	return cau
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (cau *CandidateAwardUpdate) AddOrderID(i int) *CandidateAwardUpdate {
+	cau.mutation.AddOrderID(i)
+	return cau
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (cau *CandidateAwardUpdate) ClearOrderID() *CandidateAwardUpdate {
+	cau.mutation.ClearOrderID()
+	return cau
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cau *CandidateAwardUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateAwardUpdate {
 	cau.mutation.AddAttachmentEdgeIDs(ids...)
@@ -291,6 +318,15 @@ func (cau *CandidateAwardUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if cau.mutation.AchievedDateCleared() {
 		_spec.ClearField(candidateaward.FieldAchievedDate, field.TypeTime)
+	}
+	if value, ok := cau.mutation.OrderID(); ok {
+		_spec.SetField(candidateaward.FieldOrderID, field.TypeInt, value)
+	}
+	if value, ok := cau.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateaward.FieldOrderID, field.TypeInt, value)
+	}
+	if cau.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateaward.FieldOrderID, field.TypeInt)
 	}
 	if cau.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -483,6 +519,33 @@ func (cauo *CandidateAwardUpdateOne) SetNillableAchievedDate(t *time.Time) *Cand
 // ClearAchievedDate clears the value of the "achieved_date" field.
 func (cauo *CandidateAwardUpdateOne) ClearAchievedDate() *CandidateAwardUpdateOne {
 	cauo.mutation.ClearAchievedDate()
+	return cauo
+}
+
+// SetOrderID sets the "order_id" field.
+func (cauo *CandidateAwardUpdateOne) SetOrderID(i int) *CandidateAwardUpdateOne {
+	cauo.mutation.ResetOrderID()
+	cauo.mutation.SetOrderID(i)
+	return cauo
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (cauo *CandidateAwardUpdateOne) SetNillableOrderID(i *int) *CandidateAwardUpdateOne {
+	if i != nil {
+		cauo.SetOrderID(*i)
+	}
+	return cauo
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (cauo *CandidateAwardUpdateOne) AddOrderID(i int) *CandidateAwardUpdateOne {
+	cauo.mutation.AddOrderID(i)
+	return cauo
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (cauo *CandidateAwardUpdateOne) ClearOrderID() *CandidateAwardUpdateOne {
+	cauo.mutation.ClearOrderID()
 	return cauo
 }
 
@@ -690,6 +753,15 @@ func (cauo *CandidateAwardUpdateOne) sqlSave(ctx context.Context) (_node *Candid
 	}
 	if cauo.mutation.AchievedDateCleared() {
 		_spec.ClearField(candidateaward.FieldAchievedDate, field.TypeTime)
+	}
+	if value, ok := cauo.mutation.OrderID(); ok {
+		_spec.SetField(candidateaward.FieldOrderID, field.TypeInt, value)
+	}
+	if value, ok := cauo.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateaward.FieldOrderID, field.TypeInt, value)
+	}
+	if cauo.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateaward.FieldOrderID, field.TypeInt)
 	}
 	if cauo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

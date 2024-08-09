@@ -723,18 +723,6 @@ func (ce *CandidateExpQuery) collectField(ctx context.Context, op *graphql.Opera
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "attachmentEdges":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = &AttachmentQuery{config: ce.config}
-			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
-			}
-			ce.WithNamedAttachmentEdges(alias, func(wq *AttachmentQuery) {
-				*wq = *query
-			})
 		case "candidateEdge":
 			var (
 				alias = field.Alias

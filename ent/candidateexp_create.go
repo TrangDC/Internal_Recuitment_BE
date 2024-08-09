@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidateexp"
 
@@ -147,25 +146,24 @@ func (cec *CandidateExpCreate) SetNillableEndDate(t *time.Time) *CandidateExpCre
 	return cec
 }
 
+// SetOrderID sets the "order_id" field.
+func (cec *CandidateExpCreate) SetOrderID(i int) *CandidateExpCreate {
+	cec.mutation.SetOrderID(i)
+	return cec
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (cec *CandidateExpCreate) SetNillableOrderID(i *int) *CandidateExpCreate {
+	if i != nil {
+		cec.SetOrderID(*i)
+	}
+	return cec
+}
+
 // SetID sets the "id" field.
 func (cec *CandidateExpCreate) SetID(u uuid.UUID) *CandidateExpCreate {
 	cec.mutation.SetID(u)
 	return cec
-}
-
-// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
-func (cec *CandidateExpCreate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateExpCreate {
-	cec.mutation.AddAttachmentEdgeIDs(ids...)
-	return cec
-}
-
-// AddAttachmentEdges adds the "attachment_edges" edges to the Attachment entity.
-func (cec *CandidateExpCreate) AddAttachmentEdges(a ...*Attachment) *CandidateExpCreate {
-	ids := make([]uuid.UUID, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return cec.AddAttachmentEdgeIDs(ids...)
 }
 
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
@@ -373,24 +371,9 @@ func (cec *CandidateExpCreate) createSpec() (*CandidateExp, *sqlgraph.CreateSpec
 		_spec.SetField(candidateexp.FieldEndDate, field.TypeTime, value)
 		_node.EndDate = value
 	}
-	if nodes := cec.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   candidateexp.AttachmentEdgesTable,
-			Columns: []string{candidateexp.AttachmentEdgesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := cec.mutation.OrderID(); ok {
+		_spec.SetField(candidateexp.FieldOrderID, field.TypeInt, value)
+		_node.OrderID = value
 	}
 	if nodes := cec.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

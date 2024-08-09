@@ -30,6 +30,7 @@ func (svc candidateCertificateSvcImpl) ProcessCandidateCertificateInput(ctx cont
 	var updateRecords []*ent.CandidateCertificateInput
 	var deleteAttachmentIds []uuid.UUID
 	var currentIds []uuid.UUID
+	var attachments []*ent.Attachment
 	newRecord = lo.Filter(input, func(entity *ent.CandidateCertificateInput, index int) bool {
 		return entity.ID == ""
 	})
@@ -63,20 +64,28 @@ func (svc candidateCertificateSvcImpl) ProcessCandidateCertificateInput(ctx cont
 	}
 	// Create new
 	if len(newRecord) > 0 {
-		err := repoRegistry.CandidateCertificate().BuildBulkCreate(ctx, newRecord, candidateId)
+		createAttachments, err := repoRegistry.CandidateCertificate().BuildBulkCreate(ctx, newRecord, candidateId)
 		if err != nil {
 			return err
 		}
+		attachments = append(attachments, createAttachments...)
 	}
 	// Update
 	if len(updateRecords) > 0 {
-		err := repoRegistry.CandidateCertificate().BuildBulkUpdate(ctx, updateRecords)
+		createAttachments, err := repoRegistry.CandidateCertificate().BuildBulkUpdate(ctx, updateRecords)
+		if err != nil {
+			return err
+		}
+		attachments = append(attachments, createAttachments...)
+	}
+	if len(deleteAttachmentIds) > 0 {
+		err := repoRegistry.Attachment().RemoveBulkAttachment(ctx, deleteAttachmentIds)
 		if err != nil {
 			return err
 		}
 	}
-	if len(deleteAttachmentIds) > 0 {
-		err := repoRegistry.Attachment().RemoveBulkAttachment(ctx, deleteAttachmentIds)
+	if len(attachments) > 0 {
+		err := repoRegistry.Attachment().CreateBulkAttachment(ctx, attachments)
 		if err != nil {
 			return err
 		}

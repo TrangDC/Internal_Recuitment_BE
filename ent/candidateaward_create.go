@@ -99,6 +99,20 @@ func (cac *CandidateAwardCreate) SetNillableAchievedDate(t *time.Time) *Candidat
 	return cac
 }
 
+// SetOrderID sets the "order_id" field.
+func (cac *CandidateAwardCreate) SetOrderID(i int) *CandidateAwardCreate {
+	cac.mutation.SetOrderID(i)
+	return cac
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (cac *CandidateAwardCreate) SetNillableOrderID(i *int) *CandidateAwardCreate {
+	if i != nil {
+		cac.SetOrderID(*i)
+	}
+	return cac
+}
+
 // SetID sets the "id" field.
 func (cac *CandidateAwardCreate) SetID(u uuid.UUID) *CandidateAwardCreate {
 	cac.mutation.SetID(u)
@@ -290,6 +304,10 @@ func (cac *CandidateAwardCreate) createSpec() (*CandidateAward, *sqlgraph.Create
 	if value, ok := cac.mutation.AchievedDate(); ok {
 		_spec.SetField(candidateaward.FieldAchievedDate, field.TypeTime, value)
 		_node.AchievedDate = value
+	}
+	if value, ok := cac.mutation.OrderID(); ok {
+		_spec.SetField(candidateaward.FieldOrderID, field.TypeInt, value)
+		_node.OrderID = value
 	}
 	if nodes := cac.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

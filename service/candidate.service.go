@@ -169,7 +169,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 
 func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.UpdateCandidateInput, id uuid.UUID, note string) (*ent.CandidateResponse, error) {
 	var result *ent.Candidate
-	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
+	record, err := svc.repoRegistry.Candidate().GetCandidateForUpdate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)

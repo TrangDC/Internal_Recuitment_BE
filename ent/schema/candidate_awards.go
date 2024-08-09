@@ -18,6 +18,7 @@ func (CandidateAward) Fields() []ent.Field {
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
 		field.String("name").MaxLen(256).NotEmpty(),
 		field.Time("achieved_date").Optional(),
+		field.Int("order_id").Optional(),
 	}
 }
 

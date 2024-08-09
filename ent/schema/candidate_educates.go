@@ -23,6 +23,7 @@ func (CandidateEducate) Fields() []ent.Field {
 		field.String("description").MaxLen(512).Optional(),
 		field.Time("start_date").Optional(),
 		field.Time("end_date").Optional(),
+		field.Int("order_id").Optional(),
 	}
 }
 

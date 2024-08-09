@@ -264,18 +264,6 @@ func (ce *CandidateEducate) CandidateEdge(ctx context.Context) (*Candidate, erro
 	return result, MaskNotFound(err)
 }
 
-func (ce *CandidateExp) AttachmentEdges(ctx context.Context) (result []*Attachment, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = ce.NamedAttachmentEdges(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = ce.Edges.AttachmentEdgesOrErr()
-	}
-	if IsNotLoaded(err) {
-		result, err = ce.QueryAttachmentEdges().All(ctx)
-	}
-	return result, err
-}
-
 func (ce *CandidateExp) CandidateEdge(ctx context.Context) (*Candidate, error) {
 	result, err := ce.Edges.CandidateEdgeOrErr()
 	if IsNotLoaded(err) {

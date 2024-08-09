@@ -7,6 +7,8 @@ type CandidateEducate {
   end_date: Time
   location: String!
   description: String!
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -21,4 +23,5 @@ input CandidateEducateInput {
   location: String!
   description: String!
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }

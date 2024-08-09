@@ -169,6 +169,20 @@ func (cec *CandidateEducateCreate) SetNillableEndDate(t *time.Time) *CandidateEd
 	return cec
 }
 
+// SetOrderID sets the "order_id" field.
+func (cec *CandidateEducateCreate) SetOrderID(i int) *CandidateEducateCreate {
+	cec.mutation.SetOrderID(i)
+	return cec
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (cec *CandidateEducateCreate) SetNillableOrderID(i *int) *CandidateEducateCreate {
+	if i != nil {
+		cec.SetOrderID(*i)
+	}
+	return cec
+}
+
 // SetID sets the "id" field.
 func (cec *CandidateEducateCreate) SetID(u uuid.UUID) *CandidateEducateCreate {
 	cec.mutation.SetID(u)
@@ -400,6 +414,10 @@ func (cec *CandidateEducateCreate) createSpec() (*CandidateEducate, *sqlgraph.Cr
 	if value, ok := cec.mutation.EndDate(); ok {
 		_spec.SetField(candidateeducate.FieldEndDate, field.TypeTime, value)
 		_node.EndDate = value
+	}
+	if value, ok := cec.mutation.OrderID(); ok {
+		_spec.SetField(candidateeducate.FieldOrderID, field.TypeInt, value)
+		_node.OrderID = value
 	}
 	if nodes := cec.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

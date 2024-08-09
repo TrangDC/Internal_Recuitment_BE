@@ -152,6 +152,13 @@ func EndDate(v time.Time) predicate.CandidateExp {
 	})
 }
 
+// OrderID applies equality check predicate on the "order_id" field. It's identical to OrderIDEQ.
+func OrderID(v int) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOrderID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CandidateExp {
 	return predicate.CandidateExp(func(s *sql.Selector) {
@@ -1002,31 +1009,81 @@ func EndDateNotNil() predicate.CandidateExp {
 	})
 }
 
-// HasAttachmentEdges applies the HasEdge predicate on the "attachment_edges" edge.
-func HasAttachmentEdges() predicate.CandidateExp {
+// OrderIDEQ applies the EQ predicate on the "order_id" field.
+func OrderIDEQ(v int) predicate.CandidateExp {
 	return predicate.CandidateExp(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentEdgesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentEdgesTable, AttachmentEdgesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
+		s.Where(sql.EQ(s.C(FieldOrderID), v))
 	})
 }
 
-// HasAttachmentEdgesWith applies the HasEdge predicate on the "attachment_edges" edge with a given conditions (other predicates).
-func HasAttachmentEdgesWith(preds ...predicate.Attachment) predicate.CandidateExp {
+// OrderIDNEQ applies the NEQ predicate on the "order_id" field.
+func OrderIDNEQ(v int) predicate.CandidateExp {
 	return predicate.CandidateExp(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentEdgesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentEdgesTable, AttachmentEdgesColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
+		s.Where(sql.NEQ(s.C(FieldOrderID), v))
+	})
+}
+
+// OrderIDIn applies the In predicate on the "order_id" field.
+func OrderIDIn(vs ...int) predicate.CandidateExp {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOrderID), v...))
+	})
+}
+
+// OrderIDNotIn applies the NotIn predicate on the "order_id" field.
+func OrderIDNotIn(vs ...int) predicate.CandidateExp {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOrderID), v...))
+	})
+}
+
+// OrderIDGT applies the GT predicate on the "order_id" field.
+func OrderIDGT(v int) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOrderID), v))
+	})
+}
+
+// OrderIDGTE applies the GTE predicate on the "order_id" field.
+func OrderIDGTE(v int) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOrderID), v))
+	})
+}
+
+// OrderIDLT applies the LT predicate on the "order_id" field.
+func OrderIDLT(v int) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOrderID), v))
+	})
+}
+
+// OrderIDLTE applies the LTE predicate on the "order_id" field.
+func OrderIDLTE(v int) predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOrderID), v))
+	})
+}
+
+// OrderIDIsNil applies the IsNil predicate on the "order_id" field.
+func OrderIDIsNil() predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOrderID)))
+	})
+}
+
+// OrderIDNotNil applies the NotNil predicate on the "order_id" field.
+func OrderIDNotNil() predicate.CandidateExp {
+	return predicate.CandidateExp(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOrderID)))
 	})
 }
 

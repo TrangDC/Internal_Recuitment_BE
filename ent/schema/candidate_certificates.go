@@ -19,6 +19,7 @@ func (CandidateCertificate) Fields() []ent.Field {
 		field.String("name").MaxLen(256).NotEmpty(),
 		field.String("score").MaxLen(256).Optional(),
 		field.Time("achieved_date").Optional(),
+		field.Int("order_id").Optional(),
 	}
 }
 

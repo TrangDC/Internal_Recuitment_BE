@@ -8,6 +8,7 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidate"
+	"trec/ent/candidateexp"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
@@ -100,17 +101,21 @@ func (rps candidateRepoImpl) BuildQuery() *ent.CandidateQuery {
 				},
 			)
 		},
-	).WithCandidateExpEdges().WithCandidateEducateEdges(
+	).WithCandidateExpEdges(
+		func(query *ent.CandidateExpQuery) {
+			query.Order(ent.Asc(candidateexp.FieldOrderID))
+		},
+	).WithCandidateEducateEdges(
 		func(query *ent.CandidateEducateQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	).WithCandidateAwardEdges(
 		func(query *ent.CandidateAwardQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	).WithCandidateCertificateEdges(
 		func(query *ent.CandidateCertificateQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	)
 }
@@ -269,17 +274,21 @@ func (rps candidateRepoImpl) GetCandidateForUpdate(ctx context.Context, id uuid.
 				},
 			)
 		},
-	).WithCandidateExpEdges().WithCandidateEducateEdges(
+	).WithCandidateExpEdges(
+		func(query *ent.CandidateExpQuery) {
+			query.Order(ent.Asc(candidateexp.FieldOrderID))
+		},
+	).WithCandidateEducateEdges(
 		func(query *ent.CandidateEducateQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	).WithCandidateAwardEdges(
 		func(query *ent.CandidateAwardQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	).WithCandidateCertificateEdges(
 		func(query *ent.CandidateCertificateQuery) {
-			query.WithAttachmentEdges()
+			query.WithAttachmentEdges().Order(ent.Asc(candidateexp.FieldOrderID))
 		},
 	)
 	return query.Where(candidate.IDEQ(id)).First(ctx)

@@ -38,6 +38,8 @@ type CandidateExp struct {
 	StartDate time.Time `json:"start_date,omitempty"`
 	// EndDate holds the value of the "end_date" field.
 	EndDate time.Time `json:"end_date,omitempty"`
+	// OrderID holds the value of the "order_id" field.
+	OrderID int `json:"order_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateExpQuery when eager-loading is set.
 	Edges CandidateExpEdges `json:"edges"`
@@ -45,32 +47,19 @@ type CandidateExp struct {
 
 // CandidateExpEdges holds the relations/edges for other nodes in the graph.
 type CandidateExpEdges struct {
-	// AttachmentEdges holds the value of the attachment_edges edge.
-	AttachmentEdges []*Attachment `json:"attachment_edges,omitempty"`
 	// CandidateEdge holds the value of the candidate_edge edge.
 	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
-
-	namedAttachmentEdges map[string][]*Attachment
-}
-
-// AttachmentEdgesOrErr returns the AttachmentEdges value or an error if the edge
-// was not loaded in eager-loading.
-func (e CandidateExpEdges) AttachmentEdgesOrErr() ([]*Attachment, error) {
-	if e.loadedTypes[0] {
-		return e.AttachmentEdges, nil
-	}
-	return nil, &NotLoadedError{edge: "attachment_edges"}
+	totalCount [1]map[string]int
 }
 
 // CandidateEdgeOrErr returns the CandidateEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CandidateExpEdges) CandidateEdgeOrErr() (*Candidate, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		if e.CandidateEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: candidate.Label}
@@ -85,6 +74,8 @@ func (*CandidateExp) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidateexp.FieldOrderID:
+			values[i] = new(sql.NullInt64)
 		case candidateexp.FieldPosition, candidateexp.FieldCompany, candidateexp.FieldLocation, candidateexp.FieldDescription:
 			values[i] = new(sql.NullString)
 		case candidateexp.FieldCreatedAt, candidateexp.FieldUpdatedAt, candidateexp.FieldDeletedAt, candidateexp.FieldStartDate, candidateexp.FieldEndDate:
@@ -172,14 +163,15 @@ func (ce *CandidateExp) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ce.EndDate = value.Time
 			}
+		case candidateexp.FieldOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+			} else if value.Valid {
+				ce.OrderID = int(value.Int64)
+			}
 		}
 	}
 	return nil
-}
-
-// QueryAttachmentEdges queries the "attachment_edges" edge of the CandidateExp entity.
-func (ce *CandidateExp) QueryAttachmentEdges() *AttachmentQuery {
-	return (&CandidateExpClient{config: ce.config}).QueryAttachmentEdges(ce)
 }
 
 // QueryCandidateEdge queries the "candidate_edge" edge of the CandidateExp entity.
@@ -239,32 +231,11 @@ func (ce *CandidateExp) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("end_date=")
 	builder.WriteString(ce.EndDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", ce.OrderID))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedAttachmentEdges returns the AttachmentEdges named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (ce *CandidateExp) NamedAttachmentEdges(name string) ([]*Attachment, error) {
-	if ce.Edges.namedAttachmentEdges == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := ce.Edges.namedAttachmentEdges[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (ce *CandidateExp) appendNamedAttachmentEdges(name string, edges ...*Attachment) {
-	if ce.Edges.namedAttachmentEdges == nil {
-		ce.Edges.namedAttachmentEdges = make(map[string][]*Attachment)
-	}
-	if len(edges) == 0 {
-		ce.Edges.namedAttachmentEdges[name] = []*Attachment{}
-	} else {
-		ce.Edges.namedAttachmentEdges[name] = append(ce.Edges.namedAttachmentEdges[name], edges...)
-	}
 }
 
 // CandidateExps is a parsable slice of CandidateExp.
