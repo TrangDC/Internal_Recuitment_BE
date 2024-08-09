@@ -2,15 +2,7 @@ type CandidateActivity {
   candidate_notes: [CandidateNote!]
   candidate_history_calls: [CandidateHistoryCall!]
   candidate_interviews: [CandidateInterview!]
-}
-
-type CandidateActivityEdge {
-  node: CandidateActivity!
-  cursor: Cursor!
-}
-type CandidateActivityResponseGetAll {
-  edges: [CandidateActivityEdge!]!
-  pagination: Pagination!
+  total: Int!
 }
 
 input CandidateActivityFilter {
@@ -31,4 +23,8 @@ enum CandidateActivityOrderField {
 input CandidateActivityOrder {
   field: CandidateActivityOrderField!
   direction: OrderDirection!
+}
+
+type CandidateActivityResponse {
+  data: CandidateActivity!
 }

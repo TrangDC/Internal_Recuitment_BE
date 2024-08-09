@@ -188,16 +188,11 @@ type ComplexityRoot struct {
 		CandidateHistoryCalls func(childComplexity int) int
 		CandidateInterviews   func(childComplexity int) int
 		CandidateNotes        func(childComplexity int) int
+		Total                 func(childComplexity int) int
 	}
 
-	CandidateActivityEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
-	}
-
-	CandidateActivityResponseGetAll struct {
-		Edges      func(childComplexity int) int
-		Pagination func(childComplexity int) int
+	CandidateActivityResponse struct {
+		Data func(childComplexity int) int
 	}
 
 	CandidateAward struct {
@@ -839,7 +834,6 @@ type ComplexityRoot struct {
 	Query struct {
 		ExportSampleCandidate              func(childComplexity int, lang ent.I18nLanguage) int
 		GetAllAuditTrails                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
-		GetAllCandidateActivities          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy *ent.CandidateActivityOrder) int
 		GetAllCandidateHistoryCalls        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateHistoryCallFilter, freeWord *ent.CandidateHistoryCallFreeWord, orderBy *ent.CandidateHistoryCallOrder) int
 		GetAllCandidateInterview4Calendar  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
 		GetAllCandidateInterviews          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
@@ -860,6 +854,7 @@ type ComplexityRoot struct {
 		GetAllUsers                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
 		GetAuditTrail                      func(childComplexity int, id string) int
 		GetCandidate                       func(childComplexity int, id string) int
+		GetCandidateActivities             func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) int
 		GetCandidateHistoryCall            func(childComplexity int, id string) int
 		GetCandidateInterview              func(childComplexity int, id string) int
 		GetCandidateJob                    func(childComplexity int, id string) int
@@ -1468,7 +1463,7 @@ type QueryResolver interface {
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
 	GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error)
-	GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy *ent.CandidateActivityOrder) (*ent.CandidateActivityResponseGetAll, error)
+	GetCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error)
 }
 type RecTeamResolver interface {
 	ID(ctx context.Context, obj *ent.RecTeam) (string, error)
@@ -2067,33 +2062,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateActivity.CandidateNotes(childComplexity), true
 
-	case "CandidateActivityEdge.cursor":
-		if e.complexity.CandidateActivityEdge.Cursor == nil {
+	case "CandidateActivity.total":
+		if e.complexity.CandidateActivity.Total == nil {
 			break
 		}
 
-		return e.complexity.CandidateActivityEdge.Cursor(childComplexity), true
+		return e.complexity.CandidateActivity.Total(childComplexity), true
 
-	case "CandidateActivityEdge.node":
-		if e.complexity.CandidateActivityEdge.Node == nil {
+	case "CandidateActivityResponse.data":
+		if e.complexity.CandidateActivityResponse.Data == nil {
 			break
 		}
 
-		return e.complexity.CandidateActivityEdge.Node(childComplexity), true
-
-	case "CandidateActivityResponseGetAll.edges":
-		if e.complexity.CandidateActivityResponseGetAll.Edges == nil {
-			break
-		}
-
-		return e.complexity.CandidateActivityResponseGetAll.Edges(childComplexity), true
-
-	case "CandidateActivityResponseGetAll.pagination":
-		if e.complexity.CandidateActivityResponseGetAll.Pagination == nil {
-			break
-		}
-
-		return e.complexity.CandidateActivityResponseGetAll.Pagination(childComplexity), true
+		return e.complexity.CandidateActivityResponse.Data(childComplexity), true
 
 	case "CandidateAward.achieved_date":
 		if e.complexity.CandidateAward.AchievedDate == nil {
@@ -5098,18 +5079,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllAuditTrails(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.AuditTrailFilter), args["freeWord"].(*ent.AuditTrailFreeWord), args["orderBy"].(*ent.AuditTrailOrder)), true
 
-	case "Query.GetAllCandidateActivities":
-		if e.complexity.Query.GetAllCandidateActivities == nil {
-			break
-		}
-
-		args, err := ec.field_Query_GetAllCandidateActivities_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetAllCandidateActivities(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(ent.CandidateActivityFilter), args["freeWord"].(*ent.CandidateActivityFreeWord), args["orderBy"].(*ent.CandidateActivityOrder)), true
-
 	case "Query.GetAllCandidateHistoryCalls":
 		if e.complexity.Query.GetAllCandidateHistoryCalls == nil {
 			break
@@ -5344,6 +5313,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCandidate(childComplexity, args["id"].(string)), true
+
+	case "Query.GetCandidateActivities":
+		if e.complexity.Query.GetCandidateActivities == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidateActivities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidateActivities(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(ent.CandidateActivityFilter), args["freeWord"].(*ent.CandidateActivityFreeWord), args["orderBy"].(ent.CandidateActivityOrder)), true
 
 	case "Query.GetCandidateHistoryCall":
 		if e.complexity.Query.GetCandidateHistoryCall == nil {
@@ -6937,15 +6918,7 @@ type AuditTrailResponseGetAll {
   candidate_notes: [CandidateNote!]
   candidate_history_calls: [CandidateHistoryCall!]
   candidate_interviews: [CandidateInterview!]
-}
-
-type CandidateActivityEdge {
-  node: CandidateActivity!
-  cursor: Cursor!
-}
-type CandidateActivityResponseGetAll {
-  edges: [CandidateActivityEdge!]!
-  pagination: Pagination!
+  total: Int!
 }
 
 input CandidateActivityFilter {
@@ -6966,6 +6939,10 @@ enum CandidateActivityOrderField {
 input CandidateActivityOrder {
   field: CandidateActivityOrderField!
   direction: OrderDirection!
+}
+
+type CandidateActivityResponse {
+  data: CandidateActivity!
 }`, BuiltIn: false},
 	{Name: "../schema/candidate_award.graphql", Input: `type CandidateAward {
   id: ID!
@@ -8668,7 +8645,7 @@ enum PermissionGroupType {
   GetAllCandidateNotes(pagination: PaginationInput, filter: CandidateNoteFilter, freeWord: CandidateNoteFreeWord, orderBy: CandidateNoteOrder): CandidateNoteResponseGetAll!
 
   # CandidateActivity
-  GetAllCandidateActivities(pagination: PaginationInput, filter: CandidateActivityFilter!, freeWord: CandidateActivityFreeWord, orderBy: CandidateActivityOrder): CandidateActivityResponseGetAll!
+  GetCandidateActivities(pagination: PaginationInput, filter: CandidateActivityFilter!, freeWord: CandidateActivityFreeWord, orderBy: CandidateActivityOrder!): CandidateActivityResponse!
 }
 
 # Path: schema/query.graphql
@@ -10764,48 +10741,6 @@ func (ec *executionContext) field_Query_GetAllAuditTrails_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_GetAllCandidateActivities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *ent.PaginationInput
-	if tmp, ok := rawArgs["pagination"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
-		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pagination"] = arg0
-	var arg1 ent.CandidateActivityFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg1, err = ec.unmarshalNCandidateActivityFilter2trecᚋentᚐCandidateActivityFilter(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter"] = arg1
-	var arg2 *ent.CandidateActivityFreeWord
-	if tmp, ok := rawArgs["freeWord"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
-		arg2, err = ec.unmarshalOCandidateActivityFreeWord2ᚖtrecᚋentᚐCandidateActivityFreeWord(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["freeWord"] = arg2
-	var arg3 *ent.CandidateActivityOrder
-	if tmp, ok := rawArgs["orderBy"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg3, err = ec.unmarshalOCandidateActivityOrder2ᚖtrecᚋentᚐCandidateActivityOrder(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["orderBy"] = arg3
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_GetAllCandidateHistoryCalls_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -11505,6 +11440,48 @@ func (ec *executionContext) field_Query_GetAuditTrail_args(ctx context.Context, 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidateActivities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 ent.CandidateActivityFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalNCandidateActivityFilter2trecᚋentᚐCandidateActivityFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.CandidateActivityFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOCandidateActivityFreeWord2ᚖtrecᚋentᚐCandidateActivityFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 ent.CandidateActivityOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalNCandidateActivityOrder2trecᚋentᚐCandidateActivityOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
 	return args, nil
 }
 
@@ -16073,8 +16050,8 @@ func (ec *executionContext) fieldContext_CandidateActivity_candidate_interviews(
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateActivityEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivityEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateActivityEdge_node(ctx, field)
+func (ec *executionContext) _CandidateActivity_total(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivity) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateActivity_total(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -16087,7 +16064,51 @@ func (ec *executionContext) _CandidateActivityEdge_node(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateActivity_total(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateActivity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateActivityResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivityResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateActivityResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16104,9 +16125,9 @@ func (ec *executionContext) _CandidateActivityEdge_node(ctx context.Context, fie
 	return ec.marshalNCandidateActivity2ᚖtrecᚋentᚐCandidateActivity(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateActivityEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateActivityResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "CandidateActivityEdge",
+		Object:     "CandidateActivityResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -16118,154 +16139,10 @@ func (ec *executionContext) fieldContext_CandidateActivityEdge_node(ctx context.
 				return ec.fieldContext_CandidateActivity_candidate_history_calls(ctx, field)
 			case "candidate_interviews":
 				return ec.fieldContext_CandidateActivity_candidate_interviews(ctx, field)
+			case "total":
+				return ec.fieldContext_CandidateActivity_total(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CandidateActivity", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CandidateActivityEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivityEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateActivityEdge_cursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(ent.Cursor)
-	fc.Result = res
-	return ec.marshalNCursor2trecᚋentᚐCursor(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CandidateActivityEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CandidateActivityEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Cursor does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CandidateActivityResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivityResponseGetAll) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateActivityResponseGetAll_edges(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.CandidateActivityEdge)
-	fc.Result = res
-	return ec.marshalNCandidateActivityEdge2ᚕᚖtrecᚋentᚐCandidateActivityEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CandidateActivityResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CandidateActivityResponseGetAll",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_CandidateActivityEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_CandidateActivityEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CandidateActivityEdge", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CandidateActivityResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivityResponseGetAll) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateActivityResponseGetAll_pagination(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Pagination, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Pagination)
-	fc.Result = res
-	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CandidateActivityResponseGetAll_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CandidateActivityResponseGetAll",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "page":
-				return ec.fieldContext_Pagination_page(ctx, field)
-			case "perPage":
-				return ec.fieldContext_Pagination_perPage(ctx, field)
-			case "total":
-				return ec.fieldContext_Pagination_total(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
 		},
 	}
 	return fc, nil
@@ -39074,8 +38951,8 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateNotes(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_GetAllCandidateActivities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_GetAllCandidateActivities(ctx, field)
+func (ec *executionContext) _Query_GetCandidateActivities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidateActivities(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39088,7 +38965,7 @@ func (ec *executionContext) _Query_GetAllCandidateActivities(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllCandidateActivities(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(ent.CandidateActivityFilter), fc.Args["freeWord"].(*ent.CandidateActivityFreeWord), fc.Args["orderBy"].(*ent.CandidateActivityOrder))
+		return ec.resolvers.Query().GetCandidateActivities(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(ent.CandidateActivityFilter), fc.Args["freeWord"].(*ent.CandidateActivityFreeWord), fc.Args["orderBy"].(ent.CandidateActivityOrder))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39100,12 +38977,12 @@ func (ec *executionContext) _Query_GetAllCandidateActivities(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.CandidateActivityResponseGetAll)
+	res := resTmp.(*ent.CandidateActivityResponse)
 	fc.Result = res
-	return ec.marshalNCandidateActivityResponseGetAll2ᚖtrecᚋentᚐCandidateActivityResponseGetAll(ctx, field.Selections, res)
+	return ec.marshalNCandidateActivityResponse2ᚖtrecᚋentᚐCandidateActivityResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_GetAllCandidateActivities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_GetCandidateActivities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -39113,12 +38990,10 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateActivities(ctx con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "edges":
-				return ec.fieldContext_CandidateActivityResponseGetAll_edges(ctx, field)
-			case "pagination":
-				return ec.fieldContext_CandidateActivityResponseGetAll_pagination(ctx, field)
+			case "data":
+				return ec.fieldContext_CandidateActivityResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type CandidateActivityResponseGetAll", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CandidateActivityResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -39128,7 +39003,7 @@ func (ec *executionContext) fieldContext_Query_GetAllCandidateActivities(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_GetAllCandidateActivities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_GetCandidateActivities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -54508,37 +54383,9 @@ func (ec *executionContext) _CandidateActivity(ctx context.Context, sel ast.Sele
 
 			out.Values[i] = ec._CandidateActivity_candidate_interviews(ctx, field, obj)
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
+		case "total":
 
-var candidateActivityEdgeImplementors = []string{"CandidateActivityEdge"}
-
-func (ec *executionContext) _CandidateActivityEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateActivityEdge) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, candidateActivityEdgeImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("CandidateActivityEdge")
-		case "node":
-
-			out.Values[i] = ec._CandidateActivityEdge_node(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "cursor":
-
-			out.Values[i] = ec._CandidateActivityEdge_cursor(ctx, field, obj)
+			out.Values[i] = ec._CandidateActivity_total(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -54554,26 +54401,19 @@ func (ec *executionContext) _CandidateActivityEdge(ctx context.Context, sel ast.
 	return out
 }
 
-var candidateActivityResponseGetAllImplementors = []string{"CandidateActivityResponseGetAll"}
+var candidateActivityResponseImplementors = []string{"CandidateActivityResponse"}
 
-func (ec *executionContext) _CandidateActivityResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateActivityResponseGetAll) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, candidateActivityResponseGetAllImplementors)
+func (ec *executionContext) _CandidateActivityResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.CandidateActivityResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, candidateActivityResponseImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("CandidateActivityResponseGetAll")
-		case "edges":
+			out.Values[i] = graphql.MarshalString("CandidateActivityResponse")
+		case "data":
 
-			out.Values[i] = ec._CandidateActivityResponseGetAll_edges(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "pagination":
-
-			out.Values[i] = ec._CandidateActivityResponseGetAll_pagination(ctx, field, obj)
+			out.Values[i] = ec._CandidateActivityResponse_data(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -61277,7 +61117,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "GetAllCandidateActivities":
+		case "GetCandidateActivities":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -61286,7 +61126,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_GetAllCandidateActivities(ctx, field)
+				res = ec._Query_GetCandidateActivities(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -64166,62 +64006,13 @@ func (ec *executionContext) marshalNCandidateActivity2ᚖtrecᚋentᚐCandidateA
 	return ec._CandidateActivity(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCandidateActivityEdge2ᚕᚖtrecᚋentᚐCandidateActivityEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CandidateActivityEdge) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNCandidateActivityEdge2ᚖtrecᚋentᚐCandidateActivityEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNCandidateActivityEdge2ᚖtrecᚋentᚐCandidateActivityEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateActivityEdge) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CandidateActivityEdge(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNCandidateActivityFilter2trecᚋentᚐCandidateActivityFilter(ctx context.Context, v interface{}) (ent.CandidateActivityFilter, error) {
 	res, err := ec.unmarshalInputCandidateActivityFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCandidateActivityOrder2trecᚋentᚐCandidateActivityOrder(ctx context.Context, v interface{}) (ent.CandidateActivityOrder, error) {
+	res, err := ec.unmarshalInputCandidateActivityOrder(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -64235,18 +64026,18 @@ func (ec *executionContext) marshalNCandidateActivityOrderField2trecᚋentᚐCan
 	return v
 }
 
-func (ec *executionContext) marshalNCandidateActivityResponseGetAll2trecᚋentᚐCandidateActivityResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.CandidateActivityResponseGetAll) graphql.Marshaler {
-	return ec._CandidateActivityResponseGetAll(ctx, sel, &v)
+func (ec *executionContext) marshalNCandidateActivityResponse2trecᚋentᚐCandidateActivityResponse(ctx context.Context, sel ast.SelectionSet, v ent.CandidateActivityResponse) graphql.Marshaler {
+	return ec._CandidateActivityResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCandidateActivityResponseGetAll2ᚖtrecᚋentᚐCandidateActivityResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateActivityResponseGetAll) graphql.Marshaler {
+func (ec *executionContext) marshalNCandidateActivityResponse2ᚖtrecᚋentᚐCandidateActivityResponse(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateActivityResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._CandidateActivityResponseGetAll(ctx, sel, v)
+	return ec._CandidateActivityResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCandidateAward2ᚖtrecᚋentᚐCandidateAward(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateAward) graphql.Marshaler {
@@ -68688,14 +68479,6 @@ func (ec *executionContext) unmarshalOCandidateActivityFreeWord2ᚖtrecᚋentᚐ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputCandidateActivityFreeWord(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOCandidateActivityOrder2ᚖtrecᚋentᚐCandidateActivityOrder(ctx context.Context, v interface{}) (*ent.CandidateActivityOrder, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputCandidateActivityOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -277,9 +277,9 @@ func (r *queryResolver) GetAllCandidateNotes(ctx context.Context, pagination *en
 	return r.serviceRegistry.CandidateNote().GetCandidateNotes(ctx, pagination, filter, freeWord, orderBy)
 }
 
-// GetAllCandidateActivities is the resolver for the GetAllCandidateActivities field.
-func (r *queryResolver) GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy *ent.CandidateActivityOrder) (*ent.CandidateActivityResponseGetAll, error) {
-	panic(fmt.Errorf("not implemented: GetAllCandidateActivities - GetAllCandidateActivities"))
+// GetCandidateActivities is the resolver for the GetCandidateActivities field.
+func (r *queryResolver) GetCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error) {
+	panic(fmt.Errorf("not implemented: GetCandidateActivities - GetCandidateActivities"))
 }
 
 // Query returns graphql1.QueryResolver implementation.
