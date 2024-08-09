@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -393,6 +394,21 @@ func (uc *UserCreate) AddCandidateNoteEdges(c ...*CandidateNote) *UserCreate {
 		ids[i] = c[i].ID
 	}
 	return uc.AddCandidateNoteEdgeIDs(ids...)
+}
+
+// AddCandidateHistoryCallEdgeIDs adds the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by IDs.
+func (uc *UserCreate) AddCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCandidateHistoryCallEdgeIDs(ids...)
+	return uc
+}
+
+// AddCandidateHistoryCallEdges adds the "candidate_history_call_edges" edges to the CandidateHistoryCall entity.
+func (uc *UserCreate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCandidateHistoryCallEdgeIDs(ids...)
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
@@ -947,6 +963,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CandidateHistoryCallEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateHistoryCallEdgesTable,
+			Columns: []string{user.CandidateHistoryCallEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatehistorycall.FieldID,
 				},
 			},
 		}

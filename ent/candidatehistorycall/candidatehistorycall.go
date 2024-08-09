@@ -34,10 +34,14 @@ const (
 	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the end_time field in the database.
 	FieldEndTime = "end_time"
+	// FieldCreatedByID holds the string denoting the created_by_id field in the database.
+	FieldCreatedByID = "created_by_id"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
+	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
+	EdgeCreatedByEdge = "created_by_edge"
 	// Table holds the table name of the candidatehistorycall in the database.
 	Table = "candidate_history_calls"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -54,6 +58,13 @@ const (
 	CandidateEdgeInverseTable = "candidates"
 	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
 	CandidateEdgeColumn = "candidate_id"
+	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
+	CreatedByEdgeTable = "candidate_history_calls"
+	// CreatedByEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatedByEdgeInverseTable = "users"
+	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
+	CreatedByEdgeColumn = "created_by_id"
 )
 
 // Columns holds all SQL columns for candidatehistorycall fields.
@@ -69,6 +80,7 @@ var Columns = []string{
 	FieldDate,
 	FieldStartTime,
 	FieldEndTime,
+	FieldCreatedByID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

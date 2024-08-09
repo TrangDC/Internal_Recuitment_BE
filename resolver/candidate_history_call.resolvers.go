@@ -35,6 +35,11 @@ func (r *candidateHistoryCallResolver) Edited(ctx context.Context, obj *ent.Cand
 	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil
 }
 
+// CreatedBy is the resolver for the created_by field.
+func (r *candidateHistoryCallResolver) CreatedBy(ctx context.Context, obj *ent.CandidateHistoryCall) (*ent.User, error) {
+	return obj.Edges.CreatedByEdge, nil
+}
+
 // CandidateHistoryCall returns graphql1.CandidateHistoryCallResolver implementation.
 func (r *Resolver) CandidateHistoryCall() graphql1.CandidateHistoryCallResolver {
 	return &candidateHistoryCallResolver{r}

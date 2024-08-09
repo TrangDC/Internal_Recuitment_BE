@@ -1331,6 +1331,34 @@ func HasCandidateNoteEdgesWith(preds ...predicate.CandidateNote) predicate.User 
 	})
 }
 
+// HasCandidateHistoryCallEdges applies the HasEdge predicate on the "candidate_history_call_edges" edge.
+func HasCandidateHistoryCallEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateHistoryCallEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateHistoryCallEdgesTable, CandidateHistoryCallEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateHistoryCallEdgesWith applies the HasEdge predicate on the "candidate_history_call_edges" edge with a given conditions (other predicates).
+func HasCandidateHistoryCallEdgesWith(preds ...predicate.CandidateHistoryCall) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateHistoryCallEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CandidateHistoryCallEdgesTable, CandidateHistoryCallEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasInterviewUsers applies the HasEdge predicate on the "interview_users" edge.
 func HasInterviewUsers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

@@ -8824,6 +8824,8 @@ type CandidateHistoryCallMutation struct {
 	clearedattachment_edges bool
 	candidate_edge          *uuid.UUID
 	clearedcandidate_edge   bool
+	created_by_edge         *uuid.UUID
+	clearedcreated_by_edge  bool
 	done                    bool
 	oldValue                func(context.Context) (*CandidateHistoryCall, error)
 	predicates              []predicate.CandidateHistoryCall
@@ -9410,6 +9412,55 @@ func (m *CandidateHistoryCallMutation) ResetEndTime() {
 	delete(m.clearedFields, candidatehistorycall.FieldEndTime)
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (m *CandidateHistoryCallMutation) SetCreatedByID(u uuid.UUID) {
+	m.created_by_edge = &u
+}
+
+// CreatedByID returns the value of the "created_by_id" field in the mutation.
+func (m *CandidateHistoryCallMutation) CreatedByID() (r uuid.UUID, exists bool) {
+	v := m.created_by_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedByID returns the old "created_by_id" field's value of the CandidateHistoryCall entity.
+// If the CandidateHistoryCall object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateHistoryCallMutation) OldCreatedByID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
+	}
+	return oldValue.CreatedByID, nil
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (m *CandidateHistoryCallMutation) ClearCreatedByID() {
+	m.created_by_edge = nil
+	m.clearedFields[candidatehistorycall.FieldCreatedByID] = struct{}{}
+}
+
+// CreatedByIDCleared returns if the "created_by_id" field was cleared in this mutation.
+func (m *CandidateHistoryCallMutation) CreatedByIDCleared() bool {
+	_, ok := m.clearedFields[candidatehistorycall.FieldCreatedByID]
+	return ok
+}
+
+// ResetCreatedByID resets all changes to the "created_by_id" field.
+func (m *CandidateHistoryCallMutation) ResetCreatedByID() {
+	m.created_by_edge = nil
+	delete(m.clearedFields, candidatehistorycall.FieldCreatedByID)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateHistoryCallMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -9503,6 +9554,45 @@ func (m *CandidateHistoryCallMutation) ResetCandidateEdge() {
 	m.clearedcandidate_edge = false
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by id.
+func (m *CandidateHistoryCallMutation) SetCreatedByEdgeID(id uuid.UUID) {
+	m.created_by_edge = &id
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (m *CandidateHistoryCallMutation) ClearCreatedByEdge() {
+	m.clearedcreated_by_edge = true
+}
+
+// CreatedByEdgeCleared reports if the "created_by_edge" edge to the User entity was cleared.
+func (m *CandidateHistoryCallMutation) CreatedByEdgeCleared() bool {
+	return m.CreatedByIDCleared() || m.clearedcreated_by_edge
+}
+
+// CreatedByEdgeID returns the "created_by_edge" edge ID in the mutation.
+func (m *CandidateHistoryCallMutation) CreatedByEdgeID() (id uuid.UUID, exists bool) {
+	if m.created_by_edge != nil {
+		return *m.created_by_edge, true
+	}
+	return
+}
+
+// CreatedByEdgeIDs returns the "created_by_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatedByEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateHistoryCallMutation) CreatedByEdgeIDs() (ids []uuid.UUID) {
+	if id := m.created_by_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreatedByEdge resets all changes to the "created_by_edge" edge.
+func (m *CandidateHistoryCallMutation) ResetCreatedByEdge() {
+	m.created_by_edge = nil
+	m.clearedcreated_by_edge = false
+}
+
 // Where appends a list predicates to the CandidateHistoryCallMutation builder.
 func (m *CandidateHistoryCallMutation) Where(ps ...predicate.CandidateHistoryCall) {
 	m.predicates = append(m.predicates, ps...)
@@ -9522,7 +9612,7 @@ func (m *CandidateHistoryCallMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateHistoryCallMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, candidatehistorycall.FieldCreatedAt)
 	}
@@ -9553,6 +9643,9 @@ func (m *CandidateHistoryCallMutation) Fields() []string {
 	if m.end_time != nil {
 		fields = append(fields, candidatehistorycall.FieldEndTime)
 	}
+	if m.created_by_edge != nil {
+		fields = append(fields, candidatehistorycall.FieldCreatedByID)
+	}
 	return fields
 }
 
@@ -9581,6 +9674,8 @@ func (m *CandidateHistoryCallMutation) Field(name string) (ent.Value, bool) {
 		return m.StartTime()
 	case candidatehistorycall.FieldEndTime:
 		return m.EndTime()
+	case candidatehistorycall.FieldCreatedByID:
+		return m.CreatedByID()
 	}
 	return nil, false
 }
@@ -9610,6 +9705,8 @@ func (m *CandidateHistoryCallMutation) OldField(ctx context.Context, name string
 		return m.OldStartTime(ctx)
 	case candidatehistorycall.FieldEndTime:
 		return m.OldEndTime(ctx)
+	case candidatehistorycall.FieldCreatedByID:
+		return m.OldCreatedByID(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateHistoryCall field %s", name)
 }
@@ -9689,6 +9786,13 @@ func (m *CandidateHistoryCallMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetEndTime(v)
 		return nil
+	case candidatehistorycall.FieldCreatedByID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedByID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateHistoryCall field %s", name)
 }
@@ -9746,6 +9850,9 @@ func (m *CandidateHistoryCallMutation) ClearedFields() []string {
 	if m.FieldCleared(candidatehistorycall.FieldEndTime) {
 		fields = append(fields, candidatehistorycall.FieldEndTime)
 	}
+	if m.FieldCleared(candidatehistorycall.FieldCreatedByID) {
+		fields = append(fields, candidatehistorycall.FieldCreatedByID)
+	}
 	return fields
 }
 
@@ -9787,6 +9894,9 @@ func (m *CandidateHistoryCallMutation) ClearField(name string) error {
 	case candidatehistorycall.FieldEndTime:
 		m.ClearEndTime()
 		return nil
+	case candidatehistorycall.FieldCreatedByID:
+		m.ClearCreatedByID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateHistoryCall nullable field %s", name)
 }
@@ -9825,18 +9935,24 @@ func (m *CandidateHistoryCallMutation) ResetField(name string) error {
 	case candidatehistorycall.FieldEndTime:
 		m.ResetEndTime()
 		return nil
+	case candidatehistorycall.FieldCreatedByID:
+		m.ResetCreatedByID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateHistoryCall field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateHistoryCallMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.attachment_edges != nil {
 		edges = append(edges, candidatehistorycall.EdgeAttachmentEdges)
 	}
 	if m.candidate_edge != nil {
 		edges = append(edges, candidatehistorycall.EdgeCandidateEdge)
+	}
+	if m.created_by_edge != nil {
+		edges = append(edges, candidatehistorycall.EdgeCreatedByEdge)
 	}
 	return edges
 }
@@ -9855,13 +9971,17 @@ func (m *CandidateHistoryCallMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case candidatehistorycall.EdgeCreatedByEdge:
+		if id := m.created_by_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateHistoryCallMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedattachment_edges != nil {
 		edges = append(edges, candidatehistorycall.EdgeAttachmentEdges)
 	}
@@ -9884,12 +10004,15 @@ func (m *CandidateHistoryCallMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateHistoryCallMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedattachment_edges {
 		edges = append(edges, candidatehistorycall.EdgeAttachmentEdges)
 	}
 	if m.clearedcandidate_edge {
 		edges = append(edges, candidatehistorycall.EdgeCandidateEdge)
+	}
+	if m.clearedcreated_by_edge {
+		edges = append(edges, candidatehistorycall.EdgeCreatedByEdge)
 	}
 	return edges
 }
@@ -9902,6 +10025,8 @@ func (m *CandidateHistoryCallMutation) EdgeCleared(name string) bool {
 		return m.clearedattachment_edges
 	case candidatehistorycall.EdgeCandidateEdge:
 		return m.clearedcandidate_edge
+	case candidatehistorycall.EdgeCreatedByEdge:
+		return m.clearedcreated_by_edge
 	}
 	return false
 }
@@ -9912,6 +10037,9 @@ func (m *CandidateHistoryCallMutation) ClearEdge(name string) error {
 	switch name {
 	case candidatehistorycall.EdgeCandidateEdge:
 		m.ClearCandidateEdge()
+		return nil
+	case candidatehistorycall.EdgeCreatedByEdge:
+		m.ClearCreatedByEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateHistoryCall unique edge %s", name)
@@ -9926,6 +10054,9 @@ func (m *CandidateHistoryCallMutation) ResetEdge(name string) error {
 		return nil
 	case candidatehistorycall.EdgeCandidateEdge:
 		m.ResetCandidateEdge()
+		return nil
+	case candidatehistorycall.EdgeCreatedByEdge:
+		m.ResetCreatedByEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateHistoryCall edge %s", name)
@@ -31495,75 +31626,78 @@ func (m *SkillTypeMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                                 Op
-	typ                                string
-	id                                 *uuid.UUID
-	created_at                         *time.Time
-	updated_at                         *time.Time
-	deleted_at                         *time.Time
-	name                               *string
-	work_email                         *string
-	status                             *user.Status
-	oid                                *string
-	location                           *string
-	clearedFields                      map[string]struct{}
-	audit_edge                         map[uuid.UUID]struct{}
-	removedaudit_edge                  map[uuid.UUID]struct{}
-	clearedaudit_edge                  bool
-	hiring_owner                       map[uuid.UUID]struct{}
-	removedhiring_owner                map[uuid.UUID]struct{}
-	clearedhiring_owner                bool
-	candidate_job_feedback             map[uuid.UUID]struct{}
-	removedcandidate_job_feedback      map[uuid.UUID]struct{}
-	clearedcandidate_job_feedback      bool
-	interview_edges                    map[uuid.UUID]struct{}
-	removedinterview_edges             map[uuid.UUID]struct{}
-	clearedinterview_edges             bool
-	candidate_job_edges                map[uuid.UUID]struct{}
-	removedcandidate_job_edges         map[uuid.UUID]struct{}
-	clearedcandidate_job_edges         bool
-	candidate_interview_edges          map[uuid.UUID]struct{}
-	removedcandidate_interview_edges   map[uuid.UUID]struct{}
-	clearedcandidate_interview_edges   bool
-	candidate_reference_edges          map[uuid.UUID]struct{}
-	removedcandidate_reference_edges   map[uuid.UUID]struct{}
-	clearedcandidate_reference_edges   bool
-	user_permission_edges              map[uuid.UUID]struct{}
-	removeduser_permission_edges       map[uuid.UUID]struct{}
-	cleareduser_permission_edges       bool
-	role_edges                         map[uuid.UUID]struct{}
-	removedrole_edges                  map[uuid.UUID]struct{}
-	clearedrole_edges                  bool
-	hiring_team_edges                  map[uuid.UUID]struct{}
-	removedhiring_team_edges           map[uuid.UUID]struct{}
-	clearedhiring_team_edges           bool
-	member_of_hiring_team_edges        *uuid.UUID
-	clearedmember_of_hiring_team_edges bool
-	approvers_hiring_teams             map[uuid.UUID]struct{}
-	removedapprovers_hiring_teams      map[uuid.UUID]struct{}
-	clearedapprovers_hiring_teams      bool
-	leader_rec_edge                    *uuid.UUID
-	clearedleader_rec_edge             bool
-	rec_teams                          *uuid.UUID
-	clearedrec_teams                   bool
-	candidate_note_edges               map[uuid.UUID]struct{}
-	removedcandidate_note_edges        map[uuid.UUID]struct{}
-	clearedcandidate_note_edges        bool
-	interview_users                    map[uuid.UUID]struct{}
-	removedinterview_users             map[uuid.UUID]struct{}
-	clearedinterview_users             bool
-	role_users                         map[uuid.UUID]struct{}
-	removedrole_users                  map[uuid.UUID]struct{}
-	clearedrole_users                  bool
-	hiring_team_users                  map[uuid.UUID]struct{}
-	removedhiring_team_users           map[uuid.UUID]struct{}
-	clearedhiring_team_users           bool
-	hiring_team_approvers              map[uuid.UUID]struct{}
-	removedhiring_team_approvers       map[uuid.UUID]struct{}
-	clearedhiring_team_approvers       bool
-	done                               bool
-	oldValue                           func(context.Context) (*User, error)
-	predicates                         []predicate.User
+	op                                  Op
+	typ                                 string
+	id                                  *uuid.UUID
+	created_at                          *time.Time
+	updated_at                          *time.Time
+	deleted_at                          *time.Time
+	name                                *string
+	work_email                          *string
+	status                              *user.Status
+	oid                                 *string
+	location                            *string
+	clearedFields                       map[string]struct{}
+	audit_edge                          map[uuid.UUID]struct{}
+	removedaudit_edge                   map[uuid.UUID]struct{}
+	clearedaudit_edge                   bool
+	hiring_owner                        map[uuid.UUID]struct{}
+	removedhiring_owner                 map[uuid.UUID]struct{}
+	clearedhiring_owner                 bool
+	candidate_job_feedback              map[uuid.UUID]struct{}
+	removedcandidate_job_feedback       map[uuid.UUID]struct{}
+	clearedcandidate_job_feedback       bool
+	interview_edges                     map[uuid.UUID]struct{}
+	removedinterview_edges              map[uuid.UUID]struct{}
+	clearedinterview_edges              bool
+	candidate_job_edges                 map[uuid.UUID]struct{}
+	removedcandidate_job_edges          map[uuid.UUID]struct{}
+	clearedcandidate_job_edges          bool
+	candidate_interview_edges           map[uuid.UUID]struct{}
+	removedcandidate_interview_edges    map[uuid.UUID]struct{}
+	clearedcandidate_interview_edges    bool
+	candidate_reference_edges           map[uuid.UUID]struct{}
+	removedcandidate_reference_edges    map[uuid.UUID]struct{}
+	clearedcandidate_reference_edges    bool
+	user_permission_edges               map[uuid.UUID]struct{}
+	removeduser_permission_edges        map[uuid.UUID]struct{}
+	cleareduser_permission_edges        bool
+	role_edges                          map[uuid.UUID]struct{}
+	removedrole_edges                   map[uuid.UUID]struct{}
+	clearedrole_edges                   bool
+	hiring_team_edges                   map[uuid.UUID]struct{}
+	removedhiring_team_edges            map[uuid.UUID]struct{}
+	clearedhiring_team_edges            bool
+	member_of_hiring_team_edges         *uuid.UUID
+	clearedmember_of_hiring_team_edges  bool
+	approvers_hiring_teams              map[uuid.UUID]struct{}
+	removedapprovers_hiring_teams       map[uuid.UUID]struct{}
+	clearedapprovers_hiring_teams       bool
+	leader_rec_edge                     *uuid.UUID
+	clearedleader_rec_edge              bool
+	rec_teams                           *uuid.UUID
+	clearedrec_teams                    bool
+	candidate_note_edges                map[uuid.UUID]struct{}
+	removedcandidate_note_edges         map[uuid.UUID]struct{}
+	clearedcandidate_note_edges         bool
+	candidate_history_call_edges        map[uuid.UUID]struct{}
+	removedcandidate_history_call_edges map[uuid.UUID]struct{}
+	clearedcandidate_history_call_edges bool
+	interview_users                     map[uuid.UUID]struct{}
+	removedinterview_users              map[uuid.UUID]struct{}
+	clearedinterview_users              bool
+	role_users                          map[uuid.UUID]struct{}
+	removedrole_users                   map[uuid.UUID]struct{}
+	clearedrole_users                   bool
+	hiring_team_users                   map[uuid.UUID]struct{}
+	removedhiring_team_users            map[uuid.UUID]struct{}
+	clearedhiring_team_users            bool
+	hiring_team_approvers               map[uuid.UUID]struct{}
+	removedhiring_team_approvers        map[uuid.UUID]struct{}
+	clearedhiring_team_approvers        bool
+	done                                bool
+	oldValue                            func(context.Context) (*User, error)
+	predicates                          []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -32860,6 +32994,60 @@ func (m *UserMutation) ResetCandidateNoteEdges() {
 	m.removedcandidate_note_edges = nil
 }
 
+// AddCandidateHistoryCallEdgeIDs adds the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by ids.
+func (m *UserMutation) AddCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_history_call_edges == nil {
+		m.candidate_history_call_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_history_call_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateHistoryCallEdges clears the "candidate_history_call_edges" edge to the CandidateHistoryCall entity.
+func (m *UserMutation) ClearCandidateHistoryCallEdges() {
+	m.clearedcandidate_history_call_edges = true
+}
+
+// CandidateHistoryCallEdgesCleared reports if the "candidate_history_call_edges" edge to the CandidateHistoryCall entity was cleared.
+func (m *UserMutation) CandidateHistoryCallEdgesCleared() bool {
+	return m.clearedcandidate_history_call_edges
+}
+
+// RemoveCandidateHistoryCallEdgeIDs removes the "candidate_history_call_edges" edge to the CandidateHistoryCall entity by IDs.
+func (m *UserMutation) RemoveCandidateHistoryCallEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_history_call_edges == nil {
+		m.removedcandidate_history_call_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_history_call_edges, ids[i])
+		m.removedcandidate_history_call_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateHistoryCallEdges returns the removed IDs of the "candidate_history_call_edges" edge to the CandidateHistoryCall entity.
+func (m *UserMutation) RemovedCandidateHistoryCallEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_history_call_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateHistoryCallEdgesIDs returns the "candidate_history_call_edges" edge IDs in the mutation.
+func (m *UserMutation) CandidateHistoryCallEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_history_call_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateHistoryCallEdges resets all changes to the "candidate_history_call_edges" edge.
+func (m *UserMutation) ResetCandidateHistoryCallEdges() {
+	m.candidate_history_call_edges = nil
+	m.clearedcandidate_history_call_edges = false
+	m.removedcandidate_history_call_edges = nil
+}
+
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by ids.
 func (m *UserMutation) AddInterviewUserIDs(ids ...uuid.UUID) {
 	if m.interview_users == nil {
@@ -33380,7 +33568,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -33425,6 +33613,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.candidate_note_edges != nil {
 		edges = append(edges, user.EdgeCandidateNoteEdges)
+	}
+	if m.candidate_history_call_edges != nil {
+		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
 	if m.interview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -33529,6 +33720,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCandidateHistoryCallEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_history_call_edges))
+		for id := range m.candidate_history_call_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.interview_users))
 		for id := range m.interview_users {
@@ -33559,7 +33756,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -33595,6 +33792,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedcandidate_note_edges != nil {
 		edges = append(edges, user.EdgeCandidateNoteEdges)
+	}
+	if m.removedcandidate_history_call_edges != nil {
+		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
 	if m.removedinterview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -33687,6 +33887,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCandidateHistoryCallEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_history_call_edges))
+		for id := range m.removedcandidate_history_call_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.removedinterview_users))
 		for id := range m.removedinterview_users {
@@ -33717,7 +33923,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -33762,6 +33968,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_note_edges {
 		edges = append(edges, user.EdgeCandidateNoteEdges)
+	}
+	if m.clearedcandidate_history_call_edges {
+		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
 	if m.clearedinterview_users {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -33812,6 +34021,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedrec_teams
 	case user.EdgeCandidateNoteEdges:
 		return m.clearedcandidate_note_edges
+	case user.EdgeCandidateHistoryCallEdges:
+		return m.clearedcandidate_history_call_edges
 	case user.EdgeInterviewUsers:
 		return m.clearedinterview_users
 	case user.EdgeRoleUsers:
@@ -33889,6 +34100,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeCandidateNoteEdges:
 		m.ResetCandidateNoteEdges()
+		return nil
+	case user.EdgeCandidateHistoryCallEdges:
+		m.ResetCandidateHistoryCallEdges()
 		return nil
 	case user.EdgeInterviewUsers:
 		m.ResetInterviewUsers()

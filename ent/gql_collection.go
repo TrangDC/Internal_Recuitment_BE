@@ -824,6 +824,16 @@ func (chc *CandidateHistoryCallQuery) collectField(ctx context.Context, op *grap
 				return err
 			}
 			chc.withCandidateEdge = query
+		case "createdByEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: chc.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			chc.withCreatedByEdge = query
 		}
 	}
 	return nil
@@ -3261,6 +3271,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedCandidateNoteEdges(alias, func(wq *CandidateNoteQuery) {
+				*wq = *query
+			})
+		case "candidateHistoryCallEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateHistoryCallQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedCandidateHistoryCallEdges(alias, func(wq *CandidateHistoryCallQuery) {
 				*wq = *query
 			})
 		case "interviewUsers":

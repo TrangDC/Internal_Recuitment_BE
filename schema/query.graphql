@@ -74,6 +74,10 @@ type Query {
   GetAllEmailTemplates(pagination: PaginationInput, filter: EmailTemplateFilter, freeWord: EmailTemplateFreeWord, orderBy: EmailTemplateOrder): EmailTemplateResponseGetAll!
   GetAllEmailTemplateKeywords(filter: EmailTemplateKeywordFilter!): GetEmailTemplateKeywordResponse!
 
+  # Candidate History Call
+  GetCandidateHistoryCall(id: ID!): CandidateHistoryCallResponse!
+  GetAllCandidateHistoryCalls(pagination: PaginationInput, filter: CandidateHistoryCallFilter, freeWord: CandidateHistoryCallFreeWord, orderBy: CandidateHistoryCallOrder): CandidateHistoryCallResponseGetAll!
+
   # Permission
   GetAllPermissionGroups: PermissionGroupResponseGetAll
 

@@ -226,6 +226,16 @@ func (r *queryResolver) GetAllEmailTemplateKeywords(ctx context.Context, filter 
 	return r.serviceRegistry.EmailTemplate().GetAllEmailTemplateKeyword(filter)
 }
 
+// GetCandidateHistoryCall is the resolver for the GetCandidateHistoryCall field.
+func (r *queryResolver) GetCandidateHistoryCall(ctx context.Context, id string) (*ent.CandidateHistoryCallResponse, error) {
+	return r.serviceRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, uuid.MustParse(id))
+}
+
+// GetAllCandidateHistoryCalls is the resolver for the GetAllCandidateHistoryCalls field.
+func (r *queryResolver) GetAllCandidateHistoryCalls(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateHistoryCallFilter, freeWord *ent.CandidateHistoryCallFreeWord, orderBy *ent.CandidateHistoryCallOrder) (*ent.CandidateHistoryCallResponseGetAll, error) {
+	return r.serviceRegistry.CandidateHistoryCall().GetCandidateHistoryCalls(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // GetAllPermissionGroups is the resolver for the GetAllPermissionGroups field.
 func (r *queryResolver) GetAllPermissionGroups(ctx context.Context) (*ent.PermissionGroupResponseGetAll, error) {
 	return r.serviceRegistry.PermissionGroup().GetAllPermissionGroups(ctx)

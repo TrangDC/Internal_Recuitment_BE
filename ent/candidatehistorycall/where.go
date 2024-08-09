@@ -145,6 +145,13 @@ func EndTime(v time.Time) predicate.CandidateHistoryCall {
 	})
 }
 
+// CreatedByID applies equality check predicate on the "created_by_id" field. It's identical to CreatedByIDEQ.
+func CreatedByID(v uuid.UUID) predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedByID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.CandidateHistoryCall {
 	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
@@ -925,6 +932,56 @@ func EndTimeNotNil() predicate.CandidateHistoryCall {
 	})
 }
 
+// CreatedByIDEQ applies the EQ predicate on the "created_by_id" field.
+func CreatedByIDEQ(v uuid.UUID) predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedByID), v))
+	})
+}
+
+// CreatedByIDNEQ applies the NEQ predicate on the "created_by_id" field.
+func CreatedByIDNEQ(v uuid.UUID) predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedByID), v))
+	})
+}
+
+// CreatedByIDIn applies the In predicate on the "created_by_id" field.
+func CreatedByIDIn(vs ...uuid.UUID) predicate.CandidateHistoryCall {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCreatedByID), v...))
+	})
+}
+
+// CreatedByIDNotIn applies the NotIn predicate on the "created_by_id" field.
+func CreatedByIDNotIn(vs ...uuid.UUID) predicate.CandidateHistoryCall {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCreatedByID), v...))
+	})
+}
+
+// CreatedByIDIsNil applies the IsNil predicate on the "created_by_id" field.
+func CreatedByIDIsNil() predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCreatedByID)))
+	})
+}
+
+// CreatedByIDNotNil applies the NotNil predicate on the "created_by_id" field.
+func CreatedByIDNotNil() predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCreatedByID)))
+	})
+}
+
 // HasAttachmentEdges applies the HasEdge predicate on the "attachment_edges" edge.
 func HasAttachmentEdges() predicate.CandidateHistoryCall {
 	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
@@ -972,6 +1029,34 @@ func HasCandidateEdgeWith(preds ...predicate.Candidate) predicate.CandidateHisto
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CandidateEdgeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedByEdge applies the HasEdge predicate on the "created_by_edge" edge.
+func HasCreatedByEdge() predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedByEdgeWith applies the HasEdge predicate on the "created_by_edge" edge with a given conditions (other predicates).
+func HasCreatedByEdgeWith(preds ...predicate.User) predicate.CandidateHistoryCall {
+	return predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -1520,6 +1520,22 @@ func (c *CandidateHistoryCallClient) QueryCandidateEdge(chc *CandidateHistoryCal
 	return query
 }
 
+// QueryCreatedByEdge queries the created_by_edge edge of a CandidateHistoryCall.
+func (c *CandidateHistoryCallClient) QueryCreatedByEdge(chc *CandidateHistoryCall) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := chc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatehistorycall.Table, candidatehistorycall.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatehistorycall.CreatedByEdgeTable, candidatehistorycall.CreatedByEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(chc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateHistoryCallClient) Hooks() []Hook {
 	return c.hooks.CandidateHistoryCall
@@ -4815,6 +4831,22 @@ func (c *UserClient) QueryCandidateNoteEdges(u *User) *CandidateNoteQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(candidatenote.Table, candidatenote.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateNoteEdgesTable, user.CandidateNoteEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateHistoryCallEdges queries the candidate_history_call_edges edge of a User.
+func (c *UserClient) QueryCandidateHistoryCallEdges(u *User) *CandidateHistoryCallQuery {
+	query := &CandidateHistoryCallQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateHistoryCallEdgesTable, user.CandidateHistoryCallEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

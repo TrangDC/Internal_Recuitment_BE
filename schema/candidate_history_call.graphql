@@ -25,7 +25,6 @@ input CandidateHistoryCallFreeWord {
   description: String
 }
 
-
 type CandidateHistoryCall {
   id: ID!
   candidate_id: ID!
@@ -37,6 +36,7 @@ type CandidateHistoryCall {
   candidate: Candidate!
   edited: Boolean!
   description: String!
+  created_by: User!
   createdAt: Time!
   updatedAt: Time!
 }
@@ -46,17 +46,18 @@ input NewCandidateHistoryCallInput {
   type: CandidateHistoryCallTypeEnum!
   contact_to: String!
   date: Time!
-  start_time: Time!
-  end_time: Time!
+  start_time: Time
+  end_time: Time
   description: String!
 }
 
 input UpdateCandidateHistoryCallInput {
-  contact_to: String
-  date: Time
+  contact_to: String!
+  type: CandidateHistoryCallTypeEnum!
+  date: Time!
   start_time: Time
   end_time: Time
-  description: String
+  description: String!
 }
 
 type CandidateHistoryCallResponse {

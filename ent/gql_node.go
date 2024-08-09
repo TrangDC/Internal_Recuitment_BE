@@ -991,8 +991,8 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	node = &Node{
 		ID:     chc.ID,
 		Type:   "CandidateHistoryCall",
-		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(chc.CreatedAt); err != nil {
@@ -1075,6 +1075,14 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 		Name:  "end_time",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(chc.CreatedByID); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "created_by_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Attachment",
 		Name: "attachment_edges",
@@ -1092,6 +1100,16 @@ func (chc *CandidateHistoryCall) Node(ctx context.Context) (node *Node, err erro
 	err = chc.QueryCandidateEdge().
 		Select(candidate.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "User",
+		Name: "created_by_edge",
+	}
+	err = chc.QueryCreatedByEdge().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -3333,7 +3351,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 19),
+		Edges:  make([]*Edge, 20),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreatedAt); err != nil {
@@ -3567,42 +3585,52 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[15] = &Edge{
-		Type: "CandidateInterviewer",
-		Name: "interview_users",
+		Type: "CandidateHistoryCall",
+		Name: "candidate_history_call_edges",
 	}
-	err = u.QueryInterviewUsers().
-		Select(candidateinterviewer.FieldID).
+	err = u.QueryCandidateHistoryCallEdges().
+		Select(candidatehistorycall.FieldID).
 		Scan(ctx, &node.Edges[15].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[16] = &Edge{
-		Type: "UserRole",
-		Name: "role_users",
+		Type: "CandidateInterviewer",
+		Name: "interview_users",
 	}
-	err = u.QueryRoleUsers().
-		Select(userrole.FieldID).
+	err = u.QueryInterviewUsers().
+		Select(candidateinterviewer.FieldID).
 		Scan(ctx, &node.Edges[16].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[17] = &Edge{
-		Type: "HiringTeamManager",
-		Name: "hiring_team_users",
+		Type: "UserRole",
+		Name: "role_users",
 	}
-	err = u.QueryHiringTeamUsers().
-		Select(hiringteammanager.FieldID).
+	err = u.QueryRoleUsers().
+		Select(userrole.FieldID).
 		Scan(ctx, &node.Edges[17].IDs)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[18] = &Edge{
+		Type: "HiringTeamManager",
+		Name: "hiring_team_users",
+	}
+	err = u.QueryHiringTeamUsers().
+		Select(hiringteammanager.FieldID).
+		Scan(ctx, &node.Edges[18].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[19] = &Edge{
 		Type: "HiringTeamApprover",
 		Name: "hiring_team_approvers",
 	}
 	err = u.QueryHiringTeamApprovers().
 		Select(hiringteamapprover.FieldID).
-		Scan(ctx, &node.Edges[18].IDs)
+		Scan(ctx, &node.Edges[19].IDs)
 	if err != nil {
 		return nil, err
 	}

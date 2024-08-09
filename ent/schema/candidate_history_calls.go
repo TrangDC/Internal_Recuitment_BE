@@ -22,6 +22,7 @@ func (CandidateHistoryCall) Fields() []ent.Field {
 		field.Time("date").Optional(),
 		field.Time("start_time").Optional(),
 		field.Time("end_time").Optional(),
+		field.UUID("created_by_id", uuid.UUID{}).Optional(),
 	}
 }
 
@@ -30,6 +31,7 @@ func (CandidateHistoryCall) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("attachment_edges", Attachment.Type),
 		edge.From("candidate_edge", Candidate.Type).Ref("candidate_history_call_edges").Unique().Field("candidate_id"),
+		edge.From("created_by_edge", User.Type).Ref("candidate_history_call_edges").Unique().Field("created_by_id"),
 	}
 }
 

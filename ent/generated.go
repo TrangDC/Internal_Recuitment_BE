@@ -586,8 +586,8 @@ type NewCandidateHistoryCallInput struct {
 	Type        CandidateHistoryCallTypeEnum `json:"type"`
 	ContactTo   string                       `json:"contact_to"`
 	Date        time.Time                    `json:"date"`
-	StartTime   time.Time                    `json:"start_time"`
-	EndTime     time.Time                    `json:"end_time"`
+	StartTime   *time.Time                   `json:"start_time"`
+	EndTime     *time.Time                   `json:"end_time"`
 	Description string                       `json:"description"`
 }
 
@@ -993,11 +993,12 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateHistoryCallInput struct {
-	ContactTo   *string    `json:"contact_to"`
-	Date        *time.Time `json:"date"`
-	StartTime   *time.Time `json:"start_time"`
-	EndTime     *time.Time `json:"end_time"`
-	Description *string    `json:"description"`
+	ContactTo   string                       `json:"contact_to"`
+	Type        CandidateHistoryCallTypeEnum `json:"type"`
+	Date        time.Time                    `json:"date"`
+	StartTime   *time.Time                   `json:"start_time"`
+	EndTime     *time.Time                   `json:"end_time"`
+	Description string                       `json:"description"`
 }
 
 type UpdateCandidateInput struct {
