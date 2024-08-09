@@ -87,6 +87,8 @@ input CandidateJobGroupByStatusFilter {
 
 input CandidateJobGroupByStatusFreeWord {
   job_title: String
+  candidate_name: String
+  candidate_email: String
 }
 
 type CandidateJob {
@@ -203,6 +205,8 @@ input CandidateJobByOrder {
 input CandidateJobFreeWord {
   team: String
   hiring_job: String
+  candidate_name: String
+  candidate_email: String
 }
 
 # Path: schema/candidate_job.graphql

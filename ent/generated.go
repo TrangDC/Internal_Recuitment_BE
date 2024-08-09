@@ -287,8 +287,10 @@ type CandidateJobFilter struct {
 }
 
 type CandidateJobFreeWord struct {
-	Team      *string `json:"team"`
-	HiringJob *string `json:"hiring_job"`
+	Team           *string `json:"team"`
+	HiringJob      *string `json:"hiring_job"`
+	CandidateName  *string `json:"candidate_name"`
+	CandidateEmail *string `json:"candidate_email"`
 }
 
 type CandidateJobGroupByInterview struct {
@@ -328,7 +330,9 @@ type CandidateJobGroupByStatusFilter struct {
 }
 
 type CandidateJobGroupByStatusFreeWord struct {
-	JobTitle *string `json:"job_title"`
+	JobTitle       *string `json:"job_title"`
+	CandidateName  *string `json:"candidate_name"`
+	CandidateEmail *string `json:"candidate_email"`
 }
 
 type CandidateJobGroupByStatusResponse struct {
