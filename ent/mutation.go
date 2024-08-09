@@ -8974,6 +8974,7 @@ type CandidateHistoryCallMutation struct {
 	created_at              *time.Time
 	updated_at              *time.Time
 	deleted_at              *time.Time
+	name                    *string
 	contact_to              *string
 	description             *string
 	_type                   *candidatehistorycall.Type
@@ -9229,6 +9230,55 @@ func (m *CandidateHistoryCallMutation) DeletedAtCleared() bool {
 func (m *CandidateHistoryCallMutation) ResetDeletedAt() {
 	m.deleted_at = nil
 	delete(m.clearedFields, candidatehistorycall.FieldDeletedAt)
+}
+
+// SetName sets the "name" field.
+func (m *CandidateHistoryCallMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CandidateHistoryCallMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CandidateHistoryCall entity.
+// If the CandidateHistoryCall object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateHistoryCallMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ClearName clears the value of the "name" field.
+func (m *CandidateHistoryCallMutation) ClearName() {
+	m.name = nil
+	m.clearedFields[candidatehistorycall.FieldName] = struct{}{}
+}
+
+// NameCleared returns if the "name" field was cleared in this mutation.
+func (m *CandidateHistoryCallMutation) NameCleared() bool {
+	_, ok := m.clearedFields[candidatehistorycall.FieldName]
+	return ok
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CandidateHistoryCallMutation) ResetName() {
+	m.name = nil
+	delete(m.clearedFields, candidatehistorycall.FieldName)
 }
 
 // SetCandidateID sets the "candidate_id" field.
@@ -9774,7 +9824,7 @@ func (m *CandidateHistoryCallMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateHistoryCallMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, candidatehistorycall.FieldCreatedAt)
 	}
@@ -9783,6 +9833,9 @@ func (m *CandidateHistoryCallMutation) Fields() []string {
 	}
 	if m.deleted_at != nil {
 		fields = append(fields, candidatehistorycall.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, candidatehistorycall.FieldName)
 	}
 	if m.candidate_edge != nil {
 		fields = append(fields, candidatehistorycall.FieldCandidateID)
@@ -9822,6 +9875,8 @@ func (m *CandidateHistoryCallMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case candidatehistorycall.FieldDeletedAt:
 		return m.DeletedAt()
+	case candidatehistorycall.FieldName:
+		return m.Name()
 	case candidatehistorycall.FieldCandidateID:
 		return m.CandidateID()
 	case candidatehistorycall.FieldContactTo:
@@ -9853,6 +9908,8 @@ func (m *CandidateHistoryCallMutation) OldField(ctx context.Context, name string
 		return m.OldUpdatedAt(ctx)
 	case candidatehistorycall.FieldDeletedAt:
 		return m.OldDeletedAt(ctx)
+	case candidatehistorycall.FieldName:
+		return m.OldName(ctx)
 	case candidatehistorycall.FieldCandidateID:
 		return m.OldCandidateID(ctx)
 	case candidatehistorycall.FieldContactTo:
@@ -9898,6 +9955,13 @@ func (m *CandidateHistoryCallMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeletedAt(v)
+		return nil
+	case candidatehistorycall.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
 		return nil
 	case candidatehistorycall.FieldCandidateID:
 		v, ok := value.(uuid.UUID)
@@ -9991,6 +10055,9 @@ func (m *CandidateHistoryCallMutation) ClearedFields() []string {
 	if m.FieldCleared(candidatehistorycall.FieldDeletedAt) {
 		fields = append(fields, candidatehistorycall.FieldDeletedAt)
 	}
+	if m.FieldCleared(candidatehistorycall.FieldName) {
+		fields = append(fields, candidatehistorycall.FieldName)
+	}
 	if m.FieldCleared(candidatehistorycall.FieldCandidateID) {
 		fields = append(fields, candidatehistorycall.FieldCandidateID)
 	}
@@ -10035,6 +10102,9 @@ func (m *CandidateHistoryCallMutation) ClearField(name string) error {
 	case candidatehistorycall.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
+	case candidatehistorycall.FieldName:
+		m.ClearName()
+		return nil
 	case candidatehistorycall.FieldCandidateID:
 		m.ClearCandidateID()
 		return nil
@@ -10075,6 +10145,9 @@ func (m *CandidateHistoryCallMutation) ResetField(name string) error {
 		return nil
 	case candidatehistorycall.FieldDeletedAt:
 		m.ResetDeletedAt()
+		return nil
+	case candidatehistorycall.FieldName:
+		m.ResetName()
 		return nil
 	case candidatehistorycall.FieldCandidateID:
 		m.ResetCandidateID()

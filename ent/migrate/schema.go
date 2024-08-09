@@ -262,6 +262,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "contact_to", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 512},
 		{Name: "type", Type: field.TypeEnum, Nullable: true, Enums: []string{"candidate", "others"}},
@@ -279,13 +280,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidate_history_calls_candidates_candidate_history_call_edges",
-				Columns:    []*schema.Column{CandidateHistoryCallsColumns[10]},
+				Columns:    []*schema.Column{CandidateHistoryCallsColumns[11]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "candidate_history_calls_users_candidate_history_call_edges",
-				Columns:    []*schema.Column{CandidateHistoryCallsColumns[11]},
+				Columns:    []*schema.Column{CandidateHistoryCallsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

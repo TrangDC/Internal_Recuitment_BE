@@ -83,6 +83,38 @@ type Base64Response struct {
 	Data string `json:"data"`
 }
 
+type CandidateActivity struct {
+	CandidateNotes        []*CandidateNote        `json:"candidate_notes"`
+	CandidateHistoryCalls []*CandidateHistoryCall `json:"candidate_history_calls"`
+	CandidateInterviews   []*CandidateInterview   `json:"candidate_interviews"`
+}
+
+type CandidateActivityEdge struct {
+	Node   *CandidateActivity `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+type CandidateActivityFilter struct {
+	CandidateID string     `json:"candidate_id"`
+	FromDate    *time.Time `json:"from_date"`
+	ToDate      *time.Time `json:"to_date"`
+}
+
+type CandidateActivityFreeWord struct {
+	Description *string `json:"description"`
+	Name        *string `json:"name"`
+}
+
+type CandidateActivityOrder struct {
+	Field     CandidateActivityOrderField `json:"field"`
+	Direction OrderDirection              `json:"direction"`
+}
+
+type CandidateActivityResponseGetAll struct {
+	Edges      []*CandidateActivityEdge `json:"edges"`
+	Pagination *Pagination              `json:"pagination"`
+}
+
 type CandidateAwardInput struct {
 	ID           string                `json:"id"`
 	Name         string                `json:"name"`
@@ -183,6 +215,7 @@ type CandidateHistoryCallFilter struct {
 
 type CandidateHistoryCallFreeWord struct {
 	Description *string `json:"description"`
+	Name        *string `json:"name"`
 }
 
 type CandidateHistoryCallResponse struct {
@@ -610,6 +643,7 @@ type NewAttachmentInput struct {
 }
 
 type NewCandidateHistoryCallInput struct {
+	Name        string                       `json:"name"`
 	CandidateID string                       `json:"candidate_id"`
 	Type        CandidateHistoryCallTypeEnum `json:"type"`
 	ContactTo   string                       `json:"contact_to"`
@@ -1029,6 +1063,7 @@ type UpdateCandidateAttachment struct {
 }
 
 type UpdateCandidateHistoryCallInput struct {
+	Name        string                       `json:"name"`
 	ContactTo   string                       `json:"contact_to"`
 	Type        CandidateHistoryCallTypeEnum `json:"type"`
 	Date        time.Time                    `json:"date"`
@@ -1345,6 +1380,45 @@ func (e *AttachmentRelationType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AttachmentRelationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateActivityOrderField string
+
+const (
+	CandidateActivityOrderFieldCreatedAt CandidateActivityOrderField = "created_at"
+)
+
+var AllCandidateActivityOrderField = []CandidateActivityOrderField{
+	CandidateActivityOrderFieldCreatedAt,
+}
+
+func (e CandidateActivityOrderField) IsValid() bool {
+	switch e {
+	case CandidateActivityOrderFieldCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e CandidateActivityOrderField) String() string {
+	return string(e)
+}
+
+func (e *CandidateActivityOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateActivityOrderField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateActivityOrderField", str)
+	}
+	return nil
+}
+
+func (e CandidateActivityOrderField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

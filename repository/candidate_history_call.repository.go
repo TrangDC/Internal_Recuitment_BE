@@ -78,6 +78,7 @@ func (rps *candidateHistoryCallRepoImpl) BuildSaveUpdateOne(ctx context.Context,
 func (rps *candidateHistoryCallRepoImpl) CreateCandidateHistoryCall(ctx context.Context, input ent.NewCandidateHistoryCallInput) (*ent.CandidateHistoryCall, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	create := rps.BuildCreate().
+		SetName(strings.TrimSpace(input.Name)).
 		SetCreatedByID(payload.UserID).
 		SetDate(input.Date).
 		SetCandidateID(uuid.MustParse(input.CandidateID)).
@@ -95,6 +96,7 @@ func (rps *candidateHistoryCallRepoImpl) CreateCandidateHistoryCall(ctx context.
 
 func (rps *candidateHistoryCallRepoImpl) UpdateCandidateHistoryCall(ctx context.Context, record *ent.CandidateHistoryCall, input ent.UpdateCandidateHistoryCallInput) (*ent.CandidateHistoryCall, error) {
 	update := rps.BuildUpdateOne(ctx, record).
+		SetName(strings.TrimSpace(input.Name)).
 		SetDate(input.Date).
 		SetContactTo(strings.TrimSpace(input.ContactTo)).
 		SetType(candidatehistorycall.Type(input.Type)).

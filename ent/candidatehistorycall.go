@@ -25,6 +25,8 @@ type CandidateHistoryCall struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// CandidateID holds the value of the "candidate_id" field.
 	CandidateID uuid.UUID `json:"candidate_id,omitempty"`
 	// ContactTo holds the value of the "contact_to" field.
@@ -103,7 +105,7 @@ func (*CandidateHistoryCall) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case candidatehistorycall.FieldContactTo, candidatehistorycall.FieldDescription, candidatehistorycall.FieldType:
+		case candidatehistorycall.FieldName, candidatehistorycall.FieldContactTo, candidatehistorycall.FieldDescription, candidatehistorycall.FieldType:
 			values[i] = new(sql.NullString)
 		case candidatehistorycall.FieldCreatedAt, candidatehistorycall.FieldUpdatedAt, candidatehistorycall.FieldDeletedAt, candidatehistorycall.FieldDate, candidatehistorycall.FieldStartTime, candidatehistorycall.FieldEndTime:
 			values[i] = new(sql.NullTime)
@@ -147,6 +149,12 @@ func (chc *CandidateHistoryCall) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
 				chc.DeletedAt = value.Time
+			}
+		case candidatehistorycall.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				chc.Name = value.String
 			}
 		case candidatehistorycall.FieldCandidateID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -247,6 +255,9 @@ func (chc *CandidateHistoryCall) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
 	builder.WriteString(chc.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(chc.Name)
 	builder.WriteString(", ")
 	builder.WriteString("candidate_id=")
 	builder.WriteString(fmt.Sprintf("%v", chc.CandidateID))

@@ -323,12 +323,16 @@ func init() {
 	candidatehistorycallDescCreatedAt := candidatehistorycallMixinFields0[1].Descriptor()
 	// candidatehistorycall.DefaultCreatedAt holds the default value on creation for the created_at field.
 	candidatehistorycall.DefaultCreatedAt = candidatehistorycallDescCreatedAt.Default.(func() time.Time)
+	// candidatehistorycallDescName is the schema descriptor for name field.
+	candidatehistorycallDescName := candidatehistorycallFields[0].Descriptor()
+	// candidatehistorycall.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	candidatehistorycall.NameValidator = candidatehistorycallDescName.Validators[0].(func(string) error)
 	// candidatehistorycallDescContactTo is the schema descriptor for contact_to field.
-	candidatehistorycallDescContactTo := candidatehistorycallFields[1].Descriptor()
+	candidatehistorycallDescContactTo := candidatehistorycallFields[2].Descriptor()
 	// candidatehistorycall.ContactToValidator is a validator for the "contact_to" field. It is called by the builders before save.
 	candidatehistorycall.ContactToValidator = candidatehistorycallDescContactTo.Validators[0].(func(string) error)
 	// candidatehistorycallDescDescription is the schema descriptor for description field.
-	candidatehistorycallDescDescription := candidatehistorycallFields[2].Descriptor()
+	candidatehistorycallDescDescription := candidatehistorycallFields[3].Descriptor()
 	// candidatehistorycall.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidatehistorycall.DescriptionValidator = candidatehistorycallDescDescription.Validators[0].(func(string) error)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()

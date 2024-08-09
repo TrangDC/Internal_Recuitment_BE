@@ -173,6 +173,9 @@ func (svc *candidateHistoryCallSvcImpl) freeWord(query *ent.CandidateHistoryCall
 		if input.Description != nil {
 			predicate = append(predicate, candidatehistorycall.DescriptionContainsFold(strings.TrimSpace(*input.Description)))
 		}
+		if input.Name != nil {
+			predicate = append(predicate, candidatehistorycall.NameContainsFold(strings.TrimSpace(*input.Name)))
+		}
 	}
 	if len(predicate) > 0 {
 		query.Where(candidatehistorycall.Or(predicate...))

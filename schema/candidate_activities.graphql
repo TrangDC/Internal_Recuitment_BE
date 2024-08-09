@@ -1,0 +1,34 @@
+type CandidateActivity {
+  candidate_notes: [CandidateNote!]
+  candidate_history_calls: [CandidateHistoryCall!]
+  candidate_interviews: [CandidateInterview!]
+}
+
+type CandidateActivityEdge {
+  node: CandidateActivity!
+  cursor: Cursor!
+}
+type CandidateActivityResponseGetAll {
+  edges: [CandidateActivityEdge!]!
+  pagination: Pagination!
+}
+
+input CandidateActivityFilter {
+  candidate_id: ID!
+  from_date: Time
+  to_date: Time
+}
+
+input CandidateActivityFreeWord {
+  description: String
+  name: String
+}
+
+enum CandidateActivityOrderField {
+  created_at
+}
+
+input CandidateActivityOrder {
+  field: CandidateActivityOrderField!
+  direction: OrderDirection!
+}
