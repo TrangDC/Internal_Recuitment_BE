@@ -698,25 +698,33 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 	if input.Status != nil {
 		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
 	}
-	if input.HiringTeamID != nil {
+	if input.HiringTeamIds != nil {
+		hiringTeamIds := lo.Map(input.HiringTeamIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
 			hiringjob.HasHiringTeamEdgeWith(
-				hiringteam.IDEQ(uuid.MustParse(*input.HiringTeamID)),
+				hiringteam.IDIn(hiringTeamIds...),
 			),
 		))
 	}
-	if input.HiringJobID != nil {
-		candidateJobQuery.Where(candidatejob.HiringJobIDEQ(uuid.MustParse(*input.HiringJobID)))
+	if input.HiringJobIds != nil {
+		hiringJobIds := lo.Map(input.HiringJobIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.IDIn(hiringJobIds...),
+		))
 	}
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
 	}
-	if input.FailedReason != nil && len(input.FailedReason) != 0 {
+	if input.FailedReasons != nil && len(input.FailedReasons) != 0 {
 		var candidateJobIds []uuid.UUID
 		queryString := "SELECT id FROM candidate_jobs WHERE "
-		for i, reason := range input.FailedReason {
+		for i, reason := range input.FailedReasons {
 			queryString += "failed_reason @> '[\"" + reason.String() + "\"]'::jsonb"
-			if i != len(input.FailedReason)-1 {
+			if i != len(input.FailedReasons)-1 {
 				queryString += " AND "
 			}
 		}
@@ -732,6 +740,12 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 		} else {
 			candidateJobQuery.Where(candidatejob.IDEQ(uuid.Nil))
 		}
+	}
+	if input.Levels != nil {
+		levels := lo.Map(input.Levels, func(level ent.CandidateJobLevel, index int) candidatejob.Level {
+			return candidatejob.Level(level)
+		})
+		candidateJobQuery.Where(candidatejob.LevelIn(levels...))
 	}
 }
 
@@ -763,8 +777,8 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 	if input == nil {
 		return
 	}
-	if input.HiringJobID != nil {
-		hiringJobIds := lo.Map(input.HiringJobID, func(id string, index int) uuid.UUID {
+	if input.HiringJobIds != nil {
+		hiringJobIds := lo.Map(input.HiringJobIds, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HiringJobIDIn(hiringJobIds...))
@@ -779,25 +793,25 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 			),
 		))
 	}
-	if input.Priority != nil {
-		priority := lo.Map(input.Priority, func(id int, index int) int {
+	if input.Priorities != nil {
+		priorities := lo.Map(input.Priorities, func(id int, index int) int {
 			return id
 		})
-		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.PriorityIn(priority...)))
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(hiringjob.PriorityIn(priorities...)))
 	}
 	if input.FromDate != nil && input.ToDate != nil {
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
 	}
-	if input.SkillID != nil {
-		skillIds := lo.Map(input.SkillID, func(id string, index int) uuid.UUID {
+	if input.SkillIds != nil {
+		skillIds := lo.Map(input.SkillIds, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
 			hiringjob.HasHiringJobSkillEdgesWith(entityskill.SkillIDIn(skillIds...)),
 		))
 	}
-	if input.Location != nil {
-		locations := lo.Map(input.Location, func(location ent.LocationEnum, index int) hiringjob.Location {
+	if input.Locations != nil {
+		locations := lo.Map(input.Locations, func(location ent.LocationEnum, index int) hiringjob.Location {
 			return hiringjob.Location(location)
 		})
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(

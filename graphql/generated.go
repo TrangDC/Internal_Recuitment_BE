@@ -7374,13 +7374,13 @@ enum CandidateJobLevel {
 
 
 input CandidateJobGroupByStatusFilter {
-  hiring_job_id: [ID!]
+  hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
-  priority: [Int!]
-  skill_id: [ID!]
+  priorities: [Int!]
+  skill_ids: [ID!]
   from_date: Time
   to_date: Time
-  location: [LocationEnum!]
+  locations: [LocationEnum!]
   created_by_ids: [ID!]
   levels: [CandidateJobLevel!]
 }
@@ -7486,10 +7486,11 @@ input CandidateJobFilter {
   status: CandidateJobStatus
   from_date: Time
   to_date: Time
-  hiring_team_id: ID
-  hiring_job_id: ID
+  hiring_team_ids: [ID!]
+  hiring_job_ids: [ID!]
   candidate_id: ID
-  failed_reason: [CandidateJobFailedReason!]
+  failed_reasons: [CandidateJobFailedReason!]
+  levels: [CandidateJobLevel!]
 }
 
 input CandidateJobOrder {
@@ -49296,7 +49297,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "from_date", "to_date", "hiring_team_id", "hiring_job_id", "candidate_id", "failed_reason"}
+	fieldsInOrder := [...]string{"status", "from_date", "to_date", "hiring_team_ids", "hiring_job_ids", "candidate_id", "failed_reasons", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49327,19 +49328,19 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "hiring_team_id":
+		case "hiring_team_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
-			it.HiringTeamID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_ids"))
+			it.HiringTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "hiring_job_id":
+		case "hiring_job_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
-			it.HiringJobID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_ids"))
+			it.HiringJobIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49351,11 +49352,19 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "failed_reason":
+		case "failed_reasons":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reason"))
-			it.FailedReason, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("failed_reasons"))
+			it.FailedReasons, err = ec.unmarshalOCandidateJobFailedReason2ᚕtrecᚋentᚐCandidateJobFailedReasonᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "levels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("levels"))
+			it.Levels, err = ec.unmarshalOCandidateJobLevel2ᚕtrecᚋentᚐCandidateJobLevelᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49424,18 +49433,18 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"hiring_job_id", "hiring_team_ids", "priority", "skill_id", "from_date", "to_date", "location", "created_by_ids", "levels"}
+	fieldsInOrder := [...]string{"hiring_job_ids", "hiring_team_ids", "priorities", "skill_ids", "from_date", "to_date", "locations", "created_by_ids", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "hiring_job_id":
+		case "hiring_job_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
-			it.HiringJobID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_ids"))
+			it.HiringJobIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49447,19 +49456,19 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 			if err != nil {
 				return it, err
 			}
-		case "priority":
+		case "priorities":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
-			it.Priority, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorities"))
+			it.Priorities, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "skill_id":
+		case "skill_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_id"))
-			it.SkillID, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skill_ids"))
+			it.SkillIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49479,11 +49488,11 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 			if err != nil {
 				return it, err
 			}
-		case "location":
+		case "locations":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			it.Location, err = ec.unmarshalOLocationEnum2ᚕtrecᚋentᚐLocationEnumᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("locations"))
+			it.Locations, err = ec.unmarshalOLocationEnum2ᚕtrecᚋentᚐLocationEnumᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
