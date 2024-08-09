@@ -7808,6 +7808,7 @@ enum projectModule {
   skill_types
   roles
   rec_teams
+  candidate_notes
 }
 
 enum auditTrailAction {
