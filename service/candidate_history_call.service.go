@@ -63,7 +63,7 @@ func (svc *candidateHistoryCallSvcImpl) UpdateCandidateHistoryCall(ctx context.C
 	record, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.CandidateHistoryCall().UpdateCandidateHistoryCall(ctx, record, input)
@@ -83,7 +83,7 @@ func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.C
 	candidateHistoryCallRecord, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.CandidateHistoryCall().DeleteCandidateHistoryCall(ctx, candidateHistoryCallRecord)
@@ -100,7 +100,7 @@ func (svc *candidateHistoryCallSvcImpl) GetCandidateHistoryCall(ctx context.Cont
 	candidateHistoryCallRecord, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.CandidateHistoryCallResponse{
 		Data: candidateHistoryCallRecord,

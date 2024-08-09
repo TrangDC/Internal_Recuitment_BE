@@ -120,7 +120,7 @@ func (svc *candidateSvcImpl) DeleteCandidate(ctx context.Context, id uuid.UUID, 
 	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if len(record.Edges.CandidateJobEdges) > 0 {
 		openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
@@ -172,7 +172,7 @@ func (svc *candidateSvcImpl) UpdateCandidate(ctx context.Context, input *ent.Upd
 	record, err := svc.repoRegistry.Candidate().GetCandidateForUpdate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	errString, err := svc.repoRegistry.Candidate().ValidEmail(ctx, id, input.Email)
 	if err != nil {
@@ -232,7 +232,7 @@ func (svc *candidateSvcImpl) SetBlackListCandidate(ctx context.Context, id uuid.
 	record, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.Candidate().SetBlackListCandidate(ctx, record, isBlackList)
@@ -258,7 +258,7 @@ func (svc *candidateSvcImpl) GetCandidate(ctx context.Context, id uuid.UUID) (*e
 	result, err := svc.repoRegistry.Candidate().GetCandidate(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.CandidateResponse{
 		Data: result,

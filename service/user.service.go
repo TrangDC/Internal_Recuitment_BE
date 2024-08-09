@@ -145,7 +145,7 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	record, err := svc.repoRegistry.User().GetUser(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	errString, err := svc.repoRegistry.User().ValidInput(ctx, id, input.WorkEmail, input.RecTeamID, input.HiringTeamID)
 	if err != nil {
@@ -207,7 +207,7 @@ func (svc *userSvcImpl) UpdateUserStatus(ctx context.Context, input ent.UpdateUs
 	record, err := svc.repoRegistry.User().GetUser(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.User().UpdateUserStatus(ctx, record, user.Status(input.Status))
@@ -301,7 +301,7 @@ func (svc *userSvcImpl) GetUser(ctx context.Context, id uuid.UUID) (*ent.UserRes
 	result, err := svc.repoRegistry.User().GetUser(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.UserResponse{
 		Data: result,
@@ -313,7 +313,7 @@ func (svc *userSvcImpl) GetMe(ctx context.Context) (*ent.UserResponse, error) {
 	result, err := svc.repoRegistry.User().GetUser(ctx, payload.UserID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.UserResponse{
 		Data: result,

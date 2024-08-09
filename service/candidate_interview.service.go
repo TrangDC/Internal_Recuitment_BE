@@ -78,7 +78,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(candidateJob.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -92,7 +92,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionCreate(payload, hiringJob.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -161,7 +161,7 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionCreate(payload, hiringJob.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -218,7 +218,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -232,7 +232,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -289,7 +289,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -303,7 +303,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -351,7 +351,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -365,7 +365,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -423,7 +423,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterview(ctx context.Context,
 	result, err := svc.repoRegistry.CandidateInterview().BuildGetOne(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.CandidateInterviewResponse{
 		Data: result,
@@ -435,7 +435,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 	record, err := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -449,7 +449,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, hiringJobQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -489,7 +489,7 @@ func (svc *candidateInterviewSvcImpl) GetCandidateInterviews(ctx context.Context
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, uuid.MustParse(filter.CandidateJobID))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_not_found", http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_not_found", http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	query := svc.repoRegistry.CandidateInterview().BuildQuery().Where(
 		candidateinterview.CandidateJobIDEQ(uuid.MustParse(filter.CandidateJobID)),
