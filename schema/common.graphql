@@ -39,7 +39,6 @@ enum AttachmentAction {
 
 enum AttachmentFolder{
   candidate
-  candidate_feedback
 }
 
 input AttachmentInput {

@@ -349,6 +349,10 @@ type CandidateJobResponseGetAll struct {
 	Pagination *Pagination         `json:"pagination"`
 }
 
+type CandidateNoteResponse struct {
+	Data *CandidateNote `json:"data"`
+}
+
 type CandidateReport struct {
 	Total           int                   `json:"total"`
 	ActiveNumber    int                   `json:"active_number"`
@@ -652,6 +656,13 @@ type NewCandidateJobInput struct {
 	OfferExpirationDate *time.Time                 `json:"offer_expiration_date"`
 	Level               *CandidateJobLevel         `json:"level"`
 	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
+}
+
+type NewCandidateNoteInput struct {
+	CandidateID string                `json:"candidate_id"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Attachments []*NewAttachmentInput `json:"attachments"`
 }
 
 type NewEmailTemplateInput struct {
@@ -1058,6 +1069,12 @@ type UpdateCandidateJobStatus struct {
 	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
 }
 
+type UpdateCandidateNoteInput struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Attachments []*NewAttachmentInput `json:"attachments"`
+}
+
 type UpdateEmailTemplateInput struct {
 	Event     EmailTemplateEvent    `json:"event"`
 	Subject   string                `json:"subject"`
@@ -1226,18 +1243,16 @@ func (e AttachmentAction) MarshalGQL(w io.Writer) {
 type AttachmentFolder string
 
 const (
-	AttachmentFolderCandidate         AttachmentFolder = "candidate"
-	AttachmentFolderCandidateFeedback AttachmentFolder = "candidate_feedback"
+	AttachmentFolderCandidate AttachmentFolder = "candidate"
 )
 
 var AllAttachmentFolder = []AttachmentFolder{
 	AttachmentFolderCandidate,
-	AttachmentFolderCandidateFeedback,
 }
 
 func (e AttachmentFolder) IsValid() bool {
 	switch e {
-	case AttachmentFolderCandidate, AttachmentFolderCandidateFeedback:
+	case AttachmentFolderCandidate:
 		return true
 	}
 	return false
@@ -1269,16 +1284,18 @@ type AttachmentRelationType string
 const (
 	AttachmentRelationTypeCandidateJobs         AttachmentRelationType = "candidate_jobs"
 	AttachmentRelationTypeCandidateJobFeedbacks AttachmentRelationType = "candidate_job_feedbacks"
+	AttachmentRelationTypeCandidateNotes        AttachmentRelationType = "candidate_notes"
 )
 
 var AllAttachmentRelationType = []AttachmentRelationType{
 	AttachmentRelationTypeCandidateJobs,
 	AttachmentRelationTypeCandidateJobFeedbacks,
+	AttachmentRelationTypeCandidateNotes,
 }
 
 func (e AttachmentRelationType) IsValid() bool {
 	switch e {
-	case AttachmentRelationTypeCandidateJobs, AttachmentRelationTypeCandidateJobFeedbacks:
+	case AttachmentRelationTypeCandidateJobs, AttachmentRelationTypeCandidateJobFeedbacks, AttachmentRelationTypeCandidateNotes:
 		return true
 	}
 	return false

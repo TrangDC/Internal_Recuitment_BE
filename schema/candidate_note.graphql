@@ -1,0 +1,27 @@
+type CandidateNote {
+  id: ID!
+  candidate: Candidate!
+  created_by: User!
+  name: String!
+  description: String!
+  attachments: [Attachment!]!
+  created_at: Time!
+  updated_at: Time!
+}
+
+type CandidateNoteResponse {
+  data: CandidateNote!
+}
+
+input NewCandidateNoteInput {
+  candidate_id: ID!
+  name: String!
+  description: String!
+  attachments: [NewAttachmentInput!]
+}
+
+input UpdateCandidateNoteInput {
+  name: String!
+  description: String!
+  attachments: [NewAttachmentInput!]
+}

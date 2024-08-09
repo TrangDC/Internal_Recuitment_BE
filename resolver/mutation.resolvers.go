@@ -391,6 +391,25 @@ func (r *mutationResolver) ValidateCandidateInterview(ctx context.Context, input
 	return r.serviceRegistry.CandidateInterview().ValidateCandidateInterview(ctx, input)
 }
 
+// CreateCandidateNote is the resolver for the CreateCandidateNote field.
+func (r *mutationResolver) CreateCandidateNote(ctx context.Context, input ent.NewCandidateNoteInput) (*ent.CandidateNoteResponse, error) {
+	return r.serviceRegistry.CandidateNote().CreateCandidateNote(ctx, input)
+}
+
+// UpdateCandidateNote is the resolver for the UpdateCandidateNote field.
+func (r *mutationResolver) UpdateCandidateNote(ctx context.Context, id string, input ent.UpdateCandidateNoteInput, note string) (*ent.CandidateNoteResponse, error) {
+	return r.serviceRegistry.CandidateNote().UpdateCandidateNote(ctx, uuid.MustParse(id), input, note)
+}
+
+// DeleteCandidateNote is the resolver for the DeleteCandidateNote field.
+func (r *mutationResolver) DeleteCandidateNote(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.CandidateNote().DeleteCandidateNote(ctx, uuid.MustParse(id), note)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

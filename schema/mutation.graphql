@@ -84,4 +84,9 @@ type Mutation {
   DeleteCandidateHistoryCall(id: ID!, note: String!): Boolean!
   #Validate
   ValidateCandidateInterview(input: CandidateInterviewValidateInput!): CandidateInterviewResponseValidate!
+
+  #CandidateNote
+  CreateCandidateNote(input: NewCandidateNoteInput!): CandidateNoteResponse!
+  UpdateCandidateNote(id: ID!, input: UpdateCandidateNoteInput!, note: String!): CandidateNoteResponse!
+  DeleteCandidateNote(id: ID!, note: String!): Boolean!
 }
