@@ -573,7 +573,7 @@ func (ca *CandidateAward) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ca.ID,
 		Type:   "CandidateAward",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 7),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -625,6 +625,14 @@ func (ca *CandidateAward) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "achieved_date",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(ca.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Attachment",
 		Name: "attachment_edges",
@@ -652,7 +660,7 @@ func (cc *CandidateCertificate) Node(ctx context.Context) (node *Node, err error
 	node = &Node{
 		ID:     cc.ID,
 		Type:   "CandidateCertificate",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -712,6 +720,14 @@ func (cc *CandidateCertificate) Node(ctx context.Context) (node *Node, err error
 		Name:  "achieved_date",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(cc.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Attachment",
 		Name: "attachment_edges",
@@ -739,7 +755,7 @@ func (ce *CandidateEducate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ce.ID,
 		Type:   "CandidateEducate",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 12),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -831,6 +847,14 @@ func (ce *CandidateEducate) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "end_date",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(ce.OrderID); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Attachment",
 		Name: "attachment_edges",
@@ -858,8 +882,8 @@ func (ce *CandidateExp) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ce.ID,
 		Type:   "CandidateExp",
-		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ce.CreatedAt); err != nil {
@@ -942,23 +966,21 @@ func (ce *CandidateExp) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "end_date",
 		Value: string(buf),
 	}
-	node.Edges[0] = &Edge{
-		Type: "Attachment",
-		Name: "attachment_edges",
-	}
-	err = ce.QueryAttachmentEdges().
-		Select(attachment.FieldID).
-		Scan(ctx, &node.Edges[0].IDs)
-	if err != nil {
+	if buf, err = json.Marshal(ce.OrderID); err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Fields[10] = &Field{
+		Type:  "int",
+		Name:  "order_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
 		Type: "Candidate",
 		Name: "candidate_edge",
 	}
 	err = ce.QueryCandidateEdge().
 		Select(candidate.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}

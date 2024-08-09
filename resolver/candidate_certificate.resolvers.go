@@ -5,14 +5,18 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
 
 // ID is the resolver for the id field.
 func (r *candidateCertificateResolver) ID(ctx context.Context, obj *ent.CandidateCertificate) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID.String(), nil
+}
+
+// Attachments is the resolver for the attachments field.
+func (r *candidateCertificateResolver) Attachments(ctx context.Context, obj *ent.CandidateCertificate) ([]*ent.Attachment, error) {
+	return obj.Edges.AttachmentEdges, nil
 }
 
 // CandidateCertificate returns graphql1.CandidateCertificateResolver implementation.

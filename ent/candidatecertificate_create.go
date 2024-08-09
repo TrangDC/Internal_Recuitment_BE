@@ -113,6 +113,20 @@ func (ccc *CandidateCertificateCreate) SetNillableAchievedDate(t *time.Time) *Ca
 	return ccc
 }
 
+// SetOrderID sets the "order_id" field.
+func (ccc *CandidateCertificateCreate) SetOrderID(i int) *CandidateCertificateCreate {
+	ccc.mutation.SetOrderID(i)
+	return ccc
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (ccc *CandidateCertificateCreate) SetNillableOrderID(i *int) *CandidateCertificateCreate {
+	if i != nil {
+		ccc.SetOrderID(*i)
+	}
+	return ccc
+}
+
 // SetID sets the "id" field.
 func (ccc *CandidateCertificateCreate) SetID(u uuid.UUID) *CandidateCertificateCreate {
 	ccc.mutation.SetID(u)
@@ -313,6 +327,10 @@ func (ccc *CandidateCertificateCreate) createSpec() (*CandidateCertificate, *sql
 	if value, ok := ccc.mutation.AchievedDate(); ok {
 		_spec.SetField(candidatecertificate.FieldAchievedDate, field.TypeTime, value)
 		_node.AchievedDate = value
+	}
+	if value, ok := ccc.mutation.OrderID(); ok {
+		_spec.SetField(candidatecertificate.FieldOrderID, field.TypeInt, value)
+		_node.OrderID = value
 	}
 	if nodes := ccc.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

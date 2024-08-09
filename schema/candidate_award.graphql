@@ -2,6 +2,8 @@ type CandidateAward {
   id: ID!
   name: String!
   achieved_date: Time
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -11,4 +13,5 @@ input CandidateAwardInput {
   name: String!
   achieved_date: Time
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }

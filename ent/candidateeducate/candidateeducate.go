@@ -33,6 +33,8 @@ const (
 	FieldStartDate = "start_date"
 	// FieldEndDate holds the string denoting the end_date field in the database.
 	FieldEndDate = "end_date"
+	// FieldOrderID holds the string denoting the order_id field in the database.
+	FieldOrderID = "order_id"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldStartDate,
 	FieldEndDate,
+	FieldOrderID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

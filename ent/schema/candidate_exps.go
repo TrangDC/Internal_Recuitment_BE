@@ -22,13 +22,13 @@ func (CandidateExp) Fields() []ent.Field {
 		field.String("description").MaxLen(512).Optional(),
 		field.Time("start_date").Optional(),
 		field.Time("end_date").Optional(),
+		field.Int("order_id").Optional(),
 	}
 }
 
 // Edges of the CandidateExp
 func (CandidateExp) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("attachment_edges", Attachment.Type),
 		edge.From("candidate_edge", Candidate.Type).Ref("candidate_exp_edges").Unique().Field("candidate_id"),
 	}
 }

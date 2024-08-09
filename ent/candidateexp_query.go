@@ -4,10 +4,8 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
-	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidateexp"
 	"trec/ent/predicate"
@@ -21,17 +19,15 @@ import (
 // CandidateExpQuery is the builder for querying CandidateExp entities.
 type CandidateExpQuery struct {
 	config
-	limit                    *int
-	offset                   *int
-	unique                   *bool
-	order                    []OrderFunc
-	fields                   []string
-	predicates               []predicate.CandidateExp
-	withAttachmentEdges      *AttachmentQuery
-	withCandidateEdge        *CandidateQuery
-	modifiers                []func(*sql.Selector)
-	loadTotal                []func(context.Context, []*CandidateExp) error
-	withNamedAttachmentEdges map[string]*AttachmentQuery
+	limit             *int
+	offset            *int
+	unique            *bool
+	order             []OrderFunc
+	fields            []string
+	predicates        []predicate.CandidateExp
+	withCandidateEdge *CandidateQuery
+	modifiers         []func(*sql.Selector)
+	loadTotal         []func(context.Context, []*CandidateExp) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,28 +62,6 @@ func (ceq *CandidateExpQuery) Unique(unique bool) *CandidateExpQuery {
 func (ceq *CandidateExpQuery) Order(o ...OrderFunc) *CandidateExpQuery {
 	ceq.order = append(ceq.order, o...)
 	return ceq
-}
-
-// QueryAttachmentEdges chains the current query on the "attachment_edges" edge.
-func (ceq *CandidateExpQuery) QueryAttachmentEdges() *AttachmentQuery {
-	query := &AttachmentQuery{config: ceq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := ceq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := ceq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(candidateexp.Table, candidateexp.FieldID, selector),
-			sqlgraph.To(attachment.Table, attachment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, candidateexp.AttachmentEdgesTable, candidateexp.AttachmentEdgesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(ceq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryCandidateEdge chains the current query on the "candidate_edge" edge.
@@ -288,29 +262,17 @@ func (ceq *CandidateExpQuery) Clone() *CandidateExpQuery {
 		return nil
 	}
 	return &CandidateExpQuery{
-		config:              ceq.config,
-		limit:               ceq.limit,
-		offset:              ceq.offset,
-		order:               append([]OrderFunc{}, ceq.order...),
-		predicates:          append([]predicate.CandidateExp{}, ceq.predicates...),
-		withAttachmentEdges: ceq.withAttachmentEdges.Clone(),
-		withCandidateEdge:   ceq.withCandidateEdge.Clone(),
+		config:            ceq.config,
+		limit:             ceq.limit,
+		offset:            ceq.offset,
+		order:             append([]OrderFunc{}, ceq.order...),
+		predicates:        append([]predicate.CandidateExp{}, ceq.predicates...),
+		withCandidateEdge: ceq.withCandidateEdge.Clone(),
 		// clone intermediate query.
 		sql:    ceq.sql.Clone(),
 		path:   ceq.path,
 		unique: ceq.unique,
 	}
-}
-
-// WithAttachmentEdges tells the query-builder to eager-load the nodes that are connected to
-// the "attachment_edges" edge. The optional arguments are used to configure the query builder of the edge.
-func (ceq *CandidateExpQuery) WithAttachmentEdges(opts ...func(*AttachmentQuery)) *CandidateExpQuery {
-	query := &AttachmentQuery{config: ceq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	ceq.withAttachmentEdges = query
-	return ceq
 }
 
 // WithCandidateEdge tells the query-builder to eager-load the nodes that are connected to
@@ -397,8 +359,7 @@ func (ceq *CandidateExpQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*CandidateExp{}
 		_spec       = ceq.querySpec()
-		loadedTypes = [2]bool{
-			ceq.withAttachmentEdges != nil,
+		loadedTypes = [1]bool{
 			ceq.withCandidateEdge != nil,
 		}
 	)
@@ -423,23 +384,9 @@ func (ceq *CandidateExpQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := ceq.withAttachmentEdges; query != nil {
-		if err := ceq.loadAttachmentEdges(ctx, query, nodes,
-			func(n *CandidateExp) { n.Edges.AttachmentEdges = []*Attachment{} },
-			func(n *CandidateExp, e *Attachment) { n.Edges.AttachmentEdges = append(n.Edges.AttachmentEdges, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := ceq.withCandidateEdge; query != nil {
 		if err := ceq.loadCandidateEdge(ctx, query, nodes, nil,
 			func(n *CandidateExp, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range ceq.withNamedAttachmentEdges {
-		if err := ceq.loadAttachmentEdges(ctx, query, nodes,
-			func(n *CandidateExp) { n.appendNamedAttachmentEdges(name) },
-			func(n *CandidateExp, e *Attachment) { n.appendNamedAttachmentEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -451,37 +398,6 @@ func (ceq *CandidateExpQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	return nodes, nil
 }
 
-func (ceq *CandidateExpQuery) loadAttachmentEdges(ctx context.Context, query *AttachmentQuery, nodes []*CandidateExp, init func(*CandidateExp), assign func(*CandidateExp, *Attachment)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*CandidateExp)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.Attachment(func(s *sql.Selector) {
-		s.Where(sql.InValues(candidateexp.AttachmentEdgesColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.candidate_exp_attachment_edges
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "candidate_exp_attachment_edges" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "candidate_exp_attachment_edges" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (ceq *CandidateExpQuery) loadCandidateEdge(ctx context.Context, query *CandidateQuery, nodes []*CandidateExp, init func(*CandidateExp), assign func(*CandidateExp, *Candidate)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*CandidateExp)
@@ -610,20 +526,6 @@ func (ceq *CandidateExpQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
-}
-
-// WithNamedAttachmentEdges tells the query-builder to eager-load the nodes that are connected to the "attachment_edges"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (ceq *CandidateExpQuery) WithNamedAttachmentEdges(name string, opts ...func(*AttachmentQuery)) *CandidateExpQuery {
-	query := &AttachmentQuery{config: ceq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	if ceq.withNamedAttachmentEdges == nil {
-		ceq.withNamedAttachmentEdges = make(map[string]*AttachmentQuery)
-	}
-	ceq.withNamedAttachmentEdges[name] = query
-	return ceq
 }
 
 // CandidateExpGroupBy is the group-by builder for CandidateExp entities.

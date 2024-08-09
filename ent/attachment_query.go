@@ -42,7 +42,6 @@ type AttachmentQuery struct {
 	withCandidateCertificateEdge *CandidateCertificateQuery
 	withCandidateHistoryCallEdge *CandidateHistoryCallQuery
 	withCandidateNoteEdge        *CandidateNoteQuery
-	withFKs                      bool
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*Attachment) error
 	// intermediate query (i.e. traversal path).
@@ -647,7 +646,6 @@ func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
 func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Attachment, error) {
 	var (
 		nodes       = []*Attachment{}
-		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
 		loadedTypes = [9]bool{
 			aq.withCandidateJobEdge != nil,
@@ -661,12 +659,6 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 			aq.withCandidateNoteEdge != nil,
 		}
 	)
-	if aq.withCandidateJobEdge != nil || aq.withCandidateJobFeedbackEdge != nil || aq.withCandidateInterviewEdge != nil || aq.withCandidateEdge != nil || aq.withCandidateEducateEdge != nil || aq.withCandidateAwardEdge != nil || aq.withCandidateCertificateEdge != nil || aq.withCandidateHistoryCallEdge != nil || aq.withCandidateNoteEdge != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, attachment.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Attachment).scanValues(nil, columns)
 	}

@@ -14,6 +14,11 @@ func (r *candidateAwardResolver) ID(ctx context.Context, obj *ent.CandidateAward
 	return obj.ID.String(), nil
 }
 
+// Attachments is the resolver for the attachments field.
+func (r *candidateAwardResolver) Attachments(ctx context.Context, obj *ent.CandidateAward) ([]*ent.Attachment, error) {
+	return obj.Edges.AttachmentEdges, nil
+}
+
 // CandidateAward returns graphql1.CandidateAwardResolver implementation.
 func (r *Resolver) CandidateAward() graphql1.CandidateAwardResolver {
 	return &candidateAwardResolver{r}

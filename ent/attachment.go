@@ -42,8 +42,7 @@ type Attachment struct {
 	RelationID uuid.UUID `json:"relation_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AttachmentQuery when eager-loading is set.
-	Edges                          AttachmentEdges `json:"edges"`
-	candidate_exp_attachment_edges *uuid.UUID
+	Edges AttachmentEdges `json:"edges"`
 }
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -201,8 +200,6 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case attachment.FieldID, attachment.FieldDocumentID, attachment.FieldRelationID:
 			values[i] = new(uuid.UUID)
-		case attachment.ForeignKeys[0]: // candidate_exp_attachment_edges
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
 		}
@@ -265,13 +262,6 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field relation_id", values[i])
 			} else if value != nil {
 				a.RelationID = *value
-			}
-		case attachment.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field candidate_exp_attachment_edges", values[i])
-			} else if value.Valid {
-				a.candidate_exp_attachment_edges = new(uuid.UUID)
-				*a.candidate_exp_attachment_edges = *value.S.(*uuid.UUID)
 			}
 		}
 	}

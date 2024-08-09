@@ -15,6 +15,7 @@ type AttachmentRepository interface {
 	CreateAttachment(ctx context.Context, input []*ent.NewAttachmentInput, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
 	RemoveAttachment(ctx context.Context, relationId uuid.UUID) error
 	RemoveBulkAttachment(ctx context.Context, ids []uuid.UUID) error
+	CreateBulkAttachment(ctx context.Context, attachments []*ent.Attachment) error
 	// query
 	GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error)
 	GetAttachments(ctx context.Context, relationId uuid.UUID, relationType attachment.RelationType) ([]*ent.Attachment, error)
@@ -111,6 +112,23 @@ func (rps *attachmentRepoImpl) RemoveBulkAttachment(ctx context.Context, ids []u
 	return err
 }
 
+func (rps attachmentRepoImpl) CreateBulkAttachment(ctx context.Context, attachments []*ent.Attachment) error {
+	var createBulk []*ent.AttachmentCreate
+	for _, record := range attachments {
+		createBulk = append(createBulk,
+			rps.client.Attachment.Create().
+				SetRelationID(record.RelationID).
+				SetRelationType(record.RelationType).
+				SetDocumentID(record.DocumentID).
+				SetDocumentName(record.DocumentName).
+				SetCreatedAt(time.Now().UTC()).
+				SetUpdatedAt(time.Now().UTC()),
+		)
+	}
+	_, err := rps.client.Attachment.CreateBulk(createBulk...).Save(ctx)
+	return err
+}
+
 func (rps *attachmentRepoImpl) GetAttachment(ctx context.Context, attachmentId uuid.UUID) (*ent.Attachment, error) {
 	return rps.BuildQuery().Where(attachment.ID(attachmentId)).First(ctx)
 }
@@ -119,7 +137,7 @@ func (rps *attachmentRepoImpl) GetAttachments(ctx context.Context, relationId uu
 	return rps.BuildQuery().Where(attachment.RelationIDEQ(relationId), attachment.RelationTypeEQ(relationType)).All(ctx)
 }
 
-func (rps attachmentRepoImpl) CreateBulkAttachment(ctx context.Context, input []*ent.NewAttachmentInput,
+func (rps attachmentRepoImpl) createBulkAttachment(ctx context.Context, input []*ent.NewAttachmentInput,
 	relationId uuid.UUID, relationType attachment.RelationType) error {
 	var recordCreate []*ent.AttachmentCreate
 	for _, entity := range input {
@@ -173,7 +191,7 @@ func (rps attachmentRepoImpl) CreateAndUpdateAttachment(ctx context.Context, rel
 		}
 	}
 	if len(newInput) > 0 {
-		err := rps.CreateBulkAttachment(ctx, newInput, relationId, relationType)
+		err := rps.createBulkAttachment(ctx, newInput, relationId, relationType)
 		if err != nil {
 			return err
 		}

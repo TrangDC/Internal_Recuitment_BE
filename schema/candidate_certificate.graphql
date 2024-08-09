@@ -3,6 +3,8 @@ type CandidateCertificate {
   name: String!
   score: String!
   achieved_date: Time
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -13,4 +15,5 @@ input CandidateCertificateInput {
   score: String!
   achieved_date: Time
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }

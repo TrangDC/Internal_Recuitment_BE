@@ -88,6 +88,7 @@ type CandidateAwardInput struct {
 	Name         string                `json:"name"`
 	AchievedDate *time.Time            `json:"achieved_date"`
 	Attachments  []*NewAttachmentInput `json:"attachments"`
+	OrderID      int                   `json:"order_id"`
 }
 
 type CandidateCertificateInput struct {
@@ -96,6 +97,7 @@ type CandidateCertificateInput struct {
 	Score        string                `json:"score"`
 	AchievedDate *time.Time            `json:"achieved_date"`
 	Attachments  []*NewAttachmentInput `json:"attachments"`
+	OrderID      int                   `json:"order_id"`
 }
 
 type CandidateConversionRateReport struct {
@@ -126,6 +128,7 @@ type CandidateEducateInput struct {
 	Location    string                `json:"location"`
 	Description string                `json:"description"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
+	OrderID     int                   `json:"order_id"`
 }
 
 type CandidateExpInput struct {
@@ -136,6 +139,7 @@ type CandidateExpInput struct {
 	StartDate   *time.Time `json:"start_date"`
 	EndDate     *time.Time `json:"end_date"`
 	Description string     `json:"description"`
+	OrderID     int        `json:"order_id"`
 }
 
 type CandidateFilter struct {

@@ -7,13 +7,15 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidateaward"
+	"trec/models"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type CandidateAwardRepository interface {
-	BuildBulkCreate(ctx context.Context, input []*ent.CandidateAwardInput, candidateId uuid.UUID) error
-	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateAwardInput) error
+	BuildBulkCreate(ctx context.Context, input []*ent.CandidateAwardInput, candidateId uuid.UUID) ([]*ent.Attachment, error)
+	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateAwardInput) ([]*ent.Attachment, error)
 	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
 }
 
@@ -39,46 +41,66 @@ func (rps candidateAwardRepoImpl) BuildDelete() *ent.CandidateUpdate {
 	return rps.client.Candidate.Update().SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC())
 }
 
-func (rps candidateAwardRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateAwardInput, candidateId uuid.UUID) error {
+func (rps candidateAwardRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateAwardInput, candidateId uuid.UUID) ([]*ent.Attachment, error) {
 	var createBulk []*ent.CandidateAwardCreate
+	var attachmentEdges []models.CreateBulkAttachmentInput
+	var attachments []*ent.Attachment
 	for _, v := range input {
-		var attachmentEdge []*ent.Attachment
+		id := uuid.New()
 		for _, attachmentRecord := range v.Attachments {
-			attachmentEdge = append(attachmentEdge, &ent.Attachment{
+			attachmentEdges = append(attachmentEdges, models.CreateBulkAttachmentInput{
 				DocumentID:   uuid.MustParse(attachmentRecord.DocumentID),
 				DocumentName: strings.TrimSpace(attachmentRecord.DocumentName),
-				RelationType: attachment.RelationTypeCandidateAwards,
+				OrderID:      v.OrderID,
 			})
 		}
 		create := rps.BuildCreate().
+			SetID(id).
 			SetCandidateID(candidateId).
 			SetName(strings.TrimSpace(v.Name)).
-			AddAttachmentEdges(attachmentEdge...)
+			SetOrderID(v.OrderID)
 		if !v.AchievedDate.IsZero() {
 			create.SetAchievedDate(*v.AchievedDate)
 		}
 		createBulk = append(createBulk, create)
 	}
-	_, err := rps.client.CandidateAward.CreateBulk(createBulk...).Save(ctx)
-	return err
+	results, err := rps.client.CandidateAward.CreateBulk(createBulk...).Save(ctx)
+	if err != nil {
+		return attachments, err
+	}
+	for _, v := range results {
+		attachmentEdge := lo.Filter(attachmentEdges, func(e models.CreateBulkAttachmentInput, index int) bool {
+			return e.OrderID == v.OrderID
+		})
+		for _, attachmentRecord := range attachmentEdge {
+			attachments = append(attachments, &ent.Attachment{
+				DocumentID:   attachmentRecord.DocumentID,
+				DocumentName: attachmentRecord.DocumentName,
+				RelationType: attachment.RelationTypeCandidateAwards,
+				RelationID:   v.ID,
+			})
+		}
+	}
+	return attachments, nil
 }
 
-func (rps candidateAwardRepoImpl) BuildBulkUpdate(ctx context.Context, input []*ent.CandidateAwardInput) error {
+func (rps candidateAwardRepoImpl) BuildBulkUpdate(ctx context.Context, input []*ent.CandidateAwardInput) ([]*ent.Attachment, error) {
+	var attachments []*ent.Attachment
 	for _, v := range input {
-		var attachmentEdge []*ent.Attachment
 		for _, attachmentRecord := range v.Attachments {
 			if attachmentRecord.ID != nil && *attachmentRecord.ID != "" {
 				continue
 			}
-			attachmentEdge = append(attachmentEdge, &ent.Attachment{
+			attachments = append(attachments, &ent.Attachment{
 				DocumentID:   uuid.MustParse(attachmentRecord.DocumentID),
 				DocumentName: strings.TrimSpace(attachmentRecord.DocumentName),
 				RelationType: attachment.RelationTypeCandidateAwards,
+				RelationID:   uuid.MustParse(v.ID),
 			})
 		}
 		update := rps.client.CandidateAward.UpdateOneID(uuid.MustParse(v.ID)).
 			SetName(strings.TrimSpace(v.Name)).
-			AddAttachmentEdges(attachmentEdge...)
+			SetOrderID(v.OrderID)
 		if !v.AchievedDate.IsZero() {
 			update.SetAchievedDate(*v.AchievedDate)
 		} else {
@@ -86,10 +108,10 @@ func (rps candidateAwardRepoImpl) BuildBulkUpdate(ctx context.Context, input []*
 		}
 		_, err := update.Save(ctx)
 		if err != nil {
-			return err
+			return attachments, err
 		}
 	}
-	return nil
+	return attachments, nil
 }
 
 func (rps candidateAwardRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {

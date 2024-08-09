@@ -1382,22 +1382,6 @@ func (c *CandidateExpClient) GetX(ctx context.Context, id uuid.UUID) *CandidateE
 	return obj
 }
 
-// QueryAttachmentEdges queries the attachment_edges edge of a CandidateExp.
-func (c *CandidateExpClient) QueryAttachmentEdges(ce *CandidateExp) *AttachmentQuery {
-	query := &AttachmentQuery{config: c.config}
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ce.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(candidateexp.Table, candidateexp.FieldID, id),
-			sqlgraph.To(attachment.Table, attachment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, candidateexp.AttachmentEdgesTable, candidateexp.AttachmentEdgesColumn),
-		)
-		fromV = sqlgraph.Neighbors(ce.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryCandidateEdge queries the candidate_edge edge of a CandidateExp.
 func (c *CandidateExpClient) QueryCandidateEdge(ce *CandidateExp) *CandidateQuery {
 	query := &CandidateQuery{config: c.config}

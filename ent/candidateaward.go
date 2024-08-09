@@ -30,6 +30,8 @@ type CandidateAward struct {
 	Name string `json:"name,omitempty"`
 	// AchievedDate holds the value of the "achieved_date" field.
 	AchievedDate time.Time `json:"achieved_date,omitempty"`
+	// OrderID holds the value of the "order_id" field.
+	OrderID int `json:"order_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateAwardQuery when eager-loading is set.
 	Edges CandidateAwardEdges `json:"edges"`
@@ -77,6 +79,8 @@ func (*CandidateAward) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidateaward.FieldOrderID:
+			values[i] = new(sql.NullInt64)
 		case candidateaward.FieldName:
 			values[i] = new(sql.NullString)
 		case candidateaward.FieldCreatedAt, candidateaward.FieldUpdatedAt, candidateaward.FieldDeletedAt, candidateaward.FieldAchievedDate:
@@ -140,6 +144,12 @@ func (ca *CandidateAward) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ca.AchievedDate = value.Time
 			}
+		case candidateaward.FieldOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+			} else if value.Valid {
+				ca.OrderID = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -195,6 +205,9 @@ func (ca *CandidateAward) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("achieved_date=")
 	builder.WriteString(ca.AchievedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", ca.OrderID))
 	builder.WriteByte(')')
 	return builder.String()
 }

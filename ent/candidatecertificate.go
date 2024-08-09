@@ -32,6 +32,8 @@ type CandidateCertificate struct {
 	Score string `json:"score,omitempty"`
 	// AchievedDate holds the value of the "achieved_date" field.
 	AchievedDate time.Time `json:"achieved_date,omitempty"`
+	// OrderID holds the value of the "order_id" field.
+	OrderID int `json:"order_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateCertificateQuery when eager-loading is set.
 	Edges CandidateCertificateEdges `json:"edges"`
@@ -79,6 +81,8 @@ func (*CandidateCertificate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case candidatecertificate.FieldOrderID:
+			values[i] = new(sql.NullInt64)
 		case candidatecertificate.FieldName, candidatecertificate.FieldScore:
 			values[i] = new(sql.NullString)
 		case candidatecertificate.FieldCreatedAt, candidatecertificate.FieldUpdatedAt, candidatecertificate.FieldDeletedAt, candidatecertificate.FieldAchievedDate:
@@ -148,6 +152,12 @@ func (cc *CandidateCertificate) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				cc.AchievedDate = value.Time
 			}
+		case candidatecertificate.FieldOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+			} else if value.Valid {
+				cc.OrderID = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -206,6 +216,9 @@ func (cc *CandidateCertificate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("achieved_date=")
 	builder.WriteString(cc.AchievedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", cc.OrderID))
 	builder.WriteByte(')')
 	return builder.String()
 }

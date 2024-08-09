@@ -4480,6 +4480,8 @@ type CandidateAwardMutation struct {
 	deleted_at              *time.Time
 	name                    *string
 	achieved_date           *time.Time
+	order_id                *int
+	addorder_id             *int
 	clearedFields           map[string]struct{}
 	attachment_edges        map[uuid.UUID]struct{}
 	removedattachment_edges map[uuid.UUID]struct{}
@@ -4863,6 +4865,76 @@ func (m *CandidateAwardMutation) ResetAchievedDate() {
 	delete(m.clearedFields, candidateaward.FieldAchievedDate)
 }
 
+// SetOrderID sets the "order_id" field.
+func (m *CandidateAwardMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *CandidateAwardMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the CandidateAward entity.
+// If the CandidateAward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateAwardMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *CandidateAwardMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *CandidateAwardMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *CandidateAwardMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[candidateaward.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *CandidateAwardMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[candidateaward.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *CandidateAwardMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, candidateaward.FieldOrderID)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateAwardMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -4975,7 +5047,7 @@ func (m *CandidateAwardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateAwardMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, candidateaward.FieldCreatedAt)
 	}
@@ -4993,6 +5065,9 @@ func (m *CandidateAwardMutation) Fields() []string {
 	}
 	if m.achieved_date != nil {
 		fields = append(fields, candidateaward.FieldAchievedDate)
+	}
+	if m.order_id != nil {
+		fields = append(fields, candidateaward.FieldOrderID)
 	}
 	return fields
 }
@@ -5014,6 +5089,8 @@ func (m *CandidateAwardMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case candidateaward.FieldAchievedDate:
 		return m.AchievedDate()
+	case candidateaward.FieldOrderID:
+		return m.OrderID()
 	}
 	return nil, false
 }
@@ -5035,6 +5112,8 @@ func (m *CandidateAwardMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldName(ctx)
 	case candidateaward.FieldAchievedDate:
 		return m.OldAchievedDate(ctx)
+	case candidateaward.FieldOrderID:
+		return m.OldOrderID(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateAward field %s", name)
 }
@@ -5086,6 +5165,13 @@ func (m *CandidateAwardMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAchievedDate(v)
 		return nil
+	case candidateaward.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateAward field %s", name)
 }
@@ -5093,13 +5179,21 @@ func (m *CandidateAwardMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CandidateAwardMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, candidateaward.FieldOrderID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CandidateAwardMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case candidateaward.FieldOrderID:
+		return m.AddedOrderID()
+	}
 	return nil, false
 }
 
@@ -5108,6 +5202,13 @@ func (m *CandidateAwardMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CandidateAwardMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case candidateaward.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateAward numeric field %s", name)
 }
@@ -5127,6 +5228,9 @@ func (m *CandidateAwardMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(candidateaward.FieldAchievedDate) {
 		fields = append(fields, candidateaward.FieldAchievedDate)
+	}
+	if m.FieldCleared(candidateaward.FieldOrderID) {
+		fields = append(fields, candidateaward.FieldOrderID)
 	}
 	return fields
 }
@@ -5154,6 +5258,9 @@ func (m *CandidateAwardMutation) ClearField(name string) error {
 	case candidateaward.FieldAchievedDate:
 		m.ClearAchievedDate()
 		return nil
+	case candidateaward.FieldOrderID:
+		m.ClearOrderID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateAward nullable field %s", name)
 }
@@ -5179,6 +5286,9 @@ func (m *CandidateAwardMutation) ResetField(name string) error {
 		return nil
 	case candidateaward.FieldAchievedDate:
 		m.ResetAchievedDate()
+		return nil
+	case candidateaward.FieldOrderID:
+		m.ResetOrderID()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateAward field %s", name)
@@ -5298,6 +5408,8 @@ type CandidateCertificateMutation struct {
 	name                    *string
 	score                   *string
 	achieved_date           *time.Time
+	order_id                *int
+	addorder_id             *int
 	clearedFields           map[string]struct{}
 	attachment_edges        map[uuid.UUID]struct{}
 	removedattachment_edges map[uuid.UUID]struct{}
@@ -5730,6 +5842,76 @@ func (m *CandidateCertificateMutation) ResetAchievedDate() {
 	delete(m.clearedFields, candidatecertificate.FieldAchievedDate)
 }
 
+// SetOrderID sets the "order_id" field.
+func (m *CandidateCertificateMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *CandidateCertificateMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the CandidateCertificate entity.
+// If the CandidateCertificate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateCertificateMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *CandidateCertificateMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *CandidateCertificateMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *CandidateCertificateMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[candidatecertificate.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *CandidateCertificateMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[candidatecertificate.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *CandidateCertificateMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, candidatecertificate.FieldOrderID)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateCertificateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -5842,7 +6024,7 @@ func (m *CandidateCertificateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateCertificateMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, candidatecertificate.FieldCreatedAt)
 	}
@@ -5863,6 +6045,9 @@ func (m *CandidateCertificateMutation) Fields() []string {
 	}
 	if m.achieved_date != nil {
 		fields = append(fields, candidatecertificate.FieldAchievedDate)
+	}
+	if m.order_id != nil {
+		fields = append(fields, candidatecertificate.FieldOrderID)
 	}
 	return fields
 }
@@ -5886,6 +6071,8 @@ func (m *CandidateCertificateMutation) Field(name string) (ent.Value, bool) {
 		return m.Score()
 	case candidatecertificate.FieldAchievedDate:
 		return m.AchievedDate()
+	case candidatecertificate.FieldOrderID:
+		return m.OrderID()
 	}
 	return nil, false
 }
@@ -5909,6 +6096,8 @@ func (m *CandidateCertificateMutation) OldField(ctx context.Context, name string
 		return m.OldScore(ctx)
 	case candidatecertificate.FieldAchievedDate:
 		return m.OldAchievedDate(ctx)
+	case candidatecertificate.FieldOrderID:
+		return m.OldOrderID(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateCertificate field %s", name)
 }
@@ -5967,6 +6156,13 @@ func (m *CandidateCertificateMutation) SetField(name string, value ent.Value) er
 		}
 		m.SetAchievedDate(v)
 		return nil
+	case candidatecertificate.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateCertificate field %s", name)
 }
@@ -5974,13 +6170,21 @@ func (m *CandidateCertificateMutation) SetField(name string, value ent.Value) er
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CandidateCertificateMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, candidatecertificate.FieldOrderID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CandidateCertificateMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case candidatecertificate.FieldOrderID:
+		return m.AddedOrderID()
+	}
 	return nil, false
 }
 
@@ -5989,6 +6193,13 @@ func (m *CandidateCertificateMutation) AddedField(name string) (ent.Value, bool)
 // type.
 func (m *CandidateCertificateMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case candidatecertificate.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateCertificate numeric field %s", name)
 }
@@ -6011,6 +6222,9 @@ func (m *CandidateCertificateMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(candidatecertificate.FieldAchievedDate) {
 		fields = append(fields, candidatecertificate.FieldAchievedDate)
+	}
+	if m.FieldCleared(candidatecertificate.FieldOrderID) {
+		fields = append(fields, candidatecertificate.FieldOrderID)
 	}
 	return fields
 }
@@ -6041,6 +6255,9 @@ func (m *CandidateCertificateMutation) ClearField(name string) error {
 	case candidatecertificate.FieldAchievedDate:
 		m.ClearAchievedDate()
 		return nil
+	case candidatecertificate.FieldOrderID:
+		m.ClearOrderID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateCertificate nullable field %s", name)
 }
@@ -6069,6 +6286,9 @@ func (m *CandidateCertificateMutation) ResetField(name string) error {
 		return nil
 	case candidatecertificate.FieldAchievedDate:
 		m.ResetAchievedDate()
+		return nil
+	case candidatecertificate.FieldOrderID:
+		m.ResetOrderID()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateCertificate field %s", name)
@@ -6192,6 +6412,8 @@ type CandidateEducateMutation struct {
 	description             *string
 	start_date              *time.Time
 	end_date                *time.Time
+	order_id                *int
+	addorder_id             *int
 	clearedFields           map[string]struct{}
 	attachment_edges        map[uuid.UUID]struct{}
 	removedattachment_edges map[uuid.UUID]struct{}
@@ -6820,6 +7042,76 @@ func (m *CandidateEducateMutation) ResetEndDate() {
 	delete(m.clearedFields, candidateeducate.FieldEndDate)
 }
 
+// SetOrderID sets the "order_id" field.
+func (m *CandidateEducateMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *CandidateEducateMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the CandidateEducate entity.
+// If the CandidateEducate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateEducateMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *CandidateEducateMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *CandidateEducateMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *CandidateEducateMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[candidateeducate.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *CandidateEducateMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[candidateeducate.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *CandidateEducateMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, candidateeducate.FieldOrderID)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateEducateMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -6932,7 +7224,7 @@ func (m *CandidateEducateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateEducateMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, candidateeducate.FieldCreatedAt)
 	}
@@ -6966,6 +7258,9 @@ func (m *CandidateEducateMutation) Fields() []string {
 	if m.end_date != nil {
 		fields = append(fields, candidateeducate.FieldEndDate)
 	}
+	if m.order_id != nil {
+		fields = append(fields, candidateeducate.FieldOrderID)
+	}
 	return fields
 }
 
@@ -6996,6 +7291,8 @@ func (m *CandidateEducateMutation) Field(name string) (ent.Value, bool) {
 		return m.StartDate()
 	case candidateeducate.FieldEndDate:
 		return m.EndDate()
+	case candidateeducate.FieldOrderID:
+		return m.OrderID()
 	}
 	return nil, false
 }
@@ -7027,6 +7324,8 @@ func (m *CandidateEducateMutation) OldField(ctx context.Context, name string) (e
 		return m.OldStartDate(ctx)
 	case candidateeducate.FieldEndDate:
 		return m.OldEndDate(ctx)
+	case candidateeducate.FieldOrderID:
+		return m.OldOrderID(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateEducate field %s", name)
 }
@@ -7113,6 +7412,13 @@ func (m *CandidateEducateMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetEndDate(v)
 		return nil
+	case candidateeducate.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate field %s", name)
 }
@@ -7120,13 +7426,21 @@ func (m *CandidateEducateMutation) SetField(name string, value ent.Value) error 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CandidateEducateMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, candidateeducate.FieldOrderID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CandidateEducateMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case candidateeducate.FieldOrderID:
+		return m.AddedOrderID()
+	}
 	return nil, false
 }
 
@@ -7135,6 +7449,13 @@ func (m *CandidateEducateMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CandidateEducateMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case candidateeducate.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate numeric field %s", name)
 }
@@ -7169,6 +7490,9 @@ func (m *CandidateEducateMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(candidateeducate.FieldEndDate) {
 		fields = append(fields, candidateeducate.FieldEndDate)
+	}
+	if m.FieldCleared(candidateeducate.FieldOrderID) {
+		fields = append(fields, candidateeducate.FieldOrderID)
 	}
 	return fields
 }
@@ -7211,6 +7535,9 @@ func (m *CandidateEducateMutation) ClearField(name string) error {
 	case candidateeducate.FieldEndDate:
 		m.ClearEndDate()
 		return nil
+	case candidateeducate.FieldOrderID:
+		m.ClearOrderID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate nullable field %s", name)
 }
@@ -7251,6 +7578,9 @@ func (m *CandidateEducateMutation) ResetField(name string) error {
 		return nil
 	case candidateeducate.FieldEndDate:
 		m.ResetEndDate()
+		return nil
+	case candidateeducate.FieldOrderID:
+		m.ResetOrderID()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateEducate field %s", name)
@@ -7361,27 +7691,26 @@ func (m *CandidateEducateMutation) ResetEdge(name string) error {
 // CandidateExpMutation represents an operation that mutates the CandidateExp nodes in the graph.
 type CandidateExpMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *uuid.UUID
-	created_at              *time.Time
-	updated_at              *time.Time
-	deleted_at              *time.Time
-	position                *string
-	company                 *string
-	location                *string
-	description             *string
-	start_date              *time.Time
-	end_date                *time.Time
-	clearedFields           map[string]struct{}
-	attachment_edges        map[uuid.UUID]struct{}
-	removedattachment_edges map[uuid.UUID]struct{}
-	clearedattachment_edges bool
-	candidate_edge          *uuid.UUID
-	clearedcandidate_edge   bool
-	done                    bool
-	oldValue                func(context.Context) (*CandidateExp, error)
-	predicates              []predicate.CandidateExp
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	deleted_at            *time.Time
+	position              *string
+	company               *string
+	location              *string
+	description           *string
+	start_date            *time.Time
+	end_date              *time.Time
+	order_id              *int
+	addorder_id           *int
+	clearedFields         map[string]struct{}
+	candidate_edge        *uuid.UUID
+	clearedcandidate_edge bool
+	done                  bool
+	oldValue              func(context.Context) (*CandidateExp, error)
+	predicates            []predicate.CandidateExp
 }
 
 var _ ent.Mutation = (*CandidateExpMutation)(nil)
@@ -7939,58 +8268,74 @@ func (m *CandidateExpMutation) ResetEndDate() {
 	delete(m.clearedFields, candidateexp.FieldEndDate)
 }
 
-// AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
-func (m *CandidateExpMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
-	if m.attachment_edges == nil {
-		m.attachment_edges = make(map[uuid.UUID]struct{})
+// SetOrderID sets the "order_id" field.
+func (m *CandidateExpMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *CandidateExpMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
 	}
-	for i := range ids {
-		m.attachment_edges[ids[i]] = struct{}{}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the CandidateExp entity.
+// If the CandidateExp object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateExpMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *CandidateExpMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
 	}
 }
 
-// ClearAttachmentEdges clears the "attachment_edges" edge to the Attachment entity.
-func (m *CandidateExpMutation) ClearAttachmentEdges() {
-	m.clearedattachment_edges = true
-}
-
-// AttachmentEdgesCleared reports if the "attachment_edges" edge to the Attachment entity was cleared.
-func (m *CandidateExpMutation) AttachmentEdgesCleared() bool {
-	return m.clearedattachment_edges
-}
-
-// RemoveAttachmentEdgeIDs removes the "attachment_edges" edge to the Attachment entity by IDs.
-func (m *CandidateExpMutation) RemoveAttachmentEdgeIDs(ids ...uuid.UUID) {
-	if m.removedattachment_edges == nil {
-		m.removedattachment_edges = make(map[uuid.UUID]struct{})
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *CandidateExpMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
 	}
-	for i := range ids {
-		delete(m.attachment_edges, ids[i])
-		m.removedattachment_edges[ids[i]] = struct{}{}
-	}
+	return *v, true
 }
 
-// RemovedAttachmentEdges returns the removed IDs of the "attachment_edges" edge to the Attachment entity.
-func (m *CandidateExpMutation) RemovedAttachmentEdgesIDs() (ids []uuid.UUID) {
-	for id := range m.removedattachment_edges {
-		ids = append(ids, id)
-	}
-	return
+// ClearOrderID clears the value of the "order_id" field.
+func (m *CandidateExpMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[candidateexp.FieldOrderID] = struct{}{}
 }
 
-// AttachmentEdgesIDs returns the "attachment_edges" edge IDs in the mutation.
-func (m *CandidateExpMutation) AttachmentEdgesIDs() (ids []uuid.UUID) {
-	for id := range m.attachment_edges {
-		ids = append(ids, id)
-	}
-	return
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *CandidateExpMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[candidateexp.FieldOrderID]
+	return ok
 }
 
-// ResetAttachmentEdges resets all changes to the "attachment_edges" edge.
-func (m *CandidateExpMutation) ResetAttachmentEdges() {
-	m.attachment_edges = nil
-	m.clearedattachment_edges = false
-	m.removedattachment_edges = nil
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *CandidateExpMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, candidateexp.FieldOrderID)
 }
 
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
@@ -8051,7 +8396,7 @@ func (m *CandidateExpMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateExpMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, candidateexp.FieldCreatedAt)
 	}
@@ -8082,6 +8427,9 @@ func (m *CandidateExpMutation) Fields() []string {
 	if m.end_date != nil {
 		fields = append(fields, candidateexp.FieldEndDate)
 	}
+	if m.order_id != nil {
+		fields = append(fields, candidateexp.FieldOrderID)
+	}
 	return fields
 }
 
@@ -8110,6 +8458,8 @@ func (m *CandidateExpMutation) Field(name string) (ent.Value, bool) {
 		return m.StartDate()
 	case candidateexp.FieldEndDate:
 		return m.EndDate()
+	case candidateexp.FieldOrderID:
+		return m.OrderID()
 	}
 	return nil, false
 }
@@ -8139,6 +8489,8 @@ func (m *CandidateExpMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldStartDate(ctx)
 	case candidateexp.FieldEndDate:
 		return m.OldEndDate(ctx)
+	case candidateexp.FieldOrderID:
+		return m.OldOrderID(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateExp field %s", name)
 }
@@ -8218,6 +8570,13 @@ func (m *CandidateExpMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEndDate(v)
 		return nil
+	case candidateexp.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp field %s", name)
 }
@@ -8225,13 +8584,21 @@ func (m *CandidateExpMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CandidateExpMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, candidateexp.FieldOrderID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CandidateExpMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case candidateexp.FieldOrderID:
+		return m.AddedOrderID()
+	}
 	return nil, false
 }
 
@@ -8240,6 +8607,13 @@ func (m *CandidateExpMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CandidateExpMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case candidateexp.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp numeric field %s", name)
 }
@@ -8268,6 +8642,9 @@ func (m *CandidateExpMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(candidateexp.FieldEndDate) {
 		fields = append(fields, candidateexp.FieldEndDate)
+	}
+	if m.FieldCleared(candidateexp.FieldOrderID) {
+		fields = append(fields, candidateexp.FieldOrderID)
 	}
 	return fields
 }
@@ -8303,6 +8680,9 @@ func (m *CandidateExpMutation) ClearField(name string) error {
 		return nil
 	case candidateexp.FieldEndDate:
 		m.ClearEndDate()
+		return nil
+	case candidateexp.FieldOrderID:
+		m.ClearOrderID()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp nullable field %s", name)
@@ -8342,16 +8722,16 @@ func (m *CandidateExpMutation) ResetField(name string) error {
 	case candidateexp.FieldEndDate:
 		m.ResetEndDate()
 		return nil
+	case candidateexp.FieldOrderID:
+		m.ResetOrderID()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateExp field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateExpMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.attachment_edges != nil {
-		edges = append(edges, candidateexp.EdgeAttachmentEdges)
-	}
+	edges := make([]string, 0, 1)
 	if m.candidate_edge != nil {
 		edges = append(edges, candidateexp.EdgeCandidateEdge)
 	}
@@ -8362,12 +8742,6 @@ func (m *CandidateExpMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *CandidateExpMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case candidateexp.EdgeAttachmentEdges:
-		ids := make([]ent.Value, 0, len(m.attachment_edges))
-		for id := range m.attachment_edges {
-			ids = append(ids, id)
-		}
-		return ids
 	case candidateexp.EdgeCandidateEdge:
 		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
@@ -8378,33 +8752,19 @@ func (m *CandidateExpMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateExpMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedattachment_edges != nil {
-		edges = append(edges, candidateexp.EdgeAttachmentEdges)
-	}
+	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CandidateExpMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case candidateexp.EdgeAttachmentEdges:
-		ids := make([]ent.Value, 0, len(m.removedattachment_edges))
-		for id := range m.removedattachment_edges {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateExpMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedattachment_edges {
-		edges = append(edges, candidateexp.EdgeAttachmentEdges)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedcandidate_edge {
 		edges = append(edges, candidateexp.EdgeCandidateEdge)
 	}
@@ -8415,8 +8775,6 @@ func (m *CandidateExpMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *CandidateExpMutation) EdgeCleared(name string) bool {
 	switch name {
-	case candidateexp.EdgeAttachmentEdges:
-		return m.clearedattachment_edges
 	case candidateexp.EdgeCandidateEdge:
 		return m.clearedcandidate_edge
 	}
@@ -8438,9 +8796,6 @@ func (m *CandidateExpMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CandidateExpMutation) ResetEdge(name string) error {
 	switch name {
-	case candidateexp.EdgeAttachmentEdges:
-		m.ResetAttachmentEdges()
-		return nil
 	case candidateexp.EdgeCandidateEdge:
 		m.ResetCandidateEdge()
 		return nil

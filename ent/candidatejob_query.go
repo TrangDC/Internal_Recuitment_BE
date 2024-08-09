@@ -709,7 +709,6 @@ func (cjq *CandidateJobQuery) loadAttachmentEdges(ctx context.Context, query *At
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
 	query.Where(predicate.Attachment(func(s *sql.Selector) {
 		s.Where(sql.InValues(candidatejob.AttachmentEdgesColumn, fks...))
 	}))

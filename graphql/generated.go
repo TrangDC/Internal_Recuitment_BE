@@ -184,17 +184,21 @@ type ComplexityRoot struct {
 
 	CandidateAward struct {
 		AchievedDate func(childComplexity int) int
+		Attachments  func(childComplexity int) int
 		CreatedAt    func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
+		OrderID      func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 	}
 
 	CandidateCertificate struct {
 		AchievedDate func(childComplexity int) int
+		Attachments  func(childComplexity int) int
 		CreatedAt    func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
+		OrderID      func(childComplexity int) int
 		Score        func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 	}
@@ -223,6 +227,7 @@ type ComplexityRoot struct {
 	}
 
 	CandidateEducate struct {
+		Attachments func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
 		EndDate     func(childComplexity int) int
@@ -230,6 +235,7 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Location    func(childComplexity int) int
 		Major       func(childComplexity int) int
+		OrderID     func(childComplexity int) int
 		SchoolName  func(childComplexity int) int
 		StartDate   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -242,6 +248,7 @@ type ComplexityRoot struct {
 		EndDate     func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Location    func(childComplexity int) int
+		OrderID     func(childComplexity int) int
 		Position    func(childComplexity int) int
 		StartDate   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -1156,12 +1163,18 @@ type CandidateResolver interface {
 }
 type CandidateAwardResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateAward) (string, error)
+
+	Attachments(ctx context.Context, obj *ent.CandidateAward) ([]*ent.Attachment, error)
 }
 type CandidateCertificateResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateCertificate) (string, error)
+
+	Attachments(ctx context.Context, obj *ent.CandidateCertificate) ([]*ent.Attachment, error)
 }
 type CandidateEducateResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateEducate) (string, error)
+
+	Attachments(ctx context.Context, obj *ent.CandidateEducate) ([]*ent.Attachment, error)
 }
 type CandidateExpResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateExp) (string, error)
@@ -1955,6 +1968,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateAward.AchievedDate(childComplexity), true
 
+	case "CandidateAward.attachments":
+		if e.complexity.CandidateAward.Attachments == nil {
+			break
+		}
+
+		return e.complexity.CandidateAward.Attachments(childComplexity), true
+
 	case "CandidateAward.created_at":
 		if e.complexity.CandidateAward.CreatedAt == nil {
 			break
@@ -1976,6 +1996,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateAward.Name(childComplexity), true
 
+	case "CandidateAward.order_id":
+		if e.complexity.CandidateAward.OrderID == nil {
+			break
+		}
+
+		return e.complexity.CandidateAward.OrderID(childComplexity), true
+
 	case "CandidateAward.updated_at":
 		if e.complexity.CandidateAward.UpdatedAt == nil {
 			break
@@ -1989,6 +2016,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateCertificate.AchievedDate(childComplexity), true
+
+	case "CandidateCertificate.attachments":
+		if e.complexity.CandidateCertificate.Attachments == nil {
+			break
+		}
+
+		return e.complexity.CandidateCertificate.Attachments(childComplexity), true
 
 	case "CandidateCertificate.created_at":
 		if e.complexity.CandidateCertificate.CreatedAt == nil {
@@ -2010,6 +2044,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateCertificate.Name(childComplexity), true
+
+	case "CandidateCertificate.order_id":
+		if e.complexity.CandidateCertificate.OrderID == nil {
+			break
+		}
+
+		return e.complexity.CandidateCertificate.OrderID(childComplexity), true
 
 	case "CandidateCertificate.score":
 		if e.complexity.CandidateCertificate.Score == nil {
@@ -2102,6 +2143,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateEdge.Node(childComplexity), true
 
+	case "CandidateEducate.attachments":
+		if e.complexity.CandidateEducate.Attachments == nil {
+			break
+		}
+
+		return e.complexity.CandidateEducate.Attachments(childComplexity), true
+
 	case "CandidateEducate.created_at":
 		if e.complexity.CandidateEducate.CreatedAt == nil {
 			break
@@ -2150,6 +2198,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateEducate.Major(childComplexity), true
+
+	case "CandidateEducate.order_id":
+		if e.complexity.CandidateEducate.OrderID == nil {
+			break
+		}
+
+		return e.complexity.CandidateEducate.OrderID(childComplexity), true
 
 	case "CandidateEducate.school_name":
 		if e.complexity.CandidateEducate.SchoolName == nil {
@@ -2213,6 +2268,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateExp.Location(childComplexity), true
+
+	case "CandidateExp.order_id":
+		if e.complexity.CandidateExp.OrderID == nil {
+			break
+		}
+
+		return e.complexity.CandidateExp.OrderID(childComplexity), true
 
 	case "CandidateExp.position":
 		if e.complexity.CandidateExp.Position == nil {
@@ -6493,6 +6555,8 @@ type AuditTrailResponseGetAll {
   id: ID!
   name: String!
   achieved_date: Time
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -6502,6 +6566,7 @@ input CandidateAwardInput {
   name: String!
   achieved_date: Time
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_certificate.graphql", Input: `type CandidateCertificate {
@@ -6509,6 +6574,8 @@ input CandidateAwardInput {
   name: String!
   score: String!
   achieved_date: Time
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -6519,6 +6586,7 @@ input CandidateCertificateInput {
   score: String!
   achieved_date: Time
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_educatte.graphql", Input: `type CandidateEducate {
@@ -6530,6 +6598,8 @@ input CandidateCertificateInput {
   end_date: Time
   location: String!
   description: String!
+  attachments: [Attachment!]!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -6544,6 +6614,7 @@ input CandidateEducateInput {
   location: String!
   description: String!
   attachments: [NewAttachmentInput!]!
+  order_id: Int!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_exp.graphql", Input: `type CandidateExp {
@@ -6554,6 +6625,7 @@ input CandidateEducateInput {
   start_date: Time
   end_date: Time
   description: String!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -6566,6 +6638,7 @@ input CandidateExpInput {
   start_date: Time
   end_date: Time
   description: String!
+  order_id: Int!
 }
 `, BuiltIn: false},
 	{Name: "../schema/candidate_history_call.graphql", Input: `enum CandidateHistoryCallTypeEnum {
@@ -14565,6 +14638,8 @@ func (ec *executionContext) fieldContext_Candidate_candidate_exp(ctx context.Con
 				return ec.fieldContext_CandidateExp_end_date(ctx, field)
 			case "description":
 				return ec.fieldContext_CandidateExp_description(ctx, field)
+			case "order_id":
+				return ec.fieldContext_CandidateExp_order_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateExp_created_at(ctx, field)
 			case "updated_at":
@@ -14628,6 +14703,10 @@ func (ec *executionContext) fieldContext_Candidate_candidate_educate(ctx context
 				return ec.fieldContext_CandidateEducate_location(ctx, field)
 			case "description":
 				return ec.fieldContext_CandidateEducate_description(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateEducate_attachments(ctx, field)
+			case "order_id":
+				return ec.fieldContext_CandidateEducate_order_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateEducate_created_at(ctx, field)
 			case "updated_at":
@@ -14681,6 +14760,10 @@ func (ec *executionContext) fieldContext_Candidate_candidate_award(ctx context.C
 				return ec.fieldContext_CandidateAward_name(ctx, field)
 			case "achieved_date":
 				return ec.fieldContext_CandidateAward_achieved_date(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateAward_attachments(ctx, field)
+			case "order_id":
+				return ec.fieldContext_CandidateAward_order_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateAward_created_at(ctx, field)
 			case "updated_at":
@@ -14736,6 +14819,10 @@ func (ec *executionContext) fieldContext_Candidate_candidate_certificate(ctx con
 				return ec.fieldContext_CandidateCertificate_score(ctx, field)
 			case "achieved_date":
 				return ec.fieldContext_CandidateCertificate_achieved_date(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateCertificate_attachments(ctx, field)
+			case "order_id":
+				return ec.fieldContext_CandidateCertificate_order_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateCertificate_created_at(ctx, field)
 			case "updated_at":
@@ -15049,6 +15136,102 @@ func (ec *executionContext) fieldContext_CandidateAward_achieved_date(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateAward_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateAward) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateAward_attachments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateAward().Attachments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Attachment)
+	fc.Result = res
+	return ec.marshalNAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateAward_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateAward",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateAward_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateAward) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateAward_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateAward_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateAward",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateAward_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateAward) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateAward_created_at(ctx, field)
 	if err != nil {
@@ -15305,6 +15488,102 @@ func (ec *executionContext) fieldContext_CandidateCertificate_achieved_date(ctx 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateCertificate_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateCertificate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateCertificate_attachments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateCertificate().Attachments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Attachment)
+	fc.Result = res
+	return ec.marshalNAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateCertificate_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateCertificate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateCertificate_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateCertificate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateCertificate_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateCertificate_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateCertificate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -16306,6 +16585,102 @@ func (ec *executionContext) fieldContext_CandidateEducate_description(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateEducate_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEducate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateEducate_attachments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateEducate().Attachments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Attachment)
+	fc.Result = res
+	return ec.marshalNAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateEducate_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateEducate",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateEducate_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEducate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateEducate_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateEducate_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateEducate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateEducate_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateEducate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateEducate_created_at(ctx, field)
 	if err != nil {
@@ -16691,6 +17066,50 @@ func (ec *executionContext) fieldContext_CandidateExp_description(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateExp_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateExp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateExp_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateExp_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateExp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44781,7 +45200,7 @@ func (ec *executionContext) unmarshalInputCandidateAwardInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "achieved_date", "attachments"}
+	fieldsInOrder := [...]string{"id", "name", "achieved_date", "attachments", "order_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44820,6 +45239,14 @@ func (ec *executionContext) unmarshalInputCandidateAwardInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "order_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
+			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -44833,7 +45260,7 @@ func (ec *executionContext) unmarshalInputCandidateCertificateInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "score", "achieved_date", "attachments"}
+	fieldsInOrder := [...]string{"id", "name", "score", "achieved_date", "attachments", "order_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44880,6 +45307,14 @@ func (ec *executionContext) unmarshalInputCandidateCertificateInput(ctx context.
 			if err != nil {
 				return it, err
 			}
+		case "order_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
+			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -44893,7 +45328,7 @@ func (ec *executionContext) unmarshalInputCandidateEducateInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "school_name", "major", "gpa", "start_date", "end_date", "location", "description", "attachments"}
+	fieldsInOrder := [...]string{"id", "school_name", "major", "gpa", "start_date", "end_date", "location", "description", "attachments", "order_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44972,6 +45407,14 @@ func (ec *executionContext) unmarshalInputCandidateEducateInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "order_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
+			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -44985,7 +45428,7 @@ func (ec *executionContext) unmarshalInputCandidateExpInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "position", "company", "location", "start_date", "end_date", "description"}
+	fieldsInOrder := [...]string{"id", "position", "company", "location", "start_date", "end_date", "description", "order_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45045,6 +45488,14 @@ func (ec *executionContext) unmarshalInputCandidateExpInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "order_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
+			it.OrderID, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50834,6 +51285,33 @@ func (ec *executionContext) _CandidateAward(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = ec._CandidateAward_achieved_date(ctx, field, obj)
 
+		case "attachments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateAward_attachments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "order_id":
+
+			out.Values[i] = ec._CandidateAward_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._CandidateAward_created_at(ctx, field, obj)
@@ -50907,6 +51385,33 @@ func (ec *executionContext) _CandidateCertificate(ctx context.Context, sel ast.S
 
 			out.Values[i] = ec._CandidateCertificate_achieved_date(ctx, field, obj)
 
+		case "attachments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateCertificate_attachments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "order_id":
+
+			out.Values[i] = ec._CandidateCertificate_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._CandidateCertificate_created_at(ctx, field, obj)
@@ -51166,6 +51671,33 @@ func (ec *executionContext) _CandidateEducate(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "attachments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateEducate_attachments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "order_id":
+
+			out.Values[i] = ec._CandidateEducate_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._CandidateEducate_created_at(ctx, field, obj)
@@ -51253,6 +51785,13 @@ func (ec *executionContext) _CandidateExp(ctx context.Context, sel ast.Selection
 		case "description":
 
 			out.Values[i] = ec._CandidateExp_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "order_id":
+
+			out.Values[i] = ec._CandidateExp_order_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -59597,6 +60136,50 @@ func (ec *executionContext) marshalNApplicationReportProcessing2ᚖtrecᚋentᚐ
 		return graphql.Null
 	}
 	return ec._ApplicationReportProcessing(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Attachment) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAttachment2ᚖtrecᚋentᚐAttachment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNAttachment2ᚖtrecᚋentᚐAttachment(ctx context.Context, sel ast.SelectionSet, v *ent.Attachment) graphql.Marshaler {

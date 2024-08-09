@@ -217,6 +217,33 @@ func (ceu *CandidateEducateUpdate) ClearEndDate() *CandidateEducateUpdate {
 	return ceu
 }
 
+// SetOrderID sets the "order_id" field.
+func (ceu *CandidateEducateUpdate) SetOrderID(i int) *CandidateEducateUpdate {
+	ceu.mutation.ResetOrderID()
+	ceu.mutation.SetOrderID(i)
+	return ceu
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (ceu *CandidateEducateUpdate) SetNillableOrderID(i *int) *CandidateEducateUpdate {
+	if i != nil {
+		ceu.SetOrderID(*i)
+	}
+	return ceu
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (ceu *CandidateEducateUpdate) AddOrderID(i int) *CandidateEducateUpdate {
+	ceu.mutation.AddOrderID(i)
+	return ceu
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (ceu *CandidateEducateUpdate) ClearOrderID() *CandidateEducateUpdate {
+	ceu.mutation.ClearOrderID()
+	return ceu
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (ceu *CandidateEducateUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateEducateUpdate {
 	ceu.mutation.AddAttachmentEdgeIDs(ids...)
@@ -441,6 +468,15 @@ func (ceu *CandidateEducateUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if ceu.mutation.EndDateCleared() {
 		_spec.ClearField(candidateeducate.FieldEndDate, field.TypeTime)
+	}
+	if value, ok := ceu.mutation.OrderID(); ok {
+		_spec.SetField(candidateeducate.FieldOrderID, field.TypeInt, value)
+	}
+	if value, ok := ceu.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateeducate.FieldOrderID, field.TypeInt, value)
+	}
+	if ceu.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateeducate.FieldOrderID, field.TypeInt)
 	}
 	if ceu.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -736,6 +772,33 @@ func (ceuo *CandidateEducateUpdateOne) ClearEndDate() *CandidateEducateUpdateOne
 	return ceuo
 }
 
+// SetOrderID sets the "order_id" field.
+func (ceuo *CandidateEducateUpdateOne) SetOrderID(i int) *CandidateEducateUpdateOne {
+	ceuo.mutation.ResetOrderID()
+	ceuo.mutation.SetOrderID(i)
+	return ceuo
+}
+
+// SetNillableOrderID sets the "order_id" field if the given value is not nil.
+func (ceuo *CandidateEducateUpdateOne) SetNillableOrderID(i *int) *CandidateEducateUpdateOne {
+	if i != nil {
+		ceuo.SetOrderID(*i)
+	}
+	return ceuo
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (ceuo *CandidateEducateUpdateOne) AddOrderID(i int) *CandidateEducateUpdateOne {
+	ceuo.mutation.AddOrderID(i)
+	return ceuo
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (ceuo *CandidateEducateUpdateOne) ClearOrderID() *CandidateEducateUpdateOne {
+	ceuo.mutation.ClearOrderID()
+	return ceuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (ceuo *CandidateEducateUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateEducateUpdateOne {
 	ceuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -990,6 +1053,15 @@ func (ceuo *CandidateEducateUpdateOne) sqlSave(ctx context.Context) (_node *Cand
 	}
 	if ceuo.mutation.EndDateCleared() {
 		_spec.ClearField(candidateeducate.FieldEndDate, field.TypeTime)
+	}
+	if value, ok := ceuo.mutation.OrderID(); ok {
+		_spec.SetField(candidateeducate.FieldOrderID, field.TypeInt, value)
+	}
+	if value, ok := ceuo.mutation.AddedOrderID(); ok {
+		_spec.AddField(candidateeducate.FieldOrderID, field.TypeInt, value)
+	}
+	if ceuo.mutation.OrderIDCleared() {
+		_spec.ClearField(candidateeducate.FieldOrderID, field.TypeInt)
 	}
 	if ceuo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

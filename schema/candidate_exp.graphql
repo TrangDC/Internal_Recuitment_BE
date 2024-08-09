@@ -6,6 +6,7 @@ type CandidateExp {
   start_date: Time
   end_date: Time
   description: String!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
 }
@@ -18,4 +19,5 @@ input CandidateExpInput {
   start_date: Time
   end_date: Time
   description: String!
+  order_id: Int!
 }

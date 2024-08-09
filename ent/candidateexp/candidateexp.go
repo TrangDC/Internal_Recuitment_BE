@@ -31,19 +31,12 @@ const (
 	FieldStartDate = "start_date"
 	// FieldEndDate holds the string denoting the end_date field in the database.
 	FieldEndDate = "end_date"
-	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
-	EdgeAttachmentEdges = "attachment_edges"
+	// FieldOrderID holds the string denoting the order_id field in the database.
+	FieldOrderID = "order_id"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the candidateexp in the database.
 	Table = "candidate_exps"
-	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
-	AttachmentEdgesTable = "attachments"
-	// AttachmentEdgesInverseTable is the table name for the Attachment entity.
-	// It exists in this package in order to avoid circular dependency with the "attachment" package.
-	AttachmentEdgesInverseTable = "attachments"
-	// AttachmentEdgesColumn is the table column denoting the attachment_edges relation/edge.
-	AttachmentEdgesColumn = "candidate_exp_attachment_edges"
 	// CandidateEdgeTable is the table that holds the candidate_edge relation/edge.
 	CandidateEdgeTable = "candidate_exps"
 	// CandidateEdgeInverseTable is the table name for the Candidate entity.
@@ -66,6 +59,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldStartDate,
 	FieldEndDate,
+	FieldOrderID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

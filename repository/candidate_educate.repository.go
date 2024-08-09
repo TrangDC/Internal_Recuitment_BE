@@ -7,13 +7,15 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/candidateeducate"
+	"trec/models"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type CandidateEducateRepository interface {
-	BuildBulkCreate(ctx context.Context, input []*ent.CandidateEducateInput, candidateId uuid.UUID) error
-	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateEducateInput) error
+	BuildBulkCreate(ctx context.Context, input []*ent.CandidateEducateInput, candidateId uuid.UUID) ([]*ent.Attachment, error)
+	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateEducateInput) ([]*ent.Attachment, error)
 	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
 }
 
@@ -39,24 +41,27 @@ func (rps candidateEducateRepoImpl) BuildDelete() *ent.CandidateUpdate {
 	return rps.client.Candidate.Update().SetDeletedAt(time.Now().UTC()).SetUpdatedAt(time.Now().UTC())
 }
 
-func (rps candidateEducateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateEducateInput, candidateId uuid.UUID) error {
+func (rps candidateEducateRepoImpl) BuildBulkCreate(ctx context.Context, input []*ent.CandidateEducateInput, candidateId uuid.UUID) ([]*ent.Attachment, error) {
 	var createBulk []*ent.CandidateEducateCreate
+	var attachmentEdges []models.CreateBulkAttachmentInput
+	var attachments []*ent.Attachment
 	for _, v := range input {
-		var attachmentEdge []*ent.Attachment
+		id := uuid.New()
 		for _, attachmentRecord := range v.Attachments {
-			attachmentEdge = append(attachmentEdge, &ent.Attachment{
+			attachmentEdges = append(attachmentEdges, models.CreateBulkAttachmentInput{
 				DocumentID:   uuid.MustParse(attachmentRecord.DocumentID),
 				DocumentName: strings.TrimSpace(attachmentRecord.DocumentName),
-				RelationType: attachment.RelationTypeCandidateEducates,
+				OrderID:      v.OrderID,
 			})
 		}
 		create := rps.BuildCreate().
+			SetID(id).
 			SetSchoolName(strings.TrimSpace(v.SchoolName)).
 			SetMajor(strings.TrimSpace(v.Major)).
 			SetGpa(strings.TrimSpace(v.Gpa)).
 			SetCandidateID(candidateId).
 			SetLocation(strings.TrimSpace(v.Location)).
-			AddAttachmentEdges(attachmentEdge...)
+			SetOrderID(v.OrderID)
 		if !v.StartDate.IsZero() {
 			create.SetStartDate(*v.StartDate)
 		}
@@ -65,21 +70,38 @@ func (rps candidateEducateRepoImpl) BuildBulkCreate(ctx context.Context, input [
 		}
 		createBulk = append(createBulk, create)
 	}
-	_, err := rps.client.CandidateEducate.CreateBulk(createBulk...).Save(ctx)
-	return err
+	results, err := rps.client.CandidateEducate.CreateBulk(createBulk...).Save(ctx)
+	if err != nil {
+		return attachments, err
+	}
+	for _, v := range results {
+		attachmentEdge := lo.Filter(attachmentEdges, func(e models.CreateBulkAttachmentInput, index int) bool {
+			return e.OrderID == v.OrderID
+		})
+		for _, attachmentRecord := range attachmentEdge {
+			attachments = append(attachments, &ent.Attachment{
+				DocumentID:   attachmentRecord.DocumentID,
+				DocumentName: attachmentRecord.DocumentName,
+				RelationType: attachment.RelationTypeCandidateEducates,
+				RelationID:   v.ID,
+			})
+		}
+	}
+	return attachments, nil
 }
 
-func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input []*ent.CandidateEducateInput) error {
+func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input []*ent.CandidateEducateInput) ([]*ent.Attachment, error) {
+	var attachments []*ent.Attachment
 	for _, v := range input {
-		var attachmentEdge []*ent.Attachment
 		for _, attachmentRecord := range v.Attachments {
 			if attachmentRecord.ID != nil && *attachmentRecord.ID != "" {
 				continue
 			}
-			attachmentEdge = append(attachmentEdge, &ent.Attachment{
+			attachments = append(attachments, &ent.Attachment{
 				DocumentID:   uuid.MustParse(attachmentRecord.DocumentID),
 				DocumentName: strings.TrimSpace(attachmentRecord.DocumentName),
 				RelationType: attachment.RelationTypeCandidateAwards,
+				RelationID:   uuid.MustParse(v.ID),
 			})
 		}
 		update := rps.client.CandidateEducate.UpdateOneID(uuid.MustParse(v.ID)).
@@ -88,7 +110,7 @@ func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input [
 			SetGpa(strings.TrimSpace(v.Gpa)).
 			SetLocation(strings.TrimSpace(v.Location)).
 			SetDescription(strings.TrimSpace(v.Description)).
-			AddAttachmentEdges(attachmentEdge...)
+			SetOrderID(v.OrderID)
 		if !v.StartDate.IsZero() {
 			update.SetStartDate(*v.StartDate)
 		} else {
@@ -101,10 +123,10 @@ func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input [
 		}
 		_, err := update.Save(ctx)
 		if err != nil {
-			return err
+			return attachments, err
 		}
 	}
-	return nil
+	return attachments, nil
 }
 
 func (rps candidateEducateRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {
