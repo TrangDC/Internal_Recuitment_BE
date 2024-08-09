@@ -209,6 +209,26 @@ func (cju *CandidateJobUpdate) ClearOfferExpirationDate() *CandidateJobUpdate {
 	return cju
 }
 
+// SetLevel sets the "level" field.
+func (cju *CandidateJobUpdate) SetLevel(c candidatejob.Level) *CandidateJobUpdate {
+	cju.mutation.SetLevel(c)
+	return cju
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (cju *CandidateJobUpdate) SetNillableLevel(c *candidatejob.Level) *CandidateJobUpdate {
+	if c != nil {
+		cju.SetLevel(*c)
+	}
+	return cju
+}
+
+// ClearLevel clears the value of the "level" field.
+func (cju *CandidateJobUpdate) ClearLevel() *CandidateJobUpdate {
+	cju.mutation.ClearLevel()
+	return cju
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cju *CandidateJobUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobUpdate {
 	cju.mutation.AddAttachmentEdgeIDs(ids...)
@@ -500,6 +520,11 @@ func (cju *CandidateJobUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.status": %w`, err)}
 		}
 	}
+	if v, ok := cju.mutation.Level(); ok {
+		if err := candidatejob.LevelValidator(v); err != nil {
+			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -558,6 +583,12 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cju.mutation.OfferExpirationDateCleared() {
 		_spec.ClearField(candidatejob.FieldOfferExpirationDate, field.TypeTime)
+	}
+	if value, ok := cju.mutation.Level(); ok {
+		_spec.SetField(candidatejob.FieldLevel, field.TypeEnum, value)
+	}
+	if cju.mutation.LevelCleared() {
+		_spec.ClearField(candidatejob.FieldLevel, field.TypeEnum)
 	}
 	if cju.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1071,6 +1102,26 @@ func (cjuo *CandidateJobUpdateOne) ClearOfferExpirationDate() *CandidateJobUpdat
 	return cjuo
 }
 
+// SetLevel sets the "level" field.
+func (cjuo *CandidateJobUpdateOne) SetLevel(c candidatejob.Level) *CandidateJobUpdateOne {
+	cjuo.mutation.SetLevel(c)
+	return cjuo
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (cjuo *CandidateJobUpdateOne) SetNillableLevel(c *candidatejob.Level) *CandidateJobUpdateOne {
+	if c != nil {
+		cjuo.SetLevel(*c)
+	}
+	return cjuo
+}
+
+// ClearLevel clears the value of the "level" field.
+func (cjuo *CandidateJobUpdateOne) ClearLevel() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearLevel()
+	return cjuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (cjuo *CandidateJobUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateJobUpdateOne {
 	cjuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -1375,6 +1426,11 @@ func (cjuo *CandidateJobUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.status": %w`, err)}
 		}
 	}
+	if v, ok := cjuo.mutation.Level(); ok {
+		if err := candidatejob.LevelValidator(v); err != nil {
+			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1450,6 +1506,12 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 	}
 	if cjuo.mutation.OfferExpirationDateCleared() {
 		_spec.ClearField(candidatejob.FieldOfferExpirationDate, field.TypeTime)
+	}
+	if value, ok := cjuo.mutation.Level(); ok {
+		_spec.SetField(candidatejob.FieldLevel, field.TypeEnum, value)
+	}
+	if cjuo.mutation.LevelCleared() {
+		_spec.ClearField(candidatejob.FieldLevel, field.TypeEnum)
 	}
 	if cjuo.mutation.AttachmentEdgesCleared() {
 		edge := &sqlgraph.EdgeSpec{

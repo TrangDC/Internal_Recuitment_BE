@@ -63,8 +63,8 @@ func (r *candidateJobResolver) FailedReason(ctx context.Context, obj *ent.Candid
 
 // IsAbleToDelete is the resolver for the is_able_to_delete field.
 func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error) {
-	return (obj.Edges.HiringJobEdge.Status == hiringjob.StatusOpened &&
-			ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(obj.Status))),
+	return obj.Edges.HiringJobEdge.Status == hiringjob.StatusOpened &&
+			ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(obj.Status)),
 		nil
 }
 
@@ -79,6 +79,12 @@ func (r *candidateJobResolver) InterviewFeature(ctx context.Context, obj *ent.Ca
 // Steps is the resolver for the steps field.
 func (r *candidateJobResolver) Steps(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobStep, error) {
 	return obj.Edges.CandidateJobStep, nil
+}
+
+// Level is the resolver for the level field.
+func (r *candidateJobResolver) Level(ctx context.Context, obj *ent.CandidateJob) (*ent.CandidateJobLevel, error) {
+	candidateJobLevel := ent.CandidateJobLevel(obj.Level)
+	return &candidateJobLevel, nil
 }
 
 // CandidateJob returns graphql1.CandidateJobResolver implementation.

@@ -338,9 +338,6 @@ func (svc *candidateJobSvcImpl) DeleteCandidateJob(ctx context.Context, id uuid.
 	if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusClosed && candidateJob.Status != candidatejob.StatusApplied {
 		return util.WrapGQLError(ctx, "model.candidate_job.validation.job_is_closed", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	// if candidateJob.Edges.HiringJobEdge.Status == hiringjob.StatusOpened && !ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(candidateJob.Status)) {
-	// 	return util.WrapGQLError(ctx, "model.candidate_job.validation.status_is_invalid_to_delete", http.StatusBadRequest, util.ErrorFlagValidateFail)
-	// }
 	errString, err := svc.repoRegistry.CandidateJob().ValidUpsetByCandidateIsBlacklist(ctx, candidateJob.CandidateID)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -705,7 +702,7 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 		candidateJobQuery.Where(candidatejob.CreatedAtGTE(*input.FromDate), candidatejob.CreatedAtLTE(*input.ToDate))
 	}
 	if input.FailedReason != nil && len(input.FailedReason) != 0 {
-		candidateJobIds := []uuid.UUID{}
+		var candidateJobIds []uuid.UUID
 		queryString := "SELECT id FROM candidate_jobs WHERE "
 		for i, reason := range input.FailedReason {
 			queryString += "failed_reason @> '[\"" + reason.String() + "\"]'::jsonb"
@@ -792,6 +789,12 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 			return uuid.MustParse(id)
 		})
 		candidateJobQuery.Where(candidatejob.CreatedByIn(createdByIds...))
+	}
+	if input.Levels != nil {
+		levels := lo.Map(input.Levels, func(level ent.CandidateJobLevel, index int) candidatejob.Level {
+			return candidatejob.Level(level)
+		})
+		candidateJobQuery.Where(candidatejob.LevelIn(levels...))
 	}
 }
 

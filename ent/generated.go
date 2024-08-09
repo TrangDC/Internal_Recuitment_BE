@@ -311,14 +311,15 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
-	HiringJobID   []string       `json:"hiring_job_id"`
-	HiringTeamIds []string       `json:"hiring_team_ids"`
-	Priority      []int          `json:"priority"`
-	SkillID       []string       `json:"skill_id"`
-	FromDate      *time.Time     `json:"from_date"`
-	ToDate        *time.Time     `json:"to_date"`
-	Location      []LocationEnum `json:"location"`
-	CreatedByIds  []string       `json:"created_by_ids"`
+	HiringJobID   []string            `json:"hiring_job_id"`
+	HiringTeamIds []string            `json:"hiring_team_ids"`
+	Priority      []int               `json:"priority"`
+	SkillID       []string            `json:"skill_id"`
+	FromDate      *time.Time          `json:"from_date"`
+	ToDate        *time.Time          `json:"to_date"`
+	Location      []LocationEnum      `json:"location"`
+	CreatedByIds  []string            `json:"created_by_ids"`
+	Levels        []CandidateJobLevel `json:"levels"`
 }
 
 type CandidateJobGroupByStatusFreeWord struct {
@@ -645,6 +646,7 @@ type NewCandidateJobInput struct {
 	Attachments         []*NewAttachmentInput      `json:"attachments"`
 	OnboardDate         *time.Time                 `json:"onboard_date"`
 	OfferExpirationDate *time.Time                 `json:"offer_expiration_date"`
+	Level               *CandidateJobLevel         `json:"level"`
 	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
 }
 
@@ -1047,6 +1049,7 @@ type UpdateCandidateJobStatus struct {
 	Status              CandidateJobStatus         `json:"status"`
 	OnboardDate         *time.Time                 `json:"onboard_date"`
 	OfferExpirationDate *time.Time                 `json:"offer_expiration_date"`
+	Level               *CandidateJobLevel         `json:"level"`
 	FailedReason        []CandidateJobFailedReason `json:"failed_reason"`
 }
 
@@ -1480,6 +1483,57 @@ func (e *CandidateJobFailedReason) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CandidateJobFailedReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CandidateJobLevel string
+
+const (
+	CandidateJobLevelIntern   CandidateJobLevel = "intern"
+	CandidateJobLevelFresher  CandidateJobLevel = "fresher"
+	CandidateJobLevelJunior   CandidateJobLevel = "junior"
+	CandidateJobLevelMiddle   CandidateJobLevel = "middle"
+	CandidateJobLevelSenior   CandidateJobLevel = "senior"
+	CandidateJobLevelManager  CandidateJobLevel = "manager"
+	CandidateJobLevelDirector CandidateJobLevel = "director"
+)
+
+var AllCandidateJobLevel = []CandidateJobLevel{
+	CandidateJobLevelIntern,
+	CandidateJobLevelFresher,
+	CandidateJobLevelJunior,
+	CandidateJobLevelMiddle,
+	CandidateJobLevelSenior,
+	CandidateJobLevelManager,
+	CandidateJobLevelDirector,
+}
+
+func (e CandidateJobLevel) IsValid() bool {
+	switch e {
+	case CandidateJobLevelIntern, CandidateJobLevelFresher, CandidateJobLevelJunior, CandidateJobLevelMiddle, CandidateJobLevelSenior, CandidateJobLevelManager, CandidateJobLevelDirector:
+		return true
+	}
+	return false
+}
+
+func (e CandidateJobLevel) String() string {
+	return string(e)
+}
+
+func (e *CandidateJobLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CandidateJobLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CandidateJobLevel", str)
+	}
+	return nil
+}
+
+func (e CandidateJobLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

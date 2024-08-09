@@ -332,6 +332,7 @@ type ComplexityRoot struct {
 		ID                  func(childComplexity int) int
 		InterviewFeature    func(childComplexity int) int
 		IsAbleToDelete      func(childComplexity int) int
+		Level               func(childComplexity int) int
 		OfferExpirationDate func(childComplexity int) int
 		OnboardDate         func(childComplexity int) int
 		Owner               func(childComplexity int) int
@@ -1198,6 +1199,8 @@ type CandidateJobResolver interface {
 	IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error)
 	InterviewFeature(ctx context.Context, obj *ent.CandidateJob) (int, error)
 	Steps(ctx context.Context, obj *ent.CandidateJob) ([]*ent.CandidateJobStep, error)
+
+	Level(ctx context.Context, obj *ent.CandidateJob) (*ent.CandidateJobLevel, error)
 }
 type CandidateJobFeedbackResolver interface {
 	ID(ctx context.Context, obj *ent.CandidateJobFeedback) (string, error)
@@ -2609,6 +2612,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.IsAbleToDelete(childComplexity), true
+
+	case "CandidateJob.level":
+		if e.complexity.CandidateJob.Level == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.Level(childComplexity), true
 
 	case "CandidateJob.offer_expiration_date":
 		if e.complexity.CandidateJob.OfferExpirationDate == nil {
@@ -6859,6 +6869,17 @@ enum CandidateJobOrderByAdditionalField {
   hiring_job_created_at
 }
 
+enum CandidateJobLevel {
+  intern
+  fresher
+  junior
+  middle
+  senior
+  manager
+  director
+}
+
+
 input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
   hiring_team_ids: [ID!]
@@ -6868,6 +6889,7 @@ input CandidateJobGroupByStatusFilter {
   to_date: Time
   location: [LocationEnum!]
   created_by_ids: [ID!]
+  levels: [CandidateJobLevel!]
 }
 
 input CandidateJobGroupByStatusFreeWord {
@@ -6889,6 +6911,7 @@ type CandidateJob {
   steps: [CandidateJobStep!]
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   created_at: Time!
   updated_at: Time!
 }
@@ -6925,6 +6948,7 @@ input NewCandidateJobInput {
   attachments: [NewAttachmentInput!]
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   failed_reason: [CandidateJobFailedReason!]
 }
 
@@ -6936,6 +6960,7 @@ input UpdateCandidateJobStatus {
   status: CandidateJobStatus!
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   failed_reason: [CandidateJobFailedReason!]
 }
 
@@ -6986,6 +7011,8 @@ input CandidateJobFreeWord {
   team: String
   hiring_job: String
 }
+
+# Path: schema/candidate_job.graphql
 `, BuiltIn: false},
 	{Name: "../schema/candidate_job_feedback.graphql", Input: `type CandidateJobFeedback {
   id: ID!
@@ -18069,6 +18096,8 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -19719,6 +19748,47 @@ func (ec *executionContext) fieldContext_CandidateJob_offer_expiration_date(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJob_level(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_level(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().Level(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobLevel)
+	fc.Result = res
+	return ec.marshalOCandidateJobLevel2ᚖtrecᚋentᚐCandidateJobLevel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_level(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CandidateJobLevel does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJob_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJob_created_at(ctx, field)
 	if err != nil {
@@ -19874,6 +19944,8 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -20128,6 +20200,8 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21157,6 +21231,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21232,6 +21308,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx conte
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21307,6 +21385,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21382,6 +21462,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21457,6 +21539,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21532,6 +21616,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21607,6 +21693,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -21931,6 +22019,8 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
 			case "offer_expiration_date":
 				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateJob_created_at(ctx, field)
 			case "updated_at":
@@ -45907,7 +45997,7 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"hiring_job_id", "hiring_team_ids", "priority", "skill_id", "from_date", "to_date", "location", "created_by_ids"}
+	fieldsInOrder := [...]string{"hiring_job_id", "hiring_team_ids", "priority", "skill_id", "from_date", "to_date", "location", "created_by_ids", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45975,6 +46065,14 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by_ids"))
 			it.CreatedByIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "levels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("levels"))
+			it.Levels, err = ec.unmarshalOCandidateJobLevel2ᚕtrecᚋentᚐCandidateJobLevelᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -47207,7 +47305,7 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "status", "attachments", "onboard_date", "offer_expiration_date", "failed_reason"}
+	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "status", "attachments", "onboard_date", "offer_expiration_date", "level", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47259,6 +47357,14 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offer_expiration_date"))
 			it.OfferExpirationDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "level":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+			it.Level, err = ec.unmarshalOCandidateJobLevel2ᚖtrecᚋentᚐCandidateJobLevel(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48843,7 +48949,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateJobStatus(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "onboard_date", "offer_expiration_date", "failed_reason"}
+	fieldsInOrder := [...]string{"status", "onboard_date", "offer_expiration_date", "level", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48871,6 +48977,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateJobStatus(ctx context.C
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offer_expiration_date"))
 			it.OfferExpirationDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "level":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
+			it.Level, err = ec.unmarshalOCandidateJobLevel2ᚖtrecᚋentᚐCandidateJobLevel(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52077,6 +52191,23 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 
 			out.Values[i] = ec._CandidateJob_offer_expiration_date(ctx, field, obj)
 
+		case "level":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_level(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_at":
 
 			out.Values[i] = ec._CandidateJob_created_at(ctx, field, obj)
@@ -60390,6 +60521,16 @@ func (ec *executionContext) marshalNCandidateJobGroupByStatusResponse2ᚖtrecᚋ
 	return ec._CandidateJobGroupByStatusResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCandidateJobLevel2trecᚋentᚐCandidateJobLevel(ctx context.Context, v interface{}) (ent.CandidateJobLevel, error) {
+	var res ent.CandidateJobLevel
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCandidateJobLevel2trecᚋentᚐCandidateJobLevel(ctx context.Context, sel ast.SelectionSet, v ent.CandidateJobLevel) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNCandidateJobOrderByField2trecᚋentᚐCandidateJobOrderByField(ctx context.Context, v interface{}) (ent.CandidateJobOrderByField, error) {
 	var res ent.CandidateJobOrderByField
 	err := res.UnmarshalGQL(v)
@@ -64496,6 +64637,89 @@ func (ec *executionContext) marshalOCandidateJobGroupInterviewFeedback2ᚖtrec�
 		return graphql.Null
 	}
 	return ec._CandidateJobGroupInterviewFeedback(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCandidateJobLevel2ᚕtrecᚋentᚐCandidateJobLevelᚄ(ctx context.Context, v interface{}) ([]ent.CandidateJobLevel, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ent.CandidateJobLevel, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCandidateJobLevel2trecᚋentᚐCandidateJobLevel(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCandidateJobLevel2ᚕtrecᚋentᚐCandidateJobLevelᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.CandidateJobLevel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateJobLevel2trecᚋentᚐCandidateJobLevel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOCandidateJobLevel2ᚖtrecᚋentᚐCandidateJobLevel(ctx context.Context, v interface{}) (*ent.CandidateJobLevel, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.CandidateJobLevel)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCandidateJobLevel2ᚖtrecᚋentᚐCandidateJobLevel(ctx context.Context, sel ast.SelectionSet, v *ent.CandidateJobLevel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOCandidateJobOrder2ᚖtrecᚋentᚐCandidateJobOrder(ctx context.Context, v interface{}) (*ent.CandidateJobOrder, error) {

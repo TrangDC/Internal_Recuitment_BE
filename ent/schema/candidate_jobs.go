@@ -25,6 +25,7 @@ func (CandidateJob) Fields() []ent.Field {
 			"candidate_withdrawal", "others"}).Optional(),
 		field.Time("onboard_date").Optional(),
 		field.Time("offer_expiration_date").Optional(),
+		field.Enum("level").Values("intern", "fresher", "junior", "middle", "senior", "manager", "director").Optional(),
 	}
 }
 
