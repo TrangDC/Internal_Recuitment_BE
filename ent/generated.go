@@ -354,8 +354,23 @@ type CandidateJobResponseGetAll struct {
 	Pagination *Pagination         `json:"pagination"`
 }
 
+type CandidateNoteFilter struct {
+	CandidateID *string    `json:"candidate_id"`
+	FromDate    *time.Time `json:"from_date"`
+	ToDate      *time.Time `json:"to_date"`
+}
+
+type CandidateNoteFreeWord struct {
+	Name *string `json:"name"`
+}
+
 type CandidateNoteResponse struct {
 	Data *CandidateNote `json:"data"`
+}
+
+type CandidateNoteResponseGetAll struct {
+	Edges      []*CandidateNoteEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
 type CandidateReport struct {
