@@ -100,7 +100,7 @@ func (svc *candidateJobFeedbackSvcImpl) UpdateCandidateJobFeedback(ctx context.C
 	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	createdById := payload.UserID
 	if record.CreatedBy != createdById {
@@ -154,7 +154,7 @@ func (svc *candidateJobFeedbackSvcImpl) DeleteCandidateJobFeedback(ctx context.C
 	record, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	hiringJobQuery := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(record.Edges.CandidateJobEdge.HiringJobID)).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
@@ -212,7 +212,7 @@ func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedback(ctx context.Cont
 	result, err := svc.repoRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.CandidateJobFeedbackResponse{
 		Data: result,

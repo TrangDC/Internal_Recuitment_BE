@@ -81,7 +81,7 @@ func (svc *skillTypeSvcImpl) UpdateSkillType(ctx context.Context, skillTypeId uu
 	record, err := svc.repoRegistry.SkillType().GetSkillType(ctx, skillTypeId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	errString, err := svc.repoRegistry.SkillType().ValidName(ctx, skillTypeId, input.Name)
 	if err != nil {
@@ -117,7 +117,7 @@ func (svc *skillTypeSvcImpl) DeleteSkillType(ctx context.Context, skillTypeId uu
 	skillTypeRecord, err := svc.repoRegistry.SkillType().GetSkillType(ctx, skillTypeId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if len(skillTypeRecord.Edges.SkillEdges) > 0 {
 		return util.WrapGQLError(ctx, "model.skill_types.validation.cannot_delete", http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -145,7 +145,7 @@ func (svc *skillTypeSvcImpl) GetSkillType(ctx context.Context, skillTypeId uuid.
 	skillTypeRecord, err := svc.repoRegistry.SkillType().GetSkillType(ctx, skillTypeId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.SkillTypeResponse{
 		Data: skillTypeRecord,

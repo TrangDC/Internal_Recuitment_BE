@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/samber/lo"
 	"net/http"
 	"strings"
 	"trec/dto"
@@ -12,6 +11,8 @@ import (
 	"trec/ent/predicate"
 	"trec/internal/util"
 	"trec/repository"
+
+	"github.com/samber/lo"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -83,7 +84,7 @@ func (svc *jobPositionSvcImpl) UpdateJobPosition(ctx context.Context, jobPositio
 	record, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	errString, err := svc.repoRegistry.JobPosition().ValidName(ctx, jobPositionId, input.Name)
 	if err != nil {
@@ -119,7 +120,7 @@ func (svc *jobPositionSvcImpl) DeleteJobPosition(ctx context.Context, jobPositio
 	jobPositionRecord, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if len(jobPositionRecord.Edges.HiringJobPositionEdges) > 0 {
 		return util.WrapGQLError(ctx, "model.job_positions.validation.hiring_job_exist", http.StatusBadRequest, util.ErrorFlagDeleteFail)
@@ -148,7 +149,7 @@ func (svc *jobPositionSvcImpl) GetJobPosition(ctx context.Context, jobPositionId
 	result, err := svc.repoRegistry.JobPosition().GetJobPosition(ctx, jobPositionId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.JobPositionResponse{
 		Data: result,

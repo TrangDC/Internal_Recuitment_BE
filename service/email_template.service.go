@@ -107,7 +107,7 @@ func (svc *emailtemplateSvcImpl) UpdateEmailTemplate(ctx context.Context, emailT
 	record, err := svc.repoRegistry.EmailTemplate().GetEmailTemplate(ctx, emailTpId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if len(input.RoleIds) != 0 {
 		roleIds = lo.Map(input.RoleIds, func(member string, index int) uuid.UUID {
@@ -150,7 +150,7 @@ func (svc emailtemplateSvcImpl) UpdateEmailTemplateStatus(ctx context.Context, e
 	emailTp, err := svc.repoRegistry.EmailTemplate().GetEmailTemplate(ctx, emailTpId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.EmailTemplate().UpdateEmailTemplateStatus(ctx, emailTp, input)
@@ -172,7 +172,7 @@ func (svc *emailtemplateSvcImpl) DeleteEmailTemplate(ctx context.Context, emailT
 	emailTp, err := svc.repoRegistry.EmailTemplate().GetEmailTemplate(ctx, emailTpId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	roleIds := lo.Map(emailTp.Edges.RoleEdges, func(item *ent.Role, index int) uuid.UUID {
 		return item.ID
@@ -201,7 +201,7 @@ func (svc *emailtemplateSvcImpl) GetEmailTemplate(ctx context.Context, emailTpId
 	emailTp, err := svc.repoRegistry.EmailTemplate().BuildGetOne(ctx, query.Where(emailtemplate.IDEQ(emailTpId)))
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.EmailTemplateResponse{
 		Data: emailTp,

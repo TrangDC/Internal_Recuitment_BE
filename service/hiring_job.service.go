@@ -57,7 +57,7 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	hiringTeam, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, uuid.MustParse(input.HiringTeamID))
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, hiringTeam) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -109,7 +109,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -142,7 +142,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -198,7 +198,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -238,7 +238,7 @@ func (svc *hiringJobSvcImpl) GetHiringJob(ctx context.Context, id uuid.UUID) (*e
 	result, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.HiringJobResponse{
 		Data: result,

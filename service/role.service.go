@@ -96,7 +96,7 @@ func (svc *roleSvcImpl) UpdateRole(ctx context.Context, roleId uuid.UUID, input 
 	record, err := svc.repoRegistry.Role().GetRole(ctx, roleId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	errString, err := svc.repoRegistry.Role().ValidName(ctx, roleId, *input.Name)
 	if err != nil {
@@ -156,7 +156,7 @@ func (svc *roleSvcImpl) DeleteRole(ctx context.Context, roleId uuid.UUID, note s
 	roleRecord, err := svc.repoRegistry.Role().GetRole(ctx, roleId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	users, err := svc.repoRegistry.User().BuildList(
 		ctx,
@@ -197,7 +197,7 @@ func (svc *roleSvcImpl) GetRole(ctx context.Context, roleId uuid.UUID) (*ent.Rol
 	roleRecord, err := svc.repoRegistry.Role().GetRole(ctx, roleId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.RoleResponse{
 		Data: roleRecord,

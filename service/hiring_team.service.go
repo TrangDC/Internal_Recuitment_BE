@@ -106,7 +106,7 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 	record, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, hiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -158,7 +158,7 @@ func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID
 	team, err := svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, hiringTeamID)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if len(team.Edges.HiringTeamJobEdges) != 0 {
 		return util.WrapGQLError(ctx, "model.hiring_teams.validation.hiring_job_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
@@ -200,7 +200,7 @@ func (svc *hiringTeamSvcImpl) GetHiringTeam(ctx context.Context, hiringTeamID uu
 	team, err := svc.repoRegistry.HiringTeam().BuildGetOne(ctx, query.Where(hiringteam.IDEQ(hiringTeamID)))
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.HiringTeamResponse{
 		Data: team,

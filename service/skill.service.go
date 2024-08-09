@@ -82,7 +82,7 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note str
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.Skill().DeleteSkill(ctx, record)
@@ -110,7 +110,7 @@ func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input en
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	stringError, err := svc.repoRegistry.Skill().ValidName(ctx, id, input.Name)
 	if err != nil {
@@ -148,7 +148,7 @@ func (svc *skillSvcImpl) GetSkill(ctx context.Context, id uuid.UUID) (*ent.Skill
 	record, err := svc.repoRegistry.Skill().GetSkill(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.SkillResponse{
 		Data: record,

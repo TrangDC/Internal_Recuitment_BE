@@ -36,7 +36,7 @@ func (svc *auditTrailSvcImpl) GetAuditTrail(ctx context.Context, id uuid.UUID) (
 	result, err := svc.repoRegistry.AuditTrail().GetAuditTrail(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.AuditTrailResponse{
 		Data: result,

@@ -94,7 +94,7 @@ func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note string) error {
 	record, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
 	if err != nil {
-		return util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	memberIds := lo.Map(record.Edges.RecMemberEdges, func(user *ent.User, index int) uuid.UUID {
 		return user.ID
@@ -128,7 +128,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, uuid.MustParse(recTeamId))
 	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	if !svc.validPermissionUpdate(payload, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
@@ -213,7 +213,7 @@ func (svc *recTeamSvcImpl) GetRecTeam(ctx context.Context, id uuid.UUID) (*ent.R
 	recTeam, err := svc.repoRegistry.RecTeam().GetRecTeam(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagNotFound)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	return &ent.RecTeamResponse{
 		Data: recTeam,
