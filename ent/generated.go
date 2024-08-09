@@ -87,11 +87,7 @@ type CandidateActivity struct {
 	CandidateNotes        []*CandidateNote        `json:"candidate_notes"`
 	CandidateHistoryCalls []*CandidateHistoryCall `json:"candidate_history_calls"`
 	CandidateInterviews   []*CandidateInterview   `json:"candidate_interviews"`
-}
-
-type CandidateActivityEdge struct {
-	Node   *CandidateActivity `json:"node"`
-	Cursor Cursor             `json:"cursor"`
+	Total                 int                     `json:"total"`
 }
 
 type CandidateActivityFilter struct {
@@ -110,9 +106,8 @@ type CandidateActivityOrder struct {
 	Direction OrderDirection              `json:"direction"`
 }
 
-type CandidateActivityResponseGetAll struct {
-	Edges      []*CandidateActivityEdge `json:"edges"`
-	Pagination *Pagination              `json:"pagination"`
+type CandidateActivityResponse struct {
+	Data *CandidateActivity `json:"data"`
 }
 
 type CandidateAwardInput struct {
