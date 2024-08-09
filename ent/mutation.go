@@ -11674,6 +11674,7 @@ type CandidateJobMutation struct {
 	appendfailed_reason            []string
 	onboard_date                   *time.Time
 	offer_expiration_date          *time.Time
+	level                          *candidatejob.Level
 	clearedFields                  map[string]struct{}
 	attachment_edges               map[uuid.UUID]struct{}
 	removedattachment_edges        map[uuid.UUID]struct{}
@@ -12282,6 +12283,55 @@ func (m *CandidateJobMutation) ResetOfferExpirationDate() {
 	delete(m.clearedFields, candidatejob.FieldOfferExpirationDate)
 }
 
+// SetLevel sets the "level" field.
+func (m *CandidateJobMutation) SetLevel(c candidatejob.Level) {
+	m.level = &c
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *CandidateJobMutation) Level() (r candidatejob.Level, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the CandidateJob entity.
+// If the CandidateJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobMutation) OldLevel(ctx context.Context) (v candidatejob.Level, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// ClearLevel clears the value of the "level" field.
+func (m *CandidateJobMutation) ClearLevel() {
+	m.level = nil
+	m.clearedFields[candidatejob.FieldLevel] = struct{}{}
+}
+
+// LevelCleared returns if the "level" field was cleared in this mutation.
+func (m *CandidateJobMutation) LevelCleared() bool {
+	_, ok := m.clearedFields[candidatejob.FieldLevel]
+	return ok
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *CandidateJobMutation) ResetLevel() {
+	m.level = nil
+	delete(m.clearedFields, candidatejob.FieldLevel)
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by ids.
 func (m *CandidateJobMutation) AddAttachmentEdgeIDs(ids ...uuid.UUID) {
 	if m.attachment_edges == nil {
@@ -12634,7 +12684,7 @@ func (m *CandidateJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateJobMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, candidatejob.FieldCreatedAt)
 	}
@@ -12665,6 +12715,9 @@ func (m *CandidateJobMutation) Fields() []string {
 	if m.offer_expiration_date != nil {
 		fields = append(fields, candidatejob.FieldOfferExpirationDate)
 	}
+	if m.level != nil {
+		fields = append(fields, candidatejob.FieldLevel)
+	}
 	return fields
 }
 
@@ -12693,6 +12746,8 @@ func (m *CandidateJobMutation) Field(name string) (ent.Value, bool) {
 		return m.OnboardDate()
 	case candidatejob.FieldOfferExpirationDate:
 		return m.OfferExpirationDate()
+	case candidatejob.FieldLevel:
+		return m.Level()
 	}
 	return nil, false
 }
@@ -12722,6 +12777,8 @@ func (m *CandidateJobMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldOnboardDate(ctx)
 	case candidatejob.FieldOfferExpirationDate:
 		return m.OldOfferExpirationDate(ctx)
+	case candidatejob.FieldLevel:
+		return m.OldLevel(ctx)
 	}
 	return nil, fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -12801,6 +12858,13 @@ func (m *CandidateJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOfferExpirationDate(v)
 		return nil
+	case candidatejob.FieldLevel:
+		v, ok := value.(candidatejob.Level)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)
 }
@@ -12855,6 +12919,9 @@ func (m *CandidateJobMutation) ClearedFields() []string {
 	if m.FieldCleared(candidatejob.FieldOfferExpirationDate) {
 		fields = append(fields, candidatejob.FieldOfferExpirationDate)
 	}
+	if m.FieldCleared(candidatejob.FieldLevel) {
+		fields = append(fields, candidatejob.FieldLevel)
+	}
 	return fields
 }
 
@@ -12893,6 +12960,9 @@ func (m *CandidateJobMutation) ClearField(name string) error {
 	case candidatejob.FieldOfferExpirationDate:
 		m.ClearOfferExpirationDate()
 		return nil
+	case candidatejob.FieldLevel:
+		m.ClearLevel()
+		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob nullable field %s", name)
 }
@@ -12930,6 +13000,9 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 		return nil
 	case candidatejob.FieldOfferExpirationDate:
 		m.ResetOfferExpirationDate()
+		return nil
+	case candidatejob.FieldLevel:
+		m.ResetLevel()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob field %s", name)

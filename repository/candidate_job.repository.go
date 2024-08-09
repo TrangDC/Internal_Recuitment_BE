@@ -138,7 +138,8 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 	if input.Status == ent.CandidateJobStatusOpenOffering {
 		create.
 			SetOnboardDate(*input.OnboardDate).
-			SetOfferExpirationDate(*input.OfferExpirationDate)
+			SetOfferExpirationDate(*input.OfferExpirationDate).
+			SetLevel(candidatejob.Level(*input.Level))
 	}
 	_, err := rps.client.Candidate.Update().Where(candidate.IDEQ(uuid.MustParse(input.CandidateID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
 	if err != nil {
@@ -159,7 +160,8 @@ func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, re
 	case ent.CandidateJobStatusOffering:
 		update.
 			SetOnboardDate(*input.OnboardDate).
-			SetOfferExpirationDate(*input.OfferExpirationDate)
+			SetOfferExpirationDate(*input.OfferExpirationDate).
+			SetLevel(candidatejob.Level(input.Level.String()))
 	}
 	return update.Save(ctx)
 }
@@ -212,7 +214,7 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 			)
 		},
 	)
-	hiringjobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(record.HiringJobID)).WithHiringJobSkillEdges(
+	hiringJobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(record.HiringJobID)).WithHiringJobSkillEdges(
 		func(query *ent.EntitySkillQuery) {
 			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
 				func(sq *ent.SkillQuery) {
@@ -229,7 +231,7 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 	if err != nil {
 		return result, err
 	}
-	hiringJobRecord, err := hiringjobQuery.First(ctx)
+	hiringJobRecord, err := hiringJobQuery.First(ctx)
 	if err != nil {
 		return result, err
 	}

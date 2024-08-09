@@ -160,6 +160,20 @@ func (cjc *CandidateJobCreate) SetNillableOfferExpirationDate(t *time.Time) *Can
 	return cjc
 }
 
+// SetLevel sets the "level" field.
+func (cjc *CandidateJobCreate) SetLevel(c candidatejob.Level) *CandidateJobCreate {
+	cjc.mutation.SetLevel(c)
+	return cjc
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (cjc *CandidateJobCreate) SetNillableLevel(c *candidatejob.Level) *CandidateJobCreate {
+	if c != nil {
+		cjc.SetLevel(*c)
+	}
+	return cjc
+}
+
 // SetID sets the "id" field.
 func (cjc *CandidateJobCreate) SetID(u uuid.UUID) *CandidateJobCreate {
 	cjc.mutation.SetID(u)
@@ -383,6 +397,11 @@ func (cjc *CandidateJobCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.status": %w`, err)}
 		}
 	}
+	if v, ok := cjc.mutation.Level(); ok {
+		if err := candidatejob.LevelValidator(v); err != nil {
+			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -446,6 +465,10 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 	if value, ok := cjc.mutation.OfferExpirationDate(); ok {
 		_spec.SetField(candidatejob.FieldOfferExpirationDate, field.TypeTime, value)
 		_node.OfferExpirationDate = value
+	}
+	if value, ok := cjc.mutation.Level(); ok {
+		_spec.SetField(candidatejob.FieldLevel, field.TypeEnum, value)
+		_node.Level = value
 	}
 	if nodes := cjc.mutation.AttachmentEdgesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

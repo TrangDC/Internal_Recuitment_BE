@@ -62,6 +62,17 @@ enum CandidateJobOrderByAdditionalField {
   hiring_job_created_at
 }
 
+enum CandidateJobLevel {
+  intern
+  fresher
+  junior
+  middle
+  senior
+  manager
+  director
+}
+
+
 input CandidateJobGroupByStatusFilter {
   hiring_job_id: [ID!]
   hiring_team_ids: [ID!]
@@ -71,6 +82,7 @@ input CandidateJobGroupByStatusFilter {
   to_date: Time
   location: [LocationEnum!]
   created_by_ids: [ID!]
+  levels: [CandidateJobLevel!]
 }
 
 input CandidateJobGroupByStatusFreeWord {
@@ -92,6 +104,7 @@ type CandidateJob {
   steps: [CandidateJobStep!]
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   created_at: Time!
   updated_at: Time!
 }
@@ -128,6 +141,7 @@ input NewCandidateJobInput {
   attachments: [NewAttachmentInput!]
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   failed_reason: [CandidateJobFailedReason!]
 }
 
@@ -139,6 +153,7 @@ input UpdateCandidateJobStatus {
   status: CandidateJobStatus!
   onboard_date: Time
   offer_expiration_date: Time
+  level: CandidateJobLevel
   failed_reason: [CandidateJobFailedReason!]
 }
 
@@ -189,3 +204,5 @@ input CandidateJobFreeWord {
   team: String
   hiring_job: String
 }
+
+# Path: schema/candidate_job.graphql

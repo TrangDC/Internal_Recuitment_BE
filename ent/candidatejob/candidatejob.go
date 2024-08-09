@@ -34,6 +34,8 @@ const (
 	FieldOnboardDate = "onboard_date"
 	// FieldOfferExpirationDate holds the string denoting the offer_expiration_date field in the database.
 	FieldOfferExpirationDate = "offer_expiration_date"
+	// FieldLevel holds the string denoting the level field in the database.
+	FieldLevel = "level"
 	// EdgeAttachmentEdges holds the string denoting the attachment_edges edge name in mutations.
 	EdgeAttachmentEdges = "attachment_edges"
 	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
@@ -114,6 +116,7 @@ var Columns = []string{
 	FieldFailedReason,
 	FieldOnboardDate,
 	FieldOfferExpirationDate,
+	FieldLevel,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -162,6 +165,34 @@ func StatusValidator(s Status) error {
 	}
 }
 
+// Level defines the type for the "level" enum field.
+type Level string
+
+// Level values.
+const (
+	LevelIntern   Level = "intern"
+	LevelFresher  Level = "fresher"
+	LevelJunior   Level = "junior"
+	LevelMiddle   Level = "middle"
+	LevelSenior   Level = "senior"
+	LevelManager  Level = "manager"
+	LevelDirector Level = "director"
+)
+
+func (l Level) String() string {
+	return string(l)
+}
+
+// LevelValidator is a validator for the "level" field enum values. It is called by the builders before save.
+func LevelValidator(l Level) error {
+	switch l {
+	case LevelIntern, LevelFresher, LevelJunior, LevelMiddle, LevelSenior, LevelManager, LevelDirector:
+		return nil
+	default:
+		return fmt.Errorf("candidatejob: invalid enum value for level field: %q", l)
+	}
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (e Status) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
@@ -176,6 +207,24 @@ func (e *Status) UnmarshalGQL(val interface{}) error {
 	*e = Status(str)
 	if err := StatusValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Level) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Level) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Level(str)
+	if err := LevelValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Level", str)
 	}
 	return nil
 }

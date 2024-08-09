@@ -41,6 +41,8 @@ type CandidateJob struct {
 	OnboardDate time.Time `json:"onboard_date,omitempty"`
 	// OfferExpirationDate holds the value of the "offer_expiration_date" field.
 	OfferExpirationDate time.Time `json:"offer_expiration_date,omitempty"`
+	// Level holds the value of the "level" field.
+	Level candidatejob.Level `json:"level,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateJobQuery when eager-loading is set.
 	Edges CandidateJobEdges `json:"edges"`
@@ -156,7 +158,7 @@ func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case candidatejob.FieldFailedReason:
 			values[i] = new([]byte)
-		case candidatejob.FieldStatus:
+		case candidatejob.FieldStatus, candidatejob.FieldLevel:
 			values[i] = new(sql.NullString)
 		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt, candidatejob.FieldOnboardDate, candidatejob.FieldOfferExpirationDate:
 			values[i] = new(sql.NullTime)
@@ -244,6 +246,12 @@ func (cj *CandidateJob) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field offer_expiration_date", values[i])
 			} else if value.Valid {
 				cj.OfferExpirationDate = value.Time
+			}
+		case candidatejob.FieldLevel:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field level", values[i])
+			} else if value.Valid {
+				cj.Level = candidatejob.Level(value.String)
 			}
 		}
 	}
@@ -337,6 +345,9 @@ func (cj *CandidateJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("offer_expiration_date=")
 	builder.WriteString(cj.OfferExpirationDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("level=")
+	builder.WriteString(fmt.Sprintf("%v", cj.Level))
 	builder.WriteByte(')')
 	return builder.String()
 }

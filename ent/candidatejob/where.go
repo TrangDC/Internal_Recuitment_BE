@@ -714,6 +714,56 @@ func OfferExpirationDateNotNil() predicate.CandidateJob {
 	})
 }
 
+// LevelEQ applies the EQ predicate on the "level" field.
+func LevelEQ(v Level) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLevel), v))
+	})
+}
+
+// LevelNEQ applies the NEQ predicate on the "level" field.
+func LevelNEQ(v Level) predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLevel), v))
+	})
+}
+
+// LevelIn applies the In predicate on the "level" field.
+func LevelIn(vs ...Level) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLevel), v...))
+	})
+}
+
+// LevelNotIn applies the NotIn predicate on the "level" field.
+func LevelNotIn(vs ...Level) predicate.CandidateJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLevel), v...))
+	})
+}
+
+// LevelIsNil applies the IsNil predicate on the "level" field.
+func LevelIsNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldLevel)))
+	})
+}
+
+// LevelNotNil applies the NotNil predicate on the "level" field.
+func LevelNotNil() predicate.CandidateJob {
+	return predicate.CandidateJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldLevel)))
+	})
+}
+
 // HasAttachmentEdges applies the HasEdge predicate on the "attachment_edges" edge.
 func HasAttachmentEdges() predicate.CandidateJob {
 	return predicate.CandidateJob(func(s *sql.Selector) {
