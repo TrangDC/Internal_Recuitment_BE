@@ -120,6 +120,11 @@ func (r *candidateResolver) Avatar(ctx context.Context, obj *ent.Candidate) (str
 	return obj.Avatar.String(), nil
 }
 
+// Gender is the resolver for the gender field.
+func (r *candidateResolver) Gender(ctx context.Context, obj *ent.Candidate) (ent.CandidateGenderEnum, error) {
+	return ent.CandidateGenderEnum(obj.Gender), nil
+}
+
 // Candidate returns graphql1.CandidateResolver implementation.
 func (r *Resolver) Candidate() graphql1.CandidateResolver { return &candidateResolver{r} }
 

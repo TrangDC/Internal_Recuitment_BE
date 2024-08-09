@@ -158,7 +158,8 @@ func (rps candidateRepoImpl) CreateCandidate(ctx context.Context, input *ent.New
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetAddress(strings.TrimSpace(input.Address))
+		SetAddress(strings.TrimSpace(input.Address)).
+		SetGender(candidate.Gender(input.Gender))
 	if input.Dob != nil && !input.Dob.IsZero() {
 		create.SetDob(*input.Dob)
 	}
@@ -183,7 +184,8 @@ func (rps candidateRepoImpl) UpdateCandidate(ctx context.Context, record *ent.Ca
 		SetReferenceType(candidate.ReferenceType(input.ReferenceType)).
 		SetReferenceValue(strings.TrimSpace(input.ReferenceValue)).
 		SetDescription(strings.TrimSpace(input.Description)).
-		SetAddress(strings.TrimSpace(input.Address))
+		SetAddress(strings.TrimSpace(input.Address)).
+		SetGender(candidate.Gender(input.Gender))
 	if input.Dob != nil && !input.Dob.IsZero() {
 		update.SetDob(*input.Dob)
 	} else {

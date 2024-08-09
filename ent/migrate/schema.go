@@ -127,6 +127,7 @@ var (
 		{Name: "avatar", Type: field.TypeUUID, Nullable: true},
 		{Name: "country", Type: field.TypeString, Nullable: true, Size: 256},
 		{Name: "address", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "gender", Type: field.TypeEnum, Enums: []string{"male", "female", "others"}, Default: "others"},
 		{Name: "reference_uid", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidatesTable holds the schema information for the "candidates" table.
@@ -137,7 +138,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "candidates_users_candidate_reference_edges",
-				Columns:    []*schema.Column{CandidatesColumns[17]},
+				Columns:    []*schema.Column{CandidatesColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

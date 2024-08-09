@@ -52,6 +52,8 @@ type Candidate struct {
 	Country string `json:"country,omitempty"`
 	// Address holds the value of the "address" field.
 	Address string `json:"address,omitempty"`
+	// Gender holds the value of the "gender" field.
+	Gender candidate.Gender `json:"gender,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CandidateQuery when eager-loading is set.
 	Edges CandidateEdges `json:"edges"`
@@ -197,7 +199,7 @@ func (*Candidate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case candidate.FieldIsBlacklist:
 			values[i] = new(sql.NullBool)
-		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone, candidate.FieldReferenceType, candidate.FieldReferenceValue, candidate.FieldDescription, candidate.FieldCountry, candidate.FieldAddress:
+		case candidate.FieldName, candidate.FieldEmail, candidate.FieldPhone, candidate.FieldReferenceType, candidate.FieldReferenceValue, candidate.FieldDescription, candidate.FieldCountry, candidate.FieldAddress, candidate.FieldGender:
 			values[i] = new(sql.NullString)
 		case candidate.FieldCreatedAt, candidate.FieldUpdatedAt, candidate.FieldDeletedAt, candidate.FieldDob, candidate.FieldLastApplyDate, candidate.FieldRecruitTime:
 			values[i] = new(sql.NullTime)
@@ -325,6 +327,12 @@ func (c *Candidate) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field address", values[i])
 			} else if value.Valid {
 				c.Address = value.String
+			}
+		case candidate.FieldGender:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gender", values[i])
+			} else if value.Valid {
+				c.Gender = candidate.Gender(value.String)
 			}
 		}
 	}
@@ -454,6 +462,9 @@ func (c *Candidate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("address=")
 	builder.WriteString(c.Address)
+	builder.WriteString(", ")
+	builder.WriteString("gender=")
+	builder.WriteString(fmt.Sprintf("%v", c.Gender))
 	builder.WriteByte(')')
 	return builder.String()
 }

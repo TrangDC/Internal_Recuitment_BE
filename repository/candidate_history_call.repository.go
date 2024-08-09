@@ -47,7 +47,7 @@ func (rps *candidateHistoryCallRepoImpl) BuildDelete() *ent.CandidateHistoryCall
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildQuery() *ent.CandidateHistoryCallQuery {
-	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil())
+	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil()).WithCreatedByEdge().WithCandidateEdge()
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateHistoryCallQuery) (*ent.CandidateHistoryCall, error) {

@@ -48,6 +48,8 @@ const (
 	FieldCountry = "country"
 	// FieldAddress holds the string denoting the address field in the database.
 	FieldAddress = "address"
+	// FieldGender holds the string denoting the gender field in the database.
+	FieldGender = "gender"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
 	EdgeCandidateJobEdges = "candidate_job_edges"
 	// EdgeReferenceUserEdge holds the string denoting the reference_user_edge edge name in mutations.
@@ -162,6 +164,7 @@ var Columns = []string{
 	FieldAvatar,
 	FieldCountry,
 	FieldAddress,
+	FieldGender,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -224,6 +227,33 @@ func ReferenceTypeValidator(rt ReferenceType) error {
 	}
 }
 
+// Gender defines the type for the "gender" enum field.
+type Gender string
+
+// GenderOthers is the default value of the Gender enum.
+const DefaultGender = GenderOthers
+
+// Gender values.
+const (
+	GenderMale   Gender = "male"
+	GenderFemale Gender = "female"
+	GenderOthers Gender = "others"
+)
+
+func (ge Gender) String() string {
+	return string(ge)
+}
+
+// GenderValidator is a validator for the "gender" field enum values. It is called by the builders before save.
+func GenderValidator(ge Gender) error {
+	switch ge {
+	case GenderMale, GenderFemale, GenderOthers:
+		return nil
+	default:
+		return fmt.Errorf("candidate: invalid enum value for gender field: %q", ge)
+	}
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (e ReferenceType) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
@@ -238,6 +268,24 @@ func (e *ReferenceType) UnmarshalGQL(val interface{}) error {
 	*e = ReferenceType(str)
 	if err := ReferenceTypeValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid ReferenceType", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Gender) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Gender) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Gender(str)
+	if err := GenderValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Gender", str)
 	}
 	return nil
 }

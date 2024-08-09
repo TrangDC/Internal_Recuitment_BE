@@ -1575,6 +1575,42 @@ func AddressContainsFold(v string) predicate.Candidate {
 	})
 }
 
+// GenderEQ applies the EQ predicate on the "gender" field.
+func GenderEQ(v Gender) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGender), v))
+	})
+}
+
+// GenderNEQ applies the NEQ predicate on the "gender" field.
+func GenderNEQ(v Gender) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldGender), v))
+	})
+}
+
+// GenderIn applies the In predicate on the "gender" field.
+func GenderIn(vs ...Gender) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldGender), v...))
+	})
+}
+
+// GenderNotIn applies the NotIn predicate on the "gender" field.
+func GenderNotIn(vs ...Gender) predicate.Candidate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Candidate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldGender), v...))
+	})
+}
+
 // HasCandidateJobEdges applies the HasEdge predicate on the "candidate_job_edges" edge.
 func HasCandidateJobEdges() predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {

@@ -30,6 +30,7 @@ func (Candidate) Fields() []ent.Field {
 		field.UUID("avatar", uuid.UUID{}).Optional(),
 		field.String("country").MaxLen(256).Optional(),
 		field.String("address").MaxLen(256).Optional(),
+		field.Enum("gender").Values("male", "female", "others").Default("others"),
 	}
 }
 
