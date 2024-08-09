@@ -7188,6 +7188,8 @@ input CandidateJobGroupByStatusFilter {
 
 input CandidateJobGroupByStatusFreeWord {
   job_title: String
+  candidate_name: String
+  candidate_email: String
 }
 
 type CandidateJob {
@@ -7304,6 +7306,8 @@ input CandidateJobByOrder {
 input CandidateJobFreeWord {
   team: String
   hiring_job: String
+  candidate_name: String
+  candidate_email: String
 }
 
 # Path: schema/candidate_job.graphql
@@ -47997,7 +48001,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFreeWord(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"team", "hiring_job"}
+	fieldsInOrder := [...]string{"team", "hiring_job", "candidate_name", "candidate_email"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48017,6 +48021,22 @@ func (ec *executionContext) unmarshalInputCandidateJobFreeWord(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job"))
 			it.HiringJob, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_name"))
+			it.CandidateName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_email"))
+			it.CandidateEmail, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48125,7 +48145,7 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFreeWord(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"job_title"}
+	fieldsInOrder := [...]string{"job_title", "candidate_name", "candidate_email"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48137,6 +48157,22 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFreeWord(ctx 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("job_title"))
 			it.JobTitle, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_name"))
+			it.CandidateName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "candidate_email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidate_email"))
+			it.CandidateEmail, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

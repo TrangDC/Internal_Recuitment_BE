@@ -663,13 +663,23 @@ func (svc *candidateJobSvcImpl) freeWord(candidateJobQuery *ent.CandidateJobQuer
 		if input.Team != nil {
 			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
 				hiringjob.HasHiringTeamEdgeWith(
-					hiringteam.NameEqualFold(strings.TrimSpace(*input.Team)),
+					hiringteam.NameContainsFold(strings.TrimSpace(*input.Team)),
 				),
 			))
 		}
 		if input.HiringJob != nil {
 			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
-				hiringjob.NameEqualFold(strings.TrimSpace(*input.HiringJob)),
+				hiringjob.NameContainsFold(strings.TrimSpace(*input.HiringJob)),
+			))
+		}
+		if input.CandidateName != nil {
+			predicate = append(predicate, candidatejob.HasCandidateEdgeWith(
+				candidate.NameContainsFold(strings.TrimSpace(*input.CandidateName)),
+			))
+		}
+		if input.CandidateEmail != nil {
+			predicate = append(predicate, candidatejob.HasCandidateEdgeWith(
+				candidate.EmailContainsFold(strings.TrimSpace(*input.CandidateEmail)),
 			))
 		}
 	}
@@ -731,6 +741,16 @@ func (svc *candidateJobSvcImpl) customFreeWord(candidateJobQuery *ent.CandidateJ
 		if input.JobTitle != nil {
 			predicate = append(predicate, candidatejob.HasHiringJobEdgeWith(
 				hiringjob.NameContainsFold(strings.TrimSpace(*input.JobTitle)),
+			))
+		}
+		if input.CandidateName != nil {
+			predicate = append(predicate, candidatejob.HasCandidateEdgeWith(
+				candidate.NameContainsFold(strings.TrimSpace(*input.CandidateName)),
+			))
+		}
+		if input.CandidateEmail != nil {
+			predicate = append(predicate, candidatejob.HasCandidateEdgeWith(
+				candidate.EmailContainsFold(strings.TrimSpace(*input.CandidateEmail)),
 			))
 		}
 	}
