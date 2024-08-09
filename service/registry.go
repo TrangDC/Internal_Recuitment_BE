@@ -40,6 +40,7 @@ type Service interface {
 	HiringTeam() HiringTeamService
 	RecTeam() RecTeamService
 	CandidateHistoryCall() CandidateHistoryCallService
+	CandidateNote() CandidateNoteService
 }
 
 // serviceImpl is the implementation of Service.
@@ -69,6 +70,7 @@ type serviceImpl struct {
 	hiringTeamService           HiringTeamService
 	recTeamService              RecTeamService
 	candidateHistoryCall        CandidateHistoryCallService
+	candidateNoteService        CandidateNoteService
 }
 
 // NewService creates a new Service.
@@ -102,6 +104,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		hiringTeamService:           NewHiringTeamService(repoRegistry, dtoRegistry, logger),
 		recTeamService:              NewRecTeamService(repoRegistry, dtoRegistry, logger),
 		candidateHistoryCall:        NewCandidateHistoryCallService(repoRegistry, dtoRegistry, logger),
+		candidateNoteService:        NewCandidateNoteService(repoRegistry, logger),
 	}
 }
 
@@ -217,4 +220,8 @@ func (i serviceImpl) RecTeam() RecTeamService {
 
 func (i serviceImpl) CandidateHistoryCall() CandidateHistoryCallService {
 	return i.candidateHistoryCall
+}
+
+func (i serviceImpl) CandidateNote() CandidateNoteService {
+	return i.candidateNoteService
 }
