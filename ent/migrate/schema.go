@@ -266,6 +266,7 @@ var (
 		{Name: "start_time", Type: field.TypeTime, Nullable: true},
 		{Name: "end_time", Type: field.TypeTime, Nullable: true},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// CandidateHistoryCallsTable holds the schema information for the "candidate_history_calls" table.
 	CandidateHistoryCallsTable = &schema.Table{
@@ -277,6 +278,12 @@ var (
 				Symbol:     "candidate_history_calls_candidates_candidate_history_call_edges",
 				Columns:    []*schema.Column{CandidateHistoryCallsColumns[10]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "candidate_history_calls_users_candidate_history_call_edges",
+				Columns:    []*schema.Column{CandidateHistoryCallsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1042,6 +1049,7 @@ func init() {
 	CandidateEducatesTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateExpsTable.ForeignKeys[0].RefTable = CandidatesTable
 	CandidateHistoryCallsTable.ForeignKeys[0].RefTable = CandidatesTable
+	CandidateHistoryCallsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewsTable.ForeignKeys[0].RefTable = CandidateJobsTable
 	CandidateInterviewsTable.ForeignKeys[1].RefTable = UsersTable
 	CandidateInterviewersTable.ForeignKeys[0].RefTable = UsersTable

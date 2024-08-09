@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -211,6 +212,26 @@ func (chcu *CandidateHistoryCallUpdate) ClearEndTime() *CandidateHistoryCallUpda
 	return chcu
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (chcu *CandidateHistoryCallUpdate) SetCreatedByID(u uuid.UUID) *CandidateHistoryCallUpdate {
+	chcu.mutation.SetCreatedByID(u)
+	return chcu
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (chcu *CandidateHistoryCallUpdate) SetNillableCreatedByID(u *uuid.UUID) *CandidateHistoryCallUpdate {
+	if u != nil {
+		chcu.SetCreatedByID(*u)
+	}
+	return chcu
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (chcu *CandidateHistoryCallUpdate) ClearCreatedByID() *CandidateHistoryCallUpdate {
+	chcu.mutation.ClearCreatedByID()
+	return chcu
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (chcu *CandidateHistoryCallUpdate) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateHistoryCallUpdate {
 	chcu.mutation.AddAttachmentEdgeIDs(ids...)
@@ -245,6 +266,25 @@ func (chcu *CandidateHistoryCallUpdate) SetCandidateEdge(c *Candidate) *Candidat
 	return chcu.SetCandidateEdgeID(c.ID)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (chcu *CandidateHistoryCallUpdate) SetCreatedByEdgeID(id uuid.UUID) *CandidateHistoryCallUpdate {
+	chcu.mutation.SetCreatedByEdgeID(id)
+	return chcu
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (chcu *CandidateHistoryCallUpdate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateHistoryCallUpdate {
+	if id != nil {
+		chcu = chcu.SetCreatedByEdgeID(*id)
+	}
+	return chcu
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (chcu *CandidateHistoryCallUpdate) SetCreatedByEdge(u *User) *CandidateHistoryCallUpdate {
+	return chcu.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateHistoryCallMutation object of the builder.
 func (chcu *CandidateHistoryCallUpdate) Mutation() *CandidateHistoryCallMutation {
 	return chcu.mutation
@@ -274,6 +314,12 @@ func (chcu *CandidateHistoryCallUpdate) RemoveAttachmentEdges(a ...*Attachment) 
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (chcu *CandidateHistoryCallUpdate) ClearCandidateEdge() *CandidateHistoryCallUpdate {
 	chcu.mutation.ClearCandidateEdge()
+	return chcu
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (chcu *CandidateHistoryCallUpdate) ClearCreatedByEdge() *CandidateHistoryCallUpdate {
+	chcu.mutation.ClearCreatedByEdge()
 	return chcu
 }
 
@@ -512,6 +558,41 @@ func (chcu *CandidateHistoryCallUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if chcu.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatehistorycall.CreatedByEdgeTable,
+			Columns: []string{candidatehistorycall.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := chcu.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatehistorycall.CreatedByEdgeTable,
+			Columns: []string{candidatehistorycall.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, chcu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidatehistorycall.Label}
@@ -711,6 +792,26 @@ func (chcuo *CandidateHistoryCallUpdateOne) ClearEndTime() *CandidateHistoryCall
 	return chcuo
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (chcuo *CandidateHistoryCallUpdateOne) SetCreatedByID(u uuid.UUID) *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.SetCreatedByID(u)
+	return chcuo
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (chcuo *CandidateHistoryCallUpdateOne) SetNillableCreatedByID(u *uuid.UUID) *CandidateHistoryCallUpdateOne {
+	if u != nil {
+		chcuo.SetCreatedByID(*u)
+	}
+	return chcuo
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (chcuo *CandidateHistoryCallUpdateOne) ClearCreatedByID() *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.ClearCreatedByID()
+	return chcuo
+}
+
 // AddAttachmentEdgeIDs adds the "attachment_edges" edge to the Attachment entity by IDs.
 func (chcuo *CandidateHistoryCallUpdateOne) AddAttachmentEdgeIDs(ids ...uuid.UUID) *CandidateHistoryCallUpdateOne {
 	chcuo.mutation.AddAttachmentEdgeIDs(ids...)
@@ -745,6 +846,25 @@ func (chcuo *CandidateHistoryCallUpdateOne) SetCandidateEdge(c *Candidate) *Cand
 	return chcuo.SetCandidateEdgeID(c.ID)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (chcuo *CandidateHistoryCallUpdateOne) SetCreatedByEdgeID(id uuid.UUID) *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.SetCreatedByEdgeID(id)
+	return chcuo
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (chcuo *CandidateHistoryCallUpdateOne) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateHistoryCallUpdateOne {
+	if id != nil {
+		chcuo = chcuo.SetCreatedByEdgeID(*id)
+	}
+	return chcuo
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (chcuo *CandidateHistoryCallUpdateOne) SetCreatedByEdge(u *User) *CandidateHistoryCallUpdateOne {
+	return chcuo.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateHistoryCallMutation object of the builder.
 func (chcuo *CandidateHistoryCallUpdateOne) Mutation() *CandidateHistoryCallMutation {
 	return chcuo.mutation
@@ -774,6 +894,12 @@ func (chcuo *CandidateHistoryCallUpdateOne) RemoveAttachmentEdges(a ...*Attachme
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (chcuo *CandidateHistoryCallUpdateOne) ClearCandidateEdge() *CandidateHistoryCallUpdateOne {
 	chcuo.mutation.ClearCandidateEdge()
+	return chcuo
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (chcuo *CandidateHistoryCallUpdateOne) ClearCreatedByEdge() *CandidateHistoryCallUpdateOne {
+	chcuo.mutation.ClearCreatedByEdge()
 	return chcuo
 }
 
@@ -1034,6 +1160,41 @@ func (chcuo *CandidateHistoryCallUpdateOne) sqlSave(ctx context.Context) (_node 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if chcuo.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatehistorycall.CreatedByEdgeTable,
+			Columns: []string{candidatehistorycall.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := chcuo.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatehistorycall.CreatedByEdgeTable,
+			Columns: []string{candidatehistorycall.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

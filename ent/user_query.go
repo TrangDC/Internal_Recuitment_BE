@@ -9,6 +9,7 @@ import (
 	"math"
 	"trec/ent/audittrail"
 	"trec/ent/candidate"
+	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidateinterviewer"
 	"trec/ent/candidatejob"
@@ -34,49 +35,51 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit                            *int
-	offset                           *int
-	unique                           *bool
-	order                            []OrderFunc
-	fields                           []string
-	predicates                       []predicate.User
-	withAuditEdge                    *AuditTrailQuery
-	withHiringOwner                  *HiringJobQuery
-	withCandidateJobFeedback         *CandidateJobFeedbackQuery
-	withInterviewEdges               *CandidateInterviewQuery
-	withCandidateJobEdges            *CandidateJobQuery
-	withCandidateInterviewEdges      *CandidateInterviewQuery
-	withCandidateReferenceEdges      *CandidateQuery
-	withUserPermissionEdges          *EntityPermissionQuery
-	withRoleEdges                    *RoleQuery
-	withHiringTeamEdges              *HiringTeamQuery
-	withMemberOfHiringTeamEdges      *HiringTeamQuery
-	withApproversHiringTeams         *HiringTeamQuery
-	withLeaderRecEdge                *RecTeamQuery
-	withRecTeams                     *RecTeamQuery
-	withCandidateNoteEdges           *CandidateNoteQuery
-	withInterviewUsers               *CandidateInterviewerQuery
-	withRoleUsers                    *UserRoleQuery
-	withHiringTeamUsers              *HiringTeamManagerQuery
-	withHiringTeamApprovers          *HiringTeamApproverQuery
-	modifiers                        []func(*sql.Selector)
-	loadTotal                        []func(context.Context, []*User) error
-	withNamedAuditEdge               map[string]*AuditTrailQuery
-	withNamedHiringOwner             map[string]*HiringJobQuery
-	withNamedCandidateJobFeedback    map[string]*CandidateJobFeedbackQuery
-	withNamedInterviewEdges          map[string]*CandidateInterviewQuery
-	withNamedCandidateJobEdges       map[string]*CandidateJobQuery
-	withNamedCandidateInterviewEdges map[string]*CandidateInterviewQuery
-	withNamedCandidateReferenceEdges map[string]*CandidateQuery
-	withNamedUserPermissionEdges     map[string]*EntityPermissionQuery
-	withNamedRoleEdges               map[string]*RoleQuery
-	withNamedHiringTeamEdges         map[string]*HiringTeamQuery
-	withNamedApproversHiringTeams    map[string]*HiringTeamQuery
-	withNamedCandidateNoteEdges      map[string]*CandidateNoteQuery
-	withNamedInterviewUsers          map[string]*CandidateInterviewerQuery
-	withNamedRoleUsers               map[string]*UserRoleQuery
-	withNamedHiringTeamUsers         map[string]*HiringTeamManagerQuery
-	withNamedHiringTeamApprovers     map[string]*HiringTeamApproverQuery
+	limit                              *int
+	offset                             *int
+	unique                             *bool
+	order                              []OrderFunc
+	fields                             []string
+	predicates                         []predicate.User
+	withAuditEdge                      *AuditTrailQuery
+	withHiringOwner                    *HiringJobQuery
+	withCandidateJobFeedback           *CandidateJobFeedbackQuery
+	withInterviewEdges                 *CandidateInterviewQuery
+	withCandidateJobEdges              *CandidateJobQuery
+	withCandidateInterviewEdges        *CandidateInterviewQuery
+	withCandidateReferenceEdges        *CandidateQuery
+	withUserPermissionEdges            *EntityPermissionQuery
+	withRoleEdges                      *RoleQuery
+	withHiringTeamEdges                *HiringTeamQuery
+	withMemberOfHiringTeamEdges        *HiringTeamQuery
+	withApproversHiringTeams           *HiringTeamQuery
+	withLeaderRecEdge                  *RecTeamQuery
+	withRecTeams                       *RecTeamQuery
+	withCandidateNoteEdges             *CandidateNoteQuery
+	withCandidateHistoryCallEdges      *CandidateHistoryCallQuery
+	withInterviewUsers                 *CandidateInterviewerQuery
+	withRoleUsers                      *UserRoleQuery
+	withHiringTeamUsers                *HiringTeamManagerQuery
+	withHiringTeamApprovers            *HiringTeamApproverQuery
+	modifiers                          []func(*sql.Selector)
+	loadTotal                          []func(context.Context, []*User) error
+	withNamedAuditEdge                 map[string]*AuditTrailQuery
+	withNamedHiringOwner               map[string]*HiringJobQuery
+	withNamedCandidateJobFeedback      map[string]*CandidateJobFeedbackQuery
+	withNamedInterviewEdges            map[string]*CandidateInterviewQuery
+	withNamedCandidateJobEdges         map[string]*CandidateJobQuery
+	withNamedCandidateInterviewEdges   map[string]*CandidateInterviewQuery
+	withNamedCandidateReferenceEdges   map[string]*CandidateQuery
+	withNamedUserPermissionEdges       map[string]*EntityPermissionQuery
+	withNamedRoleEdges                 map[string]*RoleQuery
+	withNamedHiringTeamEdges           map[string]*HiringTeamQuery
+	withNamedApproversHiringTeams      map[string]*HiringTeamQuery
+	withNamedCandidateNoteEdges        map[string]*CandidateNoteQuery
+	withNamedCandidateHistoryCallEdges map[string]*CandidateHistoryCallQuery
+	withNamedInterviewUsers            map[string]*CandidateInterviewerQuery
+	withNamedRoleUsers                 map[string]*UserRoleQuery
+	withNamedHiringTeamUsers           map[string]*HiringTeamManagerQuery
+	withNamedHiringTeamApprovers       map[string]*HiringTeamApproverQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -443,6 +446,28 @@ func (uq *UserQuery) QueryCandidateNoteEdges() *CandidateNoteQuery {
 	return query
 }
 
+// QueryCandidateHistoryCallEdges chains the current query on the "candidate_history_call_edges" edge.
+func (uq *UserQuery) QueryCandidateHistoryCallEdges() *CandidateHistoryCallQuery {
+	query := &CandidateHistoryCallQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(candidatehistorycall.Table, candidatehistorycall.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateHistoryCallEdgesTable, user.CandidateHistoryCallEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryInterviewUsers chains the current query on the "interview_users" edge.
 func (uq *UserQuery) QueryInterviewUsers() *CandidateInterviewerQuery {
 	query := &CandidateInterviewerQuery{config: uq.config}
@@ -707,30 +732,31 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:                      uq.config,
-		limit:                       uq.limit,
-		offset:                      uq.offset,
-		order:                       append([]OrderFunc{}, uq.order...),
-		predicates:                  append([]predicate.User{}, uq.predicates...),
-		withAuditEdge:               uq.withAuditEdge.Clone(),
-		withHiringOwner:             uq.withHiringOwner.Clone(),
-		withCandidateJobFeedback:    uq.withCandidateJobFeedback.Clone(),
-		withInterviewEdges:          uq.withInterviewEdges.Clone(),
-		withCandidateJobEdges:       uq.withCandidateJobEdges.Clone(),
-		withCandidateInterviewEdges: uq.withCandidateInterviewEdges.Clone(),
-		withCandidateReferenceEdges: uq.withCandidateReferenceEdges.Clone(),
-		withUserPermissionEdges:     uq.withUserPermissionEdges.Clone(),
-		withRoleEdges:               uq.withRoleEdges.Clone(),
-		withHiringTeamEdges:         uq.withHiringTeamEdges.Clone(),
-		withMemberOfHiringTeamEdges: uq.withMemberOfHiringTeamEdges.Clone(),
-		withApproversHiringTeams:    uq.withApproversHiringTeams.Clone(),
-		withLeaderRecEdge:           uq.withLeaderRecEdge.Clone(),
-		withRecTeams:                uq.withRecTeams.Clone(),
-		withCandidateNoteEdges:      uq.withCandidateNoteEdges.Clone(),
-		withInterviewUsers:          uq.withInterviewUsers.Clone(),
-		withRoleUsers:               uq.withRoleUsers.Clone(),
-		withHiringTeamUsers:         uq.withHiringTeamUsers.Clone(),
-		withHiringTeamApprovers:     uq.withHiringTeamApprovers.Clone(),
+		config:                        uq.config,
+		limit:                         uq.limit,
+		offset:                        uq.offset,
+		order:                         append([]OrderFunc{}, uq.order...),
+		predicates:                    append([]predicate.User{}, uq.predicates...),
+		withAuditEdge:                 uq.withAuditEdge.Clone(),
+		withHiringOwner:               uq.withHiringOwner.Clone(),
+		withCandidateJobFeedback:      uq.withCandidateJobFeedback.Clone(),
+		withInterviewEdges:            uq.withInterviewEdges.Clone(),
+		withCandidateJobEdges:         uq.withCandidateJobEdges.Clone(),
+		withCandidateInterviewEdges:   uq.withCandidateInterviewEdges.Clone(),
+		withCandidateReferenceEdges:   uq.withCandidateReferenceEdges.Clone(),
+		withUserPermissionEdges:       uq.withUserPermissionEdges.Clone(),
+		withRoleEdges:                 uq.withRoleEdges.Clone(),
+		withHiringTeamEdges:           uq.withHiringTeamEdges.Clone(),
+		withMemberOfHiringTeamEdges:   uq.withMemberOfHiringTeamEdges.Clone(),
+		withApproversHiringTeams:      uq.withApproversHiringTeams.Clone(),
+		withLeaderRecEdge:             uq.withLeaderRecEdge.Clone(),
+		withRecTeams:                  uq.withRecTeams.Clone(),
+		withCandidateNoteEdges:        uq.withCandidateNoteEdges.Clone(),
+		withCandidateHistoryCallEdges: uq.withCandidateHistoryCallEdges.Clone(),
+		withInterviewUsers:            uq.withInterviewUsers.Clone(),
+		withRoleUsers:                 uq.withRoleUsers.Clone(),
+		withHiringTeamUsers:           uq.withHiringTeamUsers.Clone(),
+		withHiringTeamApprovers:       uq.withHiringTeamApprovers.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -903,6 +929,17 @@ func (uq *UserQuery) WithCandidateNoteEdges(opts ...func(*CandidateNoteQuery)) *
 	return uq
 }
 
+// WithCandidateHistoryCallEdges tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_history_call_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCandidateHistoryCallEdges(opts ...func(*CandidateHistoryCallQuery)) *UserQuery {
+	query := &CandidateHistoryCallQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCandidateHistoryCallEdges = query
+	return uq
+}
+
 // WithInterviewUsers tells the query-builder to eager-load the nodes that are connected to
 // the "interview_users" edge. The optional arguments are used to configure the query builder of the edge.
 func (uq *UserQuery) WithInterviewUsers(opts ...func(*CandidateInterviewerQuery)) *UserQuery {
@@ -1020,7 +1057,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [19]bool{
+		loadedTypes = [20]bool{
 			uq.withAuditEdge != nil,
 			uq.withHiringOwner != nil,
 			uq.withCandidateJobFeedback != nil,
@@ -1036,6 +1073,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withLeaderRecEdge != nil,
 			uq.withRecTeams != nil,
 			uq.withCandidateNoteEdges != nil,
+			uq.withCandidateHistoryCallEdges != nil,
 			uq.withInterviewUsers != nil,
 			uq.withRoleUsers != nil,
 			uq.withHiringTeamUsers != nil,
@@ -1173,6 +1211,15 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withCandidateHistoryCallEdges; query != nil {
+		if err := uq.loadCandidateHistoryCallEdges(ctx, query, nodes,
+			func(n *User) { n.Edges.CandidateHistoryCallEdges = []*CandidateHistoryCall{} },
+			func(n *User, e *CandidateHistoryCall) {
+				n.Edges.CandidateHistoryCallEdges = append(n.Edges.CandidateHistoryCallEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	if query := uq.withInterviewUsers; query != nil {
 		if err := uq.loadInterviewUsers(ctx, query, nodes,
 			func(n *User) { n.Edges.InterviewUsers = []*CandidateInterviewer{} },
@@ -1284,6 +1331,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadCandidateNoteEdges(ctx, query, nodes,
 			func(n *User) { n.appendNamedCandidateNoteEdges(name) },
 			func(n *User, e *CandidateNote) { n.appendNamedCandidateNoteEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedCandidateHistoryCallEdges {
+		if err := uq.loadCandidateHistoryCallEdges(ctx, query, nodes,
+			func(n *User) { n.appendNamedCandidateHistoryCallEdges(name) },
+			func(n *User, e *CandidateHistoryCall) { n.appendNamedCandidateHistoryCallEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1847,6 +1901,33 @@ func (uq *UserQuery) loadCandidateNoteEdges(ctx context.Context, query *Candidat
 	}
 	return nil
 }
+func (uq *UserQuery) loadCandidateHistoryCallEdges(ctx context.Context, query *CandidateHistoryCallQuery, nodes []*User, init func(*User), assign func(*User, *CandidateHistoryCall)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.CandidateHistoryCall(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.CandidateHistoryCallEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedByID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (uq *UserQuery) loadInterviewUsers(ctx context.Context, query *CandidateInterviewerQuery, nodes []*User, init func(*User), assign func(*User, *CandidateInterviewer)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
@@ -2224,6 +2305,20 @@ func (uq *UserQuery) WithNamedCandidateNoteEdges(name string, opts ...func(*Cand
 		uq.withNamedCandidateNoteEdges = make(map[string]*CandidateNoteQuery)
 	}
 	uq.withNamedCandidateNoteEdges[name] = query
+	return uq
+}
+
+// WithNamedCandidateHistoryCallEdges tells the query-builder to eager-load the nodes that are connected to the "candidate_history_call_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedCandidateHistoryCallEdges(name string, opts ...func(*CandidateHistoryCallQuery)) *UserQuery {
+	query := &CandidateHistoryCallQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedCandidateHistoryCallEdges == nil {
+		uq.withNamedCandidateHistoryCallEdges = make(map[string]*CandidateHistoryCallQuery)
+	}
+	uq.withNamedCandidateHistoryCallEdges[name] = query
 	return uq
 }
 

@@ -64,6 +64,8 @@ const (
 	EdgeRecTeams = "rec_teams"
 	// EdgeCandidateNoteEdges holds the string denoting the candidate_note_edges edge name in mutations.
 	EdgeCandidateNoteEdges = "candidate_note_edges"
+	// EdgeCandidateHistoryCallEdges holds the string denoting the candidate_history_call_edges edge name in mutations.
+	EdgeCandidateHistoryCallEdges = "candidate_history_call_edges"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
@@ -171,6 +173,13 @@ const (
 	CandidateNoteEdgesInverseTable = "candidate_notes"
 	// CandidateNoteEdgesColumn is the table column denoting the candidate_note_edges relation/edge.
 	CandidateNoteEdgesColumn = "created_by_id"
+	// CandidateHistoryCallEdgesTable is the table that holds the candidate_history_call_edges relation/edge.
+	CandidateHistoryCallEdgesTable = "candidate_history_calls"
+	// CandidateHistoryCallEdgesInverseTable is the table name for the CandidateHistoryCall entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatehistorycall" package.
+	CandidateHistoryCallEdgesInverseTable = "candidate_history_calls"
+	// CandidateHistoryCallEdgesColumn is the table column denoting the candidate_history_call_edges relation/edge.
+	CandidateHistoryCallEdgesColumn = "created_by_id"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.

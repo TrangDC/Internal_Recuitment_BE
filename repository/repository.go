@@ -38,6 +38,7 @@ type Repository interface {
 	CandidateEducate() CandidateEducateRepository
 	CandidateAward() CandidateAwardRepository
 	CandidateCertificate() CandidateCertificateRepository
+	CandidateHistoryCall() CandidateHistoryCallRepository
 
 	// DoInTx executes the given function in a transaction.
 	DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error
@@ -75,6 +76,7 @@ type RepoImpl struct {
 	candidateEducate     CandidateEducateRepository
 	candidateAward       CandidateAwardRepository
 	candidateCertificate CandidateCertificateRepository
+	candidateHistoryCall CandidateHistoryCallRepository
 }
 
 // NewRepository creates new repository registry
@@ -109,6 +111,7 @@ func NewRepository(entClient *ent.Client) Repository {
 		candidateEducate:     NewCandidateEducateRepository(entClient),
 		candidateAward:       NewCandidateAwardRepository(entClient),
 		candidateCertificate: NewCandidateCertificateRepository(entClient),
+		candidateHistoryCall: NewCandidateHistoryCallRepository(entClient),
 	}
 }
 
@@ -224,6 +227,10 @@ func (r *RepoImpl) CandidateCertificate() CandidateCertificateRepository {
 	return r.candidateCertificate
 }
 
+func (r *RepoImpl) CandidateHistoryCall() CandidateHistoryCallRepository {
+	return r.candidateHistoryCall
+}
+
 // DoInTx executes the given function in a transaction.
 func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, repoRegistry Repository) error) error {
 	if r.entTx != nil {
@@ -272,6 +279,7 @@ func (r *RepoImpl) DoInTx(ctx context.Context, txFunc func(ctx context.Context, 
 		candidateEducate:     NewCandidateEducateRepository(tx.Client()),
 		candidateAward:       NewCandidateAwardRepository(tx.Client()),
 		candidateCertificate: NewCandidateCertificateRepository(tx.Client()),
+		candidateHistoryCall: NewCandidateHistoryCallRepository(tx.Client()),
 	}
 
 	if err := txFunc(ctx, impl); err != nil {

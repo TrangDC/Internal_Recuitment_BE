@@ -367,6 +367,25 @@ func (r *mutationResolver) DeleteEmailTemplate(ctx context.Context, id string, n
 	return true, nil
 }
 
+// CreateCandidateHistoryCall is the resolver for the CreateCandidateHistoryCall field.
+func (r *mutationResolver) CreateCandidateHistoryCall(ctx context.Context, input ent.NewCandidateHistoryCallInput, note string) (*ent.CandidateHistoryCallResponse, error) {
+	return r.serviceRegistry.CandidateHistoryCall().CreateCandidateHistoryCall(ctx, input, note)
+}
+
+// UpdateCandidateHistoryCall is the resolver for the UpdateCandidateHistoryCall field.
+func (r *mutationResolver) UpdateCandidateHistoryCall(ctx context.Context, id string, input ent.UpdateCandidateHistoryCallInput, note string) (*ent.CandidateHistoryCallResponse, error) {
+	return r.serviceRegistry.CandidateHistoryCall().UpdateCandidateHistoryCall(ctx, uuid.MustParse(id), input, note)
+}
+
+// DeleteCandidateHistoryCall is the resolver for the DeleteCandidateHistoryCall field.
+func (r *mutationResolver) DeleteCandidateHistoryCall(ctx context.Context, id string, note string) (bool, error) {
+	err := r.serviceRegistry.CandidateHistoryCall().DeleteCandidateHistoryCall(ctx, uuid.MustParse(id), note)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // ValidateCandidateInterview is the resolver for the ValidateCandidateInterview field.
 func (r *mutationResolver) ValidateCandidateInterview(ctx context.Context, input ent.CandidateInterviewValidateInput) (*ent.CandidateInterviewResponseValidate, error) {
 	return r.serviceRegistry.CandidateInterview().ValidateCandidateInterview(ctx, input)

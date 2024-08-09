@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,6 +30,7 @@ type CandidateHistoryCallQuery struct {
 	predicates               []predicate.CandidateHistoryCall
 	withAttachmentEdges      *AttachmentQuery
 	withCandidateEdge        *CandidateQuery
+	withCreatedByEdge        *UserQuery
 	modifiers                []func(*sql.Selector)
 	loadTotal                []func(context.Context, []*CandidateHistoryCall) error
 	withNamedAttachmentEdges map[string]*AttachmentQuery
@@ -105,6 +107,28 @@ func (chcq *CandidateHistoryCallQuery) QueryCandidateEdge() *CandidateQuery {
 			sqlgraph.From(candidatehistorycall.Table, candidatehistorycall.FieldID, selector),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, candidatehistorycall.CandidateEdgeTable, candidatehistorycall.CandidateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(chcq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
+func (chcq *CandidateHistoryCallQuery) QueryCreatedByEdge() *UserQuery {
+	query := &UserQuery{config: chcq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := chcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := chcq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatehistorycall.Table, candidatehistorycall.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatehistorycall.CreatedByEdgeTable, candidatehistorycall.CreatedByEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(chcq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,6 +319,7 @@ func (chcq *CandidateHistoryCallQuery) Clone() *CandidateHistoryCallQuery {
 		predicates:          append([]predicate.CandidateHistoryCall{}, chcq.predicates...),
 		withAttachmentEdges: chcq.withAttachmentEdges.Clone(),
 		withCandidateEdge:   chcq.withCandidateEdge.Clone(),
+		withCreatedByEdge:   chcq.withCreatedByEdge.Clone(),
 		// clone intermediate query.
 		sql:    chcq.sql.Clone(),
 		path:   chcq.path,
@@ -321,6 +346,17 @@ func (chcq *CandidateHistoryCallQuery) WithCandidateEdge(opts ...func(*Candidate
 		opt(query)
 	}
 	chcq.withCandidateEdge = query
+	return chcq
+}
+
+// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
+// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (chcq *CandidateHistoryCallQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *CandidateHistoryCallQuery {
+	query := &UserQuery{config: chcq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	chcq.withCreatedByEdge = query
 	return chcq
 }
 
@@ -397,9 +433,10 @@ func (chcq *CandidateHistoryCallQuery) sqlAll(ctx context.Context, hooks ...quer
 	var (
 		nodes       = []*CandidateHistoryCall{}
 		_spec       = chcq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			chcq.withAttachmentEdges != nil,
 			chcq.withCandidateEdge != nil,
+			chcq.withCreatedByEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -435,6 +472,12 @@ func (chcq *CandidateHistoryCallQuery) sqlAll(ctx context.Context, hooks ...quer
 	if query := chcq.withCandidateEdge; query != nil {
 		if err := chcq.loadCandidateEdge(ctx, query, nodes, nil,
 			func(n *CandidateHistoryCall, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := chcq.withCreatedByEdge; query != nil {
+		if err := chcq.loadCreatedByEdge(ctx, query, nodes, nil,
+			func(n *CandidateHistoryCall, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -499,6 +542,32 @@ func (chcq *CandidateHistoryCallQuery) loadCandidateEdge(ctx context.Context, qu
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (chcq *CandidateHistoryCallQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*CandidateHistoryCall, init func(*CandidateHistoryCall), assign func(*CandidateHistoryCall, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*CandidateHistoryCall)
+	for i := range nodes {
+		fk := nodes[i].CreatedByID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

@@ -10,6 +10,7 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/candidate"
 	"trec/ent/candidatehistorycall"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -163,6 +164,20 @@ func (chcc *CandidateHistoryCallCreate) SetNillableEndTime(t *time.Time) *Candid
 	return chcc
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (chcc *CandidateHistoryCallCreate) SetCreatedByID(u uuid.UUID) *CandidateHistoryCallCreate {
+	chcc.mutation.SetCreatedByID(u)
+	return chcc
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (chcc *CandidateHistoryCallCreate) SetNillableCreatedByID(u *uuid.UUID) *CandidateHistoryCallCreate {
+	if u != nil {
+		chcc.SetCreatedByID(*u)
+	}
+	return chcc
+}
+
 // SetID sets the "id" field.
 func (chcc *CandidateHistoryCallCreate) SetID(u uuid.UUID) *CandidateHistoryCallCreate {
 	chcc.mutation.SetID(u)
@@ -201,6 +216,25 @@ func (chcc *CandidateHistoryCallCreate) SetNillableCandidateEdgeID(id *uuid.UUID
 // SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
 func (chcc *CandidateHistoryCallCreate) SetCandidateEdge(c *Candidate) *CandidateHistoryCallCreate {
 	return chcc.SetCandidateEdgeID(c.ID)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (chcc *CandidateHistoryCallCreate) SetCreatedByEdgeID(id uuid.UUID) *CandidateHistoryCallCreate {
+	chcc.mutation.SetCreatedByEdgeID(id)
+	return chcc
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (chcc *CandidateHistoryCallCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *CandidateHistoryCallCreate {
+	if id != nil {
+		chcc = chcc.SetCreatedByEdgeID(*id)
+	}
+	return chcc
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (chcc *CandidateHistoryCallCreate) SetCreatedByEdge(u *User) *CandidateHistoryCallCreate {
+	return chcc.SetCreatedByEdgeID(u.ID)
 }
 
 // Mutation returns the CandidateHistoryCallMutation object of the builder.
@@ -415,6 +449,26 @@ func (chcc *CandidateHistoryCallCreate) createSpec() (*CandidateHistoryCall, *sq
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CandidateID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := chcc.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatehistorycall.CreatedByEdgeTable,
+			Columns: []string{candidatehistorycall.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CreatedByID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
