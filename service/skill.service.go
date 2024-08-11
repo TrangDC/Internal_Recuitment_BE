@@ -201,6 +201,10 @@ func (svc *skillSvcImpl) Selections(ctx context.Context, pagination *ent.Paginat
 			Node: &ent.SkillSelection{
 				ID:   skill.ID.String(),
 				Name: skill.Name,
+				SkillType: &ent.SkillTypeSelection{
+					ID:   skill.Edges.SkillTypeEdge.ID.String(),
+					Name: skill.Edges.SkillTypeEdge.Name,
+				},
 			},
 			Cursor: ent.Cursor{
 				Value: skill.ID.String(),
@@ -267,6 +271,12 @@ func (svc *skillSvcImpl) filter(skillQuery *ent.SkillQuery, input *ent.SkillFilt
 	if input != nil {
 		if input.Name != nil {
 			skillQuery.Where(skill.NameEqualFold(strings.TrimSpace(*input.Name)))
+		}
+		if input.SkillTypeIds != nil {
+			ids := lo.Map(input.SkillTypeIds, func(id string, index int) uuid.UUID {
+				return uuid.MustParse(id)
+			})
+			skillQuery.Where(skill.SkillTypeIDIn(ids...))
 		}
 	}
 }

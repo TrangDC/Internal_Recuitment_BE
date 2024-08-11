@@ -989,7 +989,8 @@ type RoleSelectionResponseGetAll struct {
 }
 
 type SkillFilter struct {
-	Name *string `json:"name"`
+	Name         *string  `json:"name"`
+	SkillTypeIds []string `json:"skill_type_ids"`
 }
 
 type SkillFreeWord struct {
@@ -1006,8 +1007,9 @@ type SkillResponseGetAll struct {
 }
 
 type SkillSelection struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string              `json:"id"`
+	Name      string              `json:"name"`
+	SkillType *SkillTypeSelection `json:"skill_type"`
 }
 
 type SkillSelectionEdge struct {
@@ -1021,7 +1023,8 @@ type SkillSelectionResponseGetAll struct {
 }
 
 type SkillTypeFilter struct {
-	Name *string `json:"name"`
+	Name     *string  `json:"name"`
+	SkillIds []string `json:"skill_ids"`
 }
 
 type SkillTypeFreeWord struct {
