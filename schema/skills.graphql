@@ -11,6 +11,7 @@ input SkillOrder {
 
 input SkillFilter {
   name: String
+  skill_type_ids: [ID!]
 }
 
 input SkillFreeWord {
@@ -57,6 +58,7 @@ type SkillResponseGetAll {
 type SkillSelection {
   id: ID!
   name: String!
+  skill_type: SkillTypeSelection
 }
 
 type SkillSelectionEdge {

@@ -8,6 +8,7 @@ import (
 	"trec/ent"
 	"trec/ent/audittrail"
 	"trec/ent/predicate"
+	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/internal/util"
 	"trec/repository"
@@ -263,6 +264,12 @@ func (svc *skillTypeSvcImpl) filter(query *ent.SkillTypeQuery, input *ent.SkillT
 	if input != nil {
 		if input.Name != nil {
 			query.Where(skilltype.NameEqualFold(strings.TrimSpace(*input.Name)))
+		}
+		if input.SkillIds != nil {
+			ids := lo.Map(input.SkillIds, func(id string, index int) uuid.UUID {
+				return uuid.MustParse(id)
+			})
+			query.Where(skilltype.HasSkillEdgesWith(skill.IDIn(ids...)))
 		}
 	}
 }
