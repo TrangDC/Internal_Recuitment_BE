@@ -96,17 +96,27 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	for _, team := range hiringTeams {
-		candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.HiringTeamJobEdges, func(hrj *ent.HiringJob, index int) *ent.HiringJob {
-			return hrj
-		}), func(hrj *ent.HiringJob, index int) []uuid.UUID {
-			return lo.Map(hrj.Edges.CandidateJobEdges, func(cj *ent.CandidateJob, index int) uuid.UUID {
-				return cj.ID
-			})
-		}))
-		result, err := svc.repoRegistry.Report().CandidateJobConversion(ctx, candidateJobIds, team.ID, team.Name)
-		if err != nil {
-			svc.logger.Error(err.Error(), zap.Error(err))
-			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		result := &ent.CandidateConversionRateReport{
+			ID:             team.ID.String(),
+			HiringTeamName: team.Name,
+			Applied:        0,
+			Interviewing:   0,
+			Offering:       0,
+			Hired:          0,
+		}
+		if len(team.Edges.HiringTeamJobEdges) > 0 {
+			candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.HiringTeamJobEdges, func(hrj *ent.HiringJob, _ int) *ent.HiringJob {
+				return hrj
+			}), func(hrj *ent.HiringJob, _ int) []uuid.UUID {
+				return lo.Map(hrj.Edges.CandidateJobEdges, func(cj *ent.CandidateJob, _ int) uuid.UUID {
+					return cj.ID
+				})
+			}))
+			result, err = svc.repoRegistry.Report().CandidateJobConversion(ctx, candidateJobIds, team.ID, team.Name)
+			if err != nil {
+				svc.logger.Error(err.Error(), zap.Error(err))
+				return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			}
 		}
 		results = append(results, &ent.CandidateConversionRateReportEdge{
 			Node: result,
