@@ -125,6 +125,7 @@ input CandidateFilter {
   skill_ids: [ID!]
   reference_type: [CandidateReferenceType!]
   gender: [CandidateGenderEnum!]
+  ignore_statuses: [CandidateStatusEnum!]
 }
 
 input CandidateFreeWord {

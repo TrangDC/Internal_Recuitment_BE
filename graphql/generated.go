@@ -7763,6 +7763,7 @@ input CandidateFilter {
   skill_ids: [ID!]
   reference_type: [CandidateReferenceType!]
   gender: [CandidateGenderEnum!]
+  ignore_statuses: [CandidateStatusEnum!]
 }
 
 input CandidateFreeWord {
@@ -48442,7 +48443,7 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date", "skill_type_ids", "skill_ids", "reference_type", "gender"}
+	fieldsInOrder := [...]string{"name", "email", "phone", "dob_from_date", "dob_to_date", "status", "from_date", "to_date", "is_black_list", "job_id", "is_able_to_interview", "failed_reason", "reference_uid", "recruit_time_from_date", "recruit_time_to_date", "skill_type_ids", "skill_ids", "reference_type", "gender", "ignore_statuses"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48598,6 +48599,14 @@ func (ec *executionContext) unmarshalInputCandidateFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
 			it.Gender, err = ec.unmarshalOCandidateGenderEnum2ᚕtrecᚋentᚐCandidateGenderEnumᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ignore_statuses":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ignore_statuses"))
+			it.IgnoreStatuses, err = ec.unmarshalOCandidateStatusEnum2ᚕtrecᚋentᚐCandidateStatusEnumᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -69652,6 +69661,73 @@ func (ec *executionContext) marshalOCandidateReferenceType2ᚕtrecᚋentᚐCandi
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNCandidateReferenceType2trecᚋentᚐCandidateReferenceType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOCandidateStatusEnum2ᚕtrecᚋentᚐCandidateStatusEnumᚄ(ctx context.Context, v interface{}) ([]ent.CandidateStatusEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ent.CandidateStatusEnum, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCandidateStatusEnum2trecᚋentᚐCandidateStatusEnum(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCandidateStatusEnum2ᚕtrecᚋentᚐCandidateStatusEnumᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.CandidateStatusEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCandidateStatusEnum2trecᚋentᚐCandidateStatusEnum(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
