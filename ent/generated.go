@@ -351,6 +351,7 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
+	Status        *CandidateJobStatus `json:"status"`
 	HiringJobIds  []string            `json:"hiring_job_ids"`
 	HiringTeamIds []string            `json:"hiring_team_ids"`
 	Priorities    []int               `json:"priorities"`

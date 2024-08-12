@@ -777,6 +777,9 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 	if input == nil {
 		return
 	}
+	if input.Status != nil {
+		candidateJobQuery.Where(candidatejob.StatusEQ(candidatejob.Status(*input.Status)))
+	}
 	if input.HiringJobIds != nil {
 		hiringJobIds := lo.Map(input.HiringJobIds, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)

@@ -7374,6 +7374,7 @@ enum CandidateJobLevel {
 
 
 input CandidateJobGroupByStatusFilter {
+  status: CandidateJobStatus
   hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
   priorities: [Int!]
@@ -49433,13 +49434,21 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"hiring_job_ids", "hiring_team_ids", "priorities", "skill_ids", "from_date", "to_date", "locations", "created_by_ids", "levels"}
+	fieldsInOrder := [...]string{"status", "hiring_job_ids", "hiring_team_ids", "priorities", "skill_ids", "from_date", "to_date", "locations", "created_by_ids", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOCandidateJobStatus2ᚖtrecᚋentᚐCandidateJobStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "hiring_job_ids":
 			var err error
 

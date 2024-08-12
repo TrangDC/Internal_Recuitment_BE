@@ -74,6 +74,7 @@ enum CandidateJobLevel {
 
 
 input CandidateJobGroupByStatusFilter {
+  status: CandidateJobStatus
   hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
   priorities: [Int!]
