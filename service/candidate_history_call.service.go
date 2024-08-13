@@ -6,6 +6,7 @@ import (
 	"strings"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/predicate"
 	"trec/internal/util"
@@ -53,6 +54,14 @@ func (svc *candidateHistoryCallSvcImpl) CreateCandidateHistoryCall(ctx context.C
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, result.ID)
+	jsonString, err := svc.dtoRegistry.CandidateHistoryCall().AuditTrailCreate(result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidateHistoryCalls, jsonString, audittrail.ActionTypeCreate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateHistoryCallResponse{
 		Data: result,
 	}, nil
@@ -74,6 +83,14 @@ func (svc *candidateHistoryCallSvcImpl) UpdateCandidateHistoryCall(ctx context.C
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ = svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
+	jsonString, err := svc.dtoRegistry.CandidateHistoryCall().AuditTrailUpdate(record, result)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidateHistoryCalls, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+	}
 	return &ent.CandidateHistoryCallResponse{
 		Data: result,
 	}, nil
@@ -92,6 +109,15 @@ func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.C
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	jsonString, err := svc.dtoRegistry.CandidateHistoryCall().AuditTrailDelete(candidateHistoryCallRecord)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateHistoryCallRecord.ID, audittrail.ModuleCandidateHistoryCalls, jsonString, audittrail.ActionTypeDelete, note)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
 	}
 	return nil
 }

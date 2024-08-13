@@ -29,6 +29,7 @@ type Dto interface {
 	Role() RoleDto
 	EmailTemplate() EmailTemplateDto
 	RecTeam() RecTeamDto
+	CandidateHistoryCall() CandidateHistoryCallDto
 	CandidateNote() CandidateNoteDto
 }
 
@@ -49,6 +50,7 @@ type dtoImpl struct {
 	roleDto                 RoleDto
 	emailTemplateDto        EmailTemplateDto
 	recTeamDto              RecTeamDto
+	candidateHistoryCallDto CandidateHistoryCallDto
 	candidateNoteDto        CandidateNoteDto
 }
 
@@ -70,6 +72,7 @@ func NewDto() Dto {
 		roleDto:                 NewRoleDto(),
 		emailTemplateDto:        NewEmailTemplateDto(),
 		recTeamDto:              NewRecTeamDto(),
+		candidateHistoryCallDto: NewCandidateHistoryCallDto(),
 		candidateNoteDto:        NewCandidateNoteDto(),
 	}
 }
@@ -89,6 +92,7 @@ const (
 	EmailTemplateI18n        = "model.email_templates.model_name"
 	RecTeamI18n              = "model.rec_teams.model_name"
 	UserPermissionI18n       = "model.user_permission.model_name"
+	CandidateHistoryCallI18n = "model.candidate_history_calls.model_name"
 	CandidateNoteI18n        = "model.candidate_notes.model_name"
 )
 
@@ -150,6 +154,10 @@ func (i dtoImpl) EmailTemplate() EmailTemplateDto {
 
 func (i dtoImpl) RecTeam() RecTeamDto {
 	return i.recTeamDto
+}
+
+func (i dtoImpl) CandidateHistoryCall() CandidateHistoryCallDto {
+	return i.candidateHistoryCallDto
 }
 
 func (i dtoImpl) CandidateNote() CandidateNoteDto {
