@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"trec/ent"
 	"trec/ent/candidateinterview"
@@ -50,18 +49,18 @@ func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context)
 }
 
 func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
-	var page int
-	var perPage int
-	var results []*ent.CandidateConversionRateReportEdge
-	query := svc.repoRegistry.HiringTeam().BuildBaseQuery().WithHiringTeamJobEdges(
-		func(hrjQ *ent.HiringJobQuery) {
-			hrjQ.Where(hiringjob.DeletedAtIsNil()).WithCandidateJobEdges(
-				func(cjQ *ent.CandidateJobQuery) {
-					cjQ.Where(candidatejob.DeletedAtIsNil())
-				},
-			)
-		},
+	var (
+		page    int
+		perPage int
+		results []*ent.CandidateConversionRateReportEdge
 	)
+	query := svc.repoRegistry.HiringTeam().BuildBaseQuery().
+		WithHiringTeamJobEdges(func(hrjQ *ent.HiringJobQuery) {
+			hrjQ.Where(hiringjob.DeletedAtIsNil()).
+				WithCandidateJobEdges(func(cjQ *ent.CandidateJobQuery) {
+					cjQ.Where(candidatejob.DeletedAtIsNil())
+				})
+		})
 	if pagination != nil {
 		page = *pagination.Page
 		perPage = *pagination.PerPage
@@ -71,22 +70,18 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	if orderBy == nil {
-		query = query.Order(ent.Desc(hiringteam.FieldCreatedAt))
-	} else {
-		fieldName := "created_at"
-		switch orderBy.Field {
-		case ent.ReportOrderByFieldHiringTeamCreatedAt:
-			fieldName = "created_at"
-		case ent.ReportOrderByFieldHiringTeamName:
-			fieldName = "name"
+	orderFunc := ent.Desc(hiringteam.FieldCreatedAt)
+	if orderBy != nil {
+		orderField := hiringteam.FieldCreatedAt
+		if orderBy.Field == ent.ReportOrderByFieldHiringTeamName {
+			orderField = hiringteam.FieldName
 		}
+		orderFunc = ent.Desc(orderField)
 		if orderBy.Direction == ent.OrderDirectionAsc {
-			query = query.Order(ent.Asc(fieldName))
-		} else {
-			query = query.Order(ent.Desc(fieldName))
+			orderFunc = ent.Asc(orderField)
 		}
 	}
+	query = query.Order(orderFunc)
 	if perPage != 0 && page != 0 {
 		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
@@ -270,35 +265,30 @@ func (svc reportSvcImpl) ReportApplication(ctx context.Context, filter ent.Repor
 // common
 func (svc reportSvcImpl) getApplicationProcessing(ctx context.Context, filter ent.ReportFilter) (ent.ApplicationReportProcessing, error) {
 	result := ent.ApplicationReportProcessing{}
-	queryString := "select cdi.status as status, count(*) as count from candidate_interviews as cdi " +
-		"where cdi.candidate_job_status IN ('%s', '%s') and cdi.deleted_at is null" +
-		" and cdi.created_at between '%s' and '%s' group by cdi.status;"
-	queryString = fmt.Sprintf(queryString, candidateinterview.CandidateJobStatusApplied, candidateinterview.CandidateJobStatusInterviewing, filter.FromDate.Format("2006-01-02 15:04:05"), filter.ToDate.Format("2006-01-02 15:04:05"))
-	rows, err := svc.repoRegistry.CandidateInterview().BuildBaseQuery().QueryContext(ctx, queryString)
+	processingCandidateJobIDs, err := svc.repoRegistry.CandidateJob().BuildIDList(
+		ctx,
+		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(
+			candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
+			candidatejob.CreatedAtGTE(filter.FromDate), candidatejob.CreatedAtLTE(filter.ToDate),
+		),
+	)
 	if err != nil {
-		return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return result, err
 	}
-	defer rows.Close()
-	if rows != nil {
-		for rows.Next() {
-			var status string
-			var count int
-			if err := rows.Scan(&status, &count); err != nil {
-				return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-			}
-			switch status {
-			case candidateinterview.StatusInvitedToInterview.String():
-				result.InviteToInterview = count
-			case candidateinterview.StatusInterviewing.String():
-				result.Interviewing = count
-			case candidateinterview.StatusDone.String():
-				result.Done = count
-			case candidateinterview.StatusCancelled.String():
-				result.Cancelled = count
-			}
-		}
-		if err := rows.Err(); err != nil {
-			return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	statusCount, err := svc.repoRegistry.CandidateInterview().BuildStatusCountByCdJobID(ctx, processingCandidateJobIDs)
+	if err != nil {
+		return result, err
+	}
+	for _, count := range statusCount {
+		switch count.Status {
+		case candidateinterview.StatusInvitedToInterview:
+			result.InviteToInterview = count.Count
+		case candidateinterview.StatusInterviewing:
+			result.Interviewing = count.Count
+		case candidateinterview.StatusDone:
+			result.Done = count.Count
+		case candidateinterview.StatusCancelled:
+			result.Cancelled = count.Count
 		}
 	}
 	return result, nil

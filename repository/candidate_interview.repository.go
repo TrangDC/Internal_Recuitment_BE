@@ -39,6 +39,7 @@ type CandidateInterviewRepository interface {
 	BuildList(ctx context.Context, query *ent.CandidateInterviewQuery) ([]*ent.CandidateInterview, error)
 	BuildGetOne(ctx context.Context, query *ent.CandidateInterviewQuery) (*ent.CandidateInterview, error)
 	GetDataForKeyword(ctx context.Context, record *ent.CandidateInterview, candidateJobRecord *ent.CandidateJob) (models.GroupModule, error)
+	BuildStatusCountByCdJobID(ctx context.Context, candidateJobIDs []uuid.UUID) ([]models.CdInterviewCountByStatus, error)
 
 	// third party
 	CallbackInterviewSchedule(ctx context.Context, input models.MessageOutput) error
@@ -257,6 +258,12 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 		CandidateJob: candidateJobRecord,
 		Interview:    record,
 	}, nil
+}
+
+func (rps candidateInterviewRepoImpl) BuildStatusCountByCdJobID(ctx context.Context, candidateJobIDs []uuid.UUID) ([]models.CdInterviewCountByStatus, error) {
+	result := make([]models.CdInterviewCountByStatus, 0)
+	err := rps.BuildBaseQuery().Select(candidateinterview.FieldStatus).Where(candidateinterview.CandidateJobIDIn(candidateJobIDs...)).GroupBy(candidateinterview.FieldStatus).Aggregate(ent.Count()).Scan(ctx, &result)
+	return result, err
 }
 
 // third party

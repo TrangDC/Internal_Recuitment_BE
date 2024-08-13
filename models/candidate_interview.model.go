@@ -2,6 +2,7 @@ package models
 
 import (
 	"time"
+	"trec/ent/candidateinterview"
 
 	"github.com/google/uuid"
 )
@@ -37,4 +38,9 @@ type CandidateInterviewAuditTrail struct {
 type UserTeamAuditTrail struct {
 	RecordId   uuid.UUID
 	JsonString string
+}
+
+type CdInterviewCountByStatus struct {
+	Status candidateinterview.Status `json:"status"`
+	Count  int                       `json:"count"`
 }
