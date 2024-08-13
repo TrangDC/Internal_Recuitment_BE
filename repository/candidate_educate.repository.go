@@ -63,10 +63,10 @@ func (rps candidateEducateRepoImpl) BuildBulkCreate(ctx context.Context, input [
 			SetLocation(strings.TrimSpace(v.Location)).
 			SetOrderID(v.OrderID).
 			SetIsCurrent(v.IsCurrent)
-		if !v.StartDate.IsZero() {
+		if v.StartDate != nil && !v.StartDate.IsZero() {
 			create.SetStartDate(*v.StartDate)
 		}
-		if !v.EndDate.IsZero() {
+		if v.EndDate != nil && !v.EndDate.IsZero() {
 			create.SetEndDate(*v.EndDate)
 		}
 		createBulk = append(createBulk, create)
@@ -113,12 +113,12 @@ func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input [
 			SetDescription(strings.TrimSpace(v.Description)).
 			SetOrderID(v.OrderID).
 			SetIsCurrent(v.IsCurrent)
-		if !v.StartDate.IsZero() {
+		if v.StartDate != nil && !v.StartDate.IsZero() {
 			update.SetStartDate(*v.StartDate)
 		} else {
 			update.ClearStartDate()
 		}
-		if !v.EndDate.IsZero() {
+		if v.EndDate != nil && !v.EndDate.IsZero() {
 			update.SetEndDate(*v.EndDate)
 		} else {
 			update.ClearEndDate()

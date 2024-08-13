@@ -59,7 +59,7 @@ func (rps candidateCertificateRepoImpl) BuildBulkCreate(ctx context.Context, inp
 			SetName(strings.TrimSpace(v.Name)).
 			SetScore(strings.TrimSpace(v.Score)).
 			SetOrderID(v.OrderID)
-		if !v.AchievedDate.IsZero() {
+		if v.AchievedDate != nil && !v.AchievedDate.IsZero() {
 			create.SetAchievedDate(*v.AchievedDate)
 		}
 		createBulk = append(createBulk, create)
@@ -103,7 +103,7 @@ func (rps candidateCertificateRepoImpl) BuildBulkUpdate(ctx context.Context, inp
 			SetName(strings.TrimSpace(v.Name)).
 			SetScore(strings.TrimSpace(v.Score)).
 			SetOrderID(v.OrderID)
-		if !v.AchievedDate.IsZero() {
+		if v.AchievedDate != nil && !v.AchievedDate.IsZero() {
 			update.SetAchievedDate(*v.AchievedDate)
 		} else {
 			update.ClearAchievedDate()
