@@ -191,6 +191,7 @@ type CandidateFilter struct {
 	SkillIds            []string                   `json:"skill_ids"`
 	ReferenceType       []CandidateReferenceType   `json:"reference_type"`
 	Gender              []CandidateGenderEnum      `json:"gender"`
+	IgnoreStatuses      []CandidateStatusEnum      `json:"ignore_statuses"`
 }
 
 type CandidateFreeWord struct {
