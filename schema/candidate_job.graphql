@@ -74,13 +74,14 @@ enum CandidateJobLevel {
 
 
 input CandidateJobGroupByStatusFilter {
-  hiring_job_id: [ID!]
+  status: CandidateJobStatus
+  hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
-  priority: [Int!]
-  skill_id: [ID!]
+  priorities: [Int!]
+  skill_ids: [ID!]
   from_date: Time
   to_date: Time
-  location: [LocationEnum!]
+  locations: [LocationEnum!]
   created_by_ids: [ID!]
   levels: [CandidateJobLevel!]
 }
@@ -186,10 +187,11 @@ input CandidateJobFilter {
   status: CandidateJobStatus
   from_date: Time
   to_date: Time
-  hiring_team_id: ID
-  hiring_job_id: ID
+  hiring_team_ids: [ID!]
+  hiring_job_ids: [ID!]
   candidate_id: ID
-  failed_reason: [CandidateJobFailedReason!]
+  failed_reasons: [CandidateJobFailedReason!]
+  levels: [CandidateJobLevel!]
 }
 
 input CandidateJobOrder {
