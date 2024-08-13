@@ -65,7 +65,7 @@ func (rps skillRepoImpl) BuildQuery() *ent.SkillQuery {
 }
 
 func (rps skillRepoImpl) BuildBaseQuery() *ent.SkillQuery {
-	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil())
+	return rps.client.Skill.Query().Where(skill.DeletedAtIsNil()).WithSkillTypeEdge()
 }
 
 func (rps skillRepoImpl) GetOneSkill(ctx context.Context, query *ent.SkillQuery) (*ent.Skill, error) {

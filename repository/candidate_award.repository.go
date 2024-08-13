@@ -59,7 +59,7 @@ func (rps candidateAwardRepoImpl) BuildBulkCreate(ctx context.Context, input []*
 			SetCandidateID(candidateId).
 			SetName(strings.TrimSpace(v.Name)).
 			SetOrderID(v.OrderID)
-		if !v.AchievedDate.IsZero() {
+		if v.AchievedDate != nil && !v.AchievedDate.IsZero() {
 			create.SetAchievedDate(*v.AchievedDate)
 		}
 		createBulk = append(createBulk, create)
@@ -101,7 +101,7 @@ func (rps candidateAwardRepoImpl) BuildBulkUpdate(ctx context.Context, input []*
 		update := rps.client.CandidateAward.UpdateOneID(uuid.MustParse(v.ID)).
 			SetName(strings.TrimSpace(v.Name)).
 			SetOrderID(v.OrderID)
-		if !v.AchievedDate.IsZero() {
+		if v.AchievedDate != nil && !v.AchievedDate.IsZero() {
 			update.SetAchievedDate(*v.AchievedDate)
 		} else {
 			update.ClearAchievedDate()
