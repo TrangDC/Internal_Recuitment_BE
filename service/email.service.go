@@ -7,11 +7,11 @@ import (
 	"trec/config"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/outgoingemail"
 	"trec/internal/servicebus"
 	"trec/models"
 	"trec/repository"
 
-	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -44,22 +44,23 @@ func NewEmailService(repoRegistry repository.Repository, serviceBusClient servic
 func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, template *ent.EmailTemplate,
 	groupModule models.GroupModule) []models.MessageInput {
 	var messages []models.MessageInput
-	sendToIDs, filteredUsers := svc.getSentTo(users, template, groupModule)
+	sendTos, filteredUsers := svc.getSentTo(users, template, groupModule)
 	keywords := svc.mappingKeyword(groupModule)
-	sendToIDs = lo.Uniq(sendToIDs)
-	for _, userID := range sendToIDs {
-		user, _ := lo.Find(filteredUsers, func(u *ent.User) bool {
-			return u.ID == userID
+	sendTos = lo.Uniq(sendTos)
+	for _, sentTo := range sendTos {
+		var user *ent.User
+		user, _ = lo.Find(filteredUsers, func(u *ent.User) bool {
+			return u.ID == sentTo.ID
 		})
 		subject := strings.ReplaceAll(template.Subject, "{{ gl:receiver_name }}", user.Name)
 		content := strings.ReplaceAll(template.Content, "{{ gl:receiver_name }}", user.Name)
 		signature := strings.ReplaceAll(template.Signature, "{{ gl:receiver_name }}", user.Name)
 		if groupModule.Interview != nil {
 			interviewDate, timeZone := dto.ConvertTimeZone(groupModule.Interview.InterviewDate, user.Location)
-			inteviewStartTime, _ := dto.ConvertTimeZone(groupModule.Interview.StartFrom, user.Location)
-			inteviewEndTime, _ := dto.ConvertTimeZone(groupModule.Interview.EndAt, user.Location)
+			interviewStartTime, _ := dto.ConvertTimeZone(groupModule.Interview.StartFrom, user.Location)
+			interviewEndTime, _ := dto.ConvertTimeZone(groupModule.Interview.EndAt, user.Location)
 			keywords["{{ intv:date }}"] = interviewDate.Format("02-01-2006")
-			keywords["{{ intv:time }}"] = fmt.Sprintf("%s - %s (UTC%s)", inteviewStartTime.Format("15:04"), inteviewEndTime.Format("15:04"), timeZone)
+			keywords["{{ intv:time }}"] = fmt.Sprintf("%s - %s (UTC%s)", interviewStartTime.Format("15:04"), interviewEndTime.Format("15:04"), timeZone)
 		}
 		if !groupModule.CandidateJob.OnboardDate.IsZero() && !groupModule.CandidateJob.OfferExpirationDate.IsZero() {
 			offerEpxDate, _ := dto.ConvertTimeZone(groupModule.CandidateJob.OfferExpirationDate, user.Location)
@@ -73,21 +74,22 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 			signature = strings.ReplaceAll(signature, key, value)
 		}
 		message := models.MessageInput{
-			ID:        template.ID,
-			To:        []string{user.WorkEmail},
-			Cc:        template.Cc,
-			Bcc:       template.Bcc,
-			Subject:   subject,
-			Content:   content,
-			Signature: signature,
+			ID:            template.ID,
+			To:            []string{user.WorkEmail},
+			Cc:            template.Cc,
+			Bcc:           template.Bcc,
+			Subject:       subject,
+			Content:       content,
+			Signature:     signature,
+			RecipientType: sentTo.RecipientType,
 		}
 		messages = append(messages, message)
 	}
 	return messages
 }
 
-func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate, groupModule models.GroupModule) ([]uuid.UUID, []*ent.User) {
-	var sendToIds []uuid.UUID
+func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate, groupModule models.GroupModule) ([]models.SentTo, []*ent.User) {
+	var sendTos []models.SentTo
 	sentTo := lo.Map(record.SendTo, func(entity string, index int) ent.EmailTemplateSendTo {
 		if ent.EmailTemplateApplicationEventEnum.IsValid(ent.EmailTemplateApplicationEventEnum(record.Event.String())) &&
 			!ent.EmailTemplateApplicationSendToEnum.IsValid(ent.EmailTemplateApplicationSendToEnum(entity)) {
@@ -95,36 +97,54 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 		}
 		return ent.EmailTemplateSendTo(entity)
 	})
-	roleMemberIds := lo.Flatten(lo.Map(record.Edges.RoleEdges, func(entity *ent.Role, index int) []uuid.UUID {
-		return lo.Map(entity.Edges.UserEdges, func(entity *ent.User, index int) uuid.UUID {
-			return entity.ID
+	roleMemberSentTos := lo.Flatten(lo.Map(record.Edges.RoleEdges, func(entity *ent.Role, index int) []models.SentTo {
+		return lo.Map(entity.Edges.UserEdges, func(entity *ent.User, index int) models.SentTo {
+			return models.SentTo{
+				ID:            entity.ID,
+				RecipientType: outgoingemail.RecipientTypeRole,
+			}
 		})
 	}))
-	sendToIds = append(sendToIds, roleMemberIds...)
+	sendTos = append(sendTos, roleMemberSentTos...)
 	for _, value := range sentTo {
 		switch value {
 		case "":
 			continue
 		case ent.EmailTemplateSendToInterviewer:
-			interviewerIds := lo.Map(groupModule.Interview.Edges.InterviewerEdges, func(entity *ent.User, index int) uuid.UUID {
-				return entity.ID
+			interviewerSentTos := lo.Map(groupModule.Interview.Edges.InterviewerEdges, func(entity *ent.User, index int) models.SentTo {
+				return models.SentTo{
+					ID:            entity.ID,
+					RecipientType: outgoingemail.RecipientTypeInterviewer,
+				}
 			})
-			sendToIds = append(sendToIds, interviewerIds...)
+			sendTos = append(sendTos, interviewerSentTos...)
 		case ent.EmailTemplateSendToJobRequest:
 			requestId := groupModule.HiringJob.CreatedBy
-			sendToIds = append(sendToIds, requestId)
+			sendTos = append(sendTos, models.SentTo{
+				ID:            requestId,
+				RecipientType: outgoingemail.RecipientTypeJobRequest,
+			})
 		case ent.EmailTemplateSendToHiringTeamManager:
-			managerIds := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) uuid.UUID {
-				return entity.ID
+			managerSentTos := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) models.SentTo {
+				return models.SentTo{
+					ID:            entity.ID,
+					RecipientType: outgoingemail.RecipientTypeHiringTeamManager,
+				}
 			})
-			sendToIds = append(sendToIds, managerIds...)
+			sendTos = append(sendTos, managerSentTos...)
 		case ent.EmailTemplateSendToHiringTeamMember:
-			memberIds := lo.Map(groupModule.HiringTeam.Edges.HiringMemberEdges, func(entity *ent.User, index int) uuid.UUID {
-				return entity.ID
+			memberSentTos := lo.Map(groupModule.HiringTeam.Edges.HiringMemberEdges, func(entity *ent.User, index int) models.SentTo {
+				return models.SentTo{
+					ID:            entity.ID,
+					RecipientType: outgoingemail.RecipientTypeHiringTeamMember,
+				}
 			})
-			sendToIds = append(sendToIds, memberIds...)
+			sendTos = append(sendTos, memberSentTos...)
 		case ent.EmailTemplateSendToCandidate:
-			sendToIds = append(sendToIds, groupModule.Candidate.ID)
+			sendTos = append(sendTos, models.SentTo{
+				ID:            groupModule.Candidate.ID,
+				RecipientType: outgoingemail.RecipientTypeCandidate,
+			})
 			users = append(users, &ent.User{
 				ID:        groupModule.Candidate.ID,
 				Name:      groupModule.Candidate.Name,
@@ -133,7 +153,7 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 			})
 		}
 	}
-	return lo.Uniq(sendToIds), users
+	return lo.Uniq(sendTos), users
 }
 
 func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[string]string {

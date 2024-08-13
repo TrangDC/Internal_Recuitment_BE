@@ -11,7 +11,7 @@ import (
 )
 
 type OutgoingEmailRepository interface {
-	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput) ([]*ent.OutgoingEmail, error)
+	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error)
 	CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error)
 }
 
@@ -78,7 +78,7 @@ func (rps *outgoingEmailRepoImpl) BuildSaveUpdateOne(ctx context.Context, update
 	return update.Save(ctx)
 }
 
-func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput) ([]*ent.OutgoingEmail, error) {
+func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error) {
 	results := []*ent.OutgoingEmail{}
 	createBulk := []*ent.OutgoingEmailCreate{}
 	for _, v := range input {
@@ -89,7 +89,9 @@ func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, i
 			SetSubject(v.Subject).
 			SetContent(v.Content).
 			SetSignature(v.Signature).
-			SetEmailTemplateID(v.ID)
+			SetEmailTemplateID(v.ID).
+			SetCandidateID(candidateId).
+			SetRecipientType(v.RecipientType)
 		createBulk = append(createBulk, create)
 	}
 	for _, v := range createBulk {

@@ -36,6 +36,10 @@ type OutgoingEmail struct {
 	Content string `json:"content,omitempty"`
 	// Signature holds the value of the "signature" field.
 	Signature string `json:"signature,omitempty"`
+	// CandidateID holds the value of the "candidate_id" field.
+	CandidateID uuid.UUID `json:"candidate_id,omitempty"`
+	// RecipientType holds the value of the "recipient_type" field.
+	RecipientType outgoingemail.RecipientType `json:"recipient_type,omitempty"`
 	// EmailTemplateID holds the value of the "email_template_id" field.
 	EmailTemplateID uuid.UUID `json:"email_template_id,omitempty"`
 	// Status holds the value of the "status" field.
@@ -49,11 +53,11 @@ func (*OutgoingEmail) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case outgoingemail.FieldTo, outgoingemail.FieldCc, outgoingemail.FieldBcc:
 			values[i] = new([]byte)
-		case outgoingemail.FieldSubject, outgoingemail.FieldContent, outgoingemail.FieldSignature, outgoingemail.FieldStatus:
+		case outgoingemail.FieldSubject, outgoingemail.FieldContent, outgoingemail.FieldSignature, outgoingemail.FieldRecipientType, outgoingemail.FieldStatus:
 			values[i] = new(sql.NullString)
 		case outgoingemail.FieldCreatedAt, outgoingemail.FieldUpdatedAt, outgoingemail.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case outgoingemail.FieldID, outgoingemail.FieldEmailTemplateID:
+		case outgoingemail.FieldID, outgoingemail.FieldCandidateID, outgoingemail.FieldEmailTemplateID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type OutgoingEmail", columns[i])
@@ -136,6 +140,18 @@ func (oe *OutgoingEmail) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				oe.Signature = value.String
 			}
+		case outgoingemail.FieldCandidateID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field candidate_id", values[i])
+			} else if value != nil {
+				oe.CandidateID = *value
+			}
+		case outgoingemail.FieldRecipientType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field recipient_type", values[i])
+			} else if value.Valid {
+				oe.RecipientType = outgoingemail.RecipientType(value.String)
+			}
 		case outgoingemail.FieldEmailTemplateID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field email_template_id", values[i])
@@ -202,6 +218,12 @@ func (oe *OutgoingEmail) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("signature=")
 	builder.WriteString(oe.Signature)
+	builder.WriteString(", ")
+	builder.WriteString("candidate_id=")
+	builder.WriteString(fmt.Sprintf("%v", oe.CandidateID))
+	builder.WriteString(", ")
+	builder.WriteString("recipient_type=")
+	builder.WriteString(fmt.Sprintf("%v", oe.RecipientType))
 	builder.WriteString(", ")
 	builder.WriteString("email_template_id=")
 	builder.WriteString(fmt.Sprintf("%v", oe.EmailTemplateID))

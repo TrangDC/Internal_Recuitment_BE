@@ -901,7 +901,7 @@ func (svc candidateJobSvcImpl) triggerEventSendEmail(ctx context.Context, oldRec
 	for _, entity := range emailTemplates {
 		messages = append(messages, svc.emailSvc.GenerateEmail(ctx, users, entity, groupModule)...)
 	}
-	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages)
+	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages, newRecord.CandidateID)
 	if err != nil {
 		return err
 	}

@@ -25479,6 +25479,8 @@ type OutgoingEmailMutation struct {
 	subject           *string
 	content           *string
 	signature         *string
+	candidate_id      *uuid.UUID
+	recipient_type    *outgoingemail.RecipientType
 	email_template_id *uuid.UUID
 	status            *outgoingemail.Status
 	clearedFields     map[string]struct{}
@@ -25986,6 +25988,78 @@ func (m *OutgoingEmailMutation) ResetSignature() {
 	m.signature = nil
 }
 
+// SetCandidateID sets the "candidate_id" field.
+func (m *OutgoingEmailMutation) SetCandidateID(u uuid.UUID) {
+	m.candidate_id = &u
+}
+
+// CandidateID returns the value of the "candidate_id" field in the mutation.
+func (m *OutgoingEmailMutation) CandidateID() (r uuid.UUID, exists bool) {
+	v := m.candidate_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCandidateID returns the old "candidate_id" field's value of the OutgoingEmail entity.
+// If the OutgoingEmail object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OutgoingEmailMutation) OldCandidateID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCandidateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCandidateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCandidateID: %w", err)
+	}
+	return oldValue.CandidateID, nil
+}
+
+// ResetCandidateID resets all changes to the "candidate_id" field.
+func (m *OutgoingEmailMutation) ResetCandidateID() {
+	m.candidate_id = nil
+}
+
+// SetRecipientType sets the "recipient_type" field.
+func (m *OutgoingEmailMutation) SetRecipientType(ot outgoingemail.RecipientType) {
+	m.recipient_type = &ot
+}
+
+// RecipientType returns the value of the "recipient_type" field in the mutation.
+func (m *OutgoingEmailMutation) RecipientType() (r outgoingemail.RecipientType, exists bool) {
+	v := m.recipient_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecipientType returns the old "recipient_type" field's value of the OutgoingEmail entity.
+// If the OutgoingEmail object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OutgoingEmailMutation) OldRecipientType(ctx context.Context) (v outgoingemail.RecipientType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecipientType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecipientType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecipientType: %w", err)
+	}
+	return oldValue.RecipientType, nil
+}
+
+// ResetRecipientType resets all changes to the "recipient_type" field.
+func (m *OutgoingEmailMutation) ResetRecipientType() {
+	m.recipient_type = nil
+}
+
 // SetEmailTemplateID sets the "email_template_id" field.
 func (m *OutgoingEmailMutation) SetEmailTemplateID(u uuid.UUID) {
 	m.email_template_id = &u
@@ -26090,7 +26164,7 @@ func (m *OutgoingEmailMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OutgoingEmailMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, outgoingemail.FieldCreatedAt)
 	}
@@ -26117,6 +26191,12 @@ func (m *OutgoingEmailMutation) Fields() []string {
 	}
 	if m.signature != nil {
 		fields = append(fields, outgoingemail.FieldSignature)
+	}
+	if m.candidate_id != nil {
+		fields = append(fields, outgoingemail.FieldCandidateID)
+	}
+	if m.recipient_type != nil {
+		fields = append(fields, outgoingemail.FieldRecipientType)
 	}
 	if m.email_template_id != nil {
 		fields = append(fields, outgoingemail.FieldEmailTemplateID)
@@ -26150,6 +26230,10 @@ func (m *OutgoingEmailMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case outgoingemail.FieldSignature:
 		return m.Signature()
+	case outgoingemail.FieldCandidateID:
+		return m.CandidateID()
+	case outgoingemail.FieldRecipientType:
+		return m.RecipientType()
 	case outgoingemail.FieldEmailTemplateID:
 		return m.EmailTemplateID()
 	case outgoingemail.FieldStatus:
@@ -26181,6 +26265,10 @@ func (m *OutgoingEmailMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldContent(ctx)
 	case outgoingemail.FieldSignature:
 		return m.OldSignature(ctx)
+	case outgoingemail.FieldCandidateID:
+		return m.OldCandidateID(ctx)
+	case outgoingemail.FieldRecipientType:
+		return m.OldRecipientType(ctx)
 	case outgoingemail.FieldEmailTemplateID:
 		return m.OldEmailTemplateID(ctx)
 	case outgoingemail.FieldStatus:
@@ -26256,6 +26344,20 @@ func (m *OutgoingEmailMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSignature(v)
+		return nil
+	case outgoingemail.FieldCandidateID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCandidateID(v)
+		return nil
+	case outgoingemail.FieldRecipientType:
+		v, ok := value.(outgoingemail.RecipientType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecipientType(v)
 		return nil
 	case outgoingemail.FieldEmailTemplateID:
 		v, ok := value.(uuid.UUID)
@@ -26367,6 +26469,12 @@ func (m *OutgoingEmailMutation) ResetField(name string) error {
 		return nil
 	case outgoingemail.FieldSignature:
 		m.ResetSignature()
+		return nil
+	case outgoingemail.FieldCandidateID:
+		m.ResetCandidateID()
+		return nil
+	case outgoingemail.FieldRecipientType:
+		m.ResetRecipientType()
 		return nil
 	case outgoingemail.FieldEmailTemplateID:
 		m.ResetEmailTemplateID()

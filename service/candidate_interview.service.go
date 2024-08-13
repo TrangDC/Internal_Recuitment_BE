@@ -182,6 +182,15 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 		results, err = repoRegistry.CandidateInterview().CreateBulkCandidateInterview(ctx, candidateJobs, memberIds, input)
 		return err
 	})
+	for _, candidateInterview := range results {
+		candidateJobEdge, _ := lo.Find(candidateJobs, func(candidateJob *ent.CandidateJob) bool {
+			return candidateJob.ID == candidateInterview.CandidateJobID
+		})
+		err = svc.triggerEventSendEmail(ctx, candidateInterview, candidateJobEdge, emailtemplate.EventUpdatingInterview)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+		}
+	}
 	candidateInterviewIds := lo.Map(results, func(candidateInterview *ent.CandidateInterview, index int) uuid.UUID {
 		return candidateInterview.ID
 	})
@@ -635,7 +644,7 @@ func (svc candidateInterviewSvcImpl) triggerEventSendEmail(ctx context.Context, 
 	for _, entity := range emailTemplates {
 		messages = append(messages, svc.emailSvc.GenerateEmail(ctx, users, entity, groupModule)...)
 	}
-	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages)
+	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages, candidateJob.CandidateID)
 	if err != nil {
 		return err
 	}

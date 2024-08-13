@@ -123,6 +123,13 @@ func Signature(v string) predicate.OutgoingEmail {
 	})
 }
 
+// CandidateID applies equality check predicate on the "candidate_id" field. It's identical to CandidateIDEQ.
+func CandidateID(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCandidateID), v))
+	})
+}
+
 // EmailTemplateID applies equality check predicate on the "email_template_id" field. It's identical to EmailTemplateIDEQ.
 func EmailTemplateID(v uuid.UUID) predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
@@ -644,6 +651,106 @@ func SignatureEqualFold(v string) predicate.OutgoingEmail {
 func SignatureContainsFold(v string) predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldSignature), v))
+	})
+}
+
+// CandidateIDEQ applies the EQ predicate on the "candidate_id" field.
+func CandidateIDEQ(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCandidateID), v))
+	})
+}
+
+// CandidateIDNEQ applies the NEQ predicate on the "candidate_id" field.
+func CandidateIDNEQ(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCandidateID), v))
+	})
+}
+
+// CandidateIDIn applies the In predicate on the "candidate_id" field.
+func CandidateIDIn(vs ...uuid.UUID) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCandidateID), v...))
+	})
+}
+
+// CandidateIDNotIn applies the NotIn predicate on the "candidate_id" field.
+func CandidateIDNotIn(vs ...uuid.UUID) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCandidateID), v...))
+	})
+}
+
+// CandidateIDGT applies the GT predicate on the "candidate_id" field.
+func CandidateIDGT(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCandidateID), v))
+	})
+}
+
+// CandidateIDGTE applies the GTE predicate on the "candidate_id" field.
+func CandidateIDGTE(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCandidateID), v))
+	})
+}
+
+// CandidateIDLT applies the LT predicate on the "candidate_id" field.
+func CandidateIDLT(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCandidateID), v))
+	})
+}
+
+// CandidateIDLTE applies the LTE predicate on the "candidate_id" field.
+func CandidateIDLTE(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCandidateID), v))
+	})
+}
+
+// RecipientTypeEQ applies the EQ predicate on the "recipient_type" field.
+func RecipientTypeEQ(v RecipientType) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecipientType), v))
+	})
+}
+
+// RecipientTypeNEQ applies the NEQ predicate on the "recipient_type" field.
+func RecipientTypeNEQ(v RecipientType) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRecipientType), v))
+	})
+}
+
+// RecipientTypeIn applies the In predicate on the "recipient_type" field.
+func RecipientTypeIn(vs ...RecipientType) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldRecipientType), v...))
+	})
+}
+
+// RecipientTypeNotIn applies the NotIn predicate on the "recipient_type" field.
+func RecipientTypeNotIn(vs ...RecipientType) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldRecipientType), v...))
 	})
 }
 

@@ -32,6 +32,10 @@ const (
 	FieldContent = "content"
 	// FieldSignature holds the string denoting the signature field in the database.
 	FieldSignature = "signature"
+	// FieldCandidateID holds the string denoting the candidate_id field in the database.
+	FieldCandidateID = "candidate_id"
+	// FieldRecipientType holds the string denoting the recipient_type field in the database.
+	FieldRecipientType = "recipient_type"
 	// FieldEmailTemplateID holds the string denoting the email_template_id field in the database.
 	FieldEmailTemplateID = "email_template_id"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -52,6 +56,8 @@ var Columns = []string{
 	FieldSubject,
 	FieldContent,
 	FieldSignature,
+	FieldCandidateID,
+	FieldRecipientType,
 	FieldEmailTemplateID,
 	FieldStatus,
 }
@@ -74,6 +80,33 @@ var (
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
 )
+
+// RecipientType defines the type for the "recipient_type" enum field.
+type RecipientType string
+
+// RecipientType values.
+const (
+	RecipientTypeInterviewer       RecipientType = "interviewer"
+	RecipientTypeJobRequest        RecipientType = "job_request"
+	RecipientTypeHiringTeamManager RecipientType = "hiring_team_manager"
+	RecipientTypeHiringTeamMember  RecipientType = "hiring_team_member"
+	RecipientTypeRole              RecipientType = "role"
+	RecipientTypeCandidate         RecipientType = "candidate"
+)
+
+func (rt RecipientType) String() string {
+	return string(rt)
+}
+
+// RecipientTypeValidator is a validator for the "recipient_type" field enum values. It is called by the builders before save.
+func RecipientTypeValidator(rt RecipientType) error {
+	switch rt {
+	case RecipientTypeInterviewer, RecipientTypeJobRequest, RecipientTypeHiringTeamManager, RecipientTypeHiringTeamMember, RecipientTypeRole, RecipientTypeCandidate:
+		return nil
+	default:
+		return fmt.Errorf("outgoingemail: invalid enum value for recipient_type field: %q", rt)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -100,6 +133,24 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("outgoingemail: invalid enum value for status field: %q", s)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e RecipientType) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *RecipientType) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = RecipientType(str)
+	if err := RecipientTypeValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid RecipientType", str)
+	}
+	return nil
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

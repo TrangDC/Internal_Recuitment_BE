@@ -788,6 +788,8 @@ var (
 		{Name: "subject", Type: field.TypeString, Size: 2147483647},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "signature", Type: field.TypeString, Size: 2147483647},
+		{Name: "candidate_id", Type: field.TypeUUID},
+		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"}},
 		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
 	}

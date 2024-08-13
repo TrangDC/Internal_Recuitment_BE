@@ -124,6 +124,18 @@ func (oeu *OutgoingEmailUpdate) SetSignature(s string) *OutgoingEmailUpdate {
 	return oeu
 }
 
+// SetCandidateID sets the "candidate_id" field.
+func (oeu *OutgoingEmailUpdate) SetCandidateID(u uuid.UUID) *OutgoingEmailUpdate {
+	oeu.mutation.SetCandidateID(u)
+	return oeu
+}
+
+// SetRecipientType sets the "recipient_type" field.
+func (oeu *OutgoingEmailUpdate) SetRecipientType(ot outgoingemail.RecipientType) *OutgoingEmailUpdate {
+	oeu.mutation.SetRecipientType(ot)
+	return oeu
+}
+
 // SetEmailTemplateID sets the "email_template_id" field.
 func (oeu *OutgoingEmailUpdate) SetEmailTemplateID(u uuid.UUID) *OutgoingEmailUpdate {
 	oeu.mutation.SetEmailTemplateID(u)
@@ -235,6 +247,11 @@ func (oeu *OutgoingEmailUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.content": %w`, err)}
 		}
 	}
+	if v, ok := oeu.mutation.RecipientType(); ok {
+		if err := outgoingemail.RecipientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "recipient_type", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.recipient_type": %w`, err)}
+		}
+	}
 	if v, ok := oeu.mutation.Status(); ok {
 		if err := outgoingemail.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
@@ -305,6 +322,12 @@ func (oeu *OutgoingEmailUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if value, ok := oeu.mutation.Signature(); ok {
 		_spec.SetField(outgoingemail.FieldSignature, field.TypeString, value)
+	}
+	if value, ok := oeu.mutation.CandidateID(); ok {
+		_spec.SetField(outgoingemail.FieldCandidateID, field.TypeUUID, value)
+	}
+	if value, ok := oeu.mutation.RecipientType(); ok {
+		_spec.SetField(outgoingemail.FieldRecipientType, field.TypeEnum, value)
 	}
 	if value, ok := oeu.mutation.EmailTemplateID(); ok {
 		_spec.SetField(outgoingemail.FieldEmailTemplateID, field.TypeUUID, value)
@@ -425,6 +448,18 @@ func (oeuo *OutgoingEmailUpdateOne) SetContent(s string) *OutgoingEmailUpdateOne
 // SetSignature sets the "signature" field.
 func (oeuo *OutgoingEmailUpdateOne) SetSignature(s string) *OutgoingEmailUpdateOne {
 	oeuo.mutation.SetSignature(s)
+	return oeuo
+}
+
+// SetCandidateID sets the "candidate_id" field.
+func (oeuo *OutgoingEmailUpdateOne) SetCandidateID(u uuid.UUID) *OutgoingEmailUpdateOne {
+	oeuo.mutation.SetCandidateID(u)
+	return oeuo
+}
+
+// SetRecipientType sets the "recipient_type" field.
+func (oeuo *OutgoingEmailUpdateOne) SetRecipientType(ot outgoingemail.RecipientType) *OutgoingEmailUpdateOne {
+	oeuo.mutation.SetRecipientType(ot)
 	return oeuo
 }
 
@@ -552,6 +587,11 @@ func (oeuo *OutgoingEmailUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.content": %w`, err)}
 		}
 	}
+	if v, ok := oeuo.mutation.RecipientType(); ok {
+		if err := outgoingemail.RecipientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "recipient_type", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.recipient_type": %w`, err)}
+		}
+	}
 	if v, ok := oeuo.mutation.Status(); ok {
 		if err := outgoingemail.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
@@ -639,6 +679,12 @@ func (oeuo *OutgoingEmailUpdateOne) sqlSave(ctx context.Context) (_node *Outgoin
 	}
 	if value, ok := oeuo.mutation.Signature(); ok {
 		_spec.SetField(outgoingemail.FieldSignature, field.TypeString, value)
+	}
+	if value, ok := oeuo.mutation.CandidateID(); ok {
+		_spec.SetField(outgoingemail.FieldCandidateID, field.TypeUUID, value)
+	}
+	if value, ok := oeuo.mutation.RecipientType(); ok {
+		_spec.SetField(outgoingemail.FieldRecipientType, field.TypeEnum, value)
 	}
 	if value, ok := oeuo.mutation.EmailTemplateID(); ok {
 		_spec.SetField(outgoingemail.FieldEmailTemplateID, field.TypeUUID, value)
