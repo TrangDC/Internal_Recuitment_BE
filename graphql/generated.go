@@ -832,60 +832,61 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ExportSampleCandidate              func(childComplexity int, lang ent.I18nLanguage) int
-		GetAllAuditTrails                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
-		GetAllCandidateHistoryCalls        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateHistoryCallFilter, freeWord *ent.CandidateHistoryCallFreeWord, orderBy *ent.CandidateHistoryCallOrder) int
-		GetAllCandidateInterview4Calendar  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
-		GetAllCandidateInterviews          func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
-		GetAllCandidateJobFeedbacks        func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
-		GetAllCandidateJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
-		GetAllCandidateNotes               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) int
-		GetAllCandidates                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		GetAllEmailTemplateKeywords        func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
-		GetAllEmailTemplates               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
-		GetAllHiringJobs                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
-		GetAllHiringTeams                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
-		GetAllJobPositions                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
-		GetAllPermissionGroups             func(childComplexity int) int
-		GetAllRecTeams                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) int
-		GetAllRoles                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
-		GetAllSkillTypes                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
-		GetAllSkills                       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		GetAllUsers                        func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
-		GetAuditTrail                      func(childComplexity int, id string) int
-		GetCandidate                       func(childComplexity int, id string) int
-		GetCandidateActivities             func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) int
-		GetCandidateHistoryCall            func(childComplexity int, id string) int
-		GetCandidateInterview              func(childComplexity int, id string) int
-		GetCandidateJob                    func(childComplexity int, id string) int
-		GetCandidateJobFeedback            func(childComplexity int, id string) int
-		GetCandidateJobGroupByInterview    func(childComplexity int, id string) int
-		GetCandidateJobGroupByStatus       func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
-		GetEmailTemplate                   func(childComplexity int, id string) int
-		GetHiringJob                       func(childComplexity int, id string) int
-		GetHiringTeam                      func(childComplexity int, id string) int
-		GetJobPosition                     func(childComplexity int, id string) int
-		GetMe                              func(childComplexity int) int
-		GetRecTeam                         func(childComplexity int, id string) int
-		GetRole                            func(childComplexity int, id string) int
-		GetSkill                           func(childComplexity int, id string) int
-		GetSkillType                       func(childComplexity int, id string) int
-		GetUser                            func(childComplexity int, id string) int
-		ReportApplication                  func(childComplexity int, filter ent.ReportFilter) int
-		ReportApplicationReportTable       func(childComplexity int, filter ent.ReportFilter) int
-		ReportCandidateColumnChart         func(childComplexity int, filter ent.ReportFilter) int
-		ReportCandidateConversionRateChart func(childComplexity int) int
-		ReportCandidateConversionRateTable func(childComplexity int, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) int
-		ReportCandidateLcc                 func(childComplexity int) int
-		SelectionCandidates                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
-		SelectionHiringJobs                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
-		SelectionHiringTeams               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
-		SelectionJobPositions              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
-		SelectionRecTeams                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) int
-		SelectionRole                      func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
-		SelectionSkillTypes                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
-		SelectionSkills                    func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
-		SelectionUsers                     func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		ExportSampleCandidate                         func(childComplexity int, lang ent.I18nLanguage) int
+		GetAllAuditTrails                             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) int
+		GetAllCandidateHistoryCalls                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateHistoryCallFilter, freeWord *ent.CandidateHistoryCallFreeWord, orderBy *ent.CandidateHistoryCallOrder) int
+		GetAllCandidateInterview4Calendar             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateInterviewCalendarFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateInterviews                     func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateInterviewFilter, freeWord *ent.CandidateInterviewFreeWord, orderBy *ent.CandidateInterviewOrder) int
+		GetAllCandidateJobFeedbacks                   func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) int
+		GetAllCandidateJobs                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) int
+		GetAllCandidateNotes                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) int
+		GetAllCandidates                              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		GetAllEmailTemplateKeywords                   func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
+		GetAllEmailTemplates                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
+		GetAllHiringJobs                              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		GetAllHiringTeams                             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
+		GetAllJobPositions                            func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
+		GetAllPermissionGroups                        func(childComplexity int) int
+		GetAllRecTeams                                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) int
+		GetAllRoles                                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
+		GetAllSkillTypes                              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
+		GetAllSkills                                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
+		GetAllUsers                                   func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		GetAuditTrail                                 func(childComplexity int, id string) int
+		GetCandidate                                  func(childComplexity int, id string) int
+		GetCandidateActivities                        func(childComplexity int, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) int
+		GetCandidateHistoryCall                       func(childComplexity int, id string) int
+		GetCandidateInterview                         func(childComplexity int, id string) int
+		GetCandidateJob                               func(childComplexity int, id string) int
+		GetCandidateJobFeedback                       func(childComplexity int, id string) int
+		GetCandidateJobGroupByInterview               func(childComplexity int, id string) int
+		GetCandidateJobGroupByStatus                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
+		GetEmailTemplate                              func(childComplexity int, id string) int
+		GetHiringJob                                  func(childComplexity int, id string) int
+		GetHiringTeam                                 func(childComplexity int, id string) int
+		GetJobPosition                                func(childComplexity int, id string) int
+		GetMe                                         func(childComplexity int) int
+		GetRecTeam                                    func(childComplexity int, id string) int
+		GetRole                                       func(childComplexity int, id string) int
+		GetSkill                                      func(childComplexity int, id string) int
+		GetSkillType                                  func(childComplexity int, id string) int
+		GetUser                                       func(childComplexity int, id string) int
+		ReportApplication                             func(childComplexity int, filter ent.ReportFilter) int
+		ReportApplicationReportTable                  func(childComplexity int, filter ent.ReportFilter) int
+		ReportCandidateColumnChart                    func(childComplexity int, filter ent.ReportFilter) int
+		ReportCandidateConversionRateChart            func(childComplexity int) int
+		ReportCandidateConversionRateTable            func(childComplexity int, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) int
+		ReportCandidateLcc                            func(childComplexity int) int
+		SelectionCandidates                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		SelectionHiringJobs                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		SelectionHiringTeams                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
+		SelectionJobPositions                         func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
+		SelectionRecTeams                             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RecTeamFilter, freeWord *ent.RecTeamFreeWord, orderBy *ent.RecTeamOrderBy) int
+		SelectionRole                                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) int
+		SelectionSkillTypes                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) int
+		SelectionSkills                               func(childComplexity int, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) int
+		SelectionUsers                                func(childComplexity int, pagination *ent.PaginationInput, filter *ent.UserFilter, freeWord *ent.UserFreeWord, orderBy *ent.UserOrder) int
+		ValidProcessingCandidateJobExistByCandidateID func(childComplexity int, candidateID string) int
 	}
 
 	RecTeam struct {
@@ -1431,6 +1432,7 @@ type QueryResolver interface {
 	GetAllCandidateJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateJobFilter, freeWord *ent.CandidateJobFreeWord, orderBy *ent.CandidateJobOrder) (*ent.CandidateJobResponseGetAll, error)
 	GetCandidateJobGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (*ent.CandidateJobGroupByStatusResponse, error)
 	GetCandidateJobGroupByInterview(ctx context.Context, id string) (*ent.CandidateJobGroupByInterviewResponse, error)
+	ValidProcessingCandidateJobExistByCandidateID(ctx context.Context, candidateID string) (bool, error)
 	GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error)
 	GetAllCandidateJobFeedbacks(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateJobFeedbackFilter, freeWord *ent.CandidateJobFeedbackFreeWord, orderBy *ent.CandidateJobFeedbackOrder) (*ent.CandidateJobFeedbackResponseGetAll, error)
 	GetCandidateInterview(ctx context.Context, id string) (*ent.CandidateInterviewResponse, error)
@@ -5686,6 +5688,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SelectionUsers(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.UserFilter), args["freeWord"].(*ent.UserFreeWord), args["orderBy"].(*ent.UserOrder)), true
 
+	case "Query.ValidProcessingCandidateJobExistByCandidateID":
+		if e.complexity.Query.ValidProcessingCandidateJobExistByCandidateID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ValidProcessingCandidateJobExistByCandidateID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ValidProcessingCandidateJobExistByCandidateID(childComplexity, args["candidateID"].(string)), true
+
 	case "RecTeam.created_at":
 		if e.complexity.RecTeam.CreatedAt == nil {
 			break
@@ -8603,7 +8617,8 @@ enum PermissionGroupType {
   GetCandidateJob(id: ID!): CandidateJobResponse!
   GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
   GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
-  GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
+  GetCandidateJobGroupByInterview(id: ID!): CandidateJobGroupByInterviewResponse!
+  ValidProcessingCandidateJobExistByCandidateID(candidateID: ID!): Boolean!
 
   # CandidateJobFeedback
   GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
@@ -12220,6 +12235,21 @@ func (ec *executionContext) field_Query_SelectionUsers_args(ctx context.Context,
 		}
 	}
 	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ValidProcessingCandidateJobExistByCandidateID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["candidateID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidateID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["candidateID"] = arg0
 	return args, nil
 }
 
@@ -36965,6 +36995,61 @@ func (ec *executionContext) fieldContext_Query_GetCandidateJobGroupByInterview(c
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_ValidProcessingCandidateJobExistByCandidateID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ValidProcessingCandidateJobExistByCandidateID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ValidProcessingCandidateJobExistByCandidateID(rctx, fc.Args["candidateID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ValidProcessingCandidateJobExistByCandidateID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ValidProcessingCandidateJobExistByCandidateID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_GetCandidateJobFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_GetCandidateJobFeedback(ctx, field)
 	if err != nil {
@@ -60507,6 +60592,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetCandidateJobGroupByInterview(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "ValidProcessingCandidateJobExistByCandidateID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ValidProcessingCandidateJobExistByCandidateID(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

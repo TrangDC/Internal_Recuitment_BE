@@ -45,6 +45,7 @@ type CandidateJobService interface {
 		filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) (
 		*ent.CandidateJobGroupByStatusResponse, error)
 	GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error)
+	ValidProcessingCdJobExistByCdID(ctx context.Context, candidateID uuid.UUID) (bool, error)
 }
 
 type candidateJobSvcImpl struct {
@@ -654,6 +655,21 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 		Data: edges,
 	}
 	return result, nil
+}
+
+func (svc *candidateJobSvcImpl) ValidProcessingCdJobExistByCdID(ctx context.Context, candidateID uuid.UUID) (bool, error) {
+	processingCdJobExist, err := svc.repoRegistry.CandidateJob().BuildExist(
+		ctx,
+		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(
+			candidatejob.CandidateID(candidateID),
+			candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing, candidatejob.StatusOffering),
+		),
+	)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return false, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return processingCdJobExist, nil
 }
 
 // common function
