@@ -92,7 +92,7 @@ const (
 	ModuleEmailTemplates        Module = "email_templates"
 	ModuleRecTeams              Module = "rec_teams"
 	ModuleCandidateHistoryCalls Module = "candidate_history_calls"
-	ModuleCandidateNotes Module = "candidate_notes"
+	ModuleCandidateNotes        Module = "candidate_notes"
 )
 
 func (m Module) String() string {

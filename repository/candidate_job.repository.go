@@ -38,6 +38,7 @@ type CandidateJobRepository interface {
 	BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	BuildIDList(ctx context.Context, query *ent.CandidateJobQuery) ([]uuid.UUID, error)
+	BuildExist(ctx context.Context, query *ent.CandidateJobQuery) (bool, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
 	ValidUpsetByCandidateIsBlacklist(ctx context.Context, candidateId uuid.UUID) (error, error)
@@ -266,16 +267,20 @@ func (rps candidateJobRepoImpl) ValidUpsetByCandidateIsBlacklist(ctx context.Con
 
 func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.CandidateJobValidInput) ([]string, error, error) {
 	var failedReason []string
-	openStatus := lo.Map(ent.AllCandidateJobStatusOpen, func(s ent.CandidateJobStatusOpen, index int) candidatejob.Status {
-		return candidatejob.Status(s)
-	})
-	openStatus = append(openStatus, candidatejob.StatusHired)
-	candidateRecord, err := rps.client.Candidate.Query().Where(candidate.IDEQ(input.CandidateId)).First(ctx)
+	candidateRecord, err := rps.client.Candidate.Query().
+		Where(candidate.IDEQ(input.CandidateId)).
+		WithCandidateJobEdges(func(query *ent.CandidateJobQuery) { query.Where(candidatejob.DeletedAtIsNil()) }).
+		First(ctx)
 	if err != nil {
 		return failedReason, nil, err
 	}
 	if candidateRecord.IsBlacklist {
 		return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist"), nil
+	}
+	if lo.SomeBy(candidateRecord.Edges.CandidateJobEdges, func(item *ent.CandidateJob) bool {
+		return item.Status == candidatejob.StatusHired
+	}) {
+		return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_hired"), nil
 	}
 	switch input.Status {
 	case ent.CandidateJobStatusApplied, ent.CandidateJobStatusInterviewing, ent.CandidateJobStatusOffering:
@@ -299,15 +304,6 @@ func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.Can
 			if onboardDate.Lte(offerExpDate) {
 				return failedReason, fmt.Errorf("model.candidate_job.validation.onboard_before_offer_exp"), nil
 			}
-		}
-		query := rps.BuildQuery().Where(candidatejob.CandidateIDEQ(input.CandidateId))
-		if input.CandidateJobId != uuid.Nil {
-			query.Where(candidatejob.IDNEQ(input.CandidateJobId))
-		}
-		query = query.Where(candidatejob.StatusIn(openStatus...))
-		isExist, _ := rps.BuildExist(ctx, query)
-		if isExist {
-			return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_job_status_exist"), nil
 		}
 	case ent.CandidateJobStatusOfferLost, ent.CandidateJobStatusKiv:
 		if len(input.FailedReason) == 0 {

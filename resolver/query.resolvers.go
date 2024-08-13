@@ -107,6 +107,11 @@ func (r *queryResolver) GetCandidateJobGroupByInterview(ctx context.Context, id 
 	return r.serviceRegistry.CandidateJob().GetCandidateJobGroupByInterview(ctx, uuid.MustParse(id))
 }
 
+// ValidProcessingCandidateJobExistByCandidateID is the resolver for the ValidProcessingCandidateJobExistByCandidateID field.
+func (r *queryResolver) ValidProcessingCandidateJobExistByCandidateID(ctx context.Context, candidateID string) (bool, error) {
+	return r.serviceRegistry.CandidateJob().ValidProcessingCdJobExistByCdID(ctx, uuid.MustParse(candidateID))
+}
+
 // GetCandidateJobFeedback is the resolver for the GetCandidateJobFeedback field.
 func (r *queryResolver) GetCandidateJobFeedback(ctx context.Context, id string) (*ent.CandidateJobFeedbackResponse, error) {
 	return r.serviceRegistry.CandidateJobFeedback().GetCandidateJobFeedback(ctx, uuid.MustParse(id))

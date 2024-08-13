@@ -32,7 +32,8 @@ type Query {
   GetCandidateJob(id: ID!): CandidateJobResponse!
   GetAllCandidateJobs(pagination: PaginationInput, filter: CandidateJobFilter, freeWord: CandidateJobFreeWord, orderBy: CandidateJobOrder): CandidateJobResponseGetAll!
   GetCandidateJobGroupByStatus(pagination: PaginationInput, filter: CandidateJobGroupByStatusFilter, freeWord: CandidateJobGroupByStatusFreeWord, orderBy: CandidateJobByOrder): CandidateJobGroupByStatusResponse!
-  GetCandidateJobGroupByInterview(id : ID!): CandidateJobGroupByInterviewResponse!
+  GetCandidateJobGroupByInterview(id: ID!): CandidateJobGroupByInterviewResponse!
+  ValidProcessingCandidateJobExistByCandidateID(candidateID: ID!): Boolean!
 
   # CandidateJobFeedback
   GetCandidateJobFeedback(id: ID!): CandidateJobFeedbackResponse!
