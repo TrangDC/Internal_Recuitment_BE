@@ -22,12 +22,12 @@ type CandidateInterviewFilter struct {
 }
 
 type CandidateInterviewInputValidate struct {
-	Title          string     `json:"title"`
-	CandidateJobId uuid.UUID  `json:"candidate_job_id"`
-	StartFrom      *time.Time `json:"start_from"`
-	EndAt          *time.Time `json:"end_at"`
-	InterviewDate  *time.Time `json:"interview_date"`
-	Interviewer    []string   `json:"interviewer"`
+	Title          string    `json:"title"`
+	CandidateJobId uuid.UUID `json:"candidate_job_id"`
+	StartFrom      time.Time `json:"start_from"`
+	EndAt          time.Time `json:"end_at"`
+	InterviewDate  time.Time `json:"interview_date"`
+	Interviewer    []string  `json:"interviewer"`
 }
 
 type CandidateInterviewAuditTrail struct {

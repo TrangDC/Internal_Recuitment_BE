@@ -252,6 +252,9 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
 	}
+	if record.Status != candidateinterview.StatusInvitedToInterview && record.Status != candidateinterview.StatusInterviewing {
+		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.invalid_interview_status", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
+	}
 	memberIds := lo.Map(input.Interviewer, func(member string, index int) uuid.UUID {
 		return uuid.MustParse(member)
 	})

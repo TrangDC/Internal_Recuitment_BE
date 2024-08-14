@@ -468,19 +468,20 @@ func (svc *userSvcImpl) filter(userQuery *ent.UserQuery, input *ent.UserFilter) 
 			userQuery.Where(user.IDNotIn(ids...))
 		}
 		if input.IsAbleToInterviewer != nil {
+			userPermissionPredicate := user.HasUserPermissionEdgesWith(
+				entitypermission.HasPermissionEdgesWith(
+					permission.OperationNameEQ(models.BeInterviewer),
+				),
+			)
+			userManagerPredicate := user.HasHiringTeamEdgesWith(hiringteam.DeletedAtIsNil())
+			userLeaderPredidate := user.HasLeaderRecEdgeWith(recteam.DeletedAtIsNil())
+			interviewerPredicate := user.Not(userPermissionPredicate)
 			if *input.IsAbleToInterviewer {
-				userQuery.Where(user.HasUserPermissionEdgesWith(
-					entitypermission.HasPermissionEdgesWith(
-						permission.OperationNameEQ(models.BeInterviewer),
-					),
-				))
-			} else {
-				userQuery.Where(user.Not(user.HasUserPermissionEdgesWith(
-					entitypermission.HasPermissionEdgesWith(
-						permission.OperationNameEQ(models.BeInterviewer),
-					),
-				)))
+				interviewerPredicate = user.Or(
+					userPermissionPredicate, userManagerPredicate, userLeaderPredidate,
+				)
 			}
+			userQuery.Where(interviewerPredicate)
 		}
 		if input.RoleID != nil {
 			roles := lo.Map(input.RoleID, func(item string, index int) uuid.UUID {
