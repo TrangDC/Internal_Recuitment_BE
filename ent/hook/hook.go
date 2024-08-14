@@ -255,6 +255,19 @@ func (f HiringJobFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return f(ctx, mv)
 }
 
+// The HiringJobStepFunc type is an adapter to allow the use of ordinary
+// function as HiringJobStep mutator.
+type HiringJobStepFunc func(context.Context, *ent.HiringJobStepMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f HiringJobStepFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.HiringJobStepMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HiringJobStepMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The HiringTeamFunc type is an adapter to allow the use of ordinary
 // function as HiringTeam mutator.
 type HiringTeamFunc func(context.Context, *ent.HiringTeamMutation) (ent.Value, error)

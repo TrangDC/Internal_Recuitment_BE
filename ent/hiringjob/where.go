@@ -1465,6 +1465,34 @@ func HasJobPositionEdgeWith(preds ...predicate.JobPosition) predicate.HiringJob 
 	})
 }
 
+// HasHiringJobStep applies the HasEdge predicate on the "hiring_job_step" edge.
+func HasHiringJobStep() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobStepTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepTable, HiringJobStepColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHiringJobStepWith applies the HasEdge predicate on the "hiring_job_step" edge with a given conditions (other predicates).
+func HasHiringJobStepWith(preds ...predicate.HiringJobStep) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobStepInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepTable, HiringJobStepColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.HiringJob) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {

@@ -60,6 +60,8 @@ const (
 	EdgeHiringTeamEdge = "hiring_team_edge"
 	// EdgeJobPositionEdge holds the string denoting the job_position_edge edge name in mutations.
 	EdgeJobPositionEdge = "job_position_edge"
+	// EdgeHiringJobStep holds the string denoting the hiring_job_step edge name in mutations.
+	EdgeHiringJobStep = "hiring_job_step"
 	// Table holds the table name of the hiringjob in the database.
 	Table = "hiring_jobs"
 	// OwnerEdgeTable is the table that holds the owner_edge relation/edge.
@@ -97,6 +99,13 @@ const (
 	JobPositionEdgeInverseTable = "job_positions"
 	// JobPositionEdgeColumn is the table column denoting the job_position_edge relation/edge.
 	JobPositionEdgeColumn = "job_position_id"
+	// HiringJobStepTable is the table that holds the hiring_job_step relation/edge.
+	HiringJobStepTable = "hiring_job_steps"
+	// HiringJobStepInverseTable is the table name for the HiringJobStep entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjobstep" package.
+	HiringJobStepInverseTable = "hiring_job_steps"
+	// HiringJobStepColumn is the table column denoting the hiring_job_step relation/edge.
+	HiringJobStepColumn = "hiring_job_id"
 )
 
 // Columns holds all SQL columns for hiringjob fields.

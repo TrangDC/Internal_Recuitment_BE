@@ -119,6 +119,7 @@ type HiringJob {
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
+  steps: [HiringJobStep!]
 }
 
 type HiringJobResponse {

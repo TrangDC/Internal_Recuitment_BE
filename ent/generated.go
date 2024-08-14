@@ -2766,6 +2766,49 @@ func (e HiringJobStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type HiringJobStepTypeEnum string
+
+const (
+	HiringJobStepTypeEnumCreated HiringJobStepTypeEnum = "created"
+	HiringJobStepTypeEnumOpened  HiringJobStepTypeEnum = "opened"
+	HiringJobStepTypeEnumClosed  HiringJobStepTypeEnum = "closed"
+)
+
+var AllHiringJobStepTypeEnum = []HiringJobStepTypeEnum{
+	HiringJobStepTypeEnumCreated,
+	HiringJobStepTypeEnumOpened,
+	HiringJobStepTypeEnumClosed,
+}
+
+func (e HiringJobStepTypeEnum) IsValid() bool {
+	switch e {
+	case HiringJobStepTypeEnumCreated, HiringJobStepTypeEnumOpened, HiringJobStepTypeEnumClosed:
+		return true
+	}
+	return false
+}
+
+func (e HiringJobStepTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *HiringJobStepTypeEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringJobStepTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringJobStepTypeEnum", str)
+	}
+	return nil
+}
+
+func (e HiringJobStepTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type HiringTeamOrderByAdditionalField string
 
 const (

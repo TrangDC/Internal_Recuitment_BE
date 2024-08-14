@@ -73,14 +73,17 @@ type HiringJobEdges struct {
 	HiringTeamEdge *HiringTeam `json:"hiring_team_edge,omitempty"`
 	// JobPositionEdge holds the value of the job_position_edge edge.
 	JobPositionEdge *JobPosition `json:"job_position_edge,omitempty"`
+	// HiringJobStep holds the value of the hiring_job_step edge.
+	HiringJobStep []*HiringJobStep `json:"hiring_job_step,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 	// totalCount holds the count of the edges above.
-	totalCount [5]map[string]int
+	totalCount [6]map[string]int
 
 	namedCandidateJobEdges   map[string][]*CandidateJob
 	namedHiringJobSkillEdges map[string][]*EntitySkill
+	namedHiringJobStep       map[string][]*HiringJobStep
 }
 
 // OwnerEdgeOrErr returns the OwnerEdge value or an error if the edge
@@ -138,6 +141,15 @@ func (e HiringJobEdges) JobPositionEdgeOrErr() (*JobPosition, error) {
 		return e.JobPositionEdge, nil
 	}
 	return nil, &NotLoadedError{edge: "job_position_edge"}
+}
+
+// HiringJobStepOrErr returns the HiringJobStep value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringJobEdges) HiringJobStepOrErr() ([]*HiringJobStep, error) {
+	if e.loadedTypes[5] {
+		return e.HiringJobStep, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_job_step"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -312,6 +324,11 @@ func (hj *HiringJob) QueryJobPositionEdge() *JobPositionQuery {
 	return (&HiringJobClient{config: hj.config}).QueryJobPositionEdge(hj)
 }
 
+// QueryHiringJobStep queries the "hiring_job_step" edge of the HiringJob entity.
+func (hj *HiringJob) QueryHiringJobStep() *HiringJobStepQuery {
+	return (&HiringJobClient{config: hj.config}).QueryHiringJobStep(hj)
+}
+
 // Update returns a builder for updating this HiringJob.
 // Note that you need to call HiringJob.Unwrap() before calling this method if this HiringJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -437,6 +454,30 @@ func (hj *HiringJob) appendNamedHiringJobSkillEdges(name string, edges ...*Entit
 		hj.Edges.namedHiringJobSkillEdges[name] = []*EntitySkill{}
 	} else {
 		hj.Edges.namedHiringJobSkillEdges[name] = append(hj.Edges.namedHiringJobSkillEdges[name], edges...)
+	}
+}
+
+// NamedHiringJobStep returns the HiringJobStep named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (hj *HiringJob) NamedHiringJobStep(name string) ([]*HiringJobStep, error) {
+	if hj.Edges.namedHiringJobStep == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := hj.Edges.namedHiringJobStep[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (hj *HiringJob) appendNamedHiringJobStep(name string, edges ...*HiringJobStep) {
+	if hj.Edges.namedHiringJobStep == nil {
+		hj.Edges.namedHiringJobStep = make(map[string][]*HiringJobStep)
+	}
+	if len(edges) == 0 {
+		hj.Edges.namedHiringJobStep[name] = []*HiringJobStep{}
+	} else {
+		hj.Edges.namedHiringJobStep[name] = append(hj.Edges.namedHiringJobStep[name], edges...)
 	}
 }
 

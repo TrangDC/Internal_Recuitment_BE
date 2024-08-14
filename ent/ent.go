@@ -25,6 +25,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -81,6 +82,7 @@ func columnChecker(table string) func(string) error {
 		entitypermission.Table:     entitypermission.ValidColumn,
 		entityskill.Table:          entityskill.ValidColumn,
 		hiringjob.Table:            hiringjob.ValidColumn,
+		hiringjobstep.Table:        hiringjobstep.ValidColumn,
 		hiringteam.Table:           hiringteam.ValidColumn,
 		hiringteamapprover.Table:   hiringteamapprover.ValidColumn,
 		hiringteammanager.Table:    hiringteammanager.ValidColumn,

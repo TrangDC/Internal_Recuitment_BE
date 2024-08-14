@@ -29,6 +29,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -6162,6 +6163,294 @@ func (hj *HiringJob) ToEdge(order *HiringJobOrder) *HiringJobEdge {
 	return &HiringJobEdge{
 		Node:   hj,
 		Cursor: order.Field.toCursor(hj),
+	}
+}
+
+// HiringJobStepEdge is the edge representation of HiringJobStep.
+type HiringJobStepEdge struct {
+	Node   *HiringJobStep `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// HiringJobStepConnection is the connection containing edges to HiringJobStep.
+type HiringJobStepConnection struct {
+	Edges      []*HiringJobStepEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *HiringJobStepConnection) build(nodes []*HiringJobStep, pager *hiringjobstepPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *HiringJobStep
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *HiringJobStep {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *HiringJobStep {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*HiringJobStepEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &HiringJobStepEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// HiringJobStepPaginateOption enables pagination customization.
+type HiringJobStepPaginateOption func(*hiringjobstepPager) error
+
+// WithHiringJobStepOrder configures pagination ordering.
+func WithHiringJobStepOrder(order *HiringJobStepOrder) HiringJobStepPaginateOption {
+	if order == nil {
+		order = DefaultHiringJobStepOrder
+	}
+	o := *order
+	return func(pager *hiringjobstepPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultHiringJobStepOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithHiringJobStepFilter configures pagination filter.
+func WithHiringJobStepFilter(filter func(*HiringJobStepQuery) (*HiringJobStepQuery, error)) HiringJobStepPaginateOption {
+	return func(pager *hiringjobstepPager) error {
+		if filter == nil {
+			return errors.New("HiringJobStepQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type hiringjobstepPager struct {
+	order  *HiringJobStepOrder
+	filter func(*HiringJobStepQuery) (*HiringJobStepQuery, error)
+}
+
+func newHiringJobStepPager(opts []HiringJobStepPaginateOption) (*hiringjobstepPager, error) {
+	pager := &hiringjobstepPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultHiringJobStepOrder
+	}
+	return pager, nil
+}
+
+func (p *hiringjobstepPager) applyFilter(query *HiringJobStepQuery) (*HiringJobStepQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *hiringjobstepPager) toCursor(hjs *HiringJobStep) Cursor {
+	return p.order.Field.toCursor(hjs)
+}
+
+func (p *hiringjobstepPager) applyCursors(query *HiringJobStepQuery, after, before *Cursor) *HiringJobStepQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultHiringJobStepOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *hiringjobstepPager) applyOrder(query *HiringJobStepQuery, reverse bool) *HiringJobStepQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultHiringJobStepOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultHiringJobStepOrder.Field.field))
+	}
+	return query
+}
+
+func (p *hiringjobstepPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultHiringJobStepOrder.Field {
+			b.Comma().Ident(DefaultHiringJobStepOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to HiringJobStep.
+func (hjs *HiringJobStepQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...HiringJobStepPaginateOption,
+) (*HiringJobStepConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newHiringJobStepPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if hjs, err = pager.applyFilter(hjs); err != nil {
+		return nil, err
+	}
+	conn := &HiringJobStepConnection{Edges: []*HiringJobStepEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = hjs.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	hjs = pager.applyCursors(hjs, after, before)
+	hjs = pager.applyOrder(hjs, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		hjs.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := hjs.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := hjs.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// HiringJobStepOrderFieldCreatedAt orders HiringJobStep by created_at.
+	HiringJobStepOrderFieldCreatedAt = &HiringJobStepOrderField{
+		field: hiringjobstep.FieldCreatedAt,
+		toCursor: func(hjs *HiringJobStep) Cursor {
+			return Cursor{
+				ID:    hjs.ID,
+				Value: hjs.CreatedAt,
+			}
+		},
+	}
+	// HiringJobStepOrderFieldUpdatedAt orders HiringJobStep by updated_at.
+	HiringJobStepOrderFieldUpdatedAt = &HiringJobStepOrderField{
+		field: hiringjobstep.FieldUpdatedAt,
+		toCursor: func(hjs *HiringJobStep) Cursor {
+			return Cursor{
+				ID:    hjs.ID,
+				Value: hjs.UpdatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f HiringJobStepOrderField) String() string {
+	var str string
+	switch f.field {
+	case hiringjobstep.FieldCreatedAt:
+		str = "created_at"
+	case hiringjobstep.FieldUpdatedAt:
+		str = "updated_at"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f HiringJobStepOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *HiringJobStepOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("HiringJobStepOrderField %T must be a string", v)
+	}
+	switch str {
+	case "created_at":
+		*f = *HiringJobStepOrderFieldCreatedAt
+	case "updated_at":
+		*f = *HiringJobStepOrderFieldUpdatedAt
+	default:
+		return fmt.Errorf("%s is not a valid HiringJobStepOrderField", str)
+	}
+	return nil
+}
+
+// HiringJobStepOrderField defines the ordering field of HiringJobStep.
+type HiringJobStepOrderField struct {
+	field    string
+	toCursor func(*HiringJobStep) Cursor
+}
+
+// HiringJobStepOrder defines the ordering of HiringJobStep.
+type HiringJobStepOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *HiringJobStepOrderField `json:"field"`
+}
+
+// DefaultHiringJobStepOrder is the default ordering of HiringJobStep.
+var DefaultHiringJobStepOrder = &HiringJobStepOrder{
+	Direction: OrderDirectionAsc,
+	Field: &HiringJobStepOrderField{
+		field: hiringjobstep.FieldID,
+		toCursor: func(hjs *HiringJobStep) Cursor {
+			return Cursor{ID: hjs.ID}
+		},
+	},
+}
+
+// ToEdge converts HiringJobStep into HiringJobStepEdge.
+func (hjs *HiringJobStep) ToEdge(order *HiringJobStepOrder) *HiringJobStepEdge {
+	if order == nil {
+		order = DefaultHiringJobStepOrder
+	}
+	return &HiringJobStepEdge{
+		Node:   hjs,
+		Cursor: order.Field.toCursor(hjs),
 	}
 }
 

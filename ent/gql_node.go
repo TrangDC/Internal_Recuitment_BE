@@ -25,6 +25,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -2213,7 +2214,7 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 		ID:     hj.ID,
 		Type:   "HiringJob",
 		Fields: make([]*Field, 18),
-		Edges:  make([]*Edge, 5),
+		Edges:  make([]*Edge, 6),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(hj.CreatedAt); err != nil {
@@ -2407,6 +2408,69 @@ func (hj *HiringJob) Node(ctx context.Context) (node *Node, err error) {
 	err = hj.QueryJobPositionEdge().
 		Select(jobposition.FieldID).
 		Scan(ctx, &node.Edges[4].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		Type: "HiringJobStep",
+		Name: "hiring_job_step",
+	}
+	err = hj.QueryHiringJobStep().
+		Select(hiringjobstep.FieldID).
+		Scan(ctx, &node.Edges[5].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (hjs *HiringJobStep) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     hjs.ID,
+		Type:   "HiringJobStep",
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(hjs.HiringJobID); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "hiring_job_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hjs.Type); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "hiringjobstep.Type",
+		Name:  "type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hjs.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(hjs.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "HiringJob",
+		Name: "hiring_job_edge",
+	}
+	err = hjs.QueryHiringJobEdge().
+		Select(hiringjob.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -4034,6 +4098,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case hiringjobstep.Table:
+		query := c.HiringJobStep.Query().
+			Where(hiringjobstep.ID(id))
+		query, err := query.CollectFields(ctx, "HiringJobStep")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case hiringteam.Table:
 		query := c.HiringTeam.Query().
 			Where(hiringteam.ID(id))
@@ -4555,6 +4631,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.HiringJob.Query().
 			Where(hiringjob.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "HiringJob")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case hiringjobstep.Table:
+		query := c.HiringJobStep.Query().
+			Where(hiringjobstep.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "HiringJobStep")
 		if err != nil {
 			return nil, err
 		}

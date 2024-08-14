@@ -29,6 +29,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -92,6 +93,8 @@ type Client struct {
 	EntitySkill *EntitySkillClient
 	// HiringJob is the client for interacting with the HiringJob builders.
 	HiringJob *HiringJobClient
+	// HiringJobStep is the client for interacting with the HiringJobStep builders.
+	HiringJobStep *HiringJobStepClient
 	// HiringTeam is the client for interacting with the HiringTeam builders.
 	HiringTeam *HiringTeamClient
 	// HiringTeamApprover is the client for interacting with the HiringTeamApprover builders.
@@ -150,6 +153,7 @@ func (c *Client) init() {
 	c.EntityPermission = NewEntityPermissionClient(c.config)
 	c.EntitySkill = NewEntitySkillClient(c.config)
 	c.HiringJob = NewHiringJobClient(c.config)
+	c.HiringJobStep = NewHiringJobStepClient(c.config)
 	c.HiringTeam = NewHiringTeamClient(c.config)
 	c.HiringTeamApprover = NewHiringTeamApproverClient(c.config)
 	c.HiringTeamManager = NewHiringTeamManagerClient(c.config)
@@ -215,6 +219,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		HiringJobStep:        NewHiringJobStepClient(cfg),
 		HiringTeam:           NewHiringTeamClient(cfg),
 		HiringTeamApprover:   NewHiringTeamApproverClient(cfg),
 		HiringTeamManager:    NewHiringTeamManagerClient(cfg),
@@ -266,6 +271,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EntityPermission:     NewEntityPermissionClient(cfg),
 		EntitySkill:          NewEntitySkillClient(cfg),
 		HiringJob:            NewHiringJobClient(cfg),
+		HiringJobStep:        NewHiringJobStepClient(cfg),
 		HiringTeam:           NewHiringTeamClient(cfg),
 		HiringTeamApprover:   NewHiringTeamApproverClient(cfg),
 		HiringTeamManager:    NewHiringTeamManagerClient(cfg),
@@ -326,6 +332,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.EntityPermission.Use(hooks...)
 	c.EntitySkill.Use(hooks...)
 	c.HiringJob.Use(hooks...)
+	c.HiringJobStep.Use(hooks...)
 	c.HiringTeam.Use(hooks...)
 	c.HiringTeamApprover.Use(hooks...)
 	c.HiringTeamManager.Use(hooks...)
@@ -3102,9 +3109,131 @@ func (c *HiringJobClient) QueryJobPositionEdge(hj *HiringJob) *JobPositionQuery 
 	return query
 }
 
+// QueryHiringJobStep queries the hiring_job_step edge of a HiringJob.
+func (c *HiringJobClient) QueryHiringJobStep(hj *HiringJob) *HiringJobStepQuery {
+	query := &HiringJobStepQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(hiringjobstep.Table, hiringjobstep.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobStepTable, hiringjob.HiringJobStepColumn),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *HiringJobClient) Hooks() []Hook {
 	return c.hooks.HiringJob
+}
+
+// HiringJobStepClient is a client for the HiringJobStep schema.
+type HiringJobStepClient struct {
+	config
+}
+
+// NewHiringJobStepClient returns a client for the HiringJobStep from the given config.
+func NewHiringJobStepClient(c config) *HiringJobStepClient {
+	return &HiringJobStepClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hiringjobstep.Hooks(f(g(h())))`.
+func (c *HiringJobStepClient) Use(hooks ...Hook) {
+	c.hooks.HiringJobStep = append(c.hooks.HiringJobStep, hooks...)
+}
+
+// Create returns a builder for creating a HiringJobStep entity.
+func (c *HiringJobStepClient) Create() *HiringJobStepCreate {
+	mutation := newHiringJobStepMutation(c.config, OpCreate)
+	return &HiringJobStepCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HiringJobStep entities.
+func (c *HiringJobStepClient) CreateBulk(builders ...*HiringJobStepCreate) *HiringJobStepCreateBulk {
+	return &HiringJobStepCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HiringJobStep.
+func (c *HiringJobStepClient) Update() *HiringJobStepUpdate {
+	mutation := newHiringJobStepMutation(c.config, OpUpdate)
+	return &HiringJobStepUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HiringJobStepClient) UpdateOne(hjs *HiringJobStep) *HiringJobStepUpdateOne {
+	mutation := newHiringJobStepMutation(c.config, OpUpdateOne, withHiringJobStep(hjs))
+	return &HiringJobStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HiringJobStepClient) UpdateOneID(id uuid.UUID) *HiringJobStepUpdateOne {
+	mutation := newHiringJobStepMutation(c.config, OpUpdateOne, withHiringJobStepID(id))
+	return &HiringJobStepUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HiringJobStep.
+func (c *HiringJobStepClient) Delete() *HiringJobStepDelete {
+	mutation := newHiringJobStepMutation(c.config, OpDelete)
+	return &HiringJobStepDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HiringJobStepClient) DeleteOne(hjs *HiringJobStep) *HiringJobStepDeleteOne {
+	return c.DeleteOneID(hjs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HiringJobStepClient) DeleteOneID(id uuid.UUID) *HiringJobStepDeleteOne {
+	builder := c.Delete().Where(hiringjobstep.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HiringJobStepDeleteOne{builder}
+}
+
+// Query returns a query builder for HiringJobStep.
+func (c *HiringJobStepClient) Query() *HiringJobStepQuery {
+	return &HiringJobStepQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a HiringJobStep entity by its id.
+func (c *HiringJobStepClient) Get(ctx context.Context, id uuid.UUID) (*HiringJobStep, error) {
+	return c.Query().Where(hiringjobstep.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HiringJobStepClient) GetX(ctx context.Context, id uuid.UUID) *HiringJobStep {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryHiringJobEdge queries the hiring_job_edge edge of a HiringJobStep.
+func (c *HiringJobStepClient) QueryHiringJobEdge(hjs *HiringJobStep) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hjs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, id),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.HiringJobEdgeTable, hiringjobstep.HiringJobEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(hjs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *HiringJobStepClient) Hooks() []Hook {
+	return c.hooks.HiringJobStep
 }
 
 // HiringTeamClient is a client for the HiringTeam schema.

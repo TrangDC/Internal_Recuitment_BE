@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/predicate"
@@ -35,10 +36,12 @@ type HiringJobQuery struct {
 	withHiringJobSkillEdges      *EntitySkillQuery
 	withHiringTeamEdge           *HiringTeamQuery
 	withJobPositionEdge          *JobPositionQuery
+	withHiringJobStep            *HiringJobStepQuery
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*HiringJob) error
 	withNamedCandidateJobEdges   map[string]*CandidateJobQuery
 	withNamedHiringJobSkillEdges map[string]*EntitySkillQuery
+	withNamedHiringJobStep       map[string]*HiringJobStepQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -178,6 +181,28 @@ func (hjq *HiringJobQuery) QueryJobPositionEdge() *JobPositionQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(jobposition.Table, jobposition.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.JobPositionEdgeTable, hiringjob.JobPositionEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHiringJobStep chains the current query on the "hiring_job_step" edge.
+func (hjq *HiringJobQuery) QueryHiringJobStep() *HiringJobStepQuery {
+	query := &HiringJobStepQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(hiringjobstep.Table, hiringjobstep.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobStepTable, hiringjob.HiringJobStepColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -371,6 +396,7 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		withHiringJobSkillEdges: hjq.withHiringJobSkillEdges.Clone(),
 		withHiringTeamEdge:      hjq.withHiringTeamEdge.Clone(),
 		withJobPositionEdge:     hjq.withJobPositionEdge.Clone(),
+		withHiringJobStep:       hjq.withHiringJobStep.Clone(),
 		// clone intermediate query.
 		sql:    hjq.sql.Clone(),
 		path:   hjq.path,
@@ -430,6 +456,17 @@ func (hjq *HiringJobQuery) WithJobPositionEdge(opts ...func(*JobPositionQuery)) 
 		opt(query)
 	}
 	hjq.withJobPositionEdge = query
+	return hjq
+}
+
+// WithHiringJobStep tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_job_step" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithHiringJobStep(opts ...func(*HiringJobStepQuery)) *HiringJobQuery {
+	query := &HiringJobStepQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withHiringJobStep = query
 	return hjq
 }
 
@@ -506,12 +543,13 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			hjq.withOwnerEdge != nil,
 			hjq.withCandidateJobEdges != nil,
 			hjq.withHiringJobSkillEdges != nil,
 			hjq.withHiringTeamEdge != nil,
 			hjq.withJobPositionEdge != nil,
+			hjq.withHiringJobStep != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -569,6 +607,13 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 			return nil, err
 		}
 	}
+	if query := hjq.withHiringJobStep; query != nil {
+		if err := hjq.loadHiringJobStep(ctx, query, nodes,
+			func(n *HiringJob) { n.Edges.HiringJobStep = []*HiringJobStep{} },
+			func(n *HiringJob, e *HiringJobStep) { n.Edges.HiringJobStep = append(n.Edges.HiringJobStep, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range hjq.withNamedCandidateJobEdges {
 		if err := hjq.loadCandidateJobEdges(ctx, query, nodes,
 			func(n *HiringJob) { n.appendNamedCandidateJobEdges(name) },
@@ -580,6 +625,13 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 		if err := hjq.loadHiringJobSkillEdges(ctx, query, nodes,
 			func(n *HiringJob) { n.appendNamedHiringJobSkillEdges(name) },
 			func(n *HiringJob, e *EntitySkill) { n.appendNamedHiringJobSkillEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range hjq.withNamedHiringJobStep {
+		if err := hjq.loadHiringJobStep(ctx, query, nodes,
+			func(n *HiringJob) { n.appendNamedHiringJobStep(name) },
+			func(n *HiringJob, e *HiringJobStep) { n.appendNamedHiringJobStep(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -723,6 +775,33 @@ func (hjq *HiringJobQuery) loadJobPositionEdge(ctx context.Context, query *JobPo
 	}
 	return nil
 }
+func (hjq *HiringJobQuery) loadHiringJobStep(ctx context.Context, query *HiringJobStepQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *HiringJobStep)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*HiringJob)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.InValues(hiringjob.HiringJobStepColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.HiringJobID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "hiring_job_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (hjq *HiringJobQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := hjq.querySpec()
@@ -852,6 +931,20 @@ func (hjq *HiringJobQuery) WithNamedHiringJobSkillEdges(name string, opts ...fun
 		hjq.withNamedHiringJobSkillEdges = make(map[string]*EntitySkillQuery)
 	}
 	hjq.withNamedHiringJobSkillEdges[name] = query
+	return hjq
+}
+
+// WithNamedHiringJobStep tells the query-builder to eager-load the nodes that are connected to the "hiring_job_step"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithNamedHiringJobStep(name string, opts ...func(*HiringJobStepQuery)) *HiringJobQuery {
+	query := &HiringJobStepQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if hjq.withNamedHiringJobStep == nil {
+		hjq.withNamedHiringJobStep = make(map[string]*HiringJobStepQuery)
+	}
+	hjq.withNamedHiringJobStep[name] = query
 	return hjq
 }
 

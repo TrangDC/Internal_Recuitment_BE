@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatejobstep"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/jobposition"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -94,6 +95,10 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 	).WithJobPositionEdge(
 		func(query *ent.JobPositionQuery) {
 			query.Where(jobposition.DeletedAtIsNil())
+		},
+	).WithHiringJobStep(
+		func(query *ent.HiringJobStepQuery) {
+			query.Order(ent.Asc(hiringjobstep.FieldCreatedAt))
 		},
 	)
 }
