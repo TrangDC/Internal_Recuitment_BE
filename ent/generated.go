@@ -87,6 +87,7 @@ type CandidateActivity struct {
 	CandidateNotes        []*CandidateNote        `json:"candidate_notes"`
 	CandidateHistoryCalls []*CandidateHistoryCall `json:"candidate_history_calls"`
 	CandidateInterviews   []*CandidateInterview   `json:"candidate_interviews"`
+	OutgoingEmails        []*OutgoingEmail        `json:"outgoing_emails"`
 	Total                 int                     `json:"total"`
 }
 
@@ -802,6 +803,25 @@ type NewUserInput struct {
 	HiringTeamID *string    `json:"hiring_team_id"`
 	RecTeamID    *string    `json:"rec_team_id"`
 	RoleID       []string   `json:"role_id"`
+}
+
+type OutgoingEmailFilter struct {
+	RecipientType []OutgoingEmailRecipientType `json:"recipient_type"`
+	CandidateID   *string                      `json:"candidate_id"`
+	Status        []OutgoingEmailStatus        `json:"status"`
+}
+
+type OutgoingEmailFreeWord struct {
+	Subject *string `json:"subject"`
+}
+
+type OutgoingEmailResponse struct {
+	Data *OutgoingEmail `json:"data"`
+}
+
+type OutgoingEmailResponseGetAll struct {
+	Edges      []*OutgoingEmailEdge `json:"edges"`
+	Pagination *Pagination          `json:"pagination"`
 }
 
 type Pagination struct {
@@ -2980,6 +3000,98 @@ func (e *LocationEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OutgoingEmailRecipientType string
+
+const (
+	OutgoingEmailRecipientTypeCandidate         OutgoingEmailRecipientType = "candidate"
+	OutgoingEmailRecipientTypeInterviewer       OutgoingEmailRecipientType = "interviewer"
+	OutgoingEmailRecipientTypeJobRequest        OutgoingEmailRecipientType = "job_request"
+	OutgoingEmailRecipientTypeHiringTeamManager OutgoingEmailRecipientType = "hiring_team_manager"
+	OutgoingEmailRecipientTypeHiringTeamMember  OutgoingEmailRecipientType = "hiring_team_member"
+	OutgoingEmailRecipientTypeRole              OutgoingEmailRecipientType = "role"
+)
+
+var AllOutgoingEmailRecipientType = []OutgoingEmailRecipientType{
+	OutgoingEmailRecipientTypeCandidate,
+	OutgoingEmailRecipientTypeInterviewer,
+	OutgoingEmailRecipientTypeJobRequest,
+	OutgoingEmailRecipientTypeHiringTeamManager,
+	OutgoingEmailRecipientTypeHiringTeamMember,
+	OutgoingEmailRecipientTypeRole,
+}
+
+func (e OutgoingEmailRecipientType) IsValid() bool {
+	switch e {
+	case OutgoingEmailRecipientTypeCandidate, OutgoingEmailRecipientTypeInterviewer, OutgoingEmailRecipientTypeJobRequest, OutgoingEmailRecipientTypeHiringTeamManager, OutgoingEmailRecipientTypeHiringTeamMember, OutgoingEmailRecipientTypeRole:
+		return true
+	}
+	return false
+}
+
+func (e OutgoingEmailRecipientType) String() string {
+	return string(e)
+}
+
+func (e *OutgoingEmailRecipientType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OutgoingEmailRecipientType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OutgoingEmailRecipientType", str)
+	}
+	return nil
+}
+
+func (e OutgoingEmailRecipientType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OutgoingEmailStatus string
+
+const (
+	OutgoingEmailStatusPending OutgoingEmailStatus = "pending"
+	OutgoingEmailStatusSent    OutgoingEmailStatus = "sent"
+	OutgoingEmailStatusFailed  OutgoingEmailStatus = "failed"
+)
+
+var AllOutgoingEmailStatus = []OutgoingEmailStatus{
+	OutgoingEmailStatusPending,
+	OutgoingEmailStatusSent,
+	OutgoingEmailStatusFailed,
+}
+
+func (e OutgoingEmailStatus) IsValid() bool {
+	switch e {
+	case OutgoingEmailStatusPending, OutgoingEmailStatusSent, OutgoingEmailStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e OutgoingEmailStatus) String() string {
+	return string(e)
+}
+
+func (e *OutgoingEmailStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OutgoingEmailStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OutgoingEmailStatus", str)
+	}
+	return nil
+}
+
+func (e OutgoingEmailStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

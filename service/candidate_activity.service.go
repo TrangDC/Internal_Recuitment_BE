@@ -9,6 +9,7 @@ import (
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
 	"trec/ent/candidatenote"
+	"trec/ent/outgoingemail"
 	"trec/internal/util"
 	"trec/models"
 	"trec/repository"
@@ -48,6 +49,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	var candidateNoteResults []*ent.CandidateNote
 	var candidateHistoryCallResults []*ent.CandidateHistoryCall
 	var candidateInterviewResults []*ent.CandidateInterview
+	var outgoingEmailResutls []*ent.OutgoingEmail
 	// get candidate activities
 	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId)))
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, candidateInterviewQuery)
@@ -67,7 +69,13 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	count := len(candidateInterviews) + len(candidateNotes) + len(candidateHistoryCalls)
+	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().Where(outgoingemail.CandidateID(candidateId))
+	outgoingEmails, err := svc.repoRegistry.OutgoingEmail().BuildList(ctx, outgoingEmailQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	count := len(candidateInterviews) + len(candidateNotes) + len(candidateHistoryCalls) + len(outgoingEmails)
 	// end
 	referenceModels = append(referenceModels, lo.Map(candidateInterviews, func(entity *ent.CandidateInterview, index int) models.CandidateActivityReference {
 		return models.CandidateActivityReference{
@@ -82,6 +90,12 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		}
 	})...)
 	referenceModels = append(referenceModels, lo.Map(candidateHistoryCalls, func(entity *ent.CandidateHistoryCall, index int) models.CandidateActivityReference {
+		return models.CandidateActivityReference{
+			Id:        entity.ID,
+			CreatedAt: entity.CreatedAt,
+		}
+	})...)
+	referenceModels = append(referenceModels, lo.Map(outgoingEmails, func(entity *ent.OutgoingEmail, index int) models.CandidateActivityReference {
 		return models.CandidateActivityReference{
 			Id:        entity.ID,
 			CreatedAt: entity.CreatedAt,
@@ -117,12 +131,16 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		candidateInterviewResults = append(candidateInterviewResults, lo.Filter(candidateInterviews, func(entity *ent.CandidateInterview, index int) bool {
 			return entity.ID == referenceModel.Id
 		})...)
+		outgoingEmailResutls = append(outgoingEmailResutls, lo.Filter(outgoingEmails, func(entity *ent.OutgoingEmail, index int) bool {
+			return entity.ID == referenceModel.Id
+		})...)
 	}
 	return &ent.CandidateActivityResponse{
 		Data: &ent.CandidateActivity{
 			CandidateNotes:        candidateNoteResults,
 			CandidateHistoryCalls: candidateHistoryCallResults,
 			CandidateInterviews:   candidateInterviewResults,
+			OutgoingEmails:        outgoingEmailResutls,
 			Total:                 count,
 		}}, nil
 }

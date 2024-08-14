@@ -286,6 +286,11 @@ func (r *queryResolver) GetCandidateActivities(ctx context.Context, pagination *
 	return r.serviceRegistry.CandidateActivity().GetAllCandidateActivities(ctx, pagination, filter, freeWord, orderBy)
 }
 
+// GetAllOutgoingEmails is the resolver for the GetAllOutgoingEmails field.
+func (r *queryResolver) GetAllOutgoingEmails(ctx context.Context, pagination *ent.PaginationInput, filter ent.OutgoingEmailFilter, freeWord *ent.OutgoingEmailFreeWord, orderBy *ent.OutgoingEmailOrder) (*ent.OutgoingEmailResponseGetAll, error) {
+	return r.serviceRegistry.OutgoingEmail().GetAllOutgoingEmails(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // Query returns graphql1.QueryResolver implementation.
 func (r *Resolver) Query() graphql1.QueryResolver { return &queryResolver{r} }
 

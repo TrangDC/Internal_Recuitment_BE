@@ -70,6 +70,8 @@ const (
 	EdgeCandidateHistoryCallEdges = "candidate_history_call_edges"
 	// EdgeCandidateNoteEdges holds the string denoting the candidate_note_edges edge name in mutations.
 	EdgeCandidateNoteEdges = "candidate_note_edges"
+	// EdgeOutgoingEmailEdges holds the string denoting the outgoing_email_edges edge name in mutations.
+	EdgeOutgoingEmailEdges = "outgoing_email_edges"
 	// Table holds the table name of the candidate in the database.
 	Table = "candidates"
 	// CandidateJobEdgesTable is the table that holds the candidate_job_edges relation/edge.
@@ -142,6 +144,13 @@ const (
 	CandidateNoteEdgesInverseTable = "candidate_notes"
 	// CandidateNoteEdgesColumn is the table column denoting the candidate_note_edges relation/edge.
 	CandidateNoteEdgesColumn = "candidate_id"
+	// OutgoingEmailEdgesTable is the table that holds the outgoing_email_edges relation/edge.
+	OutgoingEmailEdgesTable = "outgoing_emails"
+	// OutgoingEmailEdgesInverseTable is the table name for the OutgoingEmail entity.
+	// It exists in this package in order to avoid circular dependency with the "outgoingemail" package.
+	OutgoingEmailEdgesInverseTable = "outgoing_emails"
+	// OutgoingEmailEdgesColumn is the table column denoting the outgoing_email_edges relation/edge.
+	OutgoingEmailEdgesColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for candidate fields.

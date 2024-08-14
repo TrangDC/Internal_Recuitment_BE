@@ -40,8 +40,17 @@ const (
 	FieldEmailTemplateID = "email_template_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
+	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the outgoingemail in the database.
 	Table = "outgoing_emails"
+	// CandidateEdgeTable is the table that holds the candidate_edge relation/edge.
+	CandidateEdgeTable = "outgoing_emails"
+	// CandidateEdgeInverseTable is the table name for the Candidate entity.
+	// It exists in this package in order to avoid circular dependency with the "candidate" package.
+	CandidateEdgeInverseTable = "candidates"
+	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
+	CandidateEdgeColumn = "candidate_id"
 )
 
 // Columns holds all SQL columns for outgoingemail fields.

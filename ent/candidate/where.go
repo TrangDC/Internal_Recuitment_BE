@@ -1891,6 +1891,34 @@ func HasCandidateNoteEdgesWith(preds ...predicate.CandidateNote) predicate.Candi
 	})
 }
 
+// HasOutgoingEmailEdges applies the HasEdge predicate on the "outgoing_email_edges" edge.
+func HasOutgoingEmailEdges() predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OutgoingEmailEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OutgoingEmailEdgesTable, OutgoingEmailEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOutgoingEmailEdgesWith applies the HasEdge predicate on the "outgoing_email_edges" edge with a given conditions (other predicates).
+func HasOutgoingEmailEdgesWith(preds ...predicate.OutgoingEmail) predicate.Candidate {
+	return predicate.Candidate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OutgoingEmailEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OutgoingEmailEdgesTable, OutgoingEmailEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Candidate) predicate.Candidate {
 	return predicate.Candidate(func(s *sql.Selector) {

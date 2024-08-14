@@ -13,6 +13,9 @@ import (
 type OutgoingEmailRepository interface {
 	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error)
 	CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error)
+	BuildQuery() *ent.OutgoingEmailQuery
+	BuildList(ctx context.Context, query *ent.OutgoingEmailQuery) ([]*ent.OutgoingEmail, error)
+	BuildCount(ctx context.Context, query *ent.OutgoingEmailQuery) (int, error)
 }
 
 type outgoingEmailRepoImpl struct {

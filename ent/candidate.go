@@ -81,11 +81,13 @@ type CandidateEdges struct {
 	CandidateHistoryCallEdges []*CandidateHistoryCall `json:"candidate_history_call_edges,omitempty"`
 	// CandidateNoteEdges holds the value of the candidate_note_edges edge.
 	CandidateNoteEdges []*CandidateNote `json:"candidate_note_edges,omitempty"`
+	// OutgoingEmailEdges holds the value of the outgoing_email_edges edge.
+	OutgoingEmailEdges []*OutgoingEmail `json:"outgoing_email_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 	// totalCount holds the count of the edges above.
-	totalCount [10]map[string]int
+	totalCount [11]map[string]int
 
 	namedCandidateJobEdges         map[string][]*CandidateJob
 	namedAttachmentEdges           map[string][]*Attachment
@@ -96,6 +98,7 @@ type CandidateEdges struct {
 	namedCandidateCertificateEdges map[string][]*CandidateCertificate
 	namedCandidateHistoryCallEdges map[string][]*CandidateHistoryCall
 	namedCandidateNoteEdges        map[string][]*CandidateNote
+	namedOutgoingEmailEdges        map[string][]*OutgoingEmail
 }
 
 // CandidateJobEdgesOrErr returns the CandidateJobEdges value or an error if the edge
@@ -190,6 +193,15 @@ func (e CandidateEdges) CandidateNoteEdgesOrErr() ([]*CandidateNote, error) {
 		return e.CandidateNoteEdges, nil
 	}
 	return nil, &NotLoadedError{edge: "candidate_note_edges"}
+}
+
+// OutgoingEmailEdgesOrErr returns the OutgoingEmailEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e CandidateEdges) OutgoingEmailEdgesOrErr() ([]*OutgoingEmail, error) {
+	if e.loadedTypes[10] {
+		return e.OutgoingEmailEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "outgoing_email_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -387,6 +399,11 @@ func (c *Candidate) QueryCandidateHistoryCallEdges() *CandidateHistoryCallQuery 
 // QueryCandidateNoteEdges queries the "candidate_note_edges" edge of the Candidate entity.
 func (c *Candidate) QueryCandidateNoteEdges() *CandidateNoteQuery {
 	return (&CandidateClient{config: c.config}).QueryCandidateNoteEdges(c)
+}
+
+// QueryOutgoingEmailEdges queries the "outgoing_email_edges" edge of the Candidate entity.
+func (c *Candidate) QueryOutgoingEmailEdges() *OutgoingEmailQuery {
+	return (&CandidateClient{config: c.config}).QueryOutgoingEmailEdges(c)
 }
 
 // Update returns a builder for updating this Candidate.
@@ -682,6 +699,30 @@ func (c *Candidate) appendNamedCandidateNoteEdges(name string, edges ...*Candida
 		c.Edges.namedCandidateNoteEdges[name] = []*CandidateNote{}
 	} else {
 		c.Edges.namedCandidateNoteEdges[name] = append(c.Edges.namedCandidateNoteEdges[name], edges...)
+	}
+}
+
+// NamedOutgoingEmailEdges returns the OutgoingEmailEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Candidate) NamedOutgoingEmailEdges(name string) ([]*OutgoingEmail, error) {
+	if c.Edges.namedOutgoingEmailEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedOutgoingEmailEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Candidate) appendNamedOutgoingEmailEdges(name string, edges ...*OutgoingEmail) {
+	if c.Edges.namedOutgoingEmailEdges == nil {
+		c.Edges.namedOutgoingEmailEdges = make(map[string][]*OutgoingEmail)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedOutgoingEmailEdges[name] = []*OutgoingEmail{}
+	} else {
+		c.Edges.namedOutgoingEmailEdges[name] = append(c.Edges.namedOutgoingEmailEdges[name], edges...)
 	}
 }
 

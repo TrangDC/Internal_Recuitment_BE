@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -690,31 +691,17 @@ func CandidateIDNotIn(vs ...uuid.UUID) predicate.OutgoingEmail {
 	})
 }
 
-// CandidateIDGT applies the GT predicate on the "candidate_id" field.
-func CandidateIDGT(v uuid.UUID) predicate.OutgoingEmail {
+// CandidateIDIsNil applies the IsNil predicate on the "candidate_id" field.
+func CandidateIDIsNil() predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCandidateID), v))
+		s.Where(sql.IsNull(s.C(FieldCandidateID)))
 	})
 }
 
-// CandidateIDGTE applies the GTE predicate on the "candidate_id" field.
-func CandidateIDGTE(v uuid.UUID) predicate.OutgoingEmail {
+// CandidateIDNotNil applies the NotNil predicate on the "candidate_id" field.
+func CandidateIDNotNil() predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCandidateID), v))
-	})
-}
-
-// CandidateIDLT applies the LT predicate on the "candidate_id" field.
-func CandidateIDLT(v uuid.UUID) predicate.OutgoingEmail {
-	return predicate.OutgoingEmail(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCandidateID), v))
-	})
-}
-
-// CandidateIDLTE applies the LTE predicate on the "candidate_id" field.
-func CandidateIDLTE(v uuid.UUID) predicate.OutgoingEmail {
-	return predicate.OutgoingEmail(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCandidateID), v))
+		s.Where(sql.NotNull(s.C(FieldCandidateID)))
 	})
 }
 
@@ -865,6 +852,34 @@ func StatusNotIn(vs ...Status) predicate.OutgoingEmail {
 	}
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
+	})
+}
+
+// HasCandidateEdge applies the HasEdge predicate on the "candidate_edge" edge.
+func HasCandidateEdge() predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCandidateEdgeWith applies the HasEdge predicate on the "candidate_edge" edge with a given conditions (other predicates).
+func HasCandidateEdgeWith(preds ...predicate.Candidate) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CandidateEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

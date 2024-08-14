@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/candidate"
 	"trec/ent/outgoingemail"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -105,6 +106,14 @@ func (oec *OutgoingEmailCreate) SetCandidateID(u uuid.UUID) *OutgoingEmailCreate
 	return oec
 }
 
+// SetNillableCandidateID sets the "candidate_id" field if the given value is not nil.
+func (oec *OutgoingEmailCreate) SetNillableCandidateID(u *uuid.UUID) *OutgoingEmailCreate {
+	if u != nil {
+		oec.SetCandidateID(*u)
+	}
+	return oec
+}
+
 // SetRecipientType sets the "recipient_type" field.
 func (oec *OutgoingEmailCreate) SetRecipientType(ot outgoingemail.RecipientType) *OutgoingEmailCreate {
 	oec.mutation.SetRecipientType(ot)
@@ -143,6 +152,25 @@ func (oec *OutgoingEmailCreate) SetNillableStatus(o *outgoingemail.Status) *Outg
 func (oec *OutgoingEmailCreate) SetID(u uuid.UUID) *OutgoingEmailCreate {
 	oec.mutation.SetID(u)
 	return oec
+}
+
+// SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
+func (oec *OutgoingEmailCreate) SetCandidateEdgeID(id uuid.UUID) *OutgoingEmailCreate {
+	oec.mutation.SetCandidateEdgeID(id)
+	return oec
+}
+
+// SetNillableCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID if the given value is not nil.
+func (oec *OutgoingEmailCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *OutgoingEmailCreate {
+	if id != nil {
+		oec = oec.SetCandidateEdgeID(*id)
+	}
+	return oec
+}
+
+// SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
+func (oec *OutgoingEmailCreate) SetCandidateEdge(c *Candidate) *OutgoingEmailCreate {
+	return oec.SetCandidateEdgeID(c.ID)
 }
 
 // Mutation returns the OutgoingEmailMutation object of the builder.
@@ -265,9 +293,6 @@ func (oec *OutgoingEmailCreate) check() error {
 	if _, ok := oec.mutation.Signature(); !ok {
 		return &ValidationError{Name: "signature", err: errors.New(`ent: missing required field "OutgoingEmail.signature"`)}
 	}
-	if _, ok := oec.mutation.CandidateID(); !ok {
-		return &ValidationError{Name: "candidate_id", err: errors.New(`ent: missing required field "OutgoingEmail.candidate_id"`)}
-	}
 	if _, ok := oec.mutation.RecipientType(); !ok {
 		return &ValidationError{Name: "recipient_type", err: errors.New(`ent: missing required field "OutgoingEmail.recipient_type"`)}
 	}
@@ -356,10 +381,6 @@ func (oec *OutgoingEmailCreate) createSpec() (*OutgoingEmail, *sqlgraph.CreateSp
 		_spec.SetField(outgoingemail.FieldSignature, field.TypeString, value)
 		_node.Signature = value
 	}
-	if value, ok := oec.mutation.CandidateID(); ok {
-		_spec.SetField(outgoingemail.FieldCandidateID, field.TypeUUID, value)
-		_node.CandidateID = value
-	}
 	if value, ok := oec.mutation.RecipientType(); ok {
 		_spec.SetField(outgoingemail.FieldRecipientType, field.TypeEnum, value)
 		_node.RecipientType = value
@@ -371,6 +392,26 @@ func (oec *OutgoingEmailCreate) createSpec() (*OutgoingEmail, *sqlgraph.CreateSp
 	if value, ok := oec.mutation.Status(); ok {
 		_spec.SetField(outgoingemail.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if nodes := oec.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.CandidateEdgeTable,
+			Columns: []string{outgoingemail.CandidateEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CandidateID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

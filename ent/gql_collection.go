@@ -381,6 +381,18 @@ func (c *CandidateQuery) collectField(ctx context.Context, op *graphql.Operation
 			c.WithNamedCandidateNoteEdges(alias, func(wq *CandidateNoteQuery) {
 				*wq = *query
 			})
+		case "outgoingEmailEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &OutgoingEmailQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedOutgoingEmailEdges(alias, func(wq *OutgoingEmailQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -2537,6 +2549,20 @@ func (oe *OutgoingEmailQuery) CollectFields(ctx context.Context, satisfies ...st
 
 func (oe *OutgoingEmailQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "candidateEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateQuery{config: oe.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			oe.withCandidateEdge = query
+		}
+	}
 	return nil
 }
 

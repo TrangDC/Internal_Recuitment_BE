@@ -810,16 +810,24 @@ var (
 		{Name: "subject", Type: field.TypeString, Size: 2147483647},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "signature", Type: field.TypeString, Size: 2147483647},
-		{Name: "candidate_id", Type: field.TypeUUID},
 		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"}},
 		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
+		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OutgoingEmailsTable holds the schema information for the "outgoing_emails" table.
 	OutgoingEmailsTable = &schema.Table{
 		Name:       "outgoing_emails",
 		Columns:    OutgoingEmailsColumns,
 		PrimaryKey: []*schema.Column{OutgoingEmailsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "outgoing_emails_candidates_outgoing_email_edges",
+				Columns:    []*schema.Column{OutgoingEmailsColumns[13]},
+				RefColumns: []*schema.Column{CandidatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
@@ -1107,6 +1115,7 @@ func init() {
 	HiringTeamApproversTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
+	OutgoingEmailsTable.ForeignKeys[0].RefTable = CandidatesTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	RecTeamsTable.ForeignKeys[0].RefTable = UsersTable

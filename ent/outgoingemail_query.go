@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"trec/ent/candidate"
 	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 
@@ -18,14 +19,15 @@ import (
 // OutgoingEmailQuery is the builder for querying OutgoingEmail entities.
 type OutgoingEmailQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.OutgoingEmail
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*OutgoingEmail) error
+	limit             *int
+	offset            *int
+	unique            *bool
+	order             []OrderFunc
+	fields            []string
+	predicates        []predicate.OutgoingEmail
+	withCandidateEdge *CandidateQuery
+	modifiers         []func(*sql.Selector)
+	loadTotal         []func(context.Context, []*OutgoingEmail) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +62,28 @@ func (oeq *OutgoingEmailQuery) Unique(unique bool) *OutgoingEmailQuery {
 func (oeq *OutgoingEmailQuery) Order(o ...OrderFunc) *OutgoingEmailQuery {
 	oeq.order = append(oeq.order, o...)
 	return oeq
+}
+
+// QueryCandidateEdge chains the current query on the "candidate_edge" edge.
+func (oeq *OutgoingEmailQuery) QueryCandidateEdge() *CandidateQuery {
+	query := &CandidateQuery{config: oeq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, selector),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.CandidateEdgeTable, outgoingemail.CandidateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(oeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first OutgoingEmail entity from the query.
@@ -238,16 +262,28 @@ func (oeq *OutgoingEmailQuery) Clone() *OutgoingEmailQuery {
 		return nil
 	}
 	return &OutgoingEmailQuery{
-		config:     oeq.config,
-		limit:      oeq.limit,
-		offset:     oeq.offset,
-		order:      append([]OrderFunc{}, oeq.order...),
-		predicates: append([]predicate.OutgoingEmail{}, oeq.predicates...),
+		config:            oeq.config,
+		limit:             oeq.limit,
+		offset:            oeq.offset,
+		order:             append([]OrderFunc{}, oeq.order...),
+		predicates:        append([]predicate.OutgoingEmail{}, oeq.predicates...),
+		withCandidateEdge: oeq.withCandidateEdge.Clone(),
 		// clone intermediate query.
 		sql:    oeq.sql.Clone(),
 		path:   oeq.path,
 		unique: oeq.unique,
 	}
+}
+
+// WithCandidateEdge tells the query-builder to eager-load the nodes that are connected to
+// the "candidate_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (oeq *OutgoingEmailQuery) WithCandidateEdge(opts ...func(*CandidateQuery)) *OutgoingEmailQuery {
+	query := &CandidateQuery{config: oeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	oeq.withCandidateEdge = query
+	return oeq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +357,11 @@ func (oeq *OutgoingEmailQuery) prepareQuery(ctx context.Context) error {
 
 func (oeq *OutgoingEmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OutgoingEmail, error) {
 	var (
-		nodes = []*OutgoingEmail{}
-		_spec = oeq.querySpec()
+		nodes       = []*OutgoingEmail{}
+		_spec       = oeq.querySpec()
+		loadedTypes = [1]bool{
+			oeq.withCandidateEdge != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OutgoingEmail).scanValues(nil, columns)
@@ -330,6 +369,7 @@ func (oeq *OutgoingEmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &OutgoingEmail{config: oeq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(oeq.modifiers) > 0 {
@@ -344,12 +384,45 @@ func (oeq *OutgoingEmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := oeq.withCandidateEdge; query != nil {
+		if err := oeq.loadCandidateEdge(ctx, query, nodes, nil,
+			func(n *OutgoingEmail, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range oeq.loadTotal {
 		if err := oeq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (oeq *OutgoingEmailQuery) loadCandidateEdge(ctx context.Context, query *CandidateQuery, nodes []*OutgoingEmail, init func(*OutgoingEmail), assign func(*OutgoingEmail, *Candidate)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OutgoingEmail)
+	for i := range nodes {
+		fk := nodes[i].CandidateID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(candidate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (oeq *OutgoingEmailQuery) sqlCount(ctx context.Context) (int, error) {
