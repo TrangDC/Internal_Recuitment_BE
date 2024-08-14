@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"trec/ent"
 	"trec/models"
 	"trec/repository"
@@ -10,7 +11,7 @@ import (
 )
 
 type OutgoingEmailService interface {
-	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput) ([]*ent.OutgoingEmail, error)
+	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error)
 	CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error)
 }
 
@@ -26,8 +27,8 @@ func NewOutgoingEmailService(repoRegistry repository.Repository, logger *zap.Log
 	}
 }
 
-func (svc outgoingEmailSvcImpl) CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput) ([]*ent.OutgoingEmail, error) {
-	return svc.repoRegistry.OutgoingEmail().CreateBulkOutgoingEmail(ctx, input)
+func (svc outgoingEmailSvcImpl) CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error) {
+	return svc.repoRegistry.OutgoingEmail().CreateBulkOutgoingEmail(ctx, input, candidateId)
 }
 
 func (svc outgoingEmailSvcImpl) CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error) {

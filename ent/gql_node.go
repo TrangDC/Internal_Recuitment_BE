@@ -2747,7 +2747,7 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     oe.ID,
 		Type:   "OutgoingEmail",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 13),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
@@ -2823,10 +2823,26 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "signature",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(oe.EmailTemplateID); err != nil {
+	if buf, err = json.Marshal(oe.CandidateID); err != nil {
 		return nil, err
 	}
 	node.Fields[9] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "candidate_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.RecipientType); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "outgoingemail.RecipientType",
+		Name:  "recipient_type",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.EmailTemplateID); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "email_template_id",
 		Value: string(buf),
@@ -2834,7 +2850,7 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(oe.Status); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[12] = &Field{
 		Type:  "outgoingemail.Status",
 		Name:  "status",
 		Value: string(buf),

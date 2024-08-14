@@ -99,6 +99,18 @@ func (oec *OutgoingEmailCreate) SetSignature(s string) *OutgoingEmailCreate {
 	return oec
 }
 
+// SetCandidateID sets the "candidate_id" field.
+func (oec *OutgoingEmailCreate) SetCandidateID(u uuid.UUID) *OutgoingEmailCreate {
+	oec.mutation.SetCandidateID(u)
+	return oec
+}
+
+// SetRecipientType sets the "recipient_type" field.
+func (oec *OutgoingEmailCreate) SetRecipientType(ot outgoingemail.RecipientType) *OutgoingEmailCreate {
+	oec.mutation.SetRecipientType(ot)
+	return oec
+}
+
 // SetEmailTemplateID sets the "email_template_id" field.
 func (oec *OutgoingEmailCreate) SetEmailTemplateID(u uuid.UUID) *OutgoingEmailCreate {
 	oec.mutation.SetEmailTemplateID(u)
@@ -253,6 +265,17 @@ func (oec *OutgoingEmailCreate) check() error {
 	if _, ok := oec.mutation.Signature(); !ok {
 		return &ValidationError{Name: "signature", err: errors.New(`ent: missing required field "OutgoingEmail.signature"`)}
 	}
+	if _, ok := oec.mutation.CandidateID(); !ok {
+		return &ValidationError{Name: "candidate_id", err: errors.New(`ent: missing required field "OutgoingEmail.candidate_id"`)}
+	}
+	if _, ok := oec.mutation.RecipientType(); !ok {
+		return &ValidationError{Name: "recipient_type", err: errors.New(`ent: missing required field "OutgoingEmail.recipient_type"`)}
+	}
+	if v, ok := oec.mutation.RecipientType(); ok {
+		if err := outgoingemail.RecipientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "recipient_type", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.recipient_type": %w`, err)}
+		}
+	}
 	if _, ok := oec.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "OutgoingEmail.status"`)}
 	}
@@ -332,6 +355,14 @@ func (oec *OutgoingEmailCreate) createSpec() (*OutgoingEmail, *sqlgraph.CreateSp
 	if value, ok := oec.mutation.Signature(); ok {
 		_spec.SetField(outgoingemail.FieldSignature, field.TypeString, value)
 		_node.Signature = value
+	}
+	if value, ok := oec.mutation.CandidateID(); ok {
+		_spec.SetField(outgoingemail.FieldCandidateID, field.TypeUUID, value)
+		_node.CandidateID = value
+	}
+	if value, ok := oec.mutation.RecipientType(); ok {
+		_spec.SetField(outgoingemail.FieldRecipientType, field.TypeEnum, value)
+		_node.RecipientType = value
 	}
 	if value, ok := oec.mutation.EmailTemplateID(); ok {
 		_spec.SetField(outgoingemail.FieldEmailTemplateID, field.TypeUUID, value)
