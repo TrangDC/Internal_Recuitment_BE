@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"trec/ent"
 	graphql1 "trec/graphql"
 
@@ -284,7 +283,7 @@ func (r *queryResolver) GetAllCandidateNotes(ctx context.Context, pagination *en
 
 // GetCandidateActivities is the resolver for the GetCandidateActivities field.
 func (r *queryResolver) GetCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error) {
-	panic(fmt.Errorf("not implemented: GetCandidateActivities - GetCandidateActivities"))
+	return r.serviceRegistry.CandidateActivity().GetAllCandidateActivities(ctx, pagination, filter, freeWord, orderBy)
 }
 
 // Query returns graphql1.QueryResolver implementation.

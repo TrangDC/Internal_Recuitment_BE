@@ -18,9 +18,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type CandidateActivityServiceService interface {
+type CandidateActivityService interface {
 	GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord,
-		orderBy *ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error)
+		orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error)
 }
 
 type candidateActivitySvcImpl struct {
@@ -28,7 +28,7 @@ type candidateActivitySvcImpl struct {
 	logger       *zap.Logger
 }
 
-func NewCandidateActivityServiceService(repoRegistry repository.Repository, logger *zap.Logger) CandidateActivityServiceService {
+func NewCandidateActivityService(repoRegistry repository.Repository, logger *zap.Logger) CandidateActivityService {
 	return &candidateActivitySvcImpl{
 		repoRegistry: repoRegistry,
 		logger:       logger,
@@ -36,7 +36,7 @@ func NewCandidateActivityServiceService(repoRegistry repository.Repository, logg
 }
 
 func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord,
-	orderBy *ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error) {
+	orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error) {
 	candidateId := uuid.MustParse(filter.CandidateID)
 	var page int
 	var perPage int
