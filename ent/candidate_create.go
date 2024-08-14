@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatenote"
 	"trec/ent/entityskill"
+	"trec/ent/outgoingemail"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -417,6 +418,21 @@ func (cc *CandidateCreate) AddCandidateNoteEdges(c ...*CandidateNote) *Candidate
 		ids[i] = c[i].ID
 	}
 	return cc.AddCandidateNoteEdgeIDs(ids...)
+}
+
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (cc *CandidateCreate) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *CandidateCreate {
+	cc.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return cc
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (cc *CandidateCreate) AddOutgoingEmailEdges(o ...*OutgoingEmail) *CandidateCreate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return cc.AddOutgoingEmailEdgeIDs(ids...)
 }
 
 // Mutation returns the CandidateMutation object of the builder.
@@ -869,6 +885,25 @@ func (cc *CandidateCreate) createSpec() (*Candidate, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
 				},
 			},
 		}

@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -20,7 +21,7 @@ func (OutgoingEmail) Fields() []ent.Field {
 		field.Text("subject").NotEmpty(),
 		field.Text("content").NotEmpty(),
 		field.Text("signature"),
-		field.UUID("candidate_id", uuid.UUID{}).Annotations(),
+		field.UUID("candidate_id", uuid.UUID{}).Annotations().Optional(),
 		field.Enum("recipient_type").Values("interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"),
 		field.UUID("email_template_id", uuid.UUID{}).Optional().Annotations(),
 		field.Enum("status").Values("pending", "sent", "failed").Default("pending"),
@@ -29,7 +30,9 @@ func (OutgoingEmail) Fields() []ent.Field {
 
 // Edges of the OutgoingEmail
 func (OutgoingEmail) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.From("candidate_edge", Candidate.Type).Ref("outgoing_email_edges").Unique().Field("candidate_id"),
+	}
 }
 
 func (OutgoingEmail) Mixin() []ent.Mixin {

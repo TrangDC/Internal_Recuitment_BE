@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatenote"
 	"trec/ent/entityskill"
+	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 	"trec/ent/user"
 
@@ -473,6 +474,21 @@ func (cu *CandidateUpdate) AddCandidateNoteEdges(c ...*CandidateNote) *Candidate
 	return cu.AddCandidateNoteEdgeIDs(ids...)
 }
 
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (cu *CandidateUpdate) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return cu
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (cu *CandidateUpdate) AddOutgoingEmailEdges(o ...*OutgoingEmail) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return cu.AddOutgoingEmailEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cu *CandidateUpdate) Mutation() *CandidateMutation {
 	return cu.mutation
@@ -671,6 +687,27 @@ func (cu *CandidateUpdate) RemoveCandidateNoteEdges(c ...*CandidateNote) *Candid
 		ids[i] = c[i].ID
 	}
 	return cu.RemoveCandidateNoteEdgeIDs(ids...)
+}
+
+// ClearOutgoingEmailEdges clears all "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (cu *CandidateUpdate) ClearOutgoingEmailEdges() *CandidateUpdate {
+	cu.mutation.ClearOutgoingEmailEdges()
+	return cu
+}
+
+// RemoveOutgoingEmailEdgeIDs removes the "outgoing_email_edges" edge to OutgoingEmail entities by IDs.
+func (cu *CandidateUpdate) RemoveOutgoingEmailEdgeIDs(ids ...uuid.UUID) *CandidateUpdate {
+	cu.mutation.RemoveOutgoingEmailEdgeIDs(ids...)
+	return cu
+}
+
+// RemoveOutgoingEmailEdges removes "outgoing_email_edges" edges to OutgoingEmail entities.
+func (cu *CandidateUpdate) RemoveOutgoingEmailEdges(o ...*OutgoingEmail) *CandidateUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return cu.RemoveOutgoingEmailEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1400,6 +1437,60 @@ func (cu *CandidateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedOutgoingEmailEdgesIDs(); len(nodes) > 0 && !cu.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidate.Label}
@@ -1853,6 +1944,21 @@ func (cuo *CandidateUpdateOne) AddCandidateNoteEdges(c ...*CandidateNote) *Candi
 	return cuo.AddCandidateNoteEdgeIDs(ids...)
 }
 
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (cuo *CandidateUpdateOne) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return cuo
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (cuo *CandidateUpdateOne) AddOutgoingEmailEdges(o ...*OutgoingEmail) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return cuo.AddOutgoingEmailEdgeIDs(ids...)
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cuo *CandidateUpdateOne) Mutation() *CandidateMutation {
 	return cuo.mutation
@@ -2051,6 +2157,27 @@ func (cuo *CandidateUpdateOne) RemoveCandidateNoteEdges(c ...*CandidateNote) *Ca
 		ids[i] = c[i].ID
 	}
 	return cuo.RemoveCandidateNoteEdgeIDs(ids...)
+}
+
+// ClearOutgoingEmailEdges clears all "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (cuo *CandidateUpdateOne) ClearOutgoingEmailEdges() *CandidateUpdateOne {
+	cuo.mutation.ClearOutgoingEmailEdges()
+	return cuo
+}
+
+// RemoveOutgoingEmailEdgeIDs removes the "outgoing_email_edges" edge to OutgoingEmail entities by IDs.
+func (cuo *CandidateUpdateOne) RemoveOutgoingEmailEdgeIDs(ids ...uuid.UUID) *CandidateUpdateOne {
+	cuo.mutation.RemoveOutgoingEmailEdgeIDs(ids...)
+	return cuo
+}
+
+// RemoveOutgoingEmailEdges removes "outgoing_email_edges" edges to OutgoingEmail entities.
+func (cuo *CandidateUpdateOne) RemoveOutgoingEmailEdges(o ...*OutgoingEmail) *CandidateUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return cuo.RemoveOutgoingEmailEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -2802,6 +2929,60 @@ func (cuo *CandidateUpdateOne) sqlSave(ctx context.Context) (_node *Candidate, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatenote.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedOutgoingEmailEdgesIDs(); len(nodes) > 0 && !cuo.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   candidate.OutgoingEmailEdgesTable,
+			Columns: []string{candidate.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
 				},
 			},
 		}

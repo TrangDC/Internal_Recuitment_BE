@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"trec/ent/candidate"
 	"trec/ent/outgoingemail"
 
 	"entgo.io/ent/dialect/sql"
@@ -44,6 +45,33 @@ type OutgoingEmail struct {
 	EmailTemplateID uuid.UUID `json:"email_template_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status outgoingemail.Status `json:"status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the OutgoingEmailQuery when eager-loading is set.
+	Edges OutgoingEmailEdges `json:"edges"`
+}
+
+// OutgoingEmailEdges holds the relations/edges for other nodes in the graph.
+type OutgoingEmailEdges struct {
+	// CandidateEdge holds the value of the candidate_edge edge.
+	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+}
+
+// CandidateEdgeOrErr returns the CandidateEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OutgoingEmailEdges) CandidateEdgeOrErr() (*Candidate, error) {
+	if e.loadedTypes[0] {
+		if e.CandidateEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: candidate.Label}
+		}
+		return e.CandidateEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "candidate_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -167,6 +195,11 @@ func (oe *OutgoingEmail) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryCandidateEdge queries the "candidate_edge" edge of the OutgoingEmail entity.
+func (oe *OutgoingEmail) QueryCandidateEdge() *CandidateQuery {
+	return (&OutgoingEmailClient{config: oe.config}).QueryCandidateEdge(oe)
 }
 
 // Update returns a builder for updating this OutgoingEmail.

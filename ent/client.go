@@ -933,6 +933,22 @@ func (c *CandidateClient) QueryCandidateNoteEdges(ca *Candidate) *CandidateNoteQ
 	return query
 }
 
+// QueryOutgoingEmailEdges queries the outgoing_email_edges edge of a Candidate.
+func (c *CandidateClient) QueryOutgoingEmailEdges(ca *Candidate) *OutgoingEmailQuery {
+	query := &OutgoingEmailQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidate.Table, candidate.FieldID, id),
+			sqlgraph.To(outgoingemail.Table, outgoingemail.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, candidate.OutgoingEmailEdgesTable, candidate.OutgoingEmailEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateClient) Hooks() []Hook {
 	return c.hooks.Candidate
@@ -3855,6 +3871,22 @@ func (c *OutgoingEmailClient) GetX(ctx context.Context, id uuid.UUID) *OutgoingE
 		panic(err)
 	}
 	return obj
+}
+
+// QueryCandidateEdge queries the candidate_edge edge of a OutgoingEmail.
+func (c *OutgoingEmailClient) QueryCandidateEdge(oe *OutgoingEmail) *CandidateQuery {
+	query := &CandidateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := oe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, id),
+			sqlgraph.To(candidate.Table, candidate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.CandidateEdgeTable, outgoingemail.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

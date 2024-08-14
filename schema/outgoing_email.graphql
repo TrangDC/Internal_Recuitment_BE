@@ -1,0 +1,59 @@
+enum OutgoingEmailRecipientType {
+  candidate
+  interviewer
+  job_request
+  hiring_team_manager
+  hiring_team_member
+  role
+}
+
+enum OutgoingEmailStatus {
+  pending
+  sent
+  failed
+}
+
+enum OutgoingEmailOrderField {
+  created_at
+}
+
+input OutgoingEmailFreeWord {
+  subject: String
+}
+
+input OutgoingEmailFilter {
+  recipient_type: [OutgoingEmailRecipientType!]
+  candidate_id: ID
+  status: [OutgoingEmailStatus!]
+}
+
+input OutgoingEmailOrder {
+  direction: OrderDirection!
+  field: OutgoingEmailOrderField!
+}
+
+type OutgoingEmail {
+  id: ID!
+  to: [String!]!
+  subject: String!
+  content: String!
+  signature: String!
+  recipient_type: OutgoingEmailRecipientType!
+  status: OutgoingEmailStatus!
+}
+
+type OutgoingEmailResponse {
+  data: OutgoingEmail!
+}
+
+type OutgoingEmailResponseGetAll {
+  edges: [OutgoingEmailEdge!]!
+  pagination: Pagination!
+}
+
+type OutgoingEmailEdge {
+  node: OutgoingEmail!
+  cursor: Cursor!
+}
+
+# Path: schema/OutgoingEmail.graphql

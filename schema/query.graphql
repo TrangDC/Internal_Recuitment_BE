@@ -96,6 +96,7 @@ type Query {
 
   # CandidateActivity
   GetCandidateActivities(pagination: PaginationInput, filter: CandidateActivityFilter!, freeWord: CandidateActivityFreeWord, orderBy: CandidateActivityOrder!): CandidateActivityResponse!
+  GetAllOutgoingEmails(pagination: PaginationInput, filter: OutgoingEmailFilter!, freeWord: OutgoingEmailFreeWord, orderBy: OutgoingEmailOrder): OutgoingEmailResponseGetAll!
 }
 
 # Path: schema/query.graphql

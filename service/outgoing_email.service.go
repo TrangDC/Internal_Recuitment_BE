@@ -2,10 +2,17 @@ package service
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"net/http"
+	"strings"
 	"trec/ent"
+	"trec/ent/outgoingemail"
+	"trec/ent/predicate"
+	"trec/internal/util"
 	"trec/models"
 	"trec/repository"
+
+	"github.com/google/uuid"
+	"github.com/samber/lo"
 
 	"go.uber.org/zap"
 )
@@ -13,6 +20,7 @@ import (
 type OutgoingEmailService interface {
 	CreateBulkOutgoingEmail(ctx context.Context, input []models.MessageInput, candidateId uuid.UUID) ([]*ent.OutgoingEmail, error)
 	CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error)
+	GetAllOutgoingEmails(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.OutgoingEmailFreeWord, filter ent.OutgoingEmailFilter, orderBy *ent.OutgoingEmailOrder) (*ent.OutgoingEmailResponseGetAll, error)
 }
 
 type outgoingEmailSvcImpl struct {
@@ -33,4 +41,85 @@ func (svc outgoingEmailSvcImpl) CreateBulkOutgoingEmail(ctx context.Context, inp
 
 func (svc outgoingEmailSvcImpl) CallbackOutgoingEmail(ctx context.Context, input models.MessageOutput) (*ent.OutgoingEmail, error) {
 	return svc.repoRegistry.OutgoingEmail().CallbackOutgoingEmail(ctx, input)
+}
+
+func (svc outgoingEmailSvcImpl) GetAllOutgoingEmails(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.OutgoingEmailFreeWord, filter ent.OutgoingEmailFilter, orderBy *ent.OutgoingEmailOrder) (*ent.OutgoingEmailResponseGetAll, error) {
+	var result *ent.OutgoingEmailResponseGetAll
+	var edges []*ent.OutgoingEmailEdge
+	var page int
+	var perPage int
+	query := svc.repoRegistry.OutgoingEmail().BuildQuery()
+	svc.filter(query, filter)
+	svc.freeWord(query, freeWord)
+	count, err := svc.repoRegistry.OutgoingEmail().BuildCount(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	order := ent.Desc(outgoingemail.FieldCreatedAt)
+	if orderBy != nil {
+		order = ent.Desc(strings.ToLower(orderBy.Field.String()))
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			order = ent.Asc(strings.ToLower(orderBy.Field.String()))
+		}
+	}
+	query = query.Order(order)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	outgoingEmails, err := svc.repoRegistry.OutgoingEmail().BuildList(ctx, query)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges = lo.Map(outgoingEmails, func(v *ent.OutgoingEmail, index int) *ent.OutgoingEmailEdge {
+		return &ent.OutgoingEmailEdge{
+			Node: v,
+			Cursor: ent.Cursor{
+				Value: v.ID.String(),
+			},
+		}
+	})
+	result = &ent.OutgoingEmailResponseGetAll{
+		Edges: edges,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+// common function
+func (svc *outgoingEmailSvcImpl) freeWord(outgoingEmailQuery *ent.OutgoingEmailQuery, input *ent.OutgoingEmailFreeWord) {
+	predicate := []predicate.OutgoingEmail{}
+	if input != nil {
+		if input.Subject != nil {
+			predicate = append(predicate, outgoingemail.SubjectContainsFold(strings.TrimSpace(*input.Subject)))
+		}
+	}
+	if len(predicate) > 0 {
+		outgoingEmailQuery.Where(outgoingemail.Or(predicate...))
+	}
+}
+
+func (svc *outgoingEmailSvcImpl) filter(outgoingEmailQuery *ent.OutgoingEmailQuery, input ent.OutgoingEmailFilter) {
+	if input.CandidateID != nil {
+		outgoingEmailQuery.Where(outgoingemail.CandidateIDEQ(uuid.MustParse(*input.CandidateID)))
+	}
+	if input.Status != nil {
+		status := lo.Map(input.Status, func(v ent.OutgoingEmailStatus, index int) outgoingemail.Status {
+			return outgoingemail.Status(v.String())
+		})
+		outgoingEmailQuery.Where(outgoingemail.StatusIn(status...))
+	}
+	if input.RecipientType != nil {
+		recipientType := lo.Map(input.RecipientType, func(v ent.OutgoingEmailRecipientType, index int) outgoingemail.RecipientType {
+			return outgoingemail.RecipientType(v.String())
+		})
+		outgoingEmailQuery.Where(outgoingemail.RecipientTypeIn(recipientType...))
+	}
 }

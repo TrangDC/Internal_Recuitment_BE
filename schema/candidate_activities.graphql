@@ -2,6 +2,7 @@ type CandidateActivity {
   candidate_notes: [CandidateNote!]
   candidate_history_calls: [CandidateHistoryCall!]
   candidate_interviews: [CandidateInterview!]
+  outgoing_emails: [OutgoingEmail!]
   total: Int!
 }
 

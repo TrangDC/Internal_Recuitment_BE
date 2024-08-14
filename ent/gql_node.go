@@ -328,7 +328,7 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Candidate",
 		Fields: make([]*Field, 18),
-		Edges:  make([]*Edge, 10),
+		Edges:  make([]*Edge, 11),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreatedAt); err != nil {
@@ -572,6 +572,16 @@ func (c *Candidate) Node(ctx context.Context) (node *Node, err error) {
 	err = c.QueryCandidateNoteEdges().
 		Select(candidatenote.FieldID).
 		Scan(ctx, &node.Edges[9].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[10] = &Edge{
+		Type: "OutgoingEmail",
+		Name: "outgoing_email_edges",
+	}
+	err = c.QueryOutgoingEmailEdges().
+		Select(outgoingemail.FieldID).
+		Scan(ctx, &node.Edges[10].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2812,7 +2822,7 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 		ID:     oe.ID,
 		Type:   "OutgoingEmail",
 		Fields: make([]*Field, 13),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(oe.CreatedAt); err != nil {
@@ -2918,6 +2928,16 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "outgoingemail.Status",
 		Name:  "status",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Candidate",
+		Name: "candidate_edge",
+	}
+	err = oe.QueryCandidateEdge().
+		Select(candidate.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
