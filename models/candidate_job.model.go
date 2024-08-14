@@ -19,8 +19,9 @@ var CandidateJobSteps = []CandidateJobStep{
 	{Index: 2, Status: candidatejob.StatusOffering},
 	{Index: 3, Status: candidatejob.StatusHired},
 	{Index: 4, Status: candidatejob.StatusOfferLost},
-	{Index: 5, Status: candidatejob.StatusKiv},
-	{Index: 6, Status: candidatejob.StatusExStaff},
+	{Index: 5, Status: candidatejob.StatusFailedCv},
+	{Index: 6, Status: candidatejob.StatusFailedInterview},
+	{Index: 7, Status: candidatejob.StatusExStaff},
 }
 
 type CandidateJobValidInput struct {

@@ -132,7 +132,7 @@ func (svc reportSvcImpl) ReportApplicationReportTable(ctx context.Context, filte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	failKivResult, err := svc.repoRegistry.Report().GetApplicationFail(ctx, filter, candidatejob.StatusKiv)
+	failKivResult, err := svc.repoRegistry.Report().GetApplicationFail(ctx, filter, "kiv")
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)

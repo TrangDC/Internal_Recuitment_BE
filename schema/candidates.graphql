@@ -3,7 +3,8 @@ enum CandidateStatusEnum {
   interviewing
   offering
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
   new

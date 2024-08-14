@@ -398,13 +398,14 @@ type ComplexityRoot struct {
 	}
 
 	CandidateJobGroupByInterview struct {
-		Applied      func(childComplexity int) int
-		ExStaff      func(childComplexity int) int
-		Hired        func(childComplexity int) int
-		Interviewing func(childComplexity int) int
-		Kiv          func(childComplexity int) int
-		OfferLost    func(childComplexity int) int
-		Offering     func(childComplexity int) int
+		Applied         func(childComplexity int) int
+		ExStaff         func(childComplexity int) int
+		FailedCv        func(childComplexity int) int
+		FailedInterview func(childComplexity int) int
+		Hired           func(childComplexity int) int
+		Interviewing    func(childComplexity int) int
+		OfferLost       func(childComplexity int) int
+		Offering        func(childComplexity int) int
 	}
 
 	CandidateJobGroupByInterviewResponse struct {
@@ -412,13 +413,14 @@ type ComplexityRoot struct {
 	}
 
 	CandidateJobGroupByStatus struct {
-		Applied      func(childComplexity int) int
-		ExStaff      func(childComplexity int) int
-		Hired        func(childComplexity int) int
-		Interviewing func(childComplexity int) int
-		Kiv          func(childComplexity int) int
-		OfferLost    func(childComplexity int) int
-		Offering     func(childComplexity int) int
+		Applied         func(childComplexity int) int
+		ExStaff         func(childComplexity int) int
+		FailedCv        func(childComplexity int) int
+		FailedInterview func(childComplexity int) int
+		Hired           func(childComplexity int) int
+		Interviewing    func(childComplexity int) int
+		OfferLost       func(childComplexity int) int
+		Offering        func(childComplexity int) int
 	}
 
 	CandidateJobGroupByStatusResponse struct {
@@ -3005,6 +3007,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobGroupByInterview.ExStaff(childComplexity), true
 
+	case "CandidateJobGroupByInterview.failed_cv":
+		if e.complexity.CandidateJobGroupByInterview.FailedCv == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.FailedCv(childComplexity), true
+
+	case "CandidateJobGroupByInterview.failed_interview":
+		if e.complexity.CandidateJobGroupByInterview.FailedInterview == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByInterview.FailedInterview(childComplexity), true
+
 	case "CandidateJobGroupByInterview.hired":
 		if e.complexity.CandidateJobGroupByInterview.Hired == nil {
 			break
@@ -3018,13 +3034,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJobGroupByInterview.Interviewing(childComplexity), true
-
-	case "CandidateJobGroupByInterview.kiv":
-		if e.complexity.CandidateJobGroupByInterview.Kiv == nil {
-			break
-		}
-
-		return e.complexity.CandidateJobGroupByInterview.Kiv(childComplexity), true
 
 	case "CandidateJobGroupByInterview.offer_lost":
 		if e.complexity.CandidateJobGroupByInterview.OfferLost == nil {
@@ -3061,6 +3070,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CandidateJobGroupByStatus.ExStaff(childComplexity), true
 
+	case "CandidateJobGroupByStatus.failed_cv":
+		if e.complexity.CandidateJobGroupByStatus.FailedCv == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByStatus.FailedCv(childComplexity), true
+
+	case "CandidateJobGroupByStatus.failed_interview":
+		if e.complexity.CandidateJobGroupByStatus.FailedInterview == nil {
+			break
+		}
+
+		return e.complexity.CandidateJobGroupByStatus.FailedInterview(childComplexity), true
+
 	case "CandidateJobGroupByStatus.hired":
 		if e.complexity.CandidateJobGroupByStatus.Hired == nil {
 			break
@@ -3074,13 +3097,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJobGroupByStatus.Interviewing(childComplexity), true
-
-	case "CandidateJobGroupByStatus.kiv":
-		if e.complexity.CandidateJobGroupByStatus.Kiv == nil {
-			break
-		}
-
-		return e.complexity.CandidateJobGroupByStatus.Kiv(childComplexity), true
 
 	case "CandidateJobGroupByStatus.offer_lost":
 		if e.complexity.CandidateJobGroupByStatus.OfferLost == nil {
@@ -7314,7 +7330,8 @@ input UpdateCandidateInterviewStatusInput {
 `, BuiltIn: false},
 	{Name: "../schema/candidate_job.graphql", Input: `enum CandidateJobStatusEnded {
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
 }
@@ -7331,12 +7348,14 @@ enum CandidateJobStatusAbleToClose {
 
 enum CandidateJobStatusFailed {
   offer_lost
-  kiv
+  failed_cv
+  failed_interview
 }
 
 enum CandidateJobStatus {
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
   applied
@@ -7433,7 +7452,8 @@ type CandidateJobGroupInterviewFeedback {
 
 type CandidateJobGroupByInterview {
   hired: CandidateJobGroupInterviewFeedback
-  kiv: CandidateJobGroupInterviewFeedback
+  failed_cv: CandidateJobGroupInterviewFeedback
+  failed_interview: CandidateJobGroupInterviewFeedback
   offer_lost: CandidateJobGroupInterviewFeedback
   ex_staff: CandidateJobGroupInterviewFeedback
   applied: CandidateJobGroupInterviewFeedback
@@ -7443,7 +7463,8 @@ type CandidateJobGroupByInterview {
 
 type CandidateJobGroupByStatus {
   hired: [CandidateJob!]
-  kiv: [CandidateJob!]
+  failed_cv: [CandidateJob!]
+  failed_interview: [CandidateJob!]
   offer_lost: [CandidateJob!]
   ex_staff: [CandidateJob!]
   applied: [CandidateJob!]
@@ -7655,7 +7676,8 @@ input CandidateNoteOrder {
   interviewing
   offering
   hired
-  kiv
+  failed_cv
+  failed_interview
   offer_lost
   ex_staff
   new
@@ -8819,9 +8841,9 @@ type CandidateConversionRateReportResponse {
 }
 
 input ReportFilter {
- filter_period: ReportFilterPeriod!
- from_date: Time!
- to_date: Time!
+  filter_period: ReportFilterPeriod!
+  from_date: Time!
+  to_date: Time!
 }
 
 # new schema
@@ -22656,8 +22678,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_hired(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateJobGroupByInterview_kiv(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJobGroupByInterview_kiv(ctx, field)
+func (ec *executionContext) _CandidateJobGroupByInterview_failed_cv(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_failed_cv(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -22670,7 +22692,7 @@ func (ec *executionContext) _CandidateJobGroupByInterview_kiv(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Kiv, nil
+		return obj.FailedCv, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22684,7 +22706,54 @@ func (ec *executionContext) _CandidateJobGroupByInterview_kiv(ctx context.Contex
 	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_kiv(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_failed_cv(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByInterview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "interview":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_interview(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobGroupInterviewFeedback_feedback(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobGroupInterviewFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByInterview_failed_interview(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByInterview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByInterview_failed_interview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FailedInterview, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateJobGroupInterviewFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobGroupInterviewFeedback2ᚖtrecᚋentᚐCandidateJobGroupInterviewFeedback(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByInterview_failed_interview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CandidateJobGroupByInterview",
 		Field:      field,
@@ -22976,8 +23045,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByInterviewResponse_da
 			switch field.Name {
 			case "hired":
 				return ec.fieldContext_CandidateJobGroupByInterview_hired(ctx, field)
-			case "kiv":
-				return ec.fieldContext_CandidateJobGroupByInterview_kiv(ctx, field)
+			case "failed_cv":
+				return ec.fieldContext_CandidateJobGroupByInterview_failed_cv(ctx, field)
+			case "failed_interview":
+				return ec.fieldContext_CandidateJobGroupByInterview_failed_interview(ctx, field)
 			case "offer_lost":
 				return ec.fieldContext_CandidateJobGroupByInterview_offer_lost(ctx, field)
 			case "ex_staff":
@@ -23072,8 +23143,8 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 	return fc, nil
 }
 
-func (ec *executionContext) _CandidateJobGroupByStatus_kiv(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByStatus) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CandidateJobGroupByStatus_kiv(ctx, field)
+func (ec *executionContext) _CandidateJobGroupByStatus_failed_cv(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByStatus_failed_cv(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -23086,7 +23157,7 @@ func (ec *executionContext) _CandidateJobGroupByStatus_kiv(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Kiv, nil
+		return obj.FailedCv, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23100,7 +23171,84 @@ func (ec *executionContext) _CandidateJobGroupByStatus_kiv(ctx context.Context, 
 	return ec.marshalOCandidateJob2ᚕᚖtrecᚋentᚐCandidateJobᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_kiv(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_failed_cv(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJobGroupByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJob_id(ctx, field)
+			case "candidate_id":
+				return ec.fieldContext_CandidateJob_candidate_id(ctx, field)
+			case "hiring_job_id":
+				return ec.fieldContext_CandidateJob_hiring_job_id(ctx, field)
+			case "status":
+				return ec.fieldContext_CandidateJob_status(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJob_attachments(ctx, field)
+			case "candidate":
+				return ec.fieldContext_CandidateJob_candidate(ctx, field)
+			case "hiring_job":
+				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJob_owner(ctx, field)
+			case "failed_reason":
+				return ec.fieldContext_CandidateJob_failed_reason(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_CandidateJob_is_able_to_delete(ctx, field)
+			case "interview_feature":
+				return ec.fieldContext_CandidateJob_interview_feature(ctx, field)
+			case "steps":
+				return ec.fieldContext_CandidateJob_steps(ctx, field)
+			case "onboard_date":
+				return ec.fieldContext_CandidateJob_onboard_date(ctx, field)
+			case "offer_expiration_date":
+				return ec.fieldContext_CandidateJob_offer_expiration_date(ctx, field)
+			case "level":
+				return ec.fieldContext_CandidateJob_level(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJob_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJobGroupByStatus_failed_interview(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJobGroupByStatus_failed_interview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FailedInterview, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateJob)
+	fc.Result = res
+	return ec.marshalOCandidateJob2ᚕᚖtrecᚋentᚐCandidateJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_failed_interview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CandidateJobGroupByStatus",
 		Field:      field,
@@ -23572,8 +23720,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatusResponse_data(
 			switch field.Name {
 			case "hired":
 				return ec.fieldContext_CandidateJobGroupByStatus_hired(ctx, field)
-			case "kiv":
-				return ec.fieldContext_CandidateJobGroupByStatus_kiv(ctx, field)
+			case "failed_cv":
+				return ec.fieldContext_CandidateJobGroupByStatus_failed_cv(ctx, field)
+			case "failed_interview":
+				return ec.fieldContext_CandidateJobGroupByStatus_failed_interview(ctx, field)
 			case "offer_lost":
 				return ec.fieldContext_CandidateJobGroupByStatus_offer_lost(ctx, field)
 			case "ex_staff":
@@ -56588,9 +56738,13 @@ func (ec *executionContext) _CandidateJobGroupByInterview(ctx context.Context, s
 
 			out.Values[i] = ec._CandidateJobGroupByInterview_hired(ctx, field, obj)
 
-		case "kiv":
+		case "failed_cv":
 
-			out.Values[i] = ec._CandidateJobGroupByInterview_kiv(ctx, field, obj)
+			out.Values[i] = ec._CandidateJobGroupByInterview_failed_cv(ctx, field, obj)
+
+		case "failed_interview":
+
+			out.Values[i] = ec._CandidateJobGroupByInterview_failed_interview(ctx, field, obj)
 
 		case "offer_lost":
 
@@ -56662,9 +56816,13 @@ func (ec *executionContext) _CandidateJobGroupByStatus(ctx context.Context, sel 
 
 			out.Values[i] = ec._CandidateJobGroupByStatus_hired(ctx, field, obj)
 
-		case "kiv":
+		case "failed_cv":
 
-			out.Values[i] = ec._CandidateJobGroupByStatus_kiv(ctx, field, obj)
+			out.Values[i] = ec._CandidateJobGroupByStatus_failed_cv(ctx, field, obj)
+
+		case "failed_interview":
+
+			out.Values[i] = ec._CandidateJobGroupByStatus_failed_interview(ctx, field, obj)
 
 		case "offer_lost":
 

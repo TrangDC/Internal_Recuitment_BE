@@ -15,7 +15,7 @@ type CandidateJobStep struct {
 // Fields of the CandidateJobStep. NOTE : Part of the public API ( ultimately exposed to end job
 func (CandidateJobStep) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("candidate_job_status").Values("applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff").Default("applied"),
+		field.Enum("candidate_job_status").Values("applied", "interviewing", "offering", "hired", "failed_cv", "failed_interview", "offer_lost", "ex_staff").Default("applied"),
 		field.UUID("candidate_job_id", uuid.UUID{}).Optional(),
 	}
 }

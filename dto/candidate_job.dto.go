@@ -307,8 +307,10 @@ func (d candidateJobDtoImpl) statusI18n(input candidatejob.Status) string {
 	switch input {
 	case candidatejob.StatusHired:
 		return "model.candidate_jobs.status_enum.hired"
-	case candidatejob.StatusKiv:
-		return "model.candidate_jobs.status_enum.kiv"
+	case candidatejob.StatusFailedCv:
+		return "model.candidate_jobs.status_enum.failed_cv"
+	case candidatejob.StatusFailedInterview:
+		return "model.candidate_jobs.status_enum.failed_interview"
 	case candidatejob.StatusOfferLost:
 		return "model.candidate_jobs.status_enum.offer_lost"
 	case candidatejob.StatusExStaff:
@@ -344,8 +346,10 @@ func (d candidateJobDtoImpl) MappingStatus(input candidatejob.Status) string {
 	switch input {
 	case candidatejob.StatusHired:
 		return "Hired"
-	case candidatejob.StatusKiv:
-		return "Kiv"
+	case candidatejob.StatusFailedCv:
+		return "FailedCv"
+	case candidatejob.StatusFailedInterview:
+		return "FailedInterview"
 	case candidatejob.StatusOfferLost:
 		return "OfferLost"
 	case candidatejob.StatusExStaff:

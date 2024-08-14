@@ -161,7 +161,7 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus, failedReason []string) (*ent.CandidateJob, error) {
 	update := rps.BuildUpdateOne(ctx, record).SetStatus(candidatejob.Status(input.Status.String()))
 	switch input.Status {
-	case ent.CandidateJobStatusKiv, ent.CandidateJobStatusOfferLost:
+	case ent.CandidateJobStatusFailedCv, ent.CandidateJobStatusFailedInterview, ent.CandidateJobStatusOfferLost:
 		update.SetFailedReason(failedReason)
 	case ent.CandidateJobStatusOffering:
 		update.
@@ -305,7 +305,7 @@ func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.Can
 				return failedReason, fmt.Errorf("model.candidate_job.validation.onboard_before_offer_exp"), nil
 			}
 		}
-	case ent.CandidateJobStatusOfferLost, ent.CandidateJobStatusKiv:
+	case ent.CandidateJobStatusOfferLost, ent.CandidateJobStatusFailedCv, ent.CandidateJobStatusFailedInterview:
 		if len(input.FailedReason) == 0 {
 			return failedReason, fmt.Errorf("model.candidate_job.validation.failed_reason_required"), nil
 		}
@@ -324,7 +324,7 @@ func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newSt
 		if entOldStatus != ent.CandidateJobStatusApplied {
 			isErrorStatus = true
 		}
-	case ent.CandidateJobStatusOffering, ent.CandidateJobStatusKiv:
+	case ent.CandidateJobStatusOffering:
 		switch entOldStatus {
 		case ent.CandidateJobStatusApplied, ent.CandidateJobStatusInterviewing:
 			isErrorStatus = false
@@ -337,6 +337,14 @@ func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newSt
 		}
 	case ent.CandidateJobStatusExStaff:
 		if entOldStatus != ent.CandidateJobStatusHired {
+			isErrorStatus = true
+		}
+	case ent.CandidateJobStatusFailedCv:
+		if entOldStatus != ent.CandidateJobStatusApplied {
+			isErrorStatus = true
+		}
+	case ent.CandidateJobStatusFailedInterview:
+		if entOldStatus != ent.CandidateJobStatusInterviewing {
 			isErrorStatus = true
 		}
 	}

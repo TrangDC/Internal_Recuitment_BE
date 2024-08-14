@@ -18,7 +18,7 @@ func (CandidateJob) Fields() []ent.Field {
 		field.UUID("hiring_job_id", uuid.UUID{}).Optional(),
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
 		field.UUID("created_by", uuid.UUID{}).Optional(),
-		field.Enum("status").Values("applied", "interviewing", "offering", "hired", "kiv", "offer_lost", "ex_staff").Default("applied"),
+		field.Enum("status").Values("applied", "interviewing", "offering", "hired", "failed_cv", "failed_interview", "offer_lost", "ex_staff").Default("applied"),
 		field.JSON("failed_reason", []string{"poor_professionalism",
 			"poor_fit_and_engagement", "over_expectations", "over_qualification", "language_deficiency",
 			"weak_technical_skills", "poor_interpersonal_skills", "poor_problem_solving_skills", "poor_management_skills",
