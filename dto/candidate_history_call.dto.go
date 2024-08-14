@@ -66,6 +66,24 @@ func (d candidateHistoryCallDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateHi
 			case "model.candidate_history_calls.type":
 				oldValueField = d.typeI18n(oldRecord.Type)
 				newValueField = d.typeI18n(newRecord.Type)
+			case "model.candidate_history_calls.start_time":
+				oldValueField = ""
+				newValueField = ""
+				if !oldRecord.StartTime.IsZero() {
+					oldValueField = oldRecord.StartTime
+				}
+				if !newRecord.StartTime.IsZero() {
+					newValueField = newRecord.StartTime
+				}
+			case "model.candidate_history_calls.end_time":
+				oldValueField = ""
+				newValueField = ""
+				if !oldRecord.EndTime.IsZero() {
+					oldValueField = oldRecord.EndTime
+				}
+				if !newRecord.EndTime.IsZero() {
+					newValueField = newRecord.EndTime
+				}
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -98,6 +116,16 @@ func (d candidateHistoryCallDtoImpl) recordAudit(record *ent.CandidateHistoryCal
 			valueField = record.Edges.CreatedByEdge.Name
 		case "model.candidate_history_calls.type":
 			valueField = d.typeI18n(record.Type)
+		case "model.candidate_history_calls.start_time":
+			valueField = ""
+			if !record.StartTime.IsZero() {
+				valueField = record.StartTime
+			}
+		case "model.candidate_history_calls.end_time":
+			valueField = ""
+			if !record.EndTime.IsZero() {
+				valueField = record.EndTime
+			}
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
