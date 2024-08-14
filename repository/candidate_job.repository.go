@@ -269,7 +269,12 @@ func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.Can
 	var failedReason []string
 	candidateRecord, err := rps.client.Candidate.Query().
 		Where(candidate.IDEQ(input.CandidateId)).
-		WithCandidateJobEdges(func(query *ent.CandidateJobQuery) { query.Where(candidatejob.DeletedAtIsNil()) }).
+		WithCandidateJobEdges(func(query *ent.CandidateJobQuery) {
+			query.Where(candidatejob.DeletedAtIsNil())
+			if input.CandidateJobId != uuid.Nil {
+				query.Where(candidatejob.IDNEQ(input.CandidateJobId))
+			}
+		}).
 		First(ctx)
 	if err != nil {
 		return failedReason, nil, err
@@ -277,10 +282,14 @@ func (rps candidateJobRepoImpl) ValidInput(ctx context.Context, input models.Can
 	if candidateRecord.IsBlacklist {
 		return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_blacklist"), nil
 	}
-	if lo.SomeBy(candidateRecord.Edges.CandidateJobEdges, func(item *ent.CandidateJob) bool {
-		return item.Status == candidatejob.StatusHired
-	}) {
-		return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_hired"), nil
+	for _, cdJob := range candidateRecord.Edges.CandidateJobEdges {
+		if cdJob.Status == candidatejob.StatusHired {
+			return failedReason, fmt.Errorf("model.candidate_job.validation.candidate_is_hired"), nil
+		}
+		cdJobIsProcessing := cdJob.Status == candidatejob.StatusApplied || cdJob.Status == candidatejob.StatusInterviewing || cdJob.Status == candidatejob.StatusOffering
+		if cdJob.HiringJobID == input.HiringJobId && cdJobIsProcessing {
+			return failedReason, fmt.Errorf("model.candidate_job.validation.same_hiring_job"), nil
+		}
 	}
 	switch input.Status {
 	case ent.CandidateJobStatusApplied, ent.CandidateJobStatusInterviewing, ent.CandidateJobStatusOffering:
@@ -320,7 +329,7 @@ func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newSt
 	isErrorStatus := false
 	entOldStatus := ent.CandidateJobStatus(oldStatus)
 	switch newStatus {
-	case ent.CandidateJobStatusInterviewing:
+	case ent.CandidateJobStatusInterviewing, ent.CandidateJobStatusFailedCv:
 		if entOldStatus != ent.CandidateJobStatusApplied {
 			isErrorStatus = true
 		}
@@ -337,10 +346,6 @@ func (rps candidateJobRepoImpl) ValidStatus(oldStatus candidatejob.Status, newSt
 		}
 	case ent.CandidateJobStatusExStaff:
 		if entOldStatus != ent.CandidateJobStatusHired {
-			isErrorStatus = true
-		}
-	case ent.CandidateJobStatusFailedCv:
-		if entOldStatus != ent.CandidateJobStatusApplied {
 			isErrorStatus = true
 		}
 	case ent.CandidateJobStatusFailedInterview:

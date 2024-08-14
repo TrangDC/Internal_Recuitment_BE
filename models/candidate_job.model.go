@@ -31,4 +31,5 @@ type CandidateJobValidInput struct {
 	CandidateId    uuid.UUID              `json:"candidate_id"`
 	CandidateJobId uuid.UUID
 	FailedReason   []ent.CandidateJobFailedReason `json:"failed_reason"`
+	HiringJobId    uuid.UUID                      `json:"hiring_job_id,omitempty"`
 }
