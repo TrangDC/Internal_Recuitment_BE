@@ -10,6 +10,7 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -38,16 +39,18 @@ type HiringJobService interface {
 	GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType
 }
 type hiringJobSvcImpl struct {
-	repoRegistry repository.Repository
-	dtoRegistry  dto.Dto
-	logger       *zap.Logger
+	repoRegistry     repository.Repository
+	dtoRegistry      dto.Dto
+	logger           *zap.Logger
+	hiringJobStepSvc HiringJobStepService
 }
 
 func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) HiringJobService {
 	return &hiringJobSvcImpl{
-		repoRegistry: repoRegistry,
-		dtoRegistry:  dtoRegistry,
-		logger:       logger,
+		repoRegistry:     repoRegistry,
+		dtoRegistry:      dtoRegistry,
+		logger:           logger,
+		hiringJobStepSvc: NewHiringJobStepService(repoRegistry, logger),
 	}
 }
 
@@ -80,6 +83,21 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		record, err = repoRegistry.HiringJob().CreateHiringJob(ctx, input)
+		if err != nil {
+			return err
+		}
+		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, hiringjobstep.TypeCreated, record.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
+		var stepType hiringjobstep.Type
+		switch record.Status {
+		case hiringjob.StatusOpened:
+			stepType = hiringjobstep.TypeOpened
+		case hiringjob.StatusClosed:
+			stepType = hiringjobstep.TypeClosed
+		}
+		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, stepType, record.ID, repoRegistry)
 		if err != nil {
 			return err
 		}
@@ -119,6 +137,10 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.HiringJob().DeleteHiringJob(ctx, record)
+		if err != nil {
+			return err
+		}
+		err = repoRegistry.HiringJobStep().DeleteHiringJobStep(ctx, record.ID)
 		if err != nil {
 			return err
 		}
@@ -211,6 +233,14 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, record, status)
+		var stepType hiringjobstep.Type
+		switch result.Status {
+		case hiringjob.StatusOpened:
+			stepType = hiringjobstep.TypeOpened
+		case hiringjob.StatusClosed:
+			stepType = hiringjobstep.TypeClosed
+		}
+		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, stepType, record.ID, repoRegistry)
 		return err
 	})
 	if err != nil {

@@ -41,6 +41,7 @@ type Service interface {
 	RecTeam() RecTeamService
 	CandidateHistoryCall() CandidateHistoryCallService
 	CandidateNote() CandidateNoteService
+	HiringJobStep() HiringJobStepService
 	CandidateActivity() CandidateActivityService
 }
 
@@ -72,6 +73,7 @@ type serviceImpl struct {
 	recTeamService              RecTeamService
 	candidateHistoryCall        CandidateHistoryCallService
 	candidateNoteService        CandidateNoteService
+	hiringJobStepService        HiringJobStepService
 	candidateActivity           CandidateActivityService
 }
 
@@ -107,6 +109,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		recTeamService:              NewRecTeamService(repoRegistry, dtoRegistry, logger),
 		candidateHistoryCall:        NewCandidateHistoryCallService(repoRegistry, dtoRegistry, logger),
 		candidateNoteService:        NewCandidateNoteService(repoRegistry, dtoRegistry, logger),
+		hiringJobStepService:        NewHiringJobStepService(repoRegistry, logger),
 		candidateActivity:           NewCandidateActivityService(repoRegistry, logger),
 	}
 }
@@ -227,6 +230,10 @@ func (i serviceImpl) CandidateHistoryCall() CandidateHistoryCallService {
 
 func (i serviceImpl) CandidateNote() CandidateNoteService {
 	return i.candidateNoteService
+}
+
+func (i serviceImpl) HiringJobStep() HiringJobStepService {
+	return i.hiringJobStepService
 }
 
 func (i serviceImpl) CandidateActivity() CandidateActivityService {

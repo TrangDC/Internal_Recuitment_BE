@@ -93,6 +93,11 @@ func (r *hiringJobResolver) EntitySkillTypes(ctx context.Context, obj *ent.Hirin
 	return r.serviceRegistry.HiringJob().GroupSkillType(obj.Edges.HiringJobSkillEdges), nil
 }
 
+// Steps is the resolver for the steps field.
+func (r *hiringJobResolver) Steps(ctx context.Context, obj *ent.HiringJob) ([]*ent.HiringJobStep, error) {
+	return obj.Edges.HiringJobStep, nil
+}
+
 // HiringJob returns graphql1.HiringJobResolver implementation.
 func (r *Resolver) HiringJob() graphql1.HiringJobResolver { return &hiringJobResolver{r} }
 

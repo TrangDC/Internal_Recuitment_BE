@@ -23,6 +23,7 @@ import (
 	"trec/ent/entitypermission"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -539,6 +540,12 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[11].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	hiringjobstepFields := schema.HiringJobStep{}.Fields()
+	_ = hiringjobstepFields
+	// hiringjobstepDescCreatedAt is the schema descriptor for created_at field.
+	hiringjobstepDescCreatedAt := hiringjobstepFields[3].Descriptor()
+	// hiringjobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
+	hiringjobstep.DefaultCreatedAt = hiringjobstepDescCreatedAt.Default.(func() time.Time)
 	hiringteamMixin := schema.HiringTeam{}.Mixin()
 	hiringteamMixinFields0 := hiringteamMixin[0].Fields()
 	_ = hiringteamMixinFields0

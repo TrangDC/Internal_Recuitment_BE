@@ -10,6 +10,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/user"
@@ -321,6 +322,21 @@ func (hjc *HiringJobCreate) SetNillableJobPositionEdgeID(id *uuid.UUID) *HiringJ
 // SetJobPositionEdge sets the "job_position_edge" edge to the JobPosition entity.
 func (hjc *HiringJobCreate) SetJobPositionEdge(j *JobPosition) *HiringJobCreate {
 	return hjc.SetJobPositionEdgeID(j.ID)
+}
+
+// AddHiringJobStepIDs adds the "hiring_job_step" edge to the HiringJobStep entity by IDs.
+func (hjc *HiringJobCreate) AddHiringJobStepIDs(ids ...uuid.UUID) *HiringJobCreate {
+	hjc.mutation.AddHiringJobStepIDs(ids...)
+	return hjc
+}
+
+// AddHiringJobStep adds the "hiring_job_step" edges to the HiringJobStep entity.
+func (hjc *HiringJobCreate) AddHiringJobStep(h ...*HiringJobStep) *HiringJobCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return hjc.AddHiringJobStepIDs(ids...)
 }
 
 // Mutation returns the HiringJobMutation object of the builder.
@@ -691,6 +707,25 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.JobPositionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjc.mutation.HiringJobStepIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   hiringjob.HiringJobStepTable,
+			Columns: []string{hiringjob.HiringJobStepColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjobstep.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

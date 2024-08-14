@@ -53,6 +53,7 @@ type ResolverRoot interface {
 	EmailTemplate() EmailTemplateResolver
 	EntityPermission() EntityPermissionResolver
 	HiringJob() HiringJobResolver
+	HiringJobStep() HiringJobStepResolver
 	HiringTeam() HiringTeamResolver
 	HiringTeamApprover() HiringTeamApproverResolver
 	JobPosition() JobPositionResolver
@@ -602,6 +603,7 @@ type ComplexityRoot struct {
 		SalaryType               func(childComplexity int) int
 		Slug                     func(childComplexity int) int
 		Status                   func(childComplexity int) int
+		Steps                    func(childComplexity int) int
 		TotalCandidatesRecruited func(childComplexity int) int
 		UpdatedAt                func(childComplexity int) int
 		User                     func(childComplexity int) int
@@ -634,6 +636,13 @@ type ComplexityRoot struct {
 	HiringJobSelectionResponseGetAll struct {
 		Edges      func(childComplexity int) int
 		Pagination func(childComplexity int) int
+	}
+
+	HiringJobStep struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Type      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	HiringTeam struct {
@@ -1329,6 +1338,12 @@ type HiringJobResolver interface {
 	IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error)
 
 	EntitySkillTypes(ctx context.Context, obj *ent.HiringJob) ([]*ent.EntitySkillType, error)
+
+	Steps(ctx context.Context, obj *ent.HiringJob) ([]*ent.HiringJobStep, error)
+}
+type HiringJobStepResolver interface {
+	ID(ctx context.Context, obj *ent.HiringJobStep) (string, error)
+	Type(ctx context.Context, obj *ent.HiringJobStep) (ent.HiringJobStepTypeEnum, error)
 }
 type HiringTeamResolver interface {
 	ID(ctx context.Context, obj *ent.HiringTeam) (string, error)
@@ -3833,6 +3848,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJob.Status(childComplexity), true
 
+	case "HiringJob.steps":
+		if e.complexity.HiringJob.Steps == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.Steps(childComplexity), true
+
 	case "HiringJob.total_candidates_recruited":
 		if e.complexity.HiringJob.TotalCandidatesRecruited == nil {
 			break
@@ -3930,6 +3952,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJobSelectionResponseGetAll.Pagination(childComplexity), true
+
+	case "HiringJobStep.created_at":
+		if e.complexity.HiringJobStep.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.CreatedAt(childComplexity), true
+
+	case "HiringJobStep.id":
+		if e.complexity.HiringJobStep.ID == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.ID(childComplexity), true
+
+	case "HiringJobStep.type":
+		if e.complexity.HiringJobStep.Type == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.Type(childComplexity), true
+
+	case "HiringJobStep.updated_at":
+		if e.complexity.HiringJobStep.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.UpdatedAt(childComplexity), true
 
 	case "HiringTeam.approvers":
 		if e.complexity.HiringTeam.Approvers == nil {
@@ -8273,6 +8323,7 @@ type HiringJob {
   created_at: Time!
   updated_at: Time!
   deleted_at: Time
+  steps: [HiringJobStep!]
 }
 
 type HiringJobResponse {
@@ -8306,6 +8357,18 @@ type HiringJobSelectionResponseGetAll {
 
 # Path: schema/hiring_job.graphql
 `, BuiltIn: false},
+	{Name: "../schema/hiring_job_step.graphql", Input: `enum HiringJobStepTypeEnum {
+  created
+  opened
+  closed
+}
+
+type HiringJobStep {
+  id: ID!
+  type: HiringJobStepTypeEnum!
+  created_at: Time!
+  updated_at: Time!
+}`, BuiltIn: false},
 	{Name: "../schema/hiring_team.graphql", Input: `enum HiringTeamOrderByField {
   name
   created_at
@@ -21262,6 +21325,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_updated_at(ctx, field)
 			case "deleted_at":
 				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -28934,6 +28999,57 @@ func (ec *executionContext) fieldContext_HiringJob_deleted_at(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJob_steps(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_steps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJob().Steps(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringJobStep)
+	fc.Result = res
+	return ec.marshalOHiringJobStep2ᚕᚖtrecᚋentᚐHiringJobStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_steps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringJobStep_id(ctx, field)
+			case "type":
+				return ec.fieldContext_HiringJobStep_type(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringJobStep_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringJobStep_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJobStep", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJobEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJobEdge_node(ctx, field)
 	if err != nil {
@@ -29019,6 +29135,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_updated_at(ctx, field)
 			case "deleted_at":
 				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -29152,6 +29270,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_updated_at(ctx, field)
 			case "deleted_at":
 				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -29540,6 +29660,182 @@ func (ec *executionContext) fieldContext_HiringJobSelectionResponseGetAll_pagina
 				return ec.fieldContext_Pagination_total(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJobStep().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_type(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJobStep().Type(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.HiringJobStepTypeEnum)
+	fc.Result = res
+	return ec.marshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type HiringJobStepTypeEnum does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -58429,6 +58725,23 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._HiringJob_deleted_at(ctx, field, obj)
 
+		case "steps":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJob_steps(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -58628,6 +58941,81 @@ func (ec *executionContext) _HiringJobSelectionResponseGetAll(ctx context.Contex
 
 			if out.Values[i] == graphql.Null {
 				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringJobStepImplementors = []string{"HiringJobStep"}
+
+func (ec *executionContext) _HiringJobStep(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringJobStep) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringJobStepImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringJobStep")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJobStep_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "type":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJobStep_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "created_at":
+
+			out.Values[i] = ec._HiringJobStep_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._HiringJobStep_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -66130,6 +66518,26 @@ func (ec *executionContext) marshalNHiringJobStatus2trecᚋentᚐHiringJobStatus
 	return v
 }
 
+func (ec *executionContext) marshalNHiringJobStep2ᚖtrecᚋentᚐHiringJobStep(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJobStep) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringJobStep(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx context.Context, v interface{}) (ent.HiringJobStepTypeEnum, error) {
+	var res ent.HiringJobStepTypeEnum
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx context.Context, sel ast.SelectionSet, v ent.HiringJobStepTypeEnum) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNHiringTeam2trecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v ent.HiringTeam) graphql.Marshaler {
 	return ec._HiringTeam(ctx, sel, &v)
 }
@@ -70464,6 +70872,53 @@ func (ec *executionContext) marshalOHiringJobStatus2ᚖtrecᚋentᚐHiringJobSta
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOHiringJobStep2ᚕᚖtrecᚋentᚐHiringJobStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringJobStep) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHiringJobStep2ᚖtrecᚋentᚐHiringJobStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeam) graphql.Marshaler {

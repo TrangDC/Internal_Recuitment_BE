@@ -640,6 +640,26 @@ func (hj *HiringJob) JobPositionEdge(ctx context.Context) (*JobPosition, error) 
 	return result, MaskNotFound(err)
 }
 
+func (hj *HiringJob) HiringJobStep(ctx context.Context) (result []*HiringJobStep, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = hj.NamedHiringJobStep(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = hj.Edges.HiringJobStepOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = hj.QueryHiringJobStep().All(ctx)
+	}
+	return result, err
+}
+
+func (hjs *HiringJobStep) HiringJobEdge(ctx context.Context) (*HiringJob, error) {
+	result, err := hjs.Edges.HiringJobEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hjs.QueryHiringJobEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (ht *HiringTeam) HiringTeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ht.NamedHiringTeamJobEdges(graphql.GetFieldContext(ctx).Field.Alias)

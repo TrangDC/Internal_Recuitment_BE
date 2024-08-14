@@ -1979,6 +1979,18 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.withJobPositionEdge = query
+		case "hiringJobStep":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobStepQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.WithNamedHiringJobStep(alias, func(wq *HiringJobStepQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -2026,6 +2038,85 @@ func newHiringJobPaginateArgs(rv map[string]interface{}) *hiringjobPaginateArgs 
 		case *HiringJobOrder:
 			if v != nil {
 				args.opts = append(args.opts, WithHiringJobOrder(v))
+			}
+		}
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (hjs *HiringJobStepQuery) CollectFields(ctx context.Context, satisfies ...string) (*HiringJobStepQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return hjs, nil
+	}
+	if err := hjs.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return hjs, nil
+}
+
+func (hjs *HiringJobStepQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "hiringJobEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: hjs.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hjs.withHiringJobEdge = query
+		}
+	}
+	return nil
+}
+
+type hiringjobstepPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []HiringJobStepPaginateOption
+}
+
+func newHiringJobStepPaginateArgs(rv map[string]interface{}) *hiringjobstepPaginateArgs {
+	args := &hiringjobstepPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &HiringJobStepOrder{Field: &HiringJobStepOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithHiringJobStepOrder(order))
+			}
+		case *HiringJobStepOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithHiringJobStepOrder(v))
 			}
 		}
 	}

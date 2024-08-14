@@ -1,0 +1,12 @@
+enum HiringJobStepTypeEnum {
+  created
+  opened
+  closed
+}
+
+type HiringJobStep {
+  id: ID!
+  type: HiringJobStepTypeEnum!
+  created_at: Time!
+  updated_at: Time!
+}
