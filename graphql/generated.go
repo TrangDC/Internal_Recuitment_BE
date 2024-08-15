@@ -806,12 +806,14 @@ type ComplexityRoot struct {
 
 	OutgoingEmail struct {
 		Content       func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		RecipientType func(childComplexity int) int
 		Signature     func(childComplexity int) int
 		Status        func(childComplexity int) int
 		Subject       func(childComplexity int) int
 		To            func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
 	}
 
 	OutgoingEmailEdge struct {
@@ -5050,6 +5052,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OutgoingEmail.Content(childComplexity), true
 
+	case "OutgoingEmail.created_at":
+		if e.complexity.OutgoingEmail.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.OutgoingEmail.CreatedAt(childComplexity), true
+
 	case "OutgoingEmail.id":
 		if e.complexity.OutgoingEmail.ID == nil {
 			break
@@ -5091,6 +5100,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OutgoingEmail.To(childComplexity), true
+
+	case "OutgoingEmail.updated_at":
+		if e.complexity.OutgoingEmail.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.OutgoingEmail.UpdatedAt(childComplexity), true
 
 	case "OutgoingEmailEdge.cursor":
 		if e.complexity.OutgoingEmailEdge.Cursor == nil {
@@ -8864,6 +8880,8 @@ type OutgoingEmail {
   signature: String!
   recipient_type: OutgoingEmailRecipientType!
   status: OutgoingEmailStatus!
+  created_at: Time!
+  updated_at: Time
 }
 
 type OutgoingEmailResponse {
@@ -16550,6 +16568,10 @@ func (ec *executionContext) fieldContext_CandidateActivity_outgoing_emails(ctx c
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "created_at":
+				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_OutgoingEmail_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OutgoingEmail", field.Name)
 		},
@@ -36149,6 +36171,91 @@ func (ec *executionContext) fieldContext_OutgoingEmail_status(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _OutgoingEmail_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.OutgoingEmail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OutgoingEmail_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OutgoingEmail_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OutgoingEmail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OutgoingEmail_updated_at(ctx context.Context, field graphql.CollectedField, obj *ent.OutgoingEmail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OutgoingEmail_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OutgoingEmail_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OutgoingEmail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OutgoingEmailEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.OutgoingEmailEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OutgoingEmailEdge_node(ctx, field)
 	if err != nil {
@@ -36202,6 +36309,10 @@ func (ec *executionContext) fieldContext_OutgoingEmailEdge_node(ctx context.Cont
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "created_at":
+				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_OutgoingEmail_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OutgoingEmail", field.Name)
 		},
@@ -36306,6 +36417,10 @@ func (ec *executionContext) fieldContext_OutgoingEmailResponse_data(ctx context.
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "created_at":
+				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_OutgoingEmail_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OutgoingEmail", field.Name)
 		},
@@ -61852,6 +61967,17 @@ func (ec *executionContext) _OutgoingEmail(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
+		case "created_at":
+
+			out.Values[i] = ec._OutgoingEmail_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._OutgoingEmail_updated_at(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

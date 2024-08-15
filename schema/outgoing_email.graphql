@@ -40,6 +40,8 @@ type OutgoingEmail {
   signature: String!
   recipient_type: OutgoingEmailRecipientType!
   status: OutgoingEmailStatus!
+  created_at: Time!
+  updated_at: Time
 }
 
 type OutgoingEmailResponse {
