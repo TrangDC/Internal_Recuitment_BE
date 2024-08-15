@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -14,6 +15,8 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/permission"
+	"trec/ent/predicate"
+	"trec/ent/recteam"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/user"
@@ -278,11 +281,12 @@ func (rps *candidateInterviewRepoImpl) CallbackInterviewSchedule(ctx context.Con
 
 // common function
 func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate) (string, error, error) {
-	record, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(input.CandidateJobId), candidatejob.DeletedAtIsNil()).WithHiringJobEdge(
-		func(query *ent.HiringJobQuery) {
+	record, err := rps.client.CandidateJob.Query().Where(candidatejob.IDEQ(input.CandidateJobId), candidatejob.DeletedAtIsNil()).
+		WithHiringJobEdge(func(query *ent.HiringJobQuery) {
 			query.Where(hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusOpened))
-		},
-	).WithCandidateEdge().First(ctx)
+		}).
+		WithCandidateEdge().
+		First(ctx)
 	if err != nil {
 		return "", fmt.Errorf("model.candidate_interviews.validation.candidate_job_not_found"), nil
 	}
@@ -292,18 +296,10 @@ func (rps *candidateInterviewRepoImpl) ValidateInput(ctx context.Context, candid
 	if record.Edges.HiringJobEdge == nil {
 		return "", fmt.Errorf("model.candidate_interviews.validation.job_close"), nil
 	}
-	if ent.CandidateJobStatusEnded.IsValid(ent.CandidateJobStatusEnded(record.Status.String())) || record.Status == candidatejob.StatusOffering {
-		return "", fmt.Errorf("model.candidate_interviews.validation.candidate_job_status_ended"), nil
+	if record.Status != candidatejob.StatusInterviewing {
+		return "", fmt.Errorf("model.candidate_interviews.validation.invalid_candidate_job_status"), nil
 	}
-	stringError, err := rps.ValidTitle(ctx, input.CandidateJobId, candidateInterviewId, input.Title, record.Status.String())
-	if err != nil || stringError != nil {
-		return "", stringError, err
-	}
-	stringError, err = rps.ValidateSchedule(ctx, candidateInterviewId, input.CandidateJobId, input.InterviewDate, input.StartFrom, input.EndAt)
-	if err != nil || stringError != nil {
-		return "", stringError, err
-	}
-	stringError, err = rps.validInterviewer(ctx, input.Interviewer)
+	stringError, err := rps.ValidateSchedule(ctx, candidateInterviewId, input, record.CandidateID)
 	if err != nil || stringError != nil {
 		return "", stringError, err
 	}
@@ -332,22 +328,26 @@ func (rps *candidateInterviewRepoImpl) ValidateCreateBulkInput(ctx context.Conte
 		return nil, fmt.Errorf("model.candidate_interviews.validation.candidate_is_blacklist"), nil
 	}
 	// validate candidate job
-	candidateJobs, err := rps.client.CandidateJob.Query().Where(
-		candidatejob.CandidateIDIn(candidateIds...), candidatejob.DeletedAtIsNil(),
-		candidatejob.HiringJobIDEQ(uuid.MustParse(input.JobID)), candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing)).All(ctx)
+	candidateJobs, err := rps.client.CandidateJob.Query().
+		Where(
+			candidatejob.CandidateIDIn(candidateIds...), candidatejob.DeletedAtIsNil(),
+			candidatejob.HiringJobIDEQ(uuid.MustParse(input.JobID)), candidatejob.StatusEQ(candidatejob.StatusInterviewing),
+		).
+		All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	if len(candidateJobs) < len(candidateIds) {
 		return nil, fmt.Errorf("model.candidate_interviews.validation.candidate_job_not_found"), nil
 	}
-	// validate title
 	for _, record := range candidateJobs {
-		stringError, err := rps.ValidTitle(ctx, record.ID, uuid.Nil, input.Title, record.Status.String())
-		if err != nil || stringError != nil {
-			return nil, stringError, err
+		if record.Status != candidatejob.StatusInterviewing {
+			return nil, fmt.Errorf("model.candidate_interviews.validation.invalid_candidate_job_status"), nil
 		}
-		stringError, err = rps.ValidateSchedule(ctx, uuid.Nil, record.ID, &input.InterviewDate, &input.StartFrom, &input.EndAt)
+		var inputValidate models.CandidateInterviewInputValidate
+		jsonString, _ := json.Marshal(input)
+		_ = json.Unmarshal(jsonString, &inputValidate)
+		stringError, err := rps.ValidateSchedule(ctx, uuid.Nil, inputValidate, record.CandidateID)
 		if err != nil || stringError != nil {
 			return nil, stringError, err
 		}
@@ -355,27 +355,10 @@ func (rps *candidateInterviewRepoImpl) ValidateCreateBulkInput(ctx context.Conte
 	return candidateJobs, nil, nil
 }
 
-func (rps *candidateInterviewRepoImpl) ValidTitle(ctx context.Context, candidateJobId uuid.UUID, candidateInterviewId uuid.UUID, title string, status string) (error, error) {
-	query := rps.BuildQuery().Where(candidateinterview.TitleEqualFold(title),
-		candidateinterview.CandidateJobStatusEQ(candidateinterview.CandidateJobStatus(status)),
-		candidateinterview.CandidateJobID(candidateJobId))
-	if candidateInterviewId != uuid.Nil {
-		query = query.Where(candidateinterview.IDNEQ(candidateInterviewId))
-	}
-	isExist, err := rps.BuildExist(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if isExist {
-		return nil, fmt.Errorf("model.candidate_interviews.validation.title_exist")
-	}
-	return nil, nil
-}
-
-func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, candidateJobId uuid.UUID, interviewDate, startFrom, endAt *time.Time) (error, error) {
+func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, candidateInterviewId uuid.UUID, input models.CandidateInterviewInputValidate, candidateID uuid.UUID) (error, error) {
 	currentDate := time.Now().UTC()
 	currentDate = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 0, 0, 0, 0, time.UTC).Add(-(time.Hour * 12))
-	if currentDate.After(*interviewDate) {
+	if currentDate.After(input.InterviewDate) {
 		return fmt.Errorf("model.candidate_interviews.validation.interview_date_is_past"), nil
 	}
 	// timeDifference := interviewDate.Sub(currentDate).Minutes()
@@ -387,48 +370,68 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	// }
 	utcTime := time.Now().UTC()
 	currentTime := time.Date(utcTime.Year(), utcTime.Month(), utcTime.Day(), utcTime.Hour(), utcTime.Minute(), 0, 0, time.UTC)
-	if currentTime.After(*startFrom) {
+	if currentTime.After(input.StartFrom) {
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_is_past"), nil
 	}
-	if startFrom.After(*endAt) {
+	if input.StartFrom.After(input.EndAt) {
 		return fmt.Errorf("model.candidate_interviews.validation.start_from_end_at_invalid"), nil
 	}
-	query := rps.client.CandidateInterview.Query().
-		Where(candidateinterview.CandidateJobID(candidateJobId), candidateinterview.DeletedAtIsNil(),
-			candidateinterview.InterviewDateEQ(*interviewDate))
-	if candidateInterviewId != uuid.Nil {
-		query.Where(candidateinterview.IDNEQ(candidateInterviewId))
+	interviewPredicates := []predicate.CandidateInterview{
+		candidateinterview.DeletedAtIsNil(),
+		candidateinterview.InterviewDateEQ(input.InterviewDate),
+		candidateinterview.Or(
+			candidateinterview.And(candidateinterview.StartFromLTE(input.StartFrom), candidateinterview.EndAtGTE(input.EndAt)), // outside
+			candidateinterview.And(candidateinterview.StartFromGTE(input.StartFrom), candidateinterview.EndAtLTE(input.EndAt)), // inside
+			candidateinterview.StartFromIn(input.StartFrom, input.EndAt),
+			candidateinterview.EndAtIn(input.StartFrom, input.EndAt),
+		),
 	}
-	query.Where(candidateinterview.Or(
-		candidateinterview.And(candidateinterview.StartFromLTE(*startFrom), candidateinterview.EndAtGTE(*endAt)), // outside
-		candidateinterview.And(candidateinterview.StartFromGTE(*startFrom), candidateinterview.EndAtLTE(*endAt)), // inside
-		candidateinterview.StartFromIn(*startFrom, *endAt),
-		candidateinterview.EndAtIn(*startFrom, *endAt)),
-	)
-	exist, err := query.Exist(ctx)
+	if candidateInterviewId != uuid.Nil {
+		interviewPredicates = append(interviewPredicates, candidateinterview.IDNEQ(candidateInterviewId))
+	}
+	// Valid candidate schedule
+	otherCdJobIDs, err := rps.client.CandidateJob.Query().
+		Where(candidatejob.DeletedAtIsNil(), candidatejob.CandidateID(candidateID), candidatejob.StatusEQ(candidatejob.StatusInterviewing)).
+		IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	busyCandidatePredicates := interviewPredicates
+	busyCandidatePredicates = append(busyCandidatePredicates, candidateinterview.CandidateJobIDIn(otherCdJobIDs...))
+	exist, err := rps.client.CandidateInterview.Query().Where(busyCandidatePredicates...).Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if exist {
-		return fmt.Errorf("model.candidate_interviews.validation.schedule_exist"), nil
+		return fmt.Errorf("model.candidate_interviews.validation.candidate_schedule_exist"), nil
 	}
-	return nil, nil
-}
-
-func (rps *candidateInterviewRepoImpl) validInterviewer(ctx context.Context, interviewers []string) (error, error) {
-	query := rps.client.User.Query().Where(user.IDIn(lo.Map(interviewers, func(item string, index int) uuid.UUID {
-		return uuid.MustParse(item)
-	})...), user.HasUserPermissionEdgesWith(
-		entitypermission.HasPermissionEdgesWith(
-			permission.OperationNameEQ(models.BeInterviewer),
-		),
-	))
-	users, err := query.All(ctx)
+	// Valid interviewer schedule
+	busyInterviewerNames := make([]string, 0)
+	beInterviewerPermissionID, err := rps.client.Permission.Query().Where(permission.OperationNameEQ(models.BeInterviewer)).FirstID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(users) != len(interviewers) {
-		return fmt.Errorf("model.candidate_interviews.validation.interviewer_not_have_permission"), nil
+	for _, idStr := range input.Interviewer {
+		userRec, err := rps.client.User.Query().Where(user.ID(uuid.MustParse(idStr))).
+			WithHiringTeamEdges(func(query *ent.HiringTeamQuery) { query.Where(hiringteam.DeletedAtIsNil()) }).
+			WithLeaderRecEdge(func(query *ent.RecTeamQuery) { query.Where(recteam.DeletedAtIsNil()) }).
+			WithUserPermissionEdges(func(query *ent.EntityPermissionQuery) {
+				query.Where(entitypermission.PermissionID(beInterviewerPermissionID))
+			}).
+			WithInterviewEdges(func(query *ent.CandidateInterviewQuery) { query.Where(interviewPredicates...) }).
+			First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if len(userRec.Edges.HiringTeamEdges) == 0 && userRec.Edges.LeaderRecEdge != nil && len(userRec.Edges.UserPermissionEdges) == 0 {
+			return fmt.Errorf("model.candidate_interviews.validation.interviewer_not_have_permission"), nil
+		}
+		if len(userRec.Edges.InterviewEdges) > 0 {
+			busyInterviewerNames = append(busyInterviewerNames, userRec.Name)
+		}
+	}
+	if len(busyInterviewerNames) > 0 {
+		return fmt.Errorf("The following interviewers have another interview at this time and are not available: %s", strings.Join(busyInterviewerNames, ", ")), nil
 	}
 	return nil, nil
 }

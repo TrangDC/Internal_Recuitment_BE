@@ -298,7 +298,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "title", Type: field.TypeString, Size: 256},
+		{Name: "title", Type: field.TypeString, Size: 64},
 		{Name: "candidate_job_status", Type: field.TypeEnum, Enums: []string{"applied", "interviewing", "offering", "hired", "failed_cv", "failed_interview", "offer_lost", "ex_staff"}, Default: "applied"},
 		{Name: "interview_date", Type: field.TypeTime, Nullable: true},
 		{Name: "start_from", Type: field.TypeTime, Nullable: true},
