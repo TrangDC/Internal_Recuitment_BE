@@ -273,6 +273,7 @@ type ComplexityRoot struct {
 	}
 
 	CandidateHistoryCall struct {
+		Attachments func(childComplexity int) int
 		Candidate   func(childComplexity int) int
 		CandidateID func(childComplexity int) int
 		ContactTo   func(childComplexity int) int
@@ -899,6 +900,7 @@ type ComplexityRoot struct {
 		GetCandidateJobFeedback                       func(childComplexity int, id string) int
 		GetCandidateJobGroupByInterview               func(childComplexity int, id string) int
 		GetCandidateJobGroupByStatus                  func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateJobGroupByStatusFilter, freeWord *ent.CandidateJobGroupByStatusFreeWord, orderBy *ent.CandidateJobByOrder) int
+		GetCandidateNote                              func(childComplexity int, id string) int
 		GetEmailTemplate                              func(childComplexity int, id string) int
 		GetHiringJob                                  func(childComplexity int, id string) int
 		GetHiringTeam                                 func(childComplexity int, id string) int
@@ -1282,6 +1284,7 @@ type CandidateHistoryCallResolver interface {
 	Candidate(ctx context.Context, obj *ent.CandidateHistoryCall) (*ent.Candidate, error)
 	Edited(ctx context.Context, obj *ent.CandidateHistoryCall) (bool, error)
 
+	Attachments(ctx context.Context, obj *ent.CandidateHistoryCall) ([]*ent.Attachment, error)
 	CreatedBy(ctx context.Context, obj *ent.CandidateHistoryCall) (*ent.User, error)
 }
 type CandidateInterviewResolver interface {
@@ -1516,6 +1519,7 @@ type QueryResolver interface {
 	ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error)
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
 	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
+	GetCandidateNote(ctx context.Context, id string) (*ent.CandidateNoteResponse, error)
 	GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error)
 	GetCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord, orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error)
 	GetAllOutgoingEmails(ctx context.Context, pagination *ent.PaginationInput, filter ent.OutgoingEmailFilter, freeWord *ent.OutgoingEmailFreeWord, orderBy *ent.OutgoingEmailOrder) (*ent.OutgoingEmailResponseGetAll, error)
@@ -2488,6 +2492,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateExp.UpdatedAt(childComplexity), true
+
+	case "CandidateHistoryCall.attachments":
+		if e.complexity.CandidateHistoryCall.Attachments == nil {
+			break
+		}
+
+		return e.complexity.CandidateHistoryCall.Attachments(childComplexity), true
 
 	case "CandidateHistoryCall.candidate":
 		if e.complexity.CandidateHistoryCall.Candidate == nil {
@@ -5606,6 +5617,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCandidateJobGroupByStatus(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.CandidateJobGroupByStatusFilter), args["freeWord"].(*ent.CandidateJobGroupByStatusFreeWord), args["orderBy"].(*ent.CandidateJobByOrder)), true
 
+	case "Query.GetCandidateNote":
+		if e.complexity.Query.GetCandidateNote == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetCandidateNote_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCandidateNote(childComplexity, args["id"].(string)), true
+
 	case "Query.GetEmailTemplate":
 		if e.complexity.Query.GetEmailTemplate == nil {
 			break
@@ -7181,7 +7204,8 @@ input CandidateActivityOrder {
 
 type CandidateActivityResponse {
   data: CandidateActivity!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../schema/candidate_award.graphql", Input: `type CandidateAward {
   id: ID!
   name: String!
@@ -7316,6 +7340,7 @@ type CandidateHistoryCall {
   candidate: Candidate!
   edited: Boolean!
   description: String!
+  attachments: [Attachment!]!
   created_by: User!
   createdAt: Time!
   updatedAt: Time!
@@ -7330,6 +7355,7 @@ input NewCandidateHistoryCallInput {
   start_time: Time
   end_time: Time
   description: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input UpdateCandidateHistoryCallInput {
@@ -7340,6 +7366,7 @@ input UpdateCandidateHistoryCallInput {
   start_time: Time
   end_time: Time
   description: String!
+  attachments: [NewAttachmentInput!]
 }
 
 type CandidateHistoryCallResponse {
@@ -8963,6 +8990,7 @@ enum PermissionGroupType {
   ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 
   # CandidateNote
+  GetCandidateNote(id: ID!): CandidateNoteResponse!
   GetAllCandidateNotes(pagination: PaginationInput, filter: CandidateNoteFilter, freeWord: CandidateNoteFreeWord, orderBy: CandidateNoteOrder): CandidateNoteResponseGetAll!
 
   # CandidateActivity
@@ -11956,6 +11984,21 @@ func (ec *executionContext) field_Query_GetCandidateJobGroupByStatus_args(ctx co
 }
 
 func (ec *executionContext) field_Query_GetCandidateJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetCandidateNote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -16343,6 +16386,8 @@ func (ec *executionContext) fieldContext_CandidateActivity_candidate_history_cal
 				return ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
 			case "description":
 				return ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateHistoryCall_attachments(ctx, field)
 			case "created_by":
 				return ec.fieldContext_CandidateHistoryCall_created_by(ctx, field)
 			case "createdAt":
@@ -19420,6 +19465,58 @@ func (ec *executionContext) fieldContext_CandidateHistoryCall_description(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateHistoryCall_attachments(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateHistoryCall_attachments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateHistoryCall().Attachments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Attachment)
+	fc.Result = res
+	return ec.marshalNAttachment2ᚕᚖtrecᚋentᚐAttachmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateHistoryCall_attachments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateHistoryCall",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Attachment_id(ctx, field)
+			case "document_name":
+				return ec.fieldContext_Attachment_document_name(ctx, field)
+			case "document_id":
+				return ec.fieldContext_Attachment_document_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Attachment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateHistoryCall_created_by(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateHistoryCall) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateHistoryCall_created_by(ctx, field)
 	if err != nil {
@@ -19637,6 +19734,8 @@ func (ec *executionContext) fieldContext_CandidateHistoryCallEdge_node(ctx conte
 				return ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
 			case "description":
 				return ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateHistoryCall_attachments(ctx, field)
 			case "created_by":
 				return ec.fieldContext_CandidateHistoryCall_created_by(ctx, field)
 			case "createdAt":
@@ -19755,6 +19854,8 @@ func (ec *executionContext) fieldContext_CandidateHistoryCallResponse_data(ctx c
 				return ec.fieldContext_CandidateHistoryCall_edited(ctx, field)
 			case "description":
 				return ec.fieldContext_CandidateHistoryCall_description(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateHistoryCall_attachments(ctx, field)
 			case "created_by":
 				return ec.fieldContext_CandidateHistoryCall_created_by(ctx, field)
 			case "createdAt":
@@ -40322,6 +40423,65 @@ func (ec *executionContext) fieldContext_Query_ReportCandidateConversionRateTabl
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetCandidateNote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetCandidateNote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCandidateNote(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.CandidateNoteResponse)
+	fc.Result = res
+	return ec.marshalNCandidateNoteResponse2ᚖtrecᚋentᚐCandidateNoteResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetCandidateNote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CandidateNoteResponse_data(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateNoteResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetCandidateNote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_GetAllCandidateNotes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_GetAllCandidateNotes(ctx, field)
 	if err != nil {
@@ -51876,7 +52036,7 @@ func (ec *executionContext) unmarshalInputNewCandidateHistoryCallInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "candidate_id", "type", "contact_to", "date", "start_time", "end_time", "description"}
+	fieldsInOrder := [...]string{"name", "candidate_id", "type", "contact_to", "date", "start_time", "end_time", "description", "attachments"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -51944,6 +52104,14 @@ func (ec *executionContext) unmarshalInputNewCandidateHistoryCallInput(ctx conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -53756,7 +53924,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateHistoryCallInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "contact_to", "type", "date", "start_time", "end_time", "description"}
+	fieldsInOrder := [...]string{"name", "contact_to", "type", "date", "start_time", "end_time", "description", "attachments"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53816,6 +53984,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateHistoryCallInput(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "attachments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
+			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56935,6 +57111,26 @@ func (ec *executionContext) _CandidateHistoryCall(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "attachments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateHistoryCall_attachments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "created_by":
 			field := field
 
@@ -63174,6 +63370,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_ReportCandidateConversionRateTable(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetCandidateNote":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetCandidateNote(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

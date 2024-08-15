@@ -38,6 +38,7 @@ type CandidateHistoryCall {
   candidate: Candidate!
   edited: Boolean!
   description: String!
+  attachments: [Attachment!]!
   created_by: User!
   createdAt: Time!
   updatedAt: Time!
@@ -52,6 +53,7 @@ input NewCandidateHistoryCallInput {
   start_time: Time
   end_time: Time
   description: String!
+  attachments: [NewAttachmentInput!]
 }
 
 input UpdateCandidateHistoryCallInput {
@@ -62,6 +64,7 @@ input UpdateCandidateHistoryCallInput {
   start_time: Time
   end_time: Time
   description: String!
+  attachments: [NewAttachmentInput!]
 }
 
 type CandidateHistoryCallResponse {

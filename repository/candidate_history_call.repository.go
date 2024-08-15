@@ -47,7 +47,7 @@ func (rps *candidateHistoryCallRepoImpl) BuildDelete() *ent.CandidateHistoryCall
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildQuery() *ent.CandidateHistoryCallQuery {
-	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil()).WithCreatedByEdge().WithCandidateEdge()
+	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil()).WithCreatedByEdge().WithCandidateEdge().WithAttachmentEdges()
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateHistoryCallQuery) (*ent.CandidateHistoryCall, error) {
@@ -85,10 +85,10 @@ func (rps *candidateHistoryCallRepoImpl) CreateCandidateHistoryCall(ctx context.
 		SetContactTo(strings.TrimSpace(input.ContactTo)).
 		SetType(candidatehistorycall.Type(input.Type)).
 		SetDescription(strings.TrimSpace(input.Description))
-	if !input.StartTime.IsZero() {
+	if input.StartTime != nil && !input.StartTime.IsZero() {
 		create.SetStartTime(*input.StartTime)
 	}
-	if !input.EndTime.IsZero() {
+	if input.EndTime != nil && !input.EndTime.IsZero() {
 		create.SetEndTime(*input.EndTime)
 	}
 	return create.Save(ctx)
@@ -101,12 +101,12 @@ func (rps *candidateHistoryCallRepoImpl) UpdateCandidateHistoryCall(ctx context.
 		SetContactTo(strings.TrimSpace(input.ContactTo)).
 		SetType(candidatehistorycall.Type(input.Type)).
 		SetDescription(strings.TrimSpace(input.Description))
-	if !input.StartTime.IsZero() {
+	if input.StartTime != nil && !input.StartTime.IsZero() {
 		update.SetStartTime(*input.StartTime)
 	} else {
 		update.ClearStartTime()
 	}
-	if !input.EndTime.IsZero() {
+	if input.EndTime != nil && !input.EndTime.IsZero() {
 		update.SetEndTime(*input.EndTime)
 	} else {
 		update.ClearEndTime()

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidatehistorycall"
 	"trec/ent/predicate"
@@ -29,16 +30,18 @@ type CandidateHistoryCallService interface {
 }
 
 type candidateHistoryCallSvcImpl struct {
-	repoRegistry repository.Repository
-	dtoRegistry  dto.Dto
-	logger       *zap.Logger
+	attachmentSvc AttachmentService
+	repoRegistry  repository.Repository
+	dtoRegistry   dto.Dto
+	logger        *zap.Logger
 }
 
 func NewCandidateHistoryCallService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) CandidateHistoryCallService {
 	return &candidateHistoryCallSvcImpl{
-		repoRegistry: repoRegistry,
-		dtoRegistry:  dtoRegistry,
-		logger:       logger,
+		attachmentSvc: NewAttachmentService(repoRegistry, logger),
+		repoRegistry:  repoRegistry,
+		dtoRegistry:   dtoRegistry,
+		logger:        logger,
 	}
 }
 
@@ -47,6 +50,12 @@ func (svc *candidateHistoryCallSvcImpl) CreateCandidateHistoryCall(ctx context.C
 	var err error
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.CandidateHistoryCall().CreateCandidateHistoryCall(ctx, input)
+		if err != nil {
+			return err
+		}
+		if input.Attachments != nil {
+			_, err = svc.attachmentSvc.CreateAttachment(ctx, input.Attachments, result.ID, attachment.RelationTypeCandidateHistoryCalls, repoRegistry)
+		}
 		return err
 	})
 	if err != nil {
@@ -76,6 +85,10 @@ func (svc *candidateHistoryCallSvcImpl) UpdateCandidateHistoryCall(ctx context.C
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.CandidateHistoryCall().UpdateCandidateHistoryCall(ctx, record, input)
+		if err != nil {
+			return err
+		}
+		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, record.ID, input.Attachments, record.Edges.AttachmentEdges, attachment.RelationTypeCandidateHistoryCalls)
 		return err
 	})
 	if err != nil {
@@ -97,25 +110,29 @@ func (svc *candidateHistoryCallSvcImpl) UpdateCandidateHistoryCall(ctx context.C
 }
 
 func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.Context, candidateHistoryCallId uuid.UUID, note string) error {
-	candidateHistoryCallRecord, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
+	record, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err = repoRegistry.CandidateHistoryCall().DeleteCandidateHistoryCall(ctx, candidateHistoryCallRecord)
+		_, err = repoRegistry.CandidateHistoryCall().DeleteCandidateHistoryCall(ctx, record)
+		if err != nil {
+			return err
+		}
+		err = svc.attachmentSvc.RemoveAttachment(ctx, record.ID, repoRegistry)
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	jsonString, err := svc.dtoRegistry.CandidateHistoryCall().AuditTrailDelete(candidateHistoryCallRecord)
+	jsonString, err := svc.dtoRegistry.CandidateHistoryCall().AuditTrailDelete(record)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, candidateHistoryCallRecord.ID, audittrail.ModuleCandidateHistoryCalls, jsonString, audittrail.ActionTypeDelete, note)
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleCandidateHistoryCalls, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}

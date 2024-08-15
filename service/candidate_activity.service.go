@@ -45,25 +45,29 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		page = *pagination.Page
 		perPage = *pagination.PerPage
 	}
-	var referenceModels []models.CandidateActivityReference
-	var candidateNoteResults []*ent.CandidateNote
-	var candidateHistoryCallResults []*ent.CandidateHistoryCall
-	var candidateInterviewResults []*ent.CandidateInterview
-	var outgoingEmailResutls []*ent.OutgoingEmail
+	referenceModels := []models.CandidateActivityReference{}
+	candidateNoteResults := []*ent.CandidateNote{}
+	candidateHistoryCallResults := []*ent.CandidateHistoryCall{}
+	candidateInterviewResults := []*ent.CandidateInterview{}
+	outgoingEmailResutls := []*ent.OutgoingEmail{}
 	// get candidate activities
-	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId)))
+	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().
+		Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
+		WithInterviewerEdges().WithCreatedByEdge()
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, candidateInterviewQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId))
+	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId)).
+		WithAttachmentEdges().WithCreatedByEdge()
 	candidateNotes, err := svc.repoRegistry.CandidateNote().BuildList(ctx, candidateNoteQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId))
+	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId)).
+		WithAttachmentEdges().WithCreatedByEdge()
 	candidateHistoryCalls, err := svc.repoRegistry.CandidateHistoryCall().BuildList(ctx, candidateHistoryCallQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -113,13 +117,14 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	if page != 0 && perPage != 0 {
 		start := (page - 1) * perPage
 		end := start + perPage
-		if start > len(referenceModels) {
+		switch {
+		case start > count:
 			return nil, nil
-		}
-		if start <= len(referenceModels) && end > len(referenceModels) {
+		case start <= count && end > count:
 			referenceModels = referenceModels[start:]
+		default:
+			referenceModels = referenceModels[start:end]
 		}
-		referenceModels = referenceModels[start:end]
 	}
 	for _, referenceModel := range referenceModels {
 		candidateNoteResults = append(candidateNoteResults, lo.Filter(candidateNotes, func(entity *ent.CandidateNote, index int) bool {

@@ -276,9 +276,14 @@ func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, 
 	return r.serviceRegistry.Report().ReportCandidateConversionRateTable(ctx, pagination, orderBy)
 }
 
+// GetCandidateNote is the resolver for the GetCandidateNote field.
+func (r *queryResolver) GetCandidateNote(ctx context.Context, id string) (*ent.CandidateNoteResponse, error) {
+	return r.serviceRegistry.CandidateNote().GetCandidateNote(ctx, uuid.MustParse(id))
+}
+
 // GetAllCandidateNotes is the resolver for the GetAllCandidateNotes field.
 func (r *queryResolver) GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error) {
-	return r.serviceRegistry.CandidateNote().GetCandidateNotes(ctx, pagination, filter, freeWord, orderBy)
+	return r.serviceRegistry.CandidateNote().GetAllCandidateNotes(ctx, pagination, filter, freeWord, orderBy)
 }
 
 // GetCandidateActivities is the resolver for the GetCandidateActivities field.

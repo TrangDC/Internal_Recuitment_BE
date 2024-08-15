@@ -92,6 +92,7 @@ type Query {
   ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 
   # CandidateNote
+  GetCandidateNote(id: ID!): CandidateNoteResponse!
   GetAllCandidateNotes(pagination: PaginationInput, filter: CandidateNoteFilter, freeWord: CandidateNoteFreeWord, orderBy: CandidateNoteOrder): CandidateNoteResponseGetAll!
 
   # CandidateActivity
