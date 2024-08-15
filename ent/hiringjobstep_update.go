@@ -10,6 +10,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -84,6 +85,26 @@ func (hjsu *HiringJobStepUpdate) ClearUpdatedAt() *HiringJobStepUpdate {
 	return hjsu
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (hjsu *HiringJobStepUpdate) SetCreatedByID(u uuid.UUID) *HiringJobStepUpdate {
+	hjsu.mutation.SetCreatedByID(u)
+	return hjsu
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (hjsu *HiringJobStepUpdate) SetNillableCreatedByID(u *uuid.UUID) *HiringJobStepUpdate {
+	if u != nil {
+		hjsu.SetCreatedByID(*u)
+	}
+	return hjsu
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (hjsu *HiringJobStepUpdate) ClearCreatedByID() *HiringJobStepUpdate {
+	hjsu.mutation.ClearCreatedByID()
+	return hjsu
+}
+
 // SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
 func (hjsu *HiringJobStepUpdate) SetHiringJobEdgeID(id uuid.UUID) *HiringJobStepUpdate {
 	hjsu.mutation.SetHiringJobEdgeID(id)
@@ -103,6 +124,25 @@ func (hjsu *HiringJobStepUpdate) SetHiringJobEdge(h *HiringJob) *HiringJobStepUp
 	return hjsu.SetHiringJobEdgeID(h.ID)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (hjsu *HiringJobStepUpdate) SetCreatedByEdgeID(id uuid.UUID) *HiringJobStepUpdate {
+	hjsu.mutation.SetCreatedByEdgeID(id)
+	return hjsu
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (hjsu *HiringJobStepUpdate) SetNillableCreatedByEdgeID(id *uuid.UUID) *HiringJobStepUpdate {
+	if id != nil {
+		hjsu = hjsu.SetCreatedByEdgeID(*id)
+	}
+	return hjsu
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (hjsu *HiringJobStepUpdate) SetCreatedByEdge(u *User) *HiringJobStepUpdate {
+	return hjsu.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the HiringJobStepMutation object of the builder.
 func (hjsu *HiringJobStepUpdate) Mutation() *HiringJobStepMutation {
 	return hjsu.mutation
@@ -111,6 +151,12 @@ func (hjsu *HiringJobStepUpdate) Mutation() *HiringJobStepMutation {
 // ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
 func (hjsu *HiringJobStepUpdate) ClearHiringJobEdge() *HiringJobStepUpdate {
 	hjsu.mutation.ClearHiringJobEdge()
+	return hjsu
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (hjsu *HiringJobStepUpdate) ClearCreatedByEdge() *HiringJobStepUpdate {
+	hjsu.mutation.ClearCreatedByEdge()
 	return hjsu
 }
 
@@ -246,6 +292,41 @@ func (hjsu *HiringJobStepUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if hjsu.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjobstep.CreatedByEdgeTable,
+			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hjsu.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjobstep.CreatedByEdgeTable,
+			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hjsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{hiringjobstep.Label}
@@ -319,6 +400,26 @@ func (hjsuo *HiringJobStepUpdateOne) ClearUpdatedAt() *HiringJobStepUpdateOne {
 	return hjsuo
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (hjsuo *HiringJobStepUpdateOne) SetCreatedByID(u uuid.UUID) *HiringJobStepUpdateOne {
+	hjsuo.mutation.SetCreatedByID(u)
+	return hjsuo
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (hjsuo *HiringJobStepUpdateOne) SetNillableCreatedByID(u *uuid.UUID) *HiringJobStepUpdateOne {
+	if u != nil {
+		hjsuo.SetCreatedByID(*u)
+	}
+	return hjsuo
+}
+
+// ClearCreatedByID clears the value of the "created_by_id" field.
+func (hjsuo *HiringJobStepUpdateOne) ClearCreatedByID() *HiringJobStepUpdateOne {
+	hjsuo.mutation.ClearCreatedByID()
+	return hjsuo
+}
+
 // SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
 func (hjsuo *HiringJobStepUpdateOne) SetHiringJobEdgeID(id uuid.UUID) *HiringJobStepUpdateOne {
 	hjsuo.mutation.SetHiringJobEdgeID(id)
@@ -338,6 +439,25 @@ func (hjsuo *HiringJobStepUpdateOne) SetHiringJobEdge(h *HiringJob) *HiringJobSt
 	return hjsuo.SetHiringJobEdgeID(h.ID)
 }
 
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (hjsuo *HiringJobStepUpdateOne) SetCreatedByEdgeID(id uuid.UUID) *HiringJobStepUpdateOne {
+	hjsuo.mutation.SetCreatedByEdgeID(id)
+	return hjsuo
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (hjsuo *HiringJobStepUpdateOne) SetNillableCreatedByEdgeID(id *uuid.UUID) *HiringJobStepUpdateOne {
+	if id != nil {
+		hjsuo = hjsuo.SetCreatedByEdgeID(*id)
+	}
+	return hjsuo
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (hjsuo *HiringJobStepUpdateOne) SetCreatedByEdge(u *User) *HiringJobStepUpdateOne {
+	return hjsuo.SetCreatedByEdgeID(u.ID)
+}
+
 // Mutation returns the HiringJobStepMutation object of the builder.
 func (hjsuo *HiringJobStepUpdateOne) Mutation() *HiringJobStepMutation {
 	return hjsuo.mutation
@@ -346,6 +466,12 @@ func (hjsuo *HiringJobStepUpdateOne) Mutation() *HiringJobStepMutation {
 // ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
 func (hjsuo *HiringJobStepUpdateOne) ClearHiringJobEdge() *HiringJobStepUpdateOne {
 	hjsuo.mutation.ClearHiringJobEdge()
+	return hjsuo
+}
+
+// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
+func (hjsuo *HiringJobStepUpdateOne) ClearCreatedByEdge() *HiringJobStepUpdateOne {
+	hjsuo.mutation.ClearCreatedByEdge()
 	return hjsuo
 }
 
@@ -503,6 +629,41 @@ func (hjsuo *HiringJobStepUpdateOne) sqlSave(ctx context.Context) (_node *Hiring
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hjsuo.mutation.CreatedByEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjobstep.CreatedByEdgeTable,
+			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hjsuo.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjobstep.CreatedByEdgeTable,
+			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

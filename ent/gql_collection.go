@@ -2082,6 +2082,16 @@ func (hjs *HiringJobStepQuery) collectField(ctx context.Context, op *graphql.Ope
 				return err
 			}
 			hjs.withHiringJobEdge = query
+		case "createdByEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: hjs.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hjs.withCreatedByEdge = query
 		}
 	}
 	return nil
@@ -3400,6 +3410,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedCandidateHistoryCallEdges(alias, func(wq *CandidateHistoryCallQuery) {
+				*wq = *query
+			})
+		case "hiringJobStepEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobStepQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedHiringJobStepEdges(alias, func(wq *HiringJobStepQuery) {
 				*wq = *query
 			})
 		case "interviewUsers":

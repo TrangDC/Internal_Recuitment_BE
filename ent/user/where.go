@@ -1359,6 +1359,34 @@ func HasCandidateHistoryCallEdgesWith(preds ...predicate.CandidateHistoryCall) p
 	})
 }
 
+// HasHiringJobStepEdges applies the HasEdge predicate on the "hiring_job_step_edges" edge.
+func HasHiringJobStepEdges() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobStepEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepEdgesTable, HiringJobStepEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHiringJobStepEdgesWith applies the HasEdge predicate on the "hiring_job_step_edges" edge with a given conditions (other predicates).
+func HasHiringJobStepEdgesWith(preds ...predicate.HiringJobStep) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HiringJobStepEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepEdgesTable, HiringJobStepEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasInterviewUsers applies the HasEdge predicate on the "interview_users" edge.
 func HasInterviewUsers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

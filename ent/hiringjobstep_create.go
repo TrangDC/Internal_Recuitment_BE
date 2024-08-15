@@ -9,6 +9,7 @@ import (
 	"time"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -78,6 +79,20 @@ func (hjsc *HiringJobStepCreate) SetNillableUpdatedAt(t *time.Time) *HiringJobSt
 	return hjsc
 }
 
+// SetCreatedByID sets the "created_by_id" field.
+func (hjsc *HiringJobStepCreate) SetCreatedByID(u uuid.UUID) *HiringJobStepCreate {
+	hjsc.mutation.SetCreatedByID(u)
+	return hjsc
+}
+
+// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
+func (hjsc *HiringJobStepCreate) SetNillableCreatedByID(u *uuid.UUID) *HiringJobStepCreate {
+	if u != nil {
+		hjsc.SetCreatedByID(*u)
+	}
+	return hjsc
+}
+
 // SetID sets the "id" field.
 func (hjsc *HiringJobStepCreate) SetID(u uuid.UUID) *HiringJobStepCreate {
 	hjsc.mutation.SetID(u)
@@ -101,6 +116,25 @@ func (hjsc *HiringJobStepCreate) SetNillableHiringJobEdgeID(id *uuid.UUID) *Hiri
 // SetHiringJobEdge sets the "hiring_job_edge" edge to the HiringJob entity.
 func (hjsc *HiringJobStepCreate) SetHiringJobEdge(h *HiringJob) *HiringJobStepCreate {
 	return hjsc.SetHiringJobEdgeID(h.ID)
+}
+
+// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
+func (hjsc *HiringJobStepCreate) SetCreatedByEdgeID(id uuid.UUID) *HiringJobStepCreate {
+	hjsc.mutation.SetCreatedByEdgeID(id)
+	return hjsc
+}
+
+// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
+func (hjsc *HiringJobStepCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *HiringJobStepCreate {
+	if id != nil {
+		hjsc = hjsc.SetCreatedByEdgeID(*id)
+	}
+	return hjsc
+}
+
+// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
+func (hjsc *HiringJobStepCreate) SetCreatedByEdge(u *User) *HiringJobStepCreate {
+	return hjsc.SetCreatedByEdgeID(u.ID)
 }
 
 // Mutation returns the HiringJobStepMutation object of the builder.
@@ -269,6 +303,26 @@ func (hjsc *HiringJobStepCreate) createSpec() (*HiringJobStep, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.HiringJobID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjsc.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjobstep.CreatedByEdgeTable,
+			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CreatedByID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

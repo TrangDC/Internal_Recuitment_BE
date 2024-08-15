@@ -9,6 +9,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
 	"trec/ent/predicate"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,6 +27,7 @@ type HiringJobStepQuery struct {
 	fields            []string
 	predicates        []predicate.HiringJobStep
 	withHiringJobEdge *HiringJobQuery
+	withCreatedByEdge *UserQuery
 	modifiers         []func(*sql.Selector)
 	loadTotal         []func(context.Context, []*HiringJobStep) error
 	// intermediate query (i.e. traversal path).
@@ -79,6 +81,28 @@ func (hjsq *HiringJobStepQuery) QueryHiringJobEdge() *HiringJobQuery {
 			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, selector),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.HiringJobEdgeTable, hiringjobstep.HiringJobEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
+func (hjsq *HiringJobStepQuery) QueryCreatedByEdge() *UserQuery {
+	query := &UserQuery{config: hjsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.CreatedByEdgeTable, hiringjobstep.CreatedByEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjsq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,6 +292,7 @@ func (hjsq *HiringJobStepQuery) Clone() *HiringJobStepQuery {
 		order:             append([]OrderFunc{}, hjsq.order...),
 		predicates:        append([]predicate.HiringJobStep{}, hjsq.predicates...),
 		withHiringJobEdge: hjsq.withHiringJobEdge.Clone(),
+		withCreatedByEdge: hjsq.withCreatedByEdge.Clone(),
 		// clone intermediate query.
 		sql:    hjsq.sql.Clone(),
 		path:   hjsq.path,
@@ -283,6 +308,17 @@ func (hjsq *HiringJobStepQuery) WithHiringJobEdge(opts ...func(*HiringJobQuery))
 		opt(query)
 	}
 	hjsq.withHiringJobEdge = query
+	return hjsq
+}
+
+// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
+// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjsq *HiringJobStepQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *HiringJobStepQuery {
+	query := &UserQuery{config: hjsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjsq.withCreatedByEdge = query
 	return hjsq
 }
 
@@ -359,8 +395,9 @@ func (hjsq *HiringJobStepQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*HiringJobStep{}
 		_spec       = hjsq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			hjsq.withHiringJobEdge != nil,
+			hjsq.withCreatedByEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -387,6 +424,12 @@ func (hjsq *HiringJobStepQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := hjsq.withHiringJobEdge; query != nil {
 		if err := hjsq.loadHiringJobEdge(ctx, query, nodes, nil,
 			func(n *HiringJobStep, e *HiringJob) { n.Edges.HiringJobEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := hjsq.withCreatedByEdge; query != nil {
+		if err := hjsq.loadCreatedByEdge(ctx, query, nodes, nil,
+			func(n *HiringJobStep, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -417,6 +460,32 @@ func (hjsq *HiringJobStepQuery) loadHiringJobEdge(ctx context.Context, query *Hi
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "hiring_job_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (hjsq *HiringJobStepQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*HiringJobStep, init func(*HiringJobStep), assign func(*HiringJobStep, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*HiringJobStep)
+	for i := range nodes {
+		fk := nodes[i].CreatedByID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

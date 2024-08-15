@@ -9,4 +9,5 @@ type HiringJobStep {
   type: HiringJobStepTypeEnum!
   created_at: Time!
   updated_at: Time!
+  created_by: User!
 }

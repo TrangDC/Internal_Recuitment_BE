@@ -98,7 +98,7 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 		},
 	).WithHiringJobStep(
 		func(query *ent.HiringJobStepQuery) {
-			query.Order(ent.Asc(hiringjobstep.FieldCreatedAt))
+			query.WithCreatedByEdge().Order(ent.Asc(hiringjobstep.FieldCreatedAt))
 		},
 	)
 }

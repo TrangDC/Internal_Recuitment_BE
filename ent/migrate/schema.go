@@ -679,6 +679,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_by_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// HiringJobStepsTable holds the schema information for the "hiring_job_steps" table.
 	HiringJobStepsTable = &schema.Table{
@@ -690,6 +691,12 @@ var (
 				Symbol:     "hiring_job_steps_hiring_jobs_hiring_job_step",
 				Columns:    []*schema.Column{HiringJobStepsColumns[4]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "hiring_job_steps_users_hiring_job_step_edges",
+				Columns:    []*schema.Column{HiringJobStepsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1111,6 +1118,7 @@ func init() {
 	HiringJobsTable.ForeignKeys[1].RefTable = JobPositionsTable
 	HiringJobsTable.ForeignKeys[2].RefTable = UsersTable
 	HiringJobStepsTable.ForeignKeys[0].RefTable = HiringJobsTable
+	HiringJobStepsTable.ForeignKeys[1].RefTable = UsersTable
 	HiringTeamApproversTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamApproversTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable

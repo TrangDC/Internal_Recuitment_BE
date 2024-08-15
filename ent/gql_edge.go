@@ -672,6 +672,14 @@ func (hjs *HiringJobStep) HiringJobEdge(ctx context.Context) (*HiringJob, error)
 	return result, MaskNotFound(err)
 }
 
+func (hjs *HiringJobStep) CreatedByEdge(ctx context.Context) (*User, error) {
+	result, err := hjs.Edges.CreatedByEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hjs.QueryCreatedByEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (ht *HiringTeam) HiringTeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ht.NamedHiringTeamJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
@@ -1136,6 +1144,18 @@ func (u *User) CandidateHistoryCallEdges(ctx context.Context) (result []*Candida
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryCandidateHistoryCallEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) HiringJobStepEdges(ctx context.Context) (result []*HiringJobStep, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedHiringJobStepEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.HiringJobStepEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryHiringJobStepEdges().All(ctx)
 	}
 	return result, err
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
+	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -26,6 +27,8 @@ type HiringJobStep struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// CreatedByID holds the value of the "created_by_id" field.
+	CreatedByID uuid.UUID `json:"created_by_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobStepQuery when eager-loading is set.
 	Edges HiringJobStepEdges `json:"edges"`
@@ -35,11 +38,13 @@ type HiringJobStep struct {
 type HiringJobStepEdges struct {
 	// HiringJobEdge holds the value of the hiring_job_edge edge.
 	HiringJobEdge *HiringJob `json:"hiring_job_edge,omitempty"`
+	// CreatedByEdge holds the value of the created_by_edge edge.
+	CreatedByEdge *User `json:"created_by_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // HiringJobEdgeOrErr returns the HiringJobEdge value or an error if the edge
@@ -55,6 +60,19 @@ func (e HiringJobStepEdges) HiringJobEdgeOrErr() (*HiringJob, error) {
 	return nil, &NotLoadedError{edge: "hiring_job_edge"}
 }
 
+// CreatedByEdgeOrErr returns the CreatedByEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HiringJobStepEdges) CreatedByEdgeOrErr() (*User, error) {
+	if e.loadedTypes[1] {
+		if e.CreatedByEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.CreatedByEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "created_by_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*HiringJobStep) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -64,7 +82,7 @@ func (*HiringJobStep) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case hiringjobstep.FieldCreatedAt, hiringjobstep.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case hiringjobstep.FieldID, hiringjobstep.FieldHiringJobID:
+		case hiringjobstep.FieldID, hiringjobstep.FieldHiringJobID, hiringjobstep.FieldCreatedByID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type HiringJobStep", columns[i])
@@ -111,6 +129,12 @@ func (hjs *HiringJobStep) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hjs.UpdatedAt = value.Time
 			}
+		case hiringjobstep.FieldCreatedByID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by_id", values[i])
+			} else if value != nil {
+				hjs.CreatedByID = *value
+			}
 		}
 	}
 	return nil
@@ -119,6 +143,11 @@ func (hjs *HiringJobStep) assignValues(columns []string, values []any) error {
 // QueryHiringJobEdge queries the "hiring_job_edge" edge of the HiringJobStep entity.
 func (hjs *HiringJobStep) QueryHiringJobEdge() *HiringJobQuery {
 	return (&HiringJobStepClient{config: hjs.config}).QueryHiringJobEdge(hjs)
+}
+
+// QueryCreatedByEdge queries the "created_by_edge" edge of the HiringJobStep entity.
+func (hjs *HiringJobStep) QueryCreatedByEdge() *UserQuery {
+	return (&HiringJobStepClient{config: hjs.config}).QueryCreatedByEdge(hjs)
 }
 
 // Update returns a builder for updating this HiringJobStep.
@@ -155,6 +184,9 @@ func (hjs *HiringJobStep) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(hjs.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("created_by_id=")
+	builder.WriteString(fmt.Sprintf("%v", hjs.CreatedByID))
 	builder.WriteByte(')')
 	return builder.String()
 }

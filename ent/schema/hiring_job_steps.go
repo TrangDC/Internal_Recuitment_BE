@@ -23,6 +23,7 @@ func (HiringJobStep) Fields() []ent.Field {
 		field.Enum("type").Values("created", "opened", "closed").Default("created"),
 		field.Time("created_at").Default(time.Now).Immutable().Annotations(entgql.OrderField("created_at")),
 		field.Time("updated_at").Optional().Annotations(entgql.OrderField("updated_at")),
+		field.UUID("created_by_id", uuid.UUID{}).Optional(),
 	}
 }
 
@@ -30,5 +31,6 @@ func (HiringJobStep) Fields() []ent.Field {
 func (HiringJobStep) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("hiring_job_edge", HiringJob.Type).Ref("hiring_job_step").Unique().Field("hiring_job_id"),
+		edge.From("created_by_edge", User.Type).Ref("hiring_job_step_edges").Unique().Field("created_by_id"),
 	}
 }
