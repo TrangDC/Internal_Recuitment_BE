@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"trec/dto"
 	"trec/ent"
 	graphql1 "trec/graphql"
 )
@@ -27,6 +28,11 @@ func (r *candidateNoteResolver) CreatedBy(ctx context.Context, obj *ent.Candidat
 // Attachments is the resolver for the attachments field.
 func (r *candidateNoteResolver) Attachments(ctx context.Context, obj *ent.CandidateNote) ([]*ent.Attachment, error) {
 	return obj.Edges.AttachmentEdgesOrErr()
+}
+
+// Edited is the resolver for the edited field.
+func (r *candidateNoteResolver) Edited(ctx context.Context, obj *ent.CandidateNote) (bool, error) {
+	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil
 }
 
 // CandidateNote returns graphql1.CandidateNoteResolver implementation.

@@ -13,8 +13,7 @@ input CandidateActivityFilter {
 }
 
 input CandidateActivityFreeWord {
-  description: String
-  name: String
+  free_word: String
 }
 
 enum CandidateActivityOrderField {

@@ -460,6 +460,7 @@ type ComplexityRoot struct {
 		CreatedAt   func(childComplexity int) int
 		CreatedBy   func(childComplexity int) int
 		Description func(childComplexity int) int
+		Edited      func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -1336,6 +1337,7 @@ type CandidateNoteResolver interface {
 	CreatedBy(ctx context.Context, obj *ent.CandidateNote) (*ent.User, error)
 
 	Attachments(ctx context.Context, obj *ent.CandidateNote) ([]*ent.Attachment, error)
+	Edited(ctx context.Context, obj *ent.CandidateNote) (bool, error)
 }
 type EmailTemplateResolver interface {
 	ID(ctx context.Context, obj *ent.EmailTemplate) (string, error)
@@ -3297,6 +3299,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateNote.Description(childComplexity), true
+
+	case "CandidateNote.edited":
+		if e.complexity.CandidateNote.Edited == nil {
+			break
+		}
+
+		return e.complexity.CandidateNote.Edited(childComplexity), true
 
 	case "CandidateNote.id":
 		if e.complexity.CandidateNote.ID == nil {
@@ -7189,8 +7198,7 @@ input CandidateActivityFilter {
 }
 
 input CandidateActivityFreeWord {
-  description: String
-  name: String
+  free_word: String
 }
 
 enum CandidateActivityOrderField {
@@ -7843,6 +7851,7 @@ type CandidateNote {
   name: String!
   description: String!
   attachments: [Attachment!]!
+  edited: Boolean!
   created_at: Time!
   updated_at: Time!
 }
@@ -16317,6 +16326,8 @@ func (ec *executionContext) fieldContext_CandidateActivity_candidate_notes(ctx c
 				return ec.fieldContext_CandidateNote_description(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateNote_attachments(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateNote_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateNote_created_at(ctx, field)
 			case "updated_at":
@@ -25157,6 +25168,50 @@ func (ec *executionContext) fieldContext_CandidateNote_attachments(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateNote_edited(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateNote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateNote_edited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateNote().Edited(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateNote_edited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateNote",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateNote_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateNote) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateNote_created_at(ctx, field)
 	if err != nil {
@@ -25296,6 +25351,8 @@ func (ec *executionContext) fieldContext_CandidateNoteEdge_node(ctx context.Cont
 				return ec.fieldContext_CandidateNote_description(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateNote_attachments(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateNote_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateNote_created_at(ctx, field)
 			case "updated_at":
@@ -25402,6 +25459,8 @@ func (ec *executionContext) fieldContext_CandidateNoteResponse_data(ctx context.
 				return ec.fieldContext_CandidateNote_description(ctx, field)
 			case "attachments":
 				return ec.fieldContext_CandidateNote_attachments(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateNote_edited(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CandidateNote_created_at(ctx, field)
 			case "updated_at":
@@ -49672,26 +49731,18 @@ func (ec *executionContext) unmarshalInputCandidateActivityFreeWord(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"description", "name"}
+	fieldsInOrder := [...]string{"free_word"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "description":
+		case "free_word":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("free_word"))
+			it.FreeWord, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -58707,6 +58758,26 @@ func (ec *executionContext) _CandidateNote(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._CandidateNote_attachments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "edited":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateNote_edited(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

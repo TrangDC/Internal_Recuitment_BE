@@ -54,26 +54,41 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().
 		Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
 		WithInterviewerEdges().WithCreatedByEdge()
+	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId)).
+		WithAttachmentEdges().WithCreatedByEdge()
+	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId)).
+		WithAttachmentEdges().WithCreatedByEdge()
+	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().Where(outgoingemail.CandidateID(candidateId))
+	// apply filter
+	if filter.FromDate != nil && filter.ToDate != nil {
+		candidateInterviewQuery.Where(candidateinterview.StartFromGTE(*filter.FromDate), candidateinterview.StartFromLTE(*filter.ToDate))
+		candidateNoteQuery.Where(candidatenote.CreatedAtGTE(*filter.FromDate), candidatenote.CreatedAtLTE(*filter.ToDate))
+		candidateHistoryCallQuery.Where(candidatehistorycall.CreatedAtGTE(*filter.FromDate), candidatehistorycall.CreatedAtLTE(*filter.ToDate))
+		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*filter.FromDate), outgoingemail.CreatedAtLTE(*filter.ToDate))
+	}
+	// apply free word
+	if freeWord != nil && freeWord.FreeWord != nil {
+		candidateInterviewQuery.Where(candidateinterview.TitleContainsFold(*freeWord.FreeWord))
+		candidateNoteQuery.Where(candidatenote.NameContainsFold(*freeWord.FreeWord))
+		candidateHistoryCallQuery.Where(candidatehistorycall.NameContainsFold(*freeWord.FreeWord))
+		outgoingEmailQuery.Where(outgoingemail.SubjectContainsFold(*freeWord.FreeWord))
+	}
+	// query
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, candidateInterviewQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId)).
-		WithAttachmentEdges().WithCreatedByEdge()
 	candidateNotes, err := svc.repoRegistry.CandidateNote().BuildList(ctx, candidateNoteQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId)).
-		WithAttachmentEdges().WithCreatedByEdge()
 	candidateHistoryCalls, err := svc.repoRegistry.CandidateHistoryCall().BuildList(ctx, candidateHistoryCallQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().Where(outgoingemail.CandidateID(candidateId))
 	outgoingEmails, err := svc.repoRegistry.OutgoingEmail().BuildList(ctx, outgoingEmailQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
