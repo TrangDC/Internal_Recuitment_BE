@@ -16,7 +16,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "document_id", Type: field.TypeUUID, Unique: true},
 		{Name: "document_name", Type: field.TypeString, Size: 256},
-		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates", "candidate_notes"}},
+		{Name: "relation_type", Type: field.TypeEnum, Enums: []string{"candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates", "candidate_notes", "candidate_history_calls"}},
 		{Name: "relation_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.

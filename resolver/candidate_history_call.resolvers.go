@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"trec/dto"
 	"trec/ent"
 	graphql1 "trec/graphql"
@@ -33,6 +34,11 @@ func (r *candidateHistoryCallResolver) Candidate(ctx context.Context, obj *ent.C
 // Edited is the resolver for the edited field.
 func (r *candidateHistoryCallResolver) Edited(ctx context.Context, obj *ent.CandidateHistoryCall) (bool, error) {
 	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil
+}
+
+// Attachments is the resolver for the attachments field.
+func (r *candidateHistoryCallResolver) Attachments(ctx context.Context, obj *ent.CandidateHistoryCall) ([]*ent.Attachment, error) {
+	panic(fmt.Errorf("not implemented: Attachments - attachments"))
 }
 
 // CreatedBy is the resolver for the created_by field.

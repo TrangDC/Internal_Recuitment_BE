@@ -17,7 +17,7 @@ func (Attachment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("document_id", uuid.UUID{}).Unique(),
 		field.String("document_name").MaxLen(256),
-		field.Enum("relation_type").Values("candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates", "candidate_notes"),
+		field.Enum("relation_type").Values("candidate_jobs", "candidate_job_feedbacks", "candidates", "candidate_educates", "candidate_awards", "candidate_certificates", "candidate_notes", "candidate_history_calls"),
 		field.UUID("relation_id", uuid.UUID{}).Optional(),
 	}
 }

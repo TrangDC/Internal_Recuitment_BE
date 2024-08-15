@@ -154,6 +154,7 @@ const (
 	RelationTypeCandidateAwards       RelationType = "candidate_awards"
 	RelationTypeCandidateCertificates RelationType = "candidate_certificates"
 	RelationTypeCandidateNotes        RelationType = "candidate_notes"
+	RelationTypeCandidateHistoryCalls RelationType = "candidate_history_calls"
 )
 
 func (rt RelationType) String() string {
@@ -163,7 +164,7 @@ func (rt RelationType) String() string {
 // RelationTypeValidator is a validator for the "relation_type" field enum values. It is called by the builders before save.
 func RelationTypeValidator(rt RelationType) error {
 	switch rt {
-	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks, RelationTypeCandidates, RelationTypeCandidateEducates, RelationTypeCandidateAwards, RelationTypeCandidateCertificates, RelationTypeCandidateNotes:
+	case RelationTypeCandidateJobs, RelationTypeCandidateJobFeedbacks, RelationTypeCandidates, RelationTypeCandidateEducates, RelationTypeCandidateAwards, RelationTypeCandidateCertificates, RelationTypeCandidateNotes, RelationTypeCandidateHistoryCalls:
 		return nil
 	default:
 		return fmt.Errorf("attachment: invalid enum value for relation_type field: %q", rt)

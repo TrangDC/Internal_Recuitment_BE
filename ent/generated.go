@@ -652,6 +652,7 @@ type NewCandidateHistoryCallInput struct {
 	StartTime   *time.Time                   `json:"start_time"`
 	EndTime     *time.Time                   `json:"end_time"`
 	Description string                       `json:"description"`
+	Attachments []*NewAttachmentInput        `json:"attachments"`
 }
 
 type NewCandidateInput struct {
@@ -1093,6 +1094,7 @@ type UpdateCandidateHistoryCallInput struct {
 	StartTime   *time.Time                   `json:"start_time"`
 	EndTime     *time.Time                   `json:"end_time"`
 	Description string                       `json:"description"`
+	Attachments []*NewAttachmentInput        `json:"attachments"`
 }
 
 type UpdateCandidateInput struct {

@@ -21,7 +21,8 @@ type CandidateNoteService interface {
 	CreateCandidateNote(ctx context.Context, input ent.NewCandidateNoteInput) (*ent.CandidateNoteResponse, error)
 	UpdateCandidateNote(ctx context.Context, id uuid.UUID, input ent.UpdateCandidateNoteInput, note string) (*ent.CandidateNoteResponse, error)
 	DeleteCandidateNote(ctx context.Context, id uuid.UUID, note string) error
-	GetCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error)
+	GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error)
+	GetCandidateNote(ctx context.Context, id uuid.UUID) (*ent.CandidateNoteResponse, error)
 }
 
 type candidateNoteSvcImpl struct {
@@ -126,7 +127,16 @@ func (svc *candidateNoteSvcImpl) DeleteCandidateNote(ctx context.Context, id uui
 	return nil
 }
 
-func (svc *candidateNoteSvcImpl) GetCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error) {
+func (svc candidateNoteSvcImpl) GetCandidateNote(ctx context.Context, id uuid.UUID) (*ent.CandidateNoteResponse, error) {
+	result, err := svc.repoRegistry.CandidateNote().GetCandidateNote(ctx, id)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	return &ent.CandidateNoteResponse{Data: result}, nil
+}
+
+func (svc *candidateNoteSvcImpl) GetAllCandidateNotes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.CandidateNoteFilter, freeWord *ent.CandidateNoteFreeWord, orderBy *ent.CandidateNoteOrder) (*ent.CandidateNoteResponseGetAll, error) {
 	var (
 		result        *ent.CandidateNoteResponseGetAll
 		edges         []*ent.CandidateNoteEdge
@@ -175,6 +185,7 @@ func (svc *candidateNoteSvcImpl) GetCandidateNotes(ctx context.Context, paginati
 	return result, nil
 }
 
+// common
 func (svc *candidateNoteSvcImpl) filter(query *ent.CandidateNoteQuery, filter *ent.CandidateNoteFilter) {
 	if filter != nil {
 		if filter.CandidateID != nil {
