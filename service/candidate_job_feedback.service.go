@@ -297,7 +297,7 @@ func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.Ca
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.CandidateJobIDEQ(uuid.MustParse(*input.CandidateJobID)))
 	}
 	if input.CandidateID != nil {
-		candidateJobFeedbackQuery.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.IDEQ(uuid.MustParse(*input.CandidateID)), candidatejob.DeletedAtIsNil()))
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.CandidateIDEQ(uuid.MustParse(*input.CandidateID)), candidatejob.DeletedAtIsNil()))
 	}
 }
 
