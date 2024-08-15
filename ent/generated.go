@@ -98,8 +98,7 @@ type CandidateActivityFilter struct {
 }
 
 type CandidateActivityFreeWord struct {
-	Description *string `json:"description"`
-	Name        *string `json:"name"`
+	FreeWord *string `json:"free_word"`
 }
 
 type CandidateActivityOrder struct {

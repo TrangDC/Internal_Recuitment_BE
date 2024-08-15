@@ -9,6 +9,7 @@ type CandidateNote {
   name: String!
   description: String!
   attachments: [Attachment!]!
+  edited: Boolean!
   created_at: Time!
   updated_at: Time!
 }
