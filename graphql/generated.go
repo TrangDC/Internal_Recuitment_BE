@@ -7353,8 +7353,8 @@ type CandidateHistoryCall {
   type: CandidateHistoryCallTypeEnum!
   contact_to: String!
   date: Time!
-  start_time: Time!
-  end_time: Time!
+  start_time: Time
+  end_time: Time
   candidate: Candidate!
   edited: Boolean!
   description: String!
@@ -19228,14 +19228,11 @@ func (ec *executionContext) _CandidateHistoryCall_start_time(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CandidateHistoryCall_start_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19272,14 +19269,11 @@ func (ec *executionContext) _CandidateHistoryCall_end_time(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CandidateHistoryCall_end_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -57186,16 +57180,10 @@ func (ec *executionContext) _CandidateHistoryCall(ctx context.Context, sel ast.S
 
 			out.Values[i] = ec._CandidateHistoryCall_start_time(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "end_time":
 
 			out.Values[i] = ec._CandidateHistoryCall_end_time(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "candidate":
 			field := field
 

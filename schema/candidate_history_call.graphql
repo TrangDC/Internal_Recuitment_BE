@@ -33,8 +33,8 @@ type CandidateHistoryCall {
   type: CandidateHistoryCallTypeEnum!
   contact_to: String!
   date: Time!
-  start_time: Time!
-  end_time: Time!
+  start_time: Time
+  end_time: Time
   candidate: Candidate!
   edited: Boolean!
   description: String!
