@@ -17,6 +17,7 @@ import (
 	"trec/ent/candidatenote"
 	"trec/ent/entitypermission"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -409,6 +410,21 @@ func (uc *UserCreate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *
 		ids[i] = c[i].ID
 	}
 	return uc.AddCandidateHistoryCallEdgeIDs(ids...)
+}
+
+// AddHiringJobStepEdgeIDs adds the "hiring_job_step_edges" edge to the HiringJobStep entity by IDs.
+func (uc *UserCreate) AddHiringJobStepEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddHiringJobStepEdgeIDs(ids...)
+	return uc
+}
+
+// AddHiringJobStepEdges adds the "hiring_job_step_edges" edges to the HiringJobStep entity.
+func (uc *UserCreate) AddHiringJobStepEdges(h ...*HiringJobStep) *UserCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddHiringJobStepEdgeIDs(ids...)
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
@@ -982,6 +998,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatehistorycall.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.HiringJobStepEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HiringJobStepEdgesTable,
+			Columns: []string{user.HiringJobStepEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjobstep.FieldID,
 				},
 			},
 		}

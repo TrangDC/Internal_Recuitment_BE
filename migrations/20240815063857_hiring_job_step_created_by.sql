@@ -1,0 +1,1 @@
+alter table hiring_job_steps add column created_by_id uuid not null references users(id);

@@ -5,6 +5,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/hiringjobstep"
+	"trec/middleware"
 
 	"github.com/google/uuid"
 )
@@ -37,7 +38,8 @@ func (rps hiringJobStepRepoImpl) BuildQuery() *ent.HiringJobStepQuery {
 
 // mutation
 func (rps hiringJobStepRepoImpl) CreateHiringJobStep(ctx context.Context, step hiringjobstep.Type, hiringJobId uuid.UUID) error {
-	_, err := rps.BuildCreate().SetType(step).SetHiringJobID(hiringJobId).Save(ctx)
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
+	_, err := rps.BuildCreate().SetType(step).SetHiringJobID(hiringJobId).SetCreatedByEdgeID(payload.UserID).Save(ctx)
 	return err
 }
 

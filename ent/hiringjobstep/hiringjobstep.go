@@ -22,8 +22,12 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldCreatedByID holds the string denoting the created_by_id field in the database.
+	FieldCreatedByID = "created_by_id"
 	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
 	EdgeHiringJobEdge = "hiring_job_edge"
+	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
+	EdgeCreatedByEdge = "created_by_edge"
 	// Table holds the table name of the hiringjobstep in the database.
 	Table = "hiring_job_steps"
 	// HiringJobEdgeTable is the table that holds the hiring_job_edge relation/edge.
@@ -33,6 +37,13 @@ const (
 	HiringJobEdgeInverseTable = "hiring_jobs"
 	// HiringJobEdgeColumn is the table column denoting the hiring_job_edge relation/edge.
 	HiringJobEdgeColumn = "hiring_job_id"
+	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
+	CreatedByEdgeTable = "hiring_job_steps"
+	// CreatedByEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatedByEdgeInverseTable = "users"
+	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
+	CreatedByEdgeColumn = "created_by_id"
 )
 
 // Columns holds all SQL columns for hiringjobstep fields.
@@ -42,6 +53,7 @@ var Columns = []string{
 	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldCreatedByID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

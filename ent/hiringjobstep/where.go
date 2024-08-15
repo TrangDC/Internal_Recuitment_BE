@@ -103,6 +103,13 @@ func UpdatedAt(v time.Time) predicate.HiringJobStep {
 	})
 }
 
+// CreatedByID applies equality check predicate on the "created_by_id" field. It's identical to CreatedByIDEQ.
+func CreatedByID(v uuid.UUID) predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedByID), v))
+	})
+}
+
 // HiringJobIDEQ applies the EQ predicate on the "hiring_job_id" field.
 func HiringJobIDEQ(v uuid.UUID) predicate.HiringJobStep {
 	return predicate.HiringJobStep(func(s *sql.Selector) {
@@ -331,6 +338,56 @@ func UpdatedAtNotNil() predicate.HiringJobStep {
 	})
 }
 
+// CreatedByIDEQ applies the EQ predicate on the "created_by_id" field.
+func CreatedByIDEQ(v uuid.UUID) predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedByID), v))
+	})
+}
+
+// CreatedByIDNEQ applies the NEQ predicate on the "created_by_id" field.
+func CreatedByIDNEQ(v uuid.UUID) predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedByID), v))
+	})
+}
+
+// CreatedByIDIn applies the In predicate on the "created_by_id" field.
+func CreatedByIDIn(vs ...uuid.UUID) predicate.HiringJobStep {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCreatedByID), v...))
+	})
+}
+
+// CreatedByIDNotIn applies the NotIn predicate on the "created_by_id" field.
+func CreatedByIDNotIn(vs ...uuid.UUID) predicate.HiringJobStep {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCreatedByID), v...))
+	})
+}
+
+// CreatedByIDIsNil applies the IsNil predicate on the "created_by_id" field.
+func CreatedByIDIsNil() predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCreatedByID)))
+	})
+}
+
+// CreatedByIDNotNil applies the NotNil predicate on the "created_by_id" field.
+func CreatedByIDNotNil() predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCreatedByID)))
+	})
+}
+
 // HasHiringJobEdge applies the HasEdge predicate on the "hiring_job_edge" edge.
 func HasHiringJobEdge() predicate.HiringJobStep {
 	return predicate.HiringJobStep(func(s *sql.Selector) {
@@ -350,6 +407,34 @@ func HasHiringJobEdgeWith(preds ...predicate.HiringJob) predicate.HiringJobStep 
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(HiringJobEdgeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, HiringJobEdgeTable, HiringJobEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreatedByEdge applies the HasEdge predicate on the "created_by_edge" edge.
+func HasCreatedByEdge() predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedByEdgeWith applies the HasEdge predicate on the "created_by_edge" edge with a given conditions (other predicates).
+func HasCreatedByEdgeWith(preds ...predicate.User) predicate.HiringJobStep {
+	return predicate.HiringJobStep(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatedByEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CreatedByEdgeTable, CreatedByEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
