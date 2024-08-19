@@ -87,6 +87,7 @@ type CandidateActivity struct {
 	CandidateNotes        []*CandidateNote        `json:"candidate_notes"`
 	CandidateHistoryCalls []*CandidateHistoryCall `json:"candidate_history_calls"`
 	CandidateInterviews   []*CandidateInterview   `json:"candidate_interviews"`
+	CandidateJobFeedbacks []*CandidateJobFeedback `json:"candidate_job_feedbacks"`
 	OutgoingEmails        []*OutgoingEmail        `json:"outgoing_emails"`
 	Total                 int                     `json:"total"`
 }

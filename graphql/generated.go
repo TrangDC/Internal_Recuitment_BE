@@ -189,6 +189,7 @@ type ComplexityRoot struct {
 	CandidateActivity struct {
 		CandidateHistoryCalls func(childComplexity int) int
 		CandidateInterviews   func(childComplexity int) int
+		CandidateJobFeedbacks func(childComplexity int) int
 		CandidateNotes        func(childComplexity int) int
 		OutgoingEmails        func(childComplexity int) int
 		Total                 func(childComplexity int) int
@@ -2121,6 +2122,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateActivity.CandidateInterviews(childComplexity), true
+
+	case "CandidateActivity.candidate_job_feedbacks":
+		if e.complexity.CandidateActivity.CandidateJobFeedbacks == nil {
+			break
+		}
+
+		return e.complexity.CandidateActivity.CandidateJobFeedbacks(childComplexity), true
 
 	case "CandidateActivity.candidate_notes":
 		if e.complexity.CandidateActivity.CandidateNotes == nil {
@@ -7213,6 +7221,7 @@ type AuditTrailResponseGetAll {
   candidate_notes: [CandidateNote!]
   candidate_history_calls: [CandidateHistoryCall!]
   candidate_interviews: [CandidateInterview!]
+  candidate_job_feedbacks: [CandidateJobFeedback!]
   outgoing_emails: [OutgoingEmail!]
   total: Int!
 }
@@ -16518,6 +16527,69 @@ func (ec *executionContext) fieldContext_CandidateActivity_candidate_interviews(
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateActivity_candidate_job_feedbacks(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivity) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateActivity_candidate_job_feedbacks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CandidateJobFeedbacks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CandidateJobFeedback)
+	fc.Result = res
+	return ec.marshalOCandidateJobFeedback2ᚕᚖtrecᚋentᚐCandidateJobFeedbackᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateActivity_candidate_job_feedbacks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateActivity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CandidateJobFeedback_id(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CandidateJobFeedback_created_by(ctx, field)
+			case "candidate_job_id":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job_id(ctx, field)
+			case "candidate_job":
+				return ec.fieldContext_CandidateJobFeedback_candidate_job(ctx, field)
+			case "owner":
+				return ec.fieldContext_CandidateJobFeedback_owner(ctx, field)
+			case "feedback":
+				return ec.fieldContext_CandidateJobFeedback_feedback(ctx, field)
+			case "edited":
+				return ec.fieldContext_CandidateJobFeedback_edited(ctx, field)
+			case "attachments":
+				return ec.fieldContext_CandidateJobFeedback_attachments(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CandidateJobFeedback_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CandidateJobFeedback_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CandidateJobFeedback", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateActivity_outgoing_emails(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateActivity) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateActivity_outgoing_emails(ctx, field)
 	if err != nil {
@@ -16668,6 +16740,8 @@ func (ec *executionContext) fieldContext_CandidateActivityResponse_data(ctx cont
 				return ec.fieldContext_CandidateActivity_candidate_history_calls(ctx, field)
 			case "candidate_interviews":
 				return ec.fieldContext_CandidateActivity_candidate_interviews(ctx, field)
+			case "candidate_job_feedbacks":
+				return ec.fieldContext_CandidateActivity_candidate_job_feedbacks(ctx, field)
 			case "outgoing_emails":
 				return ec.fieldContext_CandidateActivity_outgoing_emails(ctx, field)
 			case "total":
@@ -56558,6 +56632,10 @@ func (ec *executionContext) _CandidateActivity(ctx context.Context, sel ast.Sele
 		case "candidate_interviews":
 
 			out.Values[i] = ec._CandidateActivity_candidate_interviews(ctx, field, obj)
+
+		case "candidate_job_feedbacks":
+
+			out.Values[i] = ec._CandidateActivity_candidate_job_feedbacks(ctx, field, obj)
 
 		case "outgoing_emails":
 

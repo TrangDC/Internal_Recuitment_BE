@@ -2,6 +2,7 @@ type CandidateActivity {
   candidate_notes: [CandidateNote!]
   candidate_history_calls: [CandidateHistoryCall!]
   candidate_interviews: [CandidateInterview!]
+  candidate_job_feedbacks: [CandidateJobFeedback!]
   outgoing_emails: [OutgoingEmail!]
   total: Int!
 }

@@ -8,6 +8,7 @@ import (
 	"trec/ent/candidatehistorycall"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatenote"
 	"trec/ent/outgoingemail"
 	"trec/internal/util"
@@ -49,11 +50,15 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	candidateNoteResults := []*ent.CandidateNote{}
 	candidateHistoryCallResults := []*ent.CandidateHistoryCall{}
 	candidateInterviewResults := []*ent.CandidateInterview{}
+	candidateJobFeedbackResults := []*ent.CandidateJobFeedback{}
 	outgoingEmailResutls := []*ent.OutgoingEmail{}
 	// get candidate activities
 	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().
 		Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
 		WithInterviewerEdges().WithCreatedByEdge()
+	candidateJobFeedbackQuery := svc.repoRegistry.CandidateJobFeedback().BuildQuery().
+		Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
+		WithAttachmentEdges().WithCreatedByEdge()
 	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId)).
 		WithAttachmentEdges().WithCreatedByEdge()
 	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId)).
@@ -62,6 +67,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	// apply filter
 	if filter.FromDate != nil && filter.ToDate != nil {
 		candidateInterviewQuery.Where(candidateinterview.StartFromGTE(*filter.FromDate), candidateinterview.StartFromLTE(*filter.ToDate))
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedAtGTE(*filter.FromDate), candidatejobfeedback.CreatedAtLTE(*filter.ToDate))
 		candidateNoteQuery.Where(candidatenote.CreatedAtGTE(*filter.FromDate), candidatenote.CreatedAtLTE(*filter.ToDate))
 		candidateHistoryCallQuery.Where(candidatehistorycall.CreatedAtGTE(*filter.FromDate), candidatehistorycall.CreatedAtLTE(*filter.ToDate))
 		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*filter.FromDate), outgoingemail.CreatedAtLTE(*filter.ToDate))
@@ -69,12 +75,18 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	// apply free word
 	if freeWord != nil && freeWord.FreeWord != nil {
 		candidateInterviewQuery.Where(candidateinterview.TitleContainsFold(*freeWord.FreeWord))
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.FeedbackContainsFold(*freeWord.FreeWord))
 		candidateNoteQuery.Where(candidatenote.NameContainsFold(*freeWord.FreeWord))
 		candidateHistoryCallQuery.Where(candidatehistorycall.NameContainsFold(*freeWord.FreeWord))
 		outgoingEmailQuery.Where(outgoingemail.SubjectContainsFold(*freeWord.FreeWord))
 	}
 	// query
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, candidateInterviewQuery)
+	if err != nil {
+		svc.logger.Error(err.Error(), zap.Error(err))
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	candidateJobFeedbacks, err := svc.repoRegistry.CandidateJobFeedback().BuildList(ctx, candidateJobFeedbackQuery)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -94,9 +106,15 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	count := len(candidateInterviews) + len(candidateNotes) + len(candidateHistoryCalls) + len(outgoingEmails)
+	count := len(candidateInterviews) + len(candidateJobFeedbacks) + len(candidateNotes) + len(candidateHistoryCalls) + len(outgoingEmails)
 	// end
 	referenceModels = append(referenceModels, lo.Map(candidateInterviews, func(entity *ent.CandidateInterview, index int) models.CandidateActivityReference {
+		return models.CandidateActivityReference{
+			Id:        entity.ID,
+			CreatedAt: entity.CreatedAt,
+		}
+	})...)
+	referenceModels = append(referenceModels, lo.Map(candidateJobFeedbacks, func(entity *ent.CandidateJobFeedback, index int) models.CandidateActivityReference {
 		return models.CandidateActivityReference{
 			Id:        entity.ID,
 			CreatedAt: entity.CreatedAt,
@@ -151,6 +169,9 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		candidateInterviewResults = append(candidateInterviewResults, lo.Filter(candidateInterviews, func(entity *ent.CandidateInterview, index int) bool {
 			return entity.ID == referenceModel.Id
 		})...)
+		candidateJobFeedbackResults = append(candidateJobFeedbackResults, lo.Filter(candidateJobFeedbacks, func(entity *ent.CandidateJobFeedback, index int) bool {
+			return entity.ID == referenceModel.Id
+		})...)
 		outgoingEmailResutls = append(outgoingEmailResutls, lo.Filter(outgoingEmails, func(entity *ent.OutgoingEmail, index int) bool {
 			return entity.ID == referenceModel.Id
 		})...)
@@ -160,6 +181,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 			CandidateNotes:        candidateNoteResults,
 			CandidateHistoryCalls: candidateHistoryCallResults,
 			CandidateInterviews:   candidateInterviewResults,
+			CandidateJobFeedbacks: candidateJobFeedbackResults,
 			OutgoingEmails:        outgoingEmailResutls,
 			Total:                 count,
 		}}, nil
