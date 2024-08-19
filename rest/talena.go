@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"trec/config"
@@ -15,7 +16,7 @@ type TalenaController interface {
 	TalenaLogin(c *gin.Context)
 }
 
-// talenaCtrlImpl is the implementetion of TalenaController.
+// talenaCtrlImpl is the implementation of TalenaController.
 type talenaCtrlImpl struct {
 	talenaConfig config.TalenaConfig
 	logger       *zap.Logger
@@ -69,6 +70,7 @@ func (ctl *talenaCtrlImpl) TalenaLogin(c *gin.Context) {
 	}
 	reqBody, err := json.Marshal(login)
 	if err != nil {
+		fmt.Println("======>", login)
 		ctl.logger.Error("failed to marshal login input", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
