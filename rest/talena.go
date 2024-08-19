@@ -69,8 +69,8 @@ func (ctl *talenaCtrlImpl) TalenaLogin(c *gin.Context) {
 		Password: password,
 	}
 	reqBody, err := json.Marshal(login)
+	fmt.Println("======>", login)
 	if err != nil {
-		fmt.Println("======>", login)
 		ctl.logger.Error("failed to marshal login input", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
