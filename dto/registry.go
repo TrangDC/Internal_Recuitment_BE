@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/golang-module/carbon/v2"
+	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 // Dto is the interface for all dto.
@@ -94,6 +96,10 @@ const (
 	UserPermissionI18n       = "model.user_permission.model_name"
 	CandidateHistoryCallI18n = "model.candidate_history_calls.model_name"
 	CandidateNoteI18n        = "model.candidate_notes.model_name"
+	CandidateAwardI18n       = "model.candidate_awards.model_name"
+	CandidateExpI18n         = "model.candidate_exps.model_name"
+	CandidateEducateI18n     = "model.candidate_educates.model_name"
+	CandidateCertificateI18n = "model.candidate_certificates.model_name"
 )
 
 func (i dtoImpl) Azure() AzureDto {
@@ -239,4 +245,18 @@ func ConvertTimeZone(input time.Time, location string) (time.Time, string) {
 		timeZone = "+" + fmt.Sprint(numebrOfTz)
 	}
 	return result.StdTime(), timeZone
+}
+
+func FindCUDArray(arr1, arr2 []interface{}) (creIds, updIds, delIds []uuid.UUID) {
+	arr1Ids := lo.Map(arr1, func(entity interface{}, _ int) uuid.UUID {
+		value := reflect.ValueOf(interface{}(entity)).Elem()
+		return value.Field(1).Interface().(uuid.UUID)
+	})
+	arr2Ids := lo.Map(arr2, func(entity interface{}, _ int) uuid.UUID {
+		value := reflect.ValueOf(interface{}(entity)).Elem()
+		return value.Field(1).Interface().(uuid.UUID)
+	})
+	delIds, credIds := lo.Difference(arr1Ids, arr2Ids)
+	updIds = lo.Intersect(arr1Ids, arr2Ids)
+	return credIds, updIds, delIds
 }

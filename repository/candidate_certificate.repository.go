@@ -16,7 +16,7 @@ import (
 type CandidateCertificateRepository interface {
 	BuildBulkCreate(ctx context.Context, input []*ent.CandidateCertificateInput, candidateId uuid.UUID) ([]*ent.Attachment, error)
 	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateCertificateInput) ([]*ent.Attachment, error)
-	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
+	BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error
 }
 
 type candidateCertificateRepoImpl struct {
@@ -116,7 +116,7 @@ func (rps candidateCertificateRepoImpl) BuildBulkUpdate(ctx context.Context, inp
 	return attachments, nil
 }
 
-func (rps candidateCertificateRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {
-	_, err := rps.client.CandidateCertificate.Delete().Where(candidatecertificate.IDNotIn(ids...)).Exec(ctx)
+func (rps candidateCertificateRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error {
+	_, err := rps.client.CandidateCertificate.Delete().Where(candidatecertificate.IDNotIn(ids...), candidatecertificate.CandidateIDEQ(candidateId)).Exec(ctx)
 	return err
 }

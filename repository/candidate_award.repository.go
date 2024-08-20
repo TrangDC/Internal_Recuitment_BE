@@ -16,7 +16,7 @@ import (
 type CandidateAwardRepository interface {
 	BuildBulkCreate(ctx context.Context, input []*ent.CandidateAwardInput, candidateId uuid.UUID) ([]*ent.Attachment, error)
 	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateAwardInput) ([]*ent.Attachment, error)
-	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
+	BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error
 }
 
 type candidateAwardRepoImpl struct {
@@ -114,7 +114,7 @@ func (rps candidateAwardRepoImpl) BuildBulkUpdate(ctx context.Context, input []*
 	return attachments, nil
 }
 
-func (rps candidateAwardRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {
-	_, err := rps.client.CandidateAward.Delete().Where(candidateaward.IDNotIn(ids...)).Exec(ctx)
+func (rps candidateAwardRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error {
+	_, err := rps.client.CandidateAward.Delete().Where(candidateaward.IDNotIn(ids...), candidateaward.CandidateIDEQ(candidateId)).Exec(ctx)
 	return err
 }

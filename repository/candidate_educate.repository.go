@@ -16,7 +16,7 @@ import (
 type CandidateEducateRepository interface {
 	BuildBulkCreate(ctx context.Context, input []*ent.CandidateEducateInput, candidateId uuid.UUID) ([]*ent.Attachment, error)
 	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateEducateInput) ([]*ent.Attachment, error)
-	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
+	BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error
 }
 
 type candidateEducateRepoImpl struct {
@@ -131,7 +131,7 @@ func (rps candidateEducateRepoImpl) BuildBulkUpdate(ctx context.Context, input [
 	return attachments, nil
 }
 
-func (rps candidateEducateRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {
-	_, err := rps.client.CandidateEducate.Delete().Where(candidateeducate.IDNotIn(ids...)).Exec(ctx)
+func (rps candidateEducateRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error {
+	_, err := rps.client.CandidateEducate.Delete().Where(candidateeducate.IDNotIn(ids...), candidateeducate.CandidateIDEQ(candidateId)).Exec(ctx)
 	return err
 }
