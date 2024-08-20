@@ -18,41 +18,70 @@ type CandidateDto interface {
 }
 
 type candidateDtoImpl struct {
+	candidateAwardDto       CandidateAwardDto
+	candidateExpDto         CandidateExpDto
+	candidateEducateDto     CandidateEducateDto
+	candidateCertificateDto CandidateCertificateDto
 }
 
 func NewCandidateDto() CandidateDto {
-	return &candidateDtoImpl{}
+	return &candidateDtoImpl{
+		candidateAwardDto:       NewCandidateAwardDto(),
+		candidateExpDto:         NewCandidateExpDto(),
+		candidateEducateDto:     NewCandidateEducateDto(),
+		candidateCertificateDto: NewCandidateCertificateDto(),
+	}
 }
 
 func (d *candidateDtoImpl) AuditTrailCreate(record *ent.Candidate) (string, error) {
 	result := models.AuditTrailData{
-		Module: CandidateI18n,
-		Create: d.recordAudit(record),
-		Update: []interface{}{},
-		Delete: []interface{}{},
+		Module:    CandidateI18n,
+		Create:    d.recordAudit(record),
+		Update:    []interface{}{},
+		Delete:    []interface{}{},
+		SubModule: []interface{}{},
 	}
+	d.candidateAwardDto.ProcessAuditTrail([]*ent.CandidateAward{}, record.Edges.CandidateAwardEdges, &result)
+	d.candidateExpDto.ProcessAuditTrail([]*ent.CandidateExp{}, record.Edges.CandidateExpEdges, &result)
+	d.candidateEducateDto.ProcessAuditTrail([]*ent.CandidateEducate{}, record.Edges.CandidateEducateEdges, &result)
+	d.candidateCertificateDto.ProcessAuditTrail([]*ent.CandidateCertificate{}, record.Edges.CandidateCertificateEdges, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
 
 func (d *candidateDtoImpl) AuditTrailDelete(record *ent.Candidate) (string, error) {
 	result := models.AuditTrailData{
-		Module: CandidateI18n,
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: d.recordAudit(record),
+		Module:    CandidateI18n,
+		Create:    []interface{}{},
+		Update:    []interface{}{},
+		Delete:    d.recordAudit(record),
+		SubModule: []interface{}{},
 	}
+	d.candidateAwardDto.ProcessAuditTrail(record.Edges.CandidateAwardEdges, []*ent.CandidateAward{}, &result)
+	d.candidateExpDto.ProcessAuditTrail(record.Edges.CandidateExpEdges, []*ent.CandidateExp{}, &result)
+	d.candidateEducateDto.ProcessAuditTrail(record.Edges.CandidateEducateEdges, []*ent.CandidateEducate{}, &result)
+	d.candidateCertificateDto.ProcessAuditTrail(record.Edges.CandidateCertificateEdges, []*ent.CandidateCertificate{}, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
 
 func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord *ent.Candidate) (string, error) {
 	result := models.AuditTrailData{
-		Module: CandidateI18n,
-		Create: []interface{}{},
-		Update: []interface{}{},
-		Delete: []interface{}{},
+		Module:    CandidateI18n,
+		Create:    []interface{}{},
+		Update:    d.recordAuditUpdate(oldRecord, newRecord),
+		Delete:    []interface{}{},
+		SubModule: []interface{}{},
 	}
+	d.candidateAwardDto.ProcessAuditTrail(oldRecord.Edges.CandidateAwardEdges, newRecord.Edges.CandidateAwardEdges, &result)
+	d.candidateExpDto.ProcessAuditTrail(oldRecord.Edges.CandidateExpEdges, newRecord.Edges.CandidateExpEdges, &result)
+	d.candidateEducateDto.ProcessAuditTrail(oldRecord.Edges.CandidateEducateEdges, newRecord.Edges.CandidateEducateEdges, &result)
+	d.candidateCertificateDto.ProcessAuditTrail(oldRecord.Edges.CandidateCertificateEdges, newRecord.Edges.CandidateCertificateEdges, &result)
+	jsonObj, err := json.Marshal(result)
+	return string(jsonObj), err
+}
+
+func (d *candidateDtoImpl) recordAuditUpdate(oldRecord, newRecord *ent.Candidate) []interface{} {
 	entity := []interface{}{}
 	oldValue := reflect.ValueOf(interface{}(oldRecord)).Elem()
 	newValue := reflect.ValueOf(interface{}(newRecord)).Elem()
@@ -116,9 +145,7 @@ func (d *candidateDtoImpl) AuditTrailUpdate(oldRecord *ent.Candidate, newRecord 
 	}
 	entity = d.attachmentAuditTrailUpdate(oldRecord, newRecord, entity)
 	entity = d.skillAuditTrailUpdate(oldRecord, newRecord, entity)
-	result.Update = append(result.Update, entity...)
-	jsonObj, err := json.Marshal(result)
-	return string(jsonObj), err
+	return entity
 }
 
 func (d *candidateDtoImpl) recordAudit(record *ent.Candidate) []interface{} {

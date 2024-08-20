@@ -56,11 +56,9 @@ func (svc candidateEducateSvcImpl) ProcessCandidateEducateInput(ctx context.Cont
 		}
 	}
 	// Delete
-	if len(currentIds) > 0 {
-		err := repoRegistry.CandidateEducate().BuildBulkDelete(ctx, currentIds)
-		if err != nil {
-			return err
-		}
+	err := repoRegistry.CandidateEducate().BuildBulkDelete(ctx, currentIds, candidateId)
+	if err != nil {
+		return err
 	}
 	// Create new
 	if len(newRecord) > 0 {

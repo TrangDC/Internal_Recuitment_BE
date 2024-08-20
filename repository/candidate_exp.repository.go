@@ -13,7 +13,7 @@ import (
 type CandidateExpRepository interface {
 	BuildBulkCreate(ctx context.Context, input []*ent.CandidateExpInput, candidateId uuid.UUID) error
 	BuildBulkUpdate(ctx context.Context, input []*ent.CandidateExpInput) error
-	BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error
+	BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error
 }
 
 type candidateExpRepoImpl struct {
@@ -88,7 +88,7 @@ func (rps candidateExpRepoImpl) BuildBulkUpdate(ctx context.Context, input []*en
 	return nil
 }
 
-func (rps candidateExpRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID) error {
-	_, err := rps.client.CandidateExp.Delete().Where(candidateexp.IDNotIn(ids...)).Exec(ctx)
+func (rps candidateExpRepoImpl) BuildBulkDelete(ctx context.Context, ids []uuid.UUID, candidateId uuid.UUID) error {
+	_, err := rps.client.CandidateExp.Delete().Where(candidateexp.IDNotIn(ids...), candidateexp.CandidateIDEQ(candidateId)).Exec(ctx)
 	return err
 }

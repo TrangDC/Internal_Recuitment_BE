@@ -38,11 +38,9 @@ func (svc candidateExpSvcImpl) ProcessCandidateExpInput(ctx context.Context, can
 		return uuid.MustParse(v.ID)
 	})
 	// Delete
-	if len(currentIds) > 0 {
-		err := repoRegistry.CandidateExp().BuildBulkDelete(ctx, currentIds)
-		if err != nil {
-			return err
-		}
+	err := repoRegistry.CandidateExp().BuildBulkDelete(ctx, currentIds, candidateId)
+	if err != nil {
+		return err
 	}
 	// Create new
 	if len(newRecord) > 0 {
