@@ -34,6 +34,7 @@ type CandidateInterviewRepository interface {
 	DeleteCandidateInterview(ctx context.Context, record *ent.CandidateInterview, memberIds []uuid.UUID) (*ent.CandidateInterview, error)
 	CreateBulkCandidateInterview(ctx context.Context, candidateJobs []*ent.CandidateJob, memberIds []uuid.UUID, input ent.NewCandidateInterview4CalendarInput) ([]*ent.CandidateInterview, error)
 	UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error)
+	UpdateBulkCandidateInterviewStatus(ctx context.Context, predicates []predicate.CandidateInterview, status candidateinterview.Status) error
 	// query
 	GetCandidateInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateInterview, error)
 	BuildQuery() *ent.CandidateInterviewQuery
@@ -205,6 +206,11 @@ func (rps candidateInterviewRepoImpl) CreateBulkCandidateInterview(ctx context.C
 
 func (rps *candidateInterviewRepoImpl) UpdateCandidateInterviewStatus(ctx context.Context, record *ent.CandidateInterview, input ent.UpdateCandidateInterviewStatusInput) (*ent.CandidateInterview, error) {
 	return rps.BuildUpdateOne(ctx, record).SetStatus(candidateinterview.Status(input.Status.String())).Save(ctx)
+}
+
+func (rps *candidateInterviewRepoImpl) UpdateBulkCandidateInterviewStatus(ctx context.Context, predicates []predicate.CandidateInterview, status candidateinterview.Status) error {
+	_, err := rps.BuildUpdate().Where(predicates...).SetStatus(status).Save(ctx)
+	return err
 }
 
 // query
