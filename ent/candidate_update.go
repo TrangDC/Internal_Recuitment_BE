@@ -792,11 +792,6 @@ func (cu *CandidateUpdate) check() error {
 			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
 		}
 	}
-	if v, ok := cu.mutation.ReferenceValue(); ok {
-		if err := candidate.ReferenceValueValidator(v); err != nil {
-			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
-		}
-	}
 	if v, ok := cu.mutation.Description(); ok {
 		if err := candidate.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
@@ -805,11 +800,6 @@ func (cu *CandidateUpdate) check() error {
 	if v, ok := cu.mutation.Country(); ok {
 		if err := candidate.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
-		}
-	}
-	if v, ok := cu.mutation.Address(); ok {
-		if err := candidate.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
 		}
 	}
 	if v, ok := cu.mutation.Gender(); ok {
@@ -2275,11 +2265,6 @@ func (cuo *CandidateUpdateOne) check() error {
 			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
 		}
 	}
-	if v, ok := cuo.mutation.ReferenceValue(); ok {
-		if err := candidate.ReferenceValueValidator(v); err != nil {
-			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
-		}
-	}
 	if v, ok := cuo.mutation.Description(); ok {
 		if err := candidate.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
@@ -2288,11 +2273,6 @@ func (cuo *CandidateUpdateOne) check() error {
 	if v, ok := cuo.mutation.Country(); ok {
 		if err := candidate.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
-		}
-	}
-	if v, ok := cuo.mutation.Address(); ok {
-		if err := candidate.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
 		}
 	}
 	if v, ok := cuo.mutation.Gender(); ok {

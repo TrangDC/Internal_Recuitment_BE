@@ -570,11 +570,6 @@ func (cc *CandidateCreate) check() error {
 			return &ValidationError{Name: "reference_type", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_type": %w`, err)}
 		}
 	}
-	if v, ok := cc.mutation.ReferenceValue(); ok {
-		if err := candidate.ReferenceValueValidator(v); err != nil {
-			return &ValidationError{Name: "reference_value", err: fmt.Errorf(`ent: validator failed for field "Candidate.reference_value": %w`, err)}
-		}
-	}
 	if v, ok := cc.mutation.Description(); ok {
 		if err := candidate.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Candidate.description": %w`, err)}
@@ -583,11 +578,6 @@ func (cc *CandidateCreate) check() error {
 	if v, ok := cc.mutation.Country(); ok {
 		if err := candidate.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Candidate.country": %w`, err)}
-		}
-	}
-	if v, ok := cc.mutation.Address(); ok {
-		if err := candidate.AddressValidator(v); err != nil {
-			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "Candidate.address": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.Gender(); !ok {

@@ -1,0 +1,16 @@
+ALTER TABLE candidates
+  ALTER COLUMN address TYPE TEXT,
+  ALTER COLUMN reference_value TYPE TEXT;
+
+ALTER TABLE candidate_exps
+  ALTER COLUMN position TYPE TEXT,
+  ALTER COLUMN company TYPE TEXT,
+  ALTER COLUMN location TYPE TEXT,
+  ALTER COLUMN description TYPE TEXT;
+
+ALTER TABLE candidate_educates
+  ALTER COLUMN school_name TYPE TEXT,
+  ALTER COLUMN major TYPE TEXT,
+  ALTER COLUMN gpa TYPE TEXT,
+  ALTER COLUMN location TYPE TEXT,
+  ALTER COLUMN description TYPE TEXT;

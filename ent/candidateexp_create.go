@@ -307,16 +307,6 @@ func (cec *CandidateExpCreate) check() error {
 			return &ValidationError{Name: "company", err: fmt.Errorf(`ent: validator failed for field "CandidateExp.company": %w`, err)}
 		}
 	}
-	if v, ok := cec.mutation.Location(); ok {
-		if err := candidateexp.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateExp.location": %w`, err)}
-		}
-	}
-	if v, ok := cec.mutation.Description(); ok {
-		if err := candidateexp.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateExp.description": %w`, err)}
-		}
-	}
 	if _, ok := cec.mutation.IsCurrent(); !ok {
 		return &ValidationError{Name: "is_current", err: errors.New(`ent: missing required field "CandidateExp.is_current"`)}
 	}

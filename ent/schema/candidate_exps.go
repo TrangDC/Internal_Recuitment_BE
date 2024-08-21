@@ -16,10 +16,10 @@ type CandidateExp struct {
 func (CandidateExp) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
-		field.String("position").MaxLen(256).NotEmpty(),
-		field.String("company").MaxLen(256).NotEmpty(),
-		field.String("location").MaxLen(256).Optional(),
-		field.String("description").MaxLen(512).Optional(),
+		field.Text("position").NotEmpty(),
+		field.Text("company").NotEmpty(),
+		field.Text("location").Optional(),
+		field.Text("description").Optional(),
 		field.Time("start_date").Optional(),
 		field.Time("end_date").Optional(),
 		field.Int("order_id").Optional(),

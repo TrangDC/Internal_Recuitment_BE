@@ -337,26 +337,6 @@ func (cec *CandidateEducateCreate) check() error {
 			return &ValidationError{Name: "school_name", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.school_name": %w`, err)}
 		}
 	}
-	if v, ok := cec.mutation.Major(); ok {
-		if err := candidateeducate.MajorValidator(v); err != nil {
-			return &ValidationError{Name: "major", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.major": %w`, err)}
-		}
-	}
-	if v, ok := cec.mutation.Gpa(); ok {
-		if err := candidateeducate.GpaValidator(v); err != nil {
-			return &ValidationError{Name: "gpa", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.gpa": %w`, err)}
-		}
-	}
-	if v, ok := cec.mutation.Location(); ok {
-		if err := candidateeducate.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.location": %w`, err)}
-		}
-	}
-	if v, ok := cec.mutation.Description(); ok {
-		if err := candidateeducate.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.description": %w`, err)}
-		}
-	}
 	if _, ok := cec.mutation.IsCurrent(); !ok {
 		return &ValidationError{Name: "is_current", err: errors.New(`ent: missing required field "CandidateEducate.is_current"`)}
 	}

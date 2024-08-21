@@ -391,26 +391,6 @@ func (ceu *CandidateEducateUpdate) check() error {
 			return &ValidationError{Name: "school_name", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.school_name": %w`, err)}
 		}
 	}
-	if v, ok := ceu.mutation.Major(); ok {
-		if err := candidateeducate.MajorValidator(v); err != nil {
-			return &ValidationError{Name: "major", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.major": %w`, err)}
-		}
-	}
-	if v, ok := ceu.mutation.Gpa(); ok {
-		if err := candidateeducate.GpaValidator(v); err != nil {
-			return &ValidationError{Name: "gpa", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.gpa": %w`, err)}
-		}
-	}
-	if v, ok := ceu.mutation.Location(); ok {
-		if err := candidateeducate.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.location": %w`, err)}
-		}
-	}
-	if v, ok := ceu.mutation.Description(); ok {
-		if err := candidateeducate.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.description": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -974,26 +954,6 @@ func (ceuo *CandidateEducateUpdateOne) check() error {
 	if v, ok := ceuo.mutation.SchoolName(); ok {
 		if err := candidateeducate.SchoolNameValidator(v); err != nil {
 			return &ValidationError{Name: "school_name", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.school_name": %w`, err)}
-		}
-	}
-	if v, ok := ceuo.mutation.Major(); ok {
-		if err := candidateeducate.MajorValidator(v); err != nil {
-			return &ValidationError{Name: "major", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.major": %w`, err)}
-		}
-	}
-	if v, ok := ceuo.mutation.Gpa(); ok {
-		if err := candidateeducate.GpaValidator(v); err != nil {
-			return &ValidationError{Name: "gpa", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.gpa": %w`, err)}
-		}
-	}
-	if v, ok := ceuo.mutation.Location(); ok {
-		if err := candidateeducate.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.location": %w`, err)}
-		}
-	}
-	if v, ok := ceuo.mutation.Description(); ok {
-		if err := candidateeducate.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateEducate.description": %w`, err)}
 		}
 	}
 	return nil

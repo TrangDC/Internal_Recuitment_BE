@@ -82,10 +82,6 @@ var (
 	PositionValidator func(string) error
 	// CompanyValidator is a validator for the "company" field. It is called by the builders before save.
 	CompanyValidator func(string) error
-	// LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	LocationValidator func(string) error
-	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	DescriptionValidator func(string) error
 	// DefaultIsCurrent holds the default value on creation for the "is_current" field.
 	DefaultIsCurrent bool
 )
