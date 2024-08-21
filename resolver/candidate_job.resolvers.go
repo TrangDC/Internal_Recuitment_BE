@@ -5,8 +5,8 @@ package resolver
 
 import (
 	"context"
-	"time"
 	"trec/ent"
+	"trec/ent/candidateinterview"
 	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
 
@@ -70,8 +70,8 @@ func (r *candidateJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.Cand
 
 // InterviewFeature is the resolver for the interview_feature field.
 func (r *candidateJobResolver) InterviewFeature(ctx context.Context, obj *ent.CandidateJob) (int, error) {
-	interviewFeature := lo.Filter(obj.Edges.CandidateJobInterview, func(cji *ent.CandidateInterview, index int) bool {
-		return cji.InterviewDate.After(time.Now().UTC())
+	interviewFeature := lo.Filter(obj.Edges.CandidateJobInterview, func(cji *ent.CandidateInterview, _ int) bool {
+		return cji.Status == candidateinterview.StatusInvitedToInterview || cji.Status == candidateinterview.StatusInterviewing
 	})
 	return len(interviewFeature), nil
 }

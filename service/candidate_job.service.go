@@ -210,15 +210,21 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 			if err != nil {
 				return err
 			}
-			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, candidatejob.StatusOffering, result.ID, repoRegistry)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
-			if err != nil {
-				return err
-			}
+		}
+		err = svc.candidateJobStepSvc.CreateCandidateJobStep(ctx, result.Status, result.ID, repoRegistry)
+		if err != nil {
+			return err
+		}
+		// interviewing to offering/failed interview: cancel all invited/interviewing interviews
+		if record.Status == candidatejob.StatusInterviewing && (result.Status == candidatejob.StatusOffering || result.Status == candidatejob.StatusFailedInterview) {
+			return repoRegistry.CandidateInterview().UpdateBulkCandidateInterviewStatus(
+				ctx,
+				[]predicate.CandidateInterview{
+					candidateinterview.CandidateJobID(id),
+					candidateinterview.StatusIn(candidateinterview.StatusInvitedToInterview, candidateinterview.StatusInterviewing),
+				},
+				candidateinterview.StatusCancelled,
+			)
 		}
 		return nil
 	})
