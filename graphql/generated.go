@@ -7846,6 +7846,8 @@ input CandidateJobFeedbackFilter {
   candidate_job_id: ID
   candidate_id: ID
   created_by: ID
+  from_date: Time
+  to_date: Time
 }
 
 input CandidateJobFeedbackFreeWord {
@@ -8876,6 +8878,8 @@ input OutgoingEmailFilter {
   recipient_type: [OutgoingEmailRecipientType!]
   candidate_id: ID
   status: [OutgoingEmailStatus!]
+  from_date: Time
+  to_date: Time
 }
 
 input OutgoingEmailOrder {
@@ -51137,7 +51141,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFeedbackFilter(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_job_id", "candidate_id", "created_by"}
+	fieldsInOrder := [...]string{"candidate_job_id", "candidate_id", "created_by", "from_date", "to_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -51165,6 +51169,22 @@ func (ec *executionContext) unmarshalInputCandidateJobFeedbackFilter(ctx context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
 			it.CreatedBy, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_date"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -53589,7 +53609,7 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status"}
+	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status", "from_date", "to_date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53617,6 +53637,22 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalOOutgoingEmailStatus2ᚕtrecᚋentᚐOutgoingEmailStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from_date"))
+			it.FromDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
+			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

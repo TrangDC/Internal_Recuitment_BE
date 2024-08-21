@@ -200,10 +200,7 @@ func (svc *candidateNoteSvcImpl) filter(query *ent.CandidateNoteQuery, filter *e
 			query.Where(candidatenote.CandidateID(uuid.MustParse(*filter.CandidateID)))
 		}
 		if (filter.FromDate != nil && filter.ToDate != nil) && (!filter.FromDate.IsZero() && !filter.ToDate.IsZero()) {
-			query.Where(
-				candidatenote.CreatedAtGTE(*filter.FromDate),
-				candidatenote.CreatedAtLTE(*filter.ToDate),
-			)
+			query.Where(candidatenote.CreatedAtGTE(*filter.FromDate), candidatenote.CreatedAtLTE(*filter.ToDate))
 		}
 	}
 }

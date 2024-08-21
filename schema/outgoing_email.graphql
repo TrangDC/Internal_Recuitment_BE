@@ -26,6 +26,8 @@ input OutgoingEmailFilter {
   recipient_type: [OutgoingEmailRecipientType!]
   candidate_id: ID
   status: [OutgoingEmailStatus!]
+  from_date: Time
+  to_date: Time
 }
 
 input OutgoingEmailOrder {

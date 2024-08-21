@@ -299,6 +299,9 @@ func (svc *candidateJobFeedbackSvcImpl) filter(candidateJobFeedbackQuery *ent.Ca
 	if input.CandidateID != nil {
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.CandidateIDEQ(uuid.MustParse(*input.CandidateID)), candidatejob.DeletedAtIsNil()))
 	}
+	if (input.FromDate != nil && input.ToDate != nil) && (!input.FromDate.IsZero() && !input.ToDate.IsZero()) {
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedAtGTE(*input.FromDate), candidatejobfeedback.CreatedAtLTE(*input.ToDate))
+	}
 }
 
 // permission

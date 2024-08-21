@@ -35,6 +35,8 @@ input CandidateJobFeedbackFilter {
   candidate_job_id: ID
   candidate_id: ID
   created_by: ID
+  from_date: Time
+  to_date: Time
 }
 
 input CandidateJobFeedbackFreeWord {
