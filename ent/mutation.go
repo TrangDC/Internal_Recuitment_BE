@@ -26367,6 +26367,7 @@ type OutgoingEmailMutation struct {
 	recipient_type        *outgoingemail.RecipientType
 	email_template_id     *uuid.UUID
 	status                *outgoingemail.Status
+	event                 *outgoingemail.Event
 	clearedFields         map[string]struct{}
 	candidate_edge        *uuid.UUID
 	clearedcandidate_edge bool
@@ -27044,6 +27045,42 @@ func (m *OutgoingEmailMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetEvent sets the "event" field.
+func (m *OutgoingEmailMutation) SetEvent(o outgoingemail.Event) {
+	m.event = &o
+}
+
+// Event returns the value of the "event" field in the mutation.
+func (m *OutgoingEmailMutation) Event() (r outgoingemail.Event, exists bool) {
+	v := m.event
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEvent returns the old "event" field's value of the OutgoingEmail entity.
+// If the OutgoingEmail object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OutgoingEmailMutation) OldEvent(ctx context.Context) (v outgoingemail.Event, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEvent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEvent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEvent: %w", err)
+	}
+	return oldValue.Event, nil
+}
+
+// ResetEvent resets all changes to the "event" field.
+func (m *OutgoingEmailMutation) ResetEvent() {
+	m.event = nil
+}
+
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
 func (m *OutgoingEmailMutation) SetCandidateEdgeID(id uuid.UUID) {
 	m.candidate_edge = &id
@@ -27102,7 +27139,7 @@ func (m *OutgoingEmailMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OutgoingEmailMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, outgoingemail.FieldCreatedAt)
 	}
@@ -27142,6 +27179,9 @@ func (m *OutgoingEmailMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, outgoingemail.FieldStatus)
 	}
+	if m.event != nil {
+		fields = append(fields, outgoingemail.FieldEvent)
+	}
 	return fields
 }
 
@@ -27176,6 +27216,8 @@ func (m *OutgoingEmailMutation) Field(name string) (ent.Value, bool) {
 		return m.EmailTemplateID()
 	case outgoingemail.FieldStatus:
 		return m.Status()
+	case outgoingemail.FieldEvent:
+		return m.Event()
 	}
 	return nil, false
 }
@@ -27211,6 +27253,8 @@ func (m *OutgoingEmailMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldEmailTemplateID(ctx)
 	case outgoingemail.FieldStatus:
 		return m.OldStatus(ctx)
+	case outgoingemail.FieldEvent:
+		return m.OldEvent(ctx)
 	}
 	return nil, fmt.Errorf("unknown OutgoingEmail field %s", name)
 }
@@ -27310,6 +27354,13 @@ func (m *OutgoingEmailMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case outgoingemail.FieldEvent:
+		v, ok := value.(outgoingemail.Event)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEvent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail field %s", name)
@@ -27425,6 +27476,9 @@ func (m *OutgoingEmailMutation) ResetField(name string) error {
 		return nil
 	case outgoingemail.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case outgoingemail.FieldEvent:
+		m.ResetEvent()
 		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail field %s", name)

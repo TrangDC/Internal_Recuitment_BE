@@ -2839,7 +2839,7 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     oe.ID,
 		Type:   "OutgoingEmail",
-		Fields: make([]*Field, 13),
+		Fields: make([]*Field, 14),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -2945,6 +2945,14 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[12] = &Field{
 		Type:  "outgoingemail.Status",
 		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(oe.Event); err != nil {
+		return nil, err
+	}
+	node.Fields[13] = &Field{
+		Type:  "outgoingemail.Event",
+		Name:  "event",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

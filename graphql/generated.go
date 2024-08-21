@@ -808,6 +808,7 @@ type ComplexityRoot struct {
 	OutgoingEmail struct {
 		Content       func(childComplexity int) int
 		CreatedAt     func(childComplexity int) int
+		Event         func(childComplexity int) int
 		ID            func(childComplexity int) int
 		RecipientType func(childComplexity int) int
 		Signature     func(childComplexity int) int
@@ -1463,6 +1464,7 @@ type OutgoingEmailResolver interface {
 
 	RecipientType(ctx context.Context, obj *ent.OutgoingEmail) (ent.OutgoingEmailRecipientType, error)
 	Status(ctx context.Context, obj *ent.OutgoingEmail) (ent.OutgoingEmailStatus, error)
+	Event(ctx context.Context, obj *ent.OutgoingEmail) (ent.EmailTemplateEvent, error)
 }
 type PermissionResolver interface {
 	ID(ctx context.Context, obj *ent.Permission) (string, error)
@@ -5067,6 +5069,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OutgoingEmail.CreatedAt(childComplexity), true
 
+	case "OutgoingEmail.event":
+		if e.complexity.OutgoingEmail.Event == nil {
+			break
+		}
+
+		return e.complexity.OutgoingEmail.Event(childComplexity), true
+
 	case "OutgoingEmail.id":
 		if e.complexity.OutgoingEmail.ID == nil {
 			break
@@ -8262,8 +8271,8 @@ enum Period{
   quarter
   year
 }
-`, BuiltIn: false},
-	{Name: "../schema/email_template.graphql", Input: `enum EmailTemplateEvent {
+
+enum EmailTemplateEvent {
   candidate_applied_to_kiv
   candidate_interviewing_to_kiv
   candidate_interviewing_to_offering
@@ -8271,8 +8280,8 @@ enum Period{
   updating_interview
   cancel_interview
 }
-
-enum EmailTemplateApplicationEventEnum {
+`, BuiltIn: false},
+	{Name: "../schema/email_template.graphql", Input: `enum EmailTemplateApplicationEventEnum {
   candidate_applied_to_kiv
   candidate_interviewing_to_kiv
   candidate_interviewing_to_offering
@@ -8880,6 +8889,7 @@ input OutgoingEmailFilter {
   status: [OutgoingEmailStatus!]
   from_date: Time
   to_date: Time
+  event: EmailTemplateEvent
 }
 
 input OutgoingEmailOrder {
@@ -8895,6 +8905,7 @@ type OutgoingEmail {
   signature: String!
   recipient_type: OutgoingEmailRecipientType!
   status: OutgoingEmailStatus!
+  event: EmailTemplateEvent!
   created_at: Time!
   updated_at: Time
 }
@@ -16646,6 +16657,8 @@ func (ec *executionContext) fieldContext_CandidateActivity_outgoing_emails(ctx c
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "event":
+				return ec.fieldContext_OutgoingEmail_event(ctx, field)
 			case "created_at":
 				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
 			case "updated_at":
@@ -36251,6 +36264,50 @@ func (ec *executionContext) fieldContext_OutgoingEmail_status(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _OutgoingEmail_event(ctx context.Context, field graphql.CollectedField, obj *ent.OutgoingEmail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OutgoingEmail_event(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OutgoingEmail().Event(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.EmailTemplateEvent)
+	fc.Result = res
+	return ec.marshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OutgoingEmail_event(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OutgoingEmail",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EmailTemplateEvent does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OutgoingEmail_created_at(ctx context.Context, field graphql.CollectedField, obj *ent.OutgoingEmail) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OutgoingEmail_created_at(ctx, field)
 	if err != nil {
@@ -36389,6 +36446,8 @@ func (ec *executionContext) fieldContext_OutgoingEmailEdge_node(ctx context.Cont
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "event":
+				return ec.fieldContext_OutgoingEmail_event(ctx, field)
 			case "created_at":
 				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
 			case "updated_at":
@@ -36497,6 +36556,8 @@ func (ec *executionContext) fieldContext_OutgoingEmailResponse_data(ctx context.
 				return ec.fieldContext_OutgoingEmail_recipient_type(ctx, field)
 			case "status":
 				return ec.fieldContext_OutgoingEmail_status(ctx, field)
+			case "event":
+				return ec.fieldContext_OutgoingEmail_event(ctx, field)
 			case "created_at":
 				return ec.fieldContext_OutgoingEmail_created_at(ctx, field)
 			case "updated_at":
@@ -53609,7 +53670,7 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status", "from_date", "to_date"}
+	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status", "from_date", "to_date", "event"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53653,6 +53714,14 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("to_date"))
 			it.ToDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "event":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
+			it.Event, err = ec.unmarshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -62081,6 +62150,26 @@ func (ec *executionContext) _OutgoingEmail(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._OutgoingEmail_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "event":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OutgoingEmail_event(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

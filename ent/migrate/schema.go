@@ -820,6 +820,7 @@ var (
 		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"}},
 		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
+		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OutgoingEmailsTable holds the schema information for the "outgoing_emails" table.
@@ -830,7 +831,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "outgoing_emails_candidates_outgoing_email_edges",
-				Columns:    []*schema.Column{OutgoingEmailsColumns[13]},
+				Columns:    []*schema.Column{OutgoingEmailsColumns[14]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

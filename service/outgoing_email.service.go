@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"strings"
 	"trec/ent"
+	"trec/ent/candidate"
 	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 	"trec/internal/util"
 	"trec/models"
 	"trec/repository"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
@@ -49,7 +52,7 @@ func (svc outgoingEmailSvcImpl) GetAllOutgoingEmails(ctx context.Context, pagina
 	var page int
 	var perPage int
 	query := svc.repoRegistry.OutgoingEmail().BuildQuery()
-	svc.filter(query, filter)
+	svc.filter(ctx, query, filter)
 	svc.freeWord(query, freeWord)
 	count, err := svc.repoRegistry.OutgoingEmail().BuildCount(ctx, query)
 	if err != nil {
@@ -109,9 +112,17 @@ func (svc *outgoingEmailSvcImpl) freeWord(outgoingEmailQuery *ent.OutgoingEmailQ
 	}
 }
 
-func (svc *outgoingEmailSvcImpl) filter(outgoingEmailQuery *ent.OutgoingEmailQuery, input ent.OutgoingEmailFilter) {
+func (svc *outgoingEmailSvcImpl) filter(ctx context.Context, outgoingEmailQuery *ent.OutgoingEmailQuery, input ent.OutgoingEmailFilter) {
 	if input.CandidateID != nil {
+		candidateRec, _ := svc.repoRegistry.Candidate().BuildGet(ctx, svc.repoRegistry.Candidate().BuildBaseQuery().
+			Where(candidate.ID(uuid.MustParse(*input.CandidateID))))
 		outgoingEmailQuery.Where(outgoingemail.CandidateIDEQ(uuid.MustParse(*input.CandidateID)))
+		if candidateRec != nil {
+			outgoingEmailQuery.Where(outgoingemail.Or(
+				func(s *sql.Selector) { s.Where(sqljson.ValueContains(outgoingemail.FieldTo, candidateRec.Email)) },
+				func(s *sql.Selector) { s.Where(sqljson.ValueContains(outgoingemail.FieldCc, candidateRec.Email)) },
+			))
+		}
 	}
 	if input.Status != nil {
 		status := lo.Map(input.Status, func(v ent.OutgoingEmailStatus, index int) outgoingemail.Status {
@@ -127,5 +138,8 @@ func (svc *outgoingEmailSvcImpl) filter(outgoingEmailQuery *ent.OutgoingEmailQue
 	}
 	if (input.FromDate != nil && input.ToDate != nil) && (!input.FromDate.IsZero() && !input.ToDate.IsZero()) {
 		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*input.FromDate), outgoingemail.CreatedAtLTE(*input.ToDate))
+	}
+	if input.Event != nil {
+		outgoingEmailQuery.Where(outgoingemail.EventEQ(outgoingemail.Event(*input.Event)))
 	}
 }

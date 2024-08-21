@@ -814,6 +814,7 @@ type OutgoingEmailFilter struct {
 	Status        []OutgoingEmailStatus        `json:"status"`
 	FromDate      *time.Time                   `json:"from_date"`
 	ToDate        *time.Time                   `json:"to_date"`
+	Event         *EmailTemplateEvent          `json:"event"`
 }
 
 type OutgoingEmailFreeWord struct {

@@ -19,6 +19,8 @@ import (
 	"trec/models"
 	"trec/repository"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -66,7 +68,19 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		WithAttachmentEdges().WithCreatedByEdge()
 	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId))
 	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId))
-	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().Where(outgoingemail.CandidateID(candidateId))
+	candidateRec, err := svc.repoRegistry.Candidate().GetCandidate(ctx, candidateId)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().
+		Where(
+			outgoingemail.CandidateID(candidateId),
+			outgoingemail.Or(
+				func(s *sql.Selector) { s.Where(sqljson.ValueContains(outgoingemail.FieldTo, candidateRec.Email)) },
+				func(s *sql.Selector) { s.Where(sqljson.ValueContains(outgoingemail.FieldCc, candidateRec.Email)) },
+			),
+		)
 	// apply permission
 	svc.validPermissionGet(payload, candidateInterviewQuery, candidateJobFeedbackQuery)
 	// apply filter
