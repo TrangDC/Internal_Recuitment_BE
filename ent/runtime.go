@@ -328,14 +328,6 @@ func init() {
 	candidatehistorycallDescName := candidatehistorycallFields[0].Descriptor()
 	// candidatehistorycall.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	candidatehistorycall.NameValidator = candidatehistorycallDescName.Validators[0].(func(string) error)
-	// candidatehistorycallDescContactTo is the schema descriptor for contact_to field.
-	candidatehistorycallDescContactTo := candidatehistorycallFields[2].Descriptor()
-	// candidatehistorycall.ContactToValidator is a validator for the "contact_to" field. It is called by the builders before save.
-	candidatehistorycall.ContactToValidator = candidatehistorycallDescContactTo.Validators[0].(func(string) error)
-	// candidatehistorycallDescDescription is the schema descriptor for description field.
-	candidatehistorycallDescDescription := candidatehistorycallFields[3].Descriptor()
-	// candidatehistorycall.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	candidatehistorycall.DescriptionValidator = candidatehistorycallDescDescription.Validators[0].(func(string) error)
 	candidateinterviewMixin := schema.CandidateInterview{}.Mixin()
 	candidateinterviewMixinFields0 := candidateinterviewMixin[0].Fields()
 	_ = candidateinterviewMixinFields0

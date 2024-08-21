@@ -344,16 +344,6 @@ func (chcc *CandidateHistoryCallCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.name": %w`, err)}
 		}
 	}
-	if v, ok := chcc.mutation.ContactTo(); ok {
-		if err := candidatehistorycall.ContactToValidator(v); err != nil {
-			return &ValidationError{Name: "contact_to", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.contact_to": %w`, err)}
-		}
-	}
-	if v, ok := chcc.mutation.Description(); ok {
-		if err := candidatehistorycall.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.description": %w`, err)}
-		}
-	}
 	if v, ok := chcc.mutation.GetType(); ok {
 		if err := candidatehistorycall.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "CandidateHistoryCall.type": %w`, err)}
