@@ -6,6 +6,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidatehistorycall"
+	"trec/ent/hiringteam"
 	"trec/middleware"
 
 	"github.com/google/uuid"
@@ -47,7 +48,14 @@ func (rps *candidateHistoryCallRepoImpl) BuildDelete() *ent.CandidateHistoryCall
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildQuery() *ent.CandidateHistoryCallQuery {
-	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil()).WithCreatedByEdge().WithCandidateEdge().WithAttachmentEdges()
+	return rps.client.CandidateHistoryCall.Query().Where(candidatehistorycall.DeletedAtIsNil()).
+		WithCreatedByEdge(func(query *ent.UserQuery) {
+			query.WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+				query.Where(hiringteam.DeletedAtIsNil())
+			})
+		}).
+		WithCandidateEdge().
+		WithAttachmentEdges()
 }
 
 func (rps *candidateHistoryCallRepoImpl) BuildGet(ctx context.Context, query *ent.CandidateHistoryCallQuery) (*ent.CandidateHistoryCall, error) {

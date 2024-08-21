@@ -6,6 +6,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidatenote"
+	"trec/ent/hiringteam"
 	"trec/middleware"
 
 	"github.com/google/uuid"
@@ -68,7 +69,11 @@ func (rps *candidateNoteRepoImpl) BuildBaseQuery() *ent.CandidateNoteQuery {
 func (rps *candidateNoteRepoImpl) BuildQuery() *ent.CandidateNoteQuery {
 	return rps.BuildBaseQuery().
 		WithCandidateEdge().
-		WithCreatedByEdge().
+		WithCreatedByEdge(func(query *ent.UserQuery) {
+			query.WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+				query.Where(hiringteam.DeletedAtIsNil())
+			})
+		}).
 		WithAttachmentEdges()
 }
 

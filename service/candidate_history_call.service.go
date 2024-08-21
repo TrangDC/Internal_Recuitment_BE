@@ -9,8 +9,10 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidatehistorycall"
+	"trec/ent/candidatejob"
 	"trec/ent/predicate"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -110,10 +112,16 @@ func (svc *candidateHistoryCallSvcImpl) UpdateCandidateHistoryCall(ctx context.C
 }
 
 func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.Context, candidateHistoryCallId uuid.UUID, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateHistoryCall().GetCandidateHistoryCall(ctx, candidateHistoryCallId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.CandidateIDEQ(record.CandidateID))
+	candidateJob, _ := svc.repoRegistry.CandidateJob().BuildGetOne(ctx, candidateJobQuery)
+	if !svc.validPermissionDelete(payload, record, candidateJob.Edges.HiringJobEdge.Edges.HiringTeamEdge) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.CandidateHistoryCall().DeleteCandidateHistoryCall(ctx, record)
@@ -240,6 +248,30 @@ func (svc *candidateHistoryCallSvcImpl) filter(query *ent.CandidateHistoryCallQu
 			query.Where(candidatehistorycall.TypeEQ(candidatehistorycall.Type(*input.Type)))
 		}
 	}
+}
+
+// permission
+func (svc candidateHistoryCallSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateHistoryCall, hiringTeam *ent.HiringTeam) bool {
+	if payload.ForTeam {
+		// hiring team
+		memberIds := lo.Map(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
+			return item.ID
+		})
+		managerIds := lo.Map(hiringTeam.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+			return item.ID
+		})
+		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+			return true
+		}
+		// TODO: rec team
+	}
+	if payload.ForAll {
+		return true
+	}
+	if payload.ForOwner && record.CreatedByID == payload.UserID {
+		return true
+	}
+	return false
 }
 
 // Path: service/skill_types.service.go

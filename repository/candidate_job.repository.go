@@ -38,6 +38,7 @@ type CandidateJobRepository interface {
 	BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.CandidateJobQuery) ([]*ent.CandidateJob, error)
 	BuildIDList(ctx context.Context, query *ent.CandidateJobQuery) ([]uuid.UUID, error)
+	BuildGetOne(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	BuildExist(ctx context.Context, query *ent.CandidateJobQuery) (bool, error)
 	GetOneCandidateJob(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error)
 	// common function
@@ -113,6 +114,10 @@ func (rps candidateJobRepoImpl) BuildList(ctx context.Context, query *ent.Candid
 
 func (rps candidateJobRepoImpl) BuildIDList(ctx context.Context, query *ent.CandidateJobQuery) ([]uuid.UUID, error) {
 	return query.IDs(ctx)
+}
+
+func (rps candidateJobRepoImpl) BuildGetOne(ctx context.Context, query *ent.CandidateJobQuery) (*ent.CandidateJob, error) {
+	return query.First(ctx)
 }
 
 func (rps candidateJobRepoImpl) BuildCount(ctx context.Context, query *ent.CandidateJobQuery) (int, error) {
