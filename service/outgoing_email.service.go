@@ -95,14 +95,17 @@ func (svc outgoingEmailSvcImpl) GetAllOutgoingEmails(ctx context.Context, pagina
 
 // common function
 func (svc *outgoingEmailSvcImpl) freeWord(outgoingEmailQuery *ent.OutgoingEmailQuery, input *ent.OutgoingEmailFreeWord) {
-	predicate := []predicate.OutgoingEmail{}
+	var predicates []predicate.OutgoingEmail
 	if input != nil {
 		if input.Subject != nil {
-			predicate = append(predicate, outgoingemail.SubjectContainsFold(strings.TrimSpace(*input.Subject)))
+			predicates = append(predicates, outgoingemail.SubjectContainsFold(strings.TrimSpace(*input.Subject)))
+		}
+		if input.Content != nil {
+			predicates = append(predicates, outgoingemail.ContentContainsFold(strings.TrimSpace(*input.Content)))
 		}
 	}
-	if len(predicate) > 0 {
-		outgoingEmailQuery.Where(outgoingemail.Or(predicate...))
+	if len(predicates) > 0 {
+		outgoingEmailQuery.Where(outgoingemail.Or(predicates...))
 	}
 }
 
