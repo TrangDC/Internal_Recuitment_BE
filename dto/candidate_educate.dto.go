@@ -92,6 +92,8 @@ func (d candidateEducateDtoImpl) recordAuditDeleted(creIds []uuid.UUID, oldRecor
 			switch fieldName {
 			case "":
 				continue
+			case "model.candidate_educates.is_current":
+				valueField = d.isCurrentI18n(record.IsCurrent)
 			}
 			entity = append(entity, models.AuditTrailCreateDelete{
 				Field: fieldName,
@@ -124,6 +126,9 @@ func (d candidateEducateDtoImpl) recordAuditUpdated(updIds []uuid.UUID, oldRecor
 				switch fieldName {
 				case "":
 					continue
+				case "model.candidate_educates.is_current":
+					oldValueField = d.isCurrentI18n(oldRecord.IsCurrent)
+					newValueField = d.isCurrentI18n(newRecord.IsCurrent)
 				}
 				entity = append(entity, models.AuditTrailUpdate{
 					Field: fieldName,
@@ -160,6 +165,15 @@ func (d candidateEducateDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidate_educates.is_current"
 	}
 	return ""
+}
+
+func (d *candidateEducateDtoImpl) isCurrentI18n(input bool) string {
+	switch input {
+	case true:
+		return "model.candidate_educates.is_current_enum.yes"
+	default:
+		return "model.candidate_educates.is_current_enum.no"
+	}
 }
 
 func (d candidateEducateDtoImpl) attachmentAuditTrail(record *ent.CandidateEducate, atInterface []interface{}) []interface{} {

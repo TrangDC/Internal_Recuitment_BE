@@ -21,7 +21,7 @@ const (
 
 type ServiceBus interface {
 	ListenToEmailSubscription(messages chan<- models.Messages)
-	ListenToInterviewScheduleSubscription(messages chan<- models.Messages)
+	ListenToInterviewScheduleSubscription(messages chan<- models.Messages) error
 	SendEmailTriggerMessage(ctx context.Context, input models.MessageInput) error
 	SendInterviewScheduleMessage(ctx context.Context, input models.MessageOutput, schedule time.Time) error
 	ProcessMessages(ctx context.Context, messages <-chan models.Messages)
@@ -63,33 +63,50 @@ func NewServiceBus(config config.ServiceBusConfig, entClient *ent.Client) (Servi
 func (s *serviceBusImpl) ListenToEmailSubscription(messages chan<- models.Messages) {
 	for {
 		ctx := context.Background()
-		err := s.emailEventTriggerCallback.Receive(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
+		receiver, err := s.emailEventTriggerCallback.NewReceiver(ctx)
+		listenerHandle := receiver.Listen(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
 			messages <- models.Messages{
 				Message:   *msg,
 				QueueName: EmailEventTriggerCallbackQueue,
 			}
 			return msg.Complete(ctx)
 		}))
+		<-listenerHandle.Done()
+		err = listenerHandle.Err()
 		if err != nil {
-			log.Printf("failed to receive email trigger callback messages: %s", err)
-			time.Sleep(1 * time.Second)
+			log.Println("Error in listening to the queue")
+			if err = receiver.Recover(ctx); err != nil {
+				log.Printf("azure.queue.receiver: can't recover receiver %T - %s", err, err.Error())
+			}
+			log.Println("Reconnecting to the queue")
+			go s.ListenToInterviewScheduleSubscription(messages)
 		}
 	}
 }
 
-func (s *serviceBusImpl) ListenToInterviewScheduleSubscription(messages chan<- models.Messages) {
+func (s *serviceBusImpl) ListenToInterviewScheduleSubscription(messages chan<- models.Messages) error {
 	for {
 		ctx := context.Background()
-		err := s.interviewSchedule.Receive(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
+		receiver, err := s.interviewSchedule.NewReceiver(ctx)
+		if err != nil {
+			log.Printf("failed to create receiver: %s", err)
+		}
+		listenerHandle := receiver.Listen(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
 			messages <- models.Messages{
 				Message:   *msg,
 				QueueName: InterviewScheduleQueue,
 			}
 			return msg.Complete(ctx)
 		}))
+		<-listenerHandle.Done()
+		err = listenerHandle.Err()
 		if err != nil {
-			log.Printf("failed to receive interview schedule callback messages: %s", err)
-			time.Sleep(1 * time.Second)
+			log.Println("Error in listening to the queue")
+			if err = receiver.Recover(ctx); err != nil {
+				log.Printf("azure.queue.receiver: can't recover receiver %T - %s", err, err.Error())
+			}
+			log.Println("Reconnecting to the queue")
+			go s.ListenToInterviewScheduleSubscription(messages)
 		}
 	}
 }
