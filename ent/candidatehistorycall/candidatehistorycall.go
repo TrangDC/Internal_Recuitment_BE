@@ -101,10 +101,6 @@ var (
 	DefaultCreatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// ContactToValidator is a validator for the "contact_to" field. It is called by the builders before save.
-	ContactToValidator func(string) error
-	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	DescriptionValidator func(string) error
 )
 
 // Type defines the type for the "type" enum field.

@@ -17,8 +17,8 @@ func (CandidateHistoryCall) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(256).Optional(),
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
-		field.String("contact_to").MaxLen(256).Optional(),
-		field.String("description").MaxLen(512).Optional(),
+		field.Text("contact_to").Optional(),
+		field.Text("description").Optional(),
 		field.Enum("type").Values("candidate", "others").Optional(),
 		field.Time("date").Optional(),
 		field.Time("start_time").Optional(),
