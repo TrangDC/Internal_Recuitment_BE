@@ -814,6 +814,7 @@ type OutgoingEmailFilter struct {
 
 type OutgoingEmailFreeWord struct {
 	Subject *string `json:"subject"`
+	Content *string `json:"content"`
 }
 
 type OutgoingEmailResponse struct {

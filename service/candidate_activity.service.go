@@ -78,7 +78,10 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.FeedbackContainsFold(*freeWord.FreeWord))
 		candidateNoteQuery.Where(candidatenote.NameContainsFold(*freeWord.FreeWord))
 		candidateHistoryCallQuery.Where(candidatehistorycall.NameContainsFold(*freeWord.FreeWord))
-		outgoingEmailQuery.Where(outgoingemail.SubjectContainsFold(*freeWord.FreeWord))
+		outgoingEmailQuery.Where(outgoingemail.Or(
+			outgoingemail.SubjectContainsFold(*freeWord.FreeWord),
+			outgoingemail.ContentContainsFold(*freeWord.FreeWord),
+		))
 	}
 	// query
 	candidateInterviews, err := svc.repoRegistry.CandidateInterview().BuildList(ctx, candidateInterviewQuery)

@@ -8869,6 +8869,7 @@ enum OutgoingEmailOrderField {
 
 input OutgoingEmailFreeWord {
   subject: String
+  content: String
 }
 
 input OutgoingEmailFilter {
@@ -53632,7 +53633,7 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFreeWord(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"subject"}
+	fieldsInOrder := [...]string{"subject", "content"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53644,6 +53645,14 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFreeWord(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
 			it.Subject, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "content":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			it.Content, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

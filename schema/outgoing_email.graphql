@@ -19,6 +19,7 @@ enum OutgoingEmailOrderField {
 
 input OutgoingEmailFreeWord {
   subject: String
+  content: String
 }
 
 input OutgoingEmailFilter {
