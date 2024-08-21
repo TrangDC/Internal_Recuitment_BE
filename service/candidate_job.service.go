@@ -442,7 +442,7 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 		candidatejob.HasCandidateEdgeWith(
 			candidate.DeletedAtIsNil(), candidate.IsBlacklist(false),
 		), candidatejob.HasHiringJobEdgeWith(
-			hiringjob.DeletedAtIsNil(), hiringjob.StatusNEQ(hiringjob.StatusClosed),
+			hiringjob.DeletedAtIsNil(),
 		))
 	svc.validPermissionGet(payload, query)
 	if pagination != nil {
