@@ -291,9 +291,11 @@ type CandidateJobByOrder struct {
 }
 
 type CandidateJobFeedbackFilter struct {
-	CandidateJobID *string `json:"candidate_job_id"`
-	CandidateID    *string `json:"candidate_id"`
-	CreatedBy      *string `json:"created_by"`
+	CandidateJobID *string    `json:"candidate_job_id"`
+	CandidateID    *string    `json:"candidate_id"`
+	CreatedBy      *string    `json:"created_by"`
+	FromDate       *time.Time `json:"from_date"`
+	ToDate         *time.Time `json:"to_date"`
 }
 
 type CandidateJobFeedbackFreeWord struct {
@@ -810,6 +812,8 @@ type OutgoingEmailFilter struct {
 	RecipientType []OutgoingEmailRecipientType `json:"recipient_type"`
 	CandidateID   *string                      `json:"candidate_id"`
 	Status        []OutgoingEmailStatus        `json:"status"`
+	FromDate      *time.Time                   `json:"from_date"`
+	ToDate        *time.Time                   `json:"to_date"`
 }
 
 type OutgoingEmailFreeWord struct {

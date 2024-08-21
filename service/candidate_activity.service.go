@@ -74,7 +74,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		candidateInterviewQuery.Where(candidateinterview.StartFromGTE(*filter.FromDate), candidateinterview.StartFromLTE(*filter.ToDate))
 		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedAtGTE(*filter.FromDate), candidatejobfeedback.CreatedAtLTE(*filter.ToDate))
 		candidateNoteQuery.Where(candidatenote.CreatedAtGTE(*filter.FromDate), candidatenote.CreatedAtLTE(*filter.ToDate))
-		candidateHistoryCallQuery.Where(candidatehistorycall.CreatedAtGTE(*filter.FromDate), candidatehistorycall.CreatedAtLTE(*filter.ToDate))
+		candidateHistoryCallQuery.Where(candidatehistorycall.DateGTE(*filter.FromDate), candidatehistorycall.DateLTE(*filter.ToDate))
 		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*filter.FromDate), outgoingemail.CreatedAtLTE(*filter.ToDate))
 	}
 	// apply free word

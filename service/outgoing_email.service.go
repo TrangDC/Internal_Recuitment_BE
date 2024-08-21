@@ -125,4 +125,7 @@ func (svc *outgoingEmailSvcImpl) filter(outgoingEmailQuery *ent.OutgoingEmailQue
 		})
 		outgoingEmailQuery.Where(outgoingemail.RecipientTypeIn(recipientType...))
 	}
+	if (input.FromDate != nil && input.ToDate != nil) && (!input.FromDate.IsZero() && !input.ToDate.IsZero()) {
+		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*input.FromDate), outgoingemail.CreatedAtLTE(*input.ToDate))
+	}
 }

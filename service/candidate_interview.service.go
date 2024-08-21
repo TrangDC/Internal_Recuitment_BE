@@ -711,8 +711,8 @@ func (svc *candidateInterviewSvcImpl) filter(candidateInterviewQuery *ent.Candid
 	if input.StartFrom != nil && input.EndAt != nil {
 		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.StartFromGTE(*input.StartFrom), candidateinterview.EndAtLTE(*input.EndAt)))
 	}
-	if input.FromDate != nil && input.ToDate != nil {
-		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.CreatedAtGTE(*input.FromDate), candidateinterview.CreatedAtLTE(*input.ToDate)))
+	if (input.FromDate != nil && input.ToDate != nil) && (!input.FromDate.IsZero() && !input.ToDate.IsZero()) {
+		candidateInterviewQuery.Where(candidateinterview.CreatedAtGTE(*input.FromDate), candidateinterview.CreatedAtLTE(*input.ToDate))
 	}
 	if input.InterviewDateFrom != nil && input.InterviewDateTo != nil {
 		candidateInterviewQuery.Where(candidateinterview.And(candidateinterview.InterviewDateGTE(*input.InterviewDateFrom), candidateinterview.InterviewDateLTE(*input.InterviewDateTo)))
