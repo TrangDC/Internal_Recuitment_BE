@@ -21,7 +21,7 @@ const (
 
 type ServiceBus interface {
 	ListenToEmailSubscription(messages chan<- models.Messages)
-	ListenToInterviewScheduleSubscription(messages chan<- models.Messages) error
+	ListenToInterviewScheduleSubscription(messages chan<- models.Messages)
 	SendEmailTriggerMessage(ctx context.Context, input models.MessageInput) error
 	SendInterviewScheduleMessage(ctx context.Context, input models.MessageOutput, schedule time.Time) error
 	ProcessMessages(ctx context.Context, messages <-chan models.Messages)
@@ -64,6 +64,9 @@ func (s *serviceBusImpl) ListenToEmailSubscription(messages chan<- models.Messag
 	for {
 		ctx := context.Background()
 		receiver, err := s.emailEventTriggerCallback.NewReceiver(ctx)
+		if err != nil {
+			log.Printf("failed to create receiver: %s", err)
+		}
 		listenerHandle := receiver.Listen(ctx, servicebus.HandlerFunc(func(ctx context.Context, msg *servicebus.Message) error {
 			messages <- models.Messages{
 				Message:   *msg,
@@ -84,7 +87,7 @@ func (s *serviceBusImpl) ListenToEmailSubscription(messages chan<- models.Messag
 	}
 }
 
-func (s *serviceBusImpl) ListenToInterviewScheduleSubscription(messages chan<- models.Messages) error {
+func (s *serviceBusImpl) ListenToInterviewScheduleSubscription(messages chan<- models.Messages) {
 	for {
 		ctx := context.Background()
 		receiver, err := s.interviewSchedule.NewReceiver(ctx)
