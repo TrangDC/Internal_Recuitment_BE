@@ -16,11 +16,11 @@ type CandidateEducate struct {
 func (CandidateEducate) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
-		field.String("school_name").MaxLen(256).NotEmpty(),
-		field.String("major").MaxLen(256).Optional(),
-		field.String("gpa").MaxLen(256).Optional(),
-		field.String("location").MaxLen(256).Optional(),
-		field.String("description").MaxLen(512).Optional(),
+		field.Text("school_name").NotEmpty(),
+		field.Text("major").Optional(),
+		field.Text("gpa").Optional(),
+		field.Text("location").Optional(),
+		field.Text("description").Optional(),
 		field.Time("start_date").Optional(),
 		field.Time("end_date").Optional(),
 		field.Int("order_id").Optional(),

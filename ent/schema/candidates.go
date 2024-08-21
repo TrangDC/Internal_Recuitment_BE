@@ -23,13 +23,13 @@ func (Candidate) Fields() []ent.Field {
 		field.Bool("is_blacklist").Default(false),
 		field.Time("last_apply_date").Optional().Annotations(entgql.OrderField("last_apply_date")),
 		field.Enum("reference_type").Values("eb", "rec", "hiring_platform", "reference", "headhunt").Default("eb"),
-		field.String("reference_value").MaxLen(256).Optional(),
+		field.Text("reference_value").Optional(),
 		field.UUID("reference_uid", uuid.UUID{}).Optional(),
 		field.Time("recruit_time").Optional().Annotations(entgql.OrderField("recruit_time")),
 		field.String("description").MaxLen(512).Optional(),
 		field.UUID("avatar", uuid.UUID{}).Optional(),
 		field.String("country").MaxLen(256).Optional(),
-		field.String("address").MaxLen(256).Optional(),
+		field.Text("address").Optional(),
 		field.Enum("gender").Values("male", "female", "others").Default("others"),
 	}
 }

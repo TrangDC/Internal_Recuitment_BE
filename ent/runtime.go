@@ -137,10 +137,6 @@ func init() {
 	candidateDescIsBlacklist := candidateFields[4].Descriptor()
 	// candidate.DefaultIsBlacklist holds the default value on creation for the is_blacklist field.
 	candidate.DefaultIsBlacklist = candidateDescIsBlacklist.Default.(bool)
-	// candidateDescReferenceValue is the schema descriptor for reference_value field.
-	candidateDescReferenceValue := candidateFields[7].Descriptor()
-	// candidate.ReferenceValueValidator is a validator for the "reference_value" field. It is called by the builders before save.
-	candidate.ReferenceValueValidator = candidateDescReferenceValue.Validators[0].(func(string) error)
 	// candidateDescDescription is the schema descriptor for description field.
 	candidateDescDescription := candidateFields[10].Descriptor()
 	// candidate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
@@ -149,10 +145,6 @@ func init() {
 	candidateDescCountry := candidateFields[12].Descriptor()
 	// candidate.CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	candidate.CountryValidator = candidateDescCountry.Validators[0].(func(string) error)
-	// candidateDescAddress is the schema descriptor for address field.
-	candidateDescAddress := candidateFields[13].Descriptor()
-	// candidate.AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	candidate.AddressValidator = candidateDescAddress.Validators[0].(func(string) error)
 	candidateawardMixin := schema.CandidateAward{}.Mixin()
 	candidateawardMixinFields0 := candidateawardMixin[0].Fields()
 	_ = candidateawardMixinFields0
@@ -223,37 +215,7 @@ func init() {
 	// candidateeducateDescSchoolName is the schema descriptor for school_name field.
 	candidateeducateDescSchoolName := candidateeducateFields[1].Descriptor()
 	// candidateeducate.SchoolNameValidator is a validator for the "school_name" field. It is called by the builders before save.
-	candidateeducate.SchoolNameValidator = func() func(string) error {
-		validators := candidateeducateDescSchoolName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(school_name string) error {
-			for _, fn := range fns {
-				if err := fn(school_name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// candidateeducateDescMajor is the schema descriptor for major field.
-	candidateeducateDescMajor := candidateeducateFields[2].Descriptor()
-	// candidateeducate.MajorValidator is a validator for the "major" field. It is called by the builders before save.
-	candidateeducate.MajorValidator = candidateeducateDescMajor.Validators[0].(func(string) error)
-	// candidateeducateDescGpa is the schema descriptor for gpa field.
-	candidateeducateDescGpa := candidateeducateFields[3].Descriptor()
-	// candidateeducate.GpaValidator is a validator for the "gpa" field. It is called by the builders before save.
-	candidateeducate.GpaValidator = candidateeducateDescGpa.Validators[0].(func(string) error)
-	// candidateeducateDescLocation is the schema descriptor for location field.
-	candidateeducateDescLocation := candidateeducateFields[4].Descriptor()
-	// candidateeducate.LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	candidateeducate.LocationValidator = candidateeducateDescLocation.Validators[0].(func(string) error)
-	// candidateeducateDescDescription is the schema descriptor for description field.
-	candidateeducateDescDescription := candidateeducateFields[5].Descriptor()
-	// candidateeducate.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	candidateeducate.DescriptionValidator = candidateeducateDescDescription.Validators[0].(func(string) error)
+	candidateeducate.SchoolNameValidator = candidateeducateDescSchoolName.Validators[0].(func(string) error)
 	// candidateeducateDescIsCurrent is the schema descriptor for is_current field.
 	candidateeducateDescIsCurrent := candidateeducateFields[9].Descriptor()
 	// candidateeducate.DefaultIsCurrent holds the default value on creation for the is_current field.
@@ -270,47 +232,11 @@ func init() {
 	// candidateexpDescPosition is the schema descriptor for position field.
 	candidateexpDescPosition := candidateexpFields[1].Descriptor()
 	// candidateexp.PositionValidator is a validator for the "position" field. It is called by the builders before save.
-	candidateexp.PositionValidator = func() func(string) error {
-		validators := candidateexpDescPosition.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(position string) error {
-			for _, fn := range fns {
-				if err := fn(position); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	candidateexp.PositionValidator = candidateexpDescPosition.Validators[0].(func(string) error)
 	// candidateexpDescCompany is the schema descriptor for company field.
 	candidateexpDescCompany := candidateexpFields[2].Descriptor()
 	// candidateexp.CompanyValidator is a validator for the "company" field. It is called by the builders before save.
-	candidateexp.CompanyValidator = func() func(string) error {
-		validators := candidateexpDescCompany.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(company string) error {
-			for _, fn := range fns {
-				if err := fn(company); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// candidateexpDescLocation is the schema descriptor for location field.
-	candidateexpDescLocation := candidateexpFields[3].Descriptor()
-	// candidateexp.LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	candidateexp.LocationValidator = candidateexpDescLocation.Validators[0].(func(string) error)
-	// candidateexpDescDescription is the schema descriptor for description field.
-	candidateexpDescDescription := candidateexpFields[4].Descriptor()
-	// candidateexp.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	candidateexp.DescriptionValidator = candidateexpDescDescription.Validators[0].(func(string) error)
+	candidateexp.CompanyValidator = candidateexpDescCompany.Validators[0].(func(string) error)
 	// candidateexpDescIsCurrent is the schema descriptor for is_current field.
 	candidateexpDescIsCurrent := candidateexpFields[8].Descriptor()
 	// candidateexp.DefaultIsCurrent holds the default value on creation for the is_current field.

@@ -197,14 +197,10 @@ var (
 	PhoneValidator func(string) error
 	// DefaultIsBlacklist holds the default value on creation for the "is_blacklist" field.
 	DefaultIsBlacklist bool
-	// ReferenceValueValidator is a validator for the "reference_value" field. It is called by the builders before save.
-	ReferenceValueValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
 	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	CountryValidator func(string) error
-	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	AddressValidator func(string) error
 )
 
 // ReferenceType defines the type for the "reference_type" enum field.
