@@ -3450,17 +3450,18 @@ func (e AuditTrailAction) MarshalGQL(w io.Writer) {
 type ProjectModule string
 
 const (
-	ProjectModuleHiringTeams    ProjectModule = "hiring_teams"
-	ProjectModuleJobPositions   ProjectModule = "job_positions"
-	ProjectModuleHiringJobs     ProjectModule = "hiring_jobs"
-	ProjectModuleCandidates     ProjectModule = "candidates"
-	ProjectModuleSkills         ProjectModule = "skills"
-	ProjectModuleEmailTemplates ProjectModule = "email_templates"
-	ProjectModuleUsers          ProjectModule = "users"
-	ProjectModuleSkillTypes     ProjectModule = "skill_types"
-	ProjectModuleRoles          ProjectModule = "roles"
-	ProjectModuleRecTeams       ProjectModule = "rec_teams"
-	ProjectModuleCandidateNotes ProjectModule = "candidate_notes"
+	ProjectModuleHiringTeams           ProjectModule = "hiring_teams"
+	ProjectModuleJobPositions          ProjectModule = "job_positions"
+	ProjectModuleHiringJobs            ProjectModule = "hiring_jobs"
+	ProjectModuleCandidates            ProjectModule = "candidates"
+	ProjectModuleSkills                ProjectModule = "skills"
+	ProjectModuleEmailTemplates        ProjectModule = "email_templates"
+	ProjectModuleUsers                 ProjectModule = "users"
+	ProjectModuleSkillTypes            ProjectModule = "skill_types"
+	ProjectModuleRoles                 ProjectModule = "roles"
+	ProjectModuleRecTeams              ProjectModule = "rec_teams"
+	ProjectModuleCandidateNotes        ProjectModule = "candidate_notes"
+	ProjectModuleCandidateHistoryCalls ProjectModule = "candidate_history_calls"
 )
 
 var AllProjectModule = []ProjectModule{
@@ -3475,11 +3476,12 @@ var AllProjectModule = []ProjectModule{
 	ProjectModuleRoles,
 	ProjectModuleRecTeams,
 	ProjectModuleCandidateNotes,
+	ProjectModuleCandidateHistoryCalls,
 }
 
 func (e ProjectModule) IsValid() bool {
 	switch e {
-	case ProjectModuleHiringTeams, ProjectModuleJobPositions, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills, ProjectModuleEmailTemplates, ProjectModuleUsers, ProjectModuleSkillTypes, ProjectModuleRoles, ProjectModuleRecTeams, ProjectModuleCandidateNotes:
+	case ProjectModuleHiringTeams, ProjectModuleJobPositions, ProjectModuleHiringJobs, ProjectModuleCandidates, ProjectModuleSkills, ProjectModuleEmailTemplates, ProjectModuleUsers, ProjectModuleSkillTypes, ProjectModuleRoles, ProjectModuleRecTeams, ProjectModuleCandidateNotes, ProjectModuleCandidateHistoryCalls:
 		return true
 	}
 	return false

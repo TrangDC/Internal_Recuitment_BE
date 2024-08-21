@@ -8233,6 +8233,7 @@ enum projectModule {
   roles
   rec_teams
   candidate_notes
+  candidate_history_calls
 }
 
 enum auditTrailAction {
