@@ -690,17 +690,17 @@ func (svc *candidateInterviewSvcImpl) ValidateCandidateInterview(ctx context.Con
 
 // common function
 func (svc *candidateInterviewSvcImpl) freeWord(candidateInterviewQuery *ent.CandidateInterviewQuery, input *ent.CandidateInterviewFreeWord) {
-	var predidacate []predicate.CandidateInterview
+	var predicates []predicate.CandidateInterview
 	if input != nil {
 		if input.Title != nil {
-			predidacate = append(predidacate, candidateinterview.TitleContainsFold(strings.TrimSpace(*input.Title)))
+			predicates = append(predicates, candidateinterview.TitleContainsFold(strings.TrimSpace(*input.Title)))
 		}
 		if input.Description != nil {
-			predidacate = append(predidacate, candidateinterview.DescriptionContainsFold(strings.TrimSpace(*input.Description)))
+			predicates = append(predicates, candidateinterview.DescriptionContainsFold(strings.TrimSpace(*input.Description)))
 		}
 	}
-	if len(predidacate) > 0 {
-		candidateInterviewQuery.Where(candidateinterview.Or(predidacate...))
+	if len(predicates) > 0 {
+		candidateInterviewQuery.Where(candidateinterview.Or(predicates...))
 	}
 }
 

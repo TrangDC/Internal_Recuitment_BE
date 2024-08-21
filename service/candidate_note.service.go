@@ -8,8 +8,10 @@ import (
 	"trec/ent"
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejob"
 	"trec/ent/candidatenote"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -100,10 +102,16 @@ func (svc *candidateNoteSvcImpl) UpdateCandidateNote(ctx context.Context, id uui
 }
 
 func (svc *candidateNoteSvcImpl) DeleteCandidateNote(ctx context.Context, id uuid.UUID, note string) error {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	record, err := svc.repoRegistry.CandidateNote().GetCandidateNote(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.CandidateIDEQ(record.CandidateID))
+	candidateJob, _ := svc.repoRegistry.CandidateJob().BuildGetOne(ctx, candidateJobQuery)
+	if !svc.validPermissionDelete(payload, record, candidateJob.Edges.HiringJobEdge.Edges.HiringTeamEdge) {
+		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err := repoRegistry.CandidateNote().DeleteCandidateNote(ctx, record)
@@ -205,3 +213,29 @@ func (svc *candidateNoteSvcImpl) freeWord(query *ent.CandidateNoteQuery, freeWor
 		query.Where(candidatenote.NameContainsFold(strings.TrimSpace(*freeWord.Name)))
 	}
 }
+
+// permission
+func (svc candidateNoteSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateNote, hiringTeam *ent.HiringTeam) bool {
+	if payload.ForTeam {
+		// hiring team
+		hiringTeamMemberIds := lo.Map(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
+			return item.ID
+		})
+		managerIds := lo.Map(hiringTeam.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
+			return item.ID
+		})
+		if lo.Contains(hiringTeamMemberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+			return true
+		}
+		// TODO: rec team
+	}
+	if payload.ForAll {
+		return true
+	}
+	if payload.ForOwner && record.CreatedByID == payload.UserID {
+		return true
+	}
+	return false
+}
+
+// Path: service/candidate_note.service.go

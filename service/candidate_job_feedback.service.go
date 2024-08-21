@@ -273,19 +273,19 @@ func (svc *candidateJobFeedbackSvcImpl) GetCandidateJobFeedbacks(ctx context.Con
 
 // common function
 func (svc *candidateJobFeedbackSvcImpl) freeWord(candidateJobFeedbackQuery *ent.CandidateJobFeedbackQuery, input *ent.CandidateJobFeedbackFreeWord) {
-	predicate := []predicate.CandidateJobFeedback{}
+	var predicates []predicate.CandidateJobFeedback
 	if input != nil {
 		if input.Feedback != nil {
-			predicate = append(predicate, candidatejobfeedback.FeedbackContainsFold(strings.TrimSpace(*input.Feedback)))
+			predicates = append(predicates, candidatejobfeedback.FeedbackContainsFold(strings.TrimSpace(*input.Feedback)))
 		}
 		if input.UserName != nil {
-			predicate = append(predicate, candidatejobfeedback.HasCreatedByEdgeWith(
+			predicates = append(predicates, candidatejobfeedback.HasCreatedByEdgeWith(
 				user.NameContainsFold(strings.TrimSpace(*input.UserName)),
 			))
 		}
 	}
-	if len(predicate) > 0 {
-		candidateJobFeedbackQuery.Where(candidatejobfeedback.Or(predicate...))
+	if len(predicates) > 0 {
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.Or(predicates...))
 	}
 }
 

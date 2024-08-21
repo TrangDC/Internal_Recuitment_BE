@@ -10,8 +10,12 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatenote"
+	"trec/ent/hiringjob"
+	"trec/ent/hiringteam"
 	"trec/ent/outgoingemail"
+	"trec/ent/user"
 	"trec/internal/util"
+	"trec/middleware"
 	"trec/models"
 	"trec/repository"
 
@@ -39,6 +43,7 @@ func NewCandidateActivityService(repoRegistry repository.Repository, logger *zap
 
 func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Context, pagination *ent.PaginationInput, filter ent.CandidateActivityFilter, freeWord *ent.CandidateActivityFreeWord,
 	orderBy ent.CandidateActivityOrder) (*ent.CandidateActivityResponse, error) {
+	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	candidateId := uuid.MustParse(filter.CandidateID)
 	var page int
 	var perPage int
@@ -51,7 +56,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	candidateHistoryCallResults := []*ent.CandidateHistoryCall{}
 	candidateInterviewResults := []*ent.CandidateInterview{}
 	candidateJobFeedbackResults := []*ent.CandidateJobFeedback{}
-	outgoingEmailResutls := []*ent.OutgoingEmail{}
+	outgoingEmailResults := []*ent.OutgoingEmail{}
 	// get candidate activities
 	candidateInterviewQuery := svc.repoRegistry.CandidateInterview().BuildQuery().
 		Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
@@ -59,11 +64,11 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 	candidateJobFeedbackQuery := svc.repoRegistry.CandidateJobFeedback().BuildQuery().
 		Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.CandidateID(candidateId))).
 		WithAttachmentEdges().WithCreatedByEdge()
-	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId)).
-		WithAttachmentEdges().WithCreatedByEdge()
-	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId)).
-		WithAttachmentEdges().WithCreatedByEdge()
+	candidateNoteQuery := svc.repoRegistry.CandidateNote().BuildQuery().Where(candidatenote.CandidateID(candidateId))
+	candidateHistoryCallQuery := svc.repoRegistry.CandidateHistoryCall().BuildQuery().Where(candidatehistorycall.CandidateID(candidateId))
 	outgoingEmailQuery := svc.repoRegistry.OutgoingEmail().BuildQuery().Where(outgoingemail.CandidateID(candidateId))
+	// apply permission
+	svc.validPermissionGet(payload, candidateInterviewQuery, candidateJobFeedbackQuery)
 	// apply filter
 	if filter.FromDate != nil && filter.ToDate != nil {
 		candidateInterviewQuery.Where(candidateinterview.StartFromGTE(*filter.FromDate), candidateinterview.StartFromLTE(*filter.ToDate))
@@ -175,7 +180,7 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 		candidateJobFeedbackResults = append(candidateJobFeedbackResults, lo.Filter(candidateJobFeedbacks, func(entity *ent.CandidateJobFeedback, index int) bool {
 			return entity.ID == referenceModel.Id
 		})...)
-		outgoingEmailResutls = append(outgoingEmailResutls, lo.Filter(outgoingEmails, func(entity *ent.OutgoingEmail, index int) bool {
+		outgoingEmailResults = append(outgoingEmailResults, lo.Filter(outgoingEmails, func(entity *ent.OutgoingEmail, index int) bool {
 			return entity.ID == referenceModel.Id
 		})...)
 	}
@@ -185,7 +190,30 @@ func (svc *candidateActivitySvcImpl) GetAllCandidateActivities(ctx context.Conte
 			CandidateHistoryCalls: candidateHistoryCallResults,
 			CandidateInterviews:   candidateInterviewResults,
 			CandidateJobFeedbacks: candidateJobFeedbackResults,
-			OutgoingEmails:        outgoingEmailResutls,
+			OutgoingEmails:        outgoingEmailResults,
 			Total:                 count,
 		}}, nil
 }
+
+// permission
+func (svc candidateActivitySvcImpl) validPermissionGet(payload *middleware.Payload, candidateInterviewQuery *ent.CandidateInterviewQuery, candidateJobFeedbackQuery *ent.CandidateJobFeedbackQuery) {
+	if payload.ForAll {
+		return
+	}
+	if payload.ForTeam {
+		candidateInterviewQuery.Where(candidateinterview.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
+		))))
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.HasCandidateJobEdgeWith(candidatejob.HasHiringJobEdgeWith(hiringjob.HasHiringTeamEdgeWith(
+			hiringteam.Or(hiringteam.HasUserEdgesWith(user.IDEQ(payload.UserID)), hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID))),
+		))))
+	}
+	if payload.ForOwner {
+		candidateInterviewQuery.Where(candidateinterview.HasInterviewerEdgesWith(
+			user.IDEQ(payload.UserID), user.DeletedAtIsNil(),
+		))
+		candidateJobFeedbackQuery.Where(candidatejobfeedback.CreatedByEQ(payload.UserID))
+	}
+}
+
+// Path: service/candidate_activity.service.go
