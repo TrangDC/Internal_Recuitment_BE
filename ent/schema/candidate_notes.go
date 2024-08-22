@@ -17,7 +17,7 @@ func (CandidateNote) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("candidate_id", uuid.UUID{}),
 		field.UUID("created_by_id", uuid.UUID{}),
-		field.String("name").NotEmpty().MaxLen(256),
+		field.Text("name").NotEmpty(),
 		field.Text("description").NotEmpty(),
 	}
 }

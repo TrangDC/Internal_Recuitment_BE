@@ -333,21 +333,7 @@ func init() {
 	// candidatenoteDescName is the schema descriptor for name field.
 	candidatenoteDescName := candidatenoteFields[2].Descriptor()
 	// candidatenote.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	candidatenote.NameValidator = func() func(string) error {
-		validators := candidatenoteDescName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name string) error {
-			for _, fn := range fns {
-				if err := fn(name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	candidatenote.NameValidator = candidatenoteDescName.Validators[0].(func(string) error)
 	// candidatenoteDescDescription is the schema descriptor for description field.
 	candidatenoteDescDescription := candidatenoteFields[3].Descriptor()
 	// candidatenote.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.

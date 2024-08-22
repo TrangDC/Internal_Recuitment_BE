@@ -1,0 +1,2 @@
+ALTER TABLE IF EXIST candidate_notes
+  ALTER COLUMN name TYPE TEXT;
