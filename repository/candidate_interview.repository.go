@@ -235,7 +235,7 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 			)
 		},
 	)
-	hiringjobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(candidateJobRecord.HiringJobID)).WithHiringJobSkillEdges(
+	hiringJobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(candidateJobRecord.HiringJobID)).WithHiringJobSkillEdges(
 		func(query *ent.EntitySkillQuery) {
 			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
 				func(sq *ent.SkillQuery) {
@@ -252,7 +252,7 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 	if err != nil {
 		return result, err
 	}
-	hiringJobRecord, err := hiringjobQuery.First(ctx)
+	hiringJobRecord, err := hiringJobQuery.First(ctx)
 	if err != nil {
 		return result, err
 	}
