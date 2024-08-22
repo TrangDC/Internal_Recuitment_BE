@@ -276,7 +276,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	err = svc.triggerEventSendEmail(ctx, candidateInterview, record.Edges.CandidateJobEdge, emailtemplate.EventUpdatingInterview)
+	err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailtemplate.EventUpdatingInterview)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
