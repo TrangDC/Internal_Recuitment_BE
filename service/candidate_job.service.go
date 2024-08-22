@@ -80,11 +80,9 @@ func (svc *candidateJobSvcImpl) CreateCandidateJob(ctx context.Context, input *e
 	var inputValidate models.CandidateJobValidInput
 	query := svc.repoRegistry.HiringJob().BuildBaseQuery().Where(hiringjob.IDEQ(uuid.MustParse(input.HiringJobID))).WithHiringTeamEdge(
 		func(query *ent.HiringTeamQuery) {
-			query.WithUserEdges(
-				func(query *ent.UserQuery) {
-					query.Where(user.DeletedAtIsNil())
-				},
-			)
+			query.
+				WithUserEdges(func(query *ent.UserQuery) { query.Where(user.DeletedAtIsNil()) }).
+				WithHiringMemberEdges()
 		},
 	)
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(ctx, query)
