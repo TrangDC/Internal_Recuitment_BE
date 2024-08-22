@@ -72,6 +72,8 @@ func (rps *candidateNoteRepoImpl) BuildQuery() *ent.CandidateNoteQuery {
 		WithCreatedByEdge(func(query *ent.UserQuery) {
 			query.WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
 				query.Where(hiringteam.DeletedAtIsNil())
+			}).WithMemberOfHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+				query.Where(hiringteam.DeletedAtIsNil())
 			})
 		}).
 		WithAttachmentEdges()
