@@ -246,7 +246,7 @@ func (rps candidateJobRepoImpl) GetDataForKeyword(ctx context.Context, record *e
 	if err != nil {
 		return result, err
 	}
-	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).WithUserEdges().First(ctx)
+	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).WithUserEdges().WithHiringMemberEdges().First(ctx)
 	if err != nil {
 		return result, nil
 	}
