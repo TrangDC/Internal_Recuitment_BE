@@ -110,7 +110,11 @@ func (svc *candidateNoteSvcImpl) DeleteCandidateNote(ctx context.Context, id uui
 	}
 	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().
 		Where(candidatejob.CandidateIDEQ(record.CandidateID)).
-		WithHiringJobEdge(func(query *ent.HiringJobQuery) { query.WithHiringTeamEdge() })
+		WithHiringJobEdge(func(query *ent.HiringJobQuery) {
+			query.WithHiringTeamEdge(func(query *ent.HiringTeamQuery) {
+				query.WithHiringMemberEdges().WithUserEdges()
+			})
+		})
 	candidateJob, _ := svc.repoRegistry.CandidateJob().BuildGetOne(ctx, candidateJobQuery)
 	if !svc.validPermissionDelete(payload, record, candidateJob.Edges.HiringJobEdge.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
