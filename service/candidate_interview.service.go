@@ -246,9 +246,6 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 	if !svc.validPermissionUpdate(payload, hiringJob.Edges.HiringTeamEdge, record) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	if time.Now().UTC().After(record.EndAt) {
-		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_interview_ended", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
-	}
 	if record.CandidateJobStatus.String() != record.Edges.CandidateJobEdge.Status.String() {
 		return nil, util.WrapGQLError(ctx, "model.candidate_interviews.validation.candidate_job_status_changed", http.StatusBadRequest, util.ErrorFlagCanNotUpdate)
 	}

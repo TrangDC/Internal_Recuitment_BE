@@ -148,6 +148,12 @@ func (oec *OutgoingEmailCreate) SetNillableStatus(o *outgoingemail.Status) *Outg
 	return oec
 }
 
+// SetEvent sets the "event" field.
+func (oec *OutgoingEmailCreate) SetEvent(o outgoingemail.Event) *OutgoingEmailCreate {
+	oec.mutation.SetEvent(o)
+	return oec
+}
+
 // SetID sets the "id" field.
 func (oec *OutgoingEmailCreate) SetID(u uuid.UUID) *OutgoingEmailCreate {
 	oec.mutation.SetID(u)
@@ -309,6 +315,14 @@ func (oec *OutgoingEmailCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
 		}
 	}
+	if _, ok := oec.mutation.Event(); !ok {
+		return &ValidationError{Name: "event", err: errors.New(`ent: missing required field "OutgoingEmail.event"`)}
+	}
+	if v, ok := oec.mutation.Event(); ok {
+		if err := outgoingemail.EventValidator(v); err != nil {
+			return &ValidationError{Name: "event", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.event": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -392,6 +406,10 @@ func (oec *OutgoingEmailCreate) createSpec() (*OutgoingEmail, *sqlgraph.CreateSp
 	if value, ok := oec.mutation.Status(); ok {
 		_spec.SetField(outgoingemail.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := oec.mutation.Event(); ok {
+		_spec.SetField(outgoingemail.FieldEvent, field.TypeEnum, value)
+		_node.Event = value
 	}
 	if nodes := oec.mutation.CandidateEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

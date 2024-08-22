@@ -21,6 +21,7 @@ type MessageInput struct {
 	ApplicationName string                      `json:"applicationName"`
 	QueueName       string                      `json:"queueName"`
 	RecipientType   outgoingemail.RecipientType `json:"recipientType"`
+	Event           outgoingemail.Event         `json:"event"`
 }
 
 type Messages struct {

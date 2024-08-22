@@ -40,6 +40,8 @@ const (
 	FieldEmailTemplateID = "email_template_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldEvent holds the string denoting the event field in the database.
+	FieldEvent = "event"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
 	// Table holds the table name of the outgoingemail in the database.
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldRecipientType,
 	FieldEmailTemplateID,
 	FieldStatus,
+	FieldEvent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -144,6 +147,33 @@ func StatusValidator(s Status) error {
 	}
 }
 
+// Event defines the type for the "event" enum field.
+type Event string
+
+// Event values.
+const (
+	EventCandidateAppliedToKiv           Event = "candidate_applied_to_kiv"
+	EventCandidateInterviewingToKiv      Event = "candidate_interviewing_to_kiv"
+	EventCandidateInterviewingToOffering Event = "candidate_interviewing_to_offering"
+	EventCreatedInterview                Event = "created_interview"
+	EventUpdatingInterview               Event = "updating_interview"
+	EventCancelInterview                 Event = "cancel_interview"
+)
+
+func (e Event) String() string {
+	return string(e)
+}
+
+// EventValidator is a validator for the "event" field enum values. It is called by the builders before save.
+func EventValidator(e Event) error {
+	switch e {
+	case EventCandidateAppliedToKiv, EventCandidateInterviewingToKiv, EventCandidateInterviewingToOffering, EventCreatedInterview, EventUpdatingInterview, EventCancelInterview:
+		return nil
+	default:
+		return fmt.Errorf("outgoingemail: invalid enum value for event field: %q", e)
+	}
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (e RecipientType) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
@@ -176,6 +206,24 @@ func (e *Status) UnmarshalGQL(val interface{}) error {
 	*e = Status(str)
 	if err := StatusValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Event) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Event) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Event(str)
+	if err := EventValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Event", str)
 	}
 	return nil
 }

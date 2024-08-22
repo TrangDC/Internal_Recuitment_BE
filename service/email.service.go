@@ -82,6 +82,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 			Content:       content,
 			Signature:     signature,
 			RecipientType: sentTo.RecipientType,
+			Event:         outgoingemail.Event(template.Event),
 		}
 		messages = append(messages, message)
 	}

@@ -385,6 +385,7 @@ func (rps *candidateInterviewRepoImpl) ValidateSchedule(ctx context.Context, can
 	interviewPredicates := []predicate.CandidateInterview{
 		candidateinterview.DeletedAtIsNil(),
 		candidateinterview.InterviewDateEQ(input.InterviewDate),
+		candidateinterview.StatusIn(candidateinterview.StatusInvitedToInterview, candidateinterview.StatusInterviewing),
 		candidateinterview.Or(
 			candidateinterview.And(candidateinterview.StartFromLTE(input.StartFrom), candidateinterview.EndAtGTE(input.EndAt)), // outside
 			candidateinterview.And(candidateinterview.StartFromGTE(input.StartFrom), candidateinterview.EndAtLTE(input.EndAt)), // inside

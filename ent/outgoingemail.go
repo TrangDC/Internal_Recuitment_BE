@@ -45,6 +45,8 @@ type OutgoingEmail struct {
 	EmailTemplateID uuid.UUID `json:"email_template_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status outgoingemail.Status `json:"status,omitempty"`
+	// Event holds the value of the "event" field.
+	Event outgoingemail.Event `json:"event,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OutgoingEmailQuery when eager-loading is set.
 	Edges OutgoingEmailEdges `json:"edges"`
@@ -81,7 +83,7 @@ func (*OutgoingEmail) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case outgoingemail.FieldTo, outgoingemail.FieldCc, outgoingemail.FieldBcc:
 			values[i] = new([]byte)
-		case outgoingemail.FieldSubject, outgoingemail.FieldContent, outgoingemail.FieldSignature, outgoingemail.FieldRecipientType, outgoingemail.FieldStatus:
+		case outgoingemail.FieldSubject, outgoingemail.FieldContent, outgoingemail.FieldSignature, outgoingemail.FieldRecipientType, outgoingemail.FieldStatus, outgoingemail.FieldEvent:
 			values[i] = new(sql.NullString)
 		case outgoingemail.FieldCreatedAt, outgoingemail.FieldUpdatedAt, outgoingemail.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -192,6 +194,12 @@ func (oe *OutgoingEmail) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				oe.Status = outgoingemail.Status(value.String)
 			}
+		case outgoingemail.FieldEvent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field event", values[i])
+			} else if value.Valid {
+				oe.Event = outgoingemail.Event(value.String)
+			}
 		}
 	}
 	return nil
@@ -263,6 +271,9 @@ func (oe *OutgoingEmail) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", oe.Status))
+	builder.WriteString(", ")
+	builder.WriteString("event=")
+	builder.WriteString(fmt.Sprintf("%v", oe.Event))
 	builder.WriteByte(')')
 	return builder.String()
 }

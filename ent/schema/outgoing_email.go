@@ -25,6 +25,9 @@ func (OutgoingEmail) Fields() []ent.Field {
 		field.Enum("recipient_type").Values("interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"),
 		field.UUID("email_template_id", uuid.UUID{}).Optional().Annotations(),
 		field.Enum("status").Values("pending", "sent", "failed").Default("pending"),
+		field.Enum("event").
+			Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview").
+			Immutable(),
 	}
 }
 

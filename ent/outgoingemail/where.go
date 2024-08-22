@@ -855,6 +855,42 @@ func StatusNotIn(vs ...Status) predicate.OutgoingEmail {
 	})
 }
 
+// EventEQ applies the EQ predicate on the "event" field.
+func EventEQ(v Event) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEvent), v))
+	})
+}
+
+// EventNEQ applies the NEQ predicate on the "event" field.
+func EventNEQ(v Event) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEvent), v))
+	})
+}
+
+// EventIn applies the In predicate on the "event" field.
+func EventIn(vs ...Event) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldEvent), v...))
+	})
+}
+
+// EventNotIn applies the NotIn predicate on the "event" field.
+func EventNotIn(vs ...Event) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldEvent), v...))
+	})
+}
+
 // HasCandidateEdge applies the HasEdge predicate on the "candidate_edge" edge.
 func HasCandidateEdge() predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {

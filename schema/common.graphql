@@ -98,3 +98,12 @@ enum Period{
   quarter
   year
 }
+
+enum EmailTemplateEvent {
+  candidate_applied_to_kiv
+  candidate_interviewing_to_kiv
+  candidate_interviewing_to_offering
+  created_interview
+  updating_interview
+  cancel_interview
+}
