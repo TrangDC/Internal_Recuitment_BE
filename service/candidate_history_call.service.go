@@ -118,7 +118,9 @@ func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
-	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(candidatejob.CandidateIDEQ(record.CandidateID))
+	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().
+		Where(candidatejob.CandidateIDEQ(record.CandidateID)).
+		WithHiringJobEdge(func(query *ent.HiringJobQuery) { query.WithHiringTeamEdge() })
 	candidateJob, _ := svc.repoRegistry.CandidateJob().BuildGetOne(ctx, candidateJobQuery)
 	if !svc.validPermissionDelete(payload, record, candidateJob.Edges.HiringJobEdge.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
