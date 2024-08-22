@@ -52,6 +52,8 @@ func (rps *candidateHistoryCallRepoImpl) BuildQuery() *ent.CandidateHistoryCallQ
 		WithCreatedByEdge(func(query *ent.UserQuery) {
 			query.WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
 				query.Where(hiringteam.DeletedAtIsNil())
+			}).WithMemberOfHiringTeamEdges(func(query *ent.HiringTeamQuery) {
+				query.Where(hiringteam.DeletedAtIsNil())
 			})
 		}).
 		WithCandidateEdge().
