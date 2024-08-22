@@ -333,7 +333,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	if record.Status != candidateinterview.StatusCancelled && input.Status == ent.CandidateInterviewStatusEditableCancelled {
-		err = svc.triggerEventSendEmail(ctx, candidateInterview, record.Edges.CandidateJobEdge, emailtemplate.EventCancelInterview)
+		err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailtemplate.EventCancelInterview)
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}
