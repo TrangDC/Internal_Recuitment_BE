@@ -9,8 +9,8 @@ import (
 	"trec/ent/attachment"
 	"trec/ent/audittrail"
 	"trec/ent/candidatehistorycall"
-	"trec/ent/candidatejob"
 	"trec/ent/predicate"
+	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
 	"trec/repository"
@@ -118,15 +118,8 @@ func (svc *candidateHistoryCallSvcImpl) DeleteCandidateHistoryCall(ctx context.C
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
-	candidateJobQuery := svc.repoRegistry.CandidateJob().BuildBaseQuery().
-		Where(candidatejob.CandidateIDEQ(record.CandidateID)).
-		WithHiringJobEdge(func(query *ent.HiringJobQuery) {
-			query.WithHiringTeamEdge(func(query *ent.HiringTeamQuery) {
-				query.WithHiringMemberEdges().WithUserEdges()
-			})
-		})
-	candidateJob, _ := svc.repoRegistry.CandidateJob().BuildGetOne(ctx, candidateJobQuery)
-	if !svc.validPermissionDelete(payload, record, candidateJob.Edges.HiringJobEdge.Edges.HiringTeamEdge) {
+	loggedInUser, _ := svc.repoRegistry.User().GetOneUser(ctx, svc.repoRegistry.User().BuildBaseQuery().Where(user.ID(payload.UserID)))
+	if !svc.validPermissionDelete(payload, record, loggedInUser) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
@@ -257,16 +250,10 @@ func (svc *candidateHistoryCallSvcImpl) filter(query *ent.CandidateHistoryCallQu
 }
 
 // permission
-func (svc candidateHistoryCallSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateHistoryCall, hiringTeam *ent.HiringTeam) bool {
+func (svc candidateHistoryCallSvcImpl) validPermissionDelete(payload *middleware.Payload, record *ent.CandidateHistoryCall, loggedInUser *ent.User) bool {
 	if payload.ForTeam {
-		// hiring team
-		memberIds := lo.Map(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User, index int) uuid.UUID {
-			return item.ID
-		})
-		managerIds := lo.Map(hiringTeam.Edges.UserEdges, func(item *ent.User, index int) uuid.UUID {
-			return item.ID
-		})
-		if lo.Contains(memberIds, payload.UserID) || lo.Contains(managerIds, payload.UserID) {
+		recordHiringTeam := record.Edges.CreatedByEdge.Edges.MemberOfHiringTeamEdges
+		if loggedInUser.HiringTeamID != uuid.Nil && recordHiringTeam.ID == loggedInUser.HiringTeamID {
 			return true
 		}
 		// TODO: rec team
