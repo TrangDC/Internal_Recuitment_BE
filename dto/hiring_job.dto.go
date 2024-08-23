@@ -336,15 +336,15 @@ func (d hiringJobDtoImpl) MappingPriority(input int) string {
 func (d hiringJobDtoImpl) MappingLocation(input hiringjob.Location) string {
 	switch input {
 	case hiringjob.LocationHaNoi:
-		return "HA NOI"
+		return "Hà Nội"
 	case hiringjob.LocationHoChiMinh:
-		return "HO CHI MINH"
+		return "Hồ Chí Minh"
 	case hiringjob.LocationDaNang:
-		return "DA NANG"
+		return "Đà Nẵng"
 	case hiringjob.LocationJapan:
-		return "JAPAN"
+		return "Japan"
 	case hiringjob.LocationSingapore:
-		return "SINGAPORE"
+		return "Singapore"
 	}
 	return ""
 }
@@ -352,11 +352,9 @@ func (d hiringJobDtoImpl) MappingLocation(input hiringjob.Location) string {
 func (d hiringJobDtoImpl) MappingStatus(input hiringjob.Status) string {
 	switch input {
 	case hiringjob.StatusOpened:
-		return "OPENED"
+		return "Opening"
 	case hiringjob.StatusClosed:
-		return "CLOSED"
-	case hiringjob.StatusDraft:
-		return "DRAFT"
+		return "Closed"
 	}
 	return ""
 }
