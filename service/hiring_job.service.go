@@ -10,7 +10,6 @@ import (
 	"trec/ent/audittrail"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
-	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -86,21 +85,7 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		if err != nil {
 			return err
 		}
-		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, hiringjobstep.TypeCreated, record.ID, repoRegistry)
-		if err != nil {
-			return err
-		}
-		var stepType hiringjobstep.Type
-		switch record.Status {
-		case hiringjob.StatusOpened:
-			stepType = hiringjobstep.TypeOpened
-		case hiringjob.StatusClosed:
-			stepType = hiringjobstep.TypeClosed
-		}
-		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, stepType, record.ID, repoRegistry)
-		if err != nil {
-			return err
-		}
+		// TODO: create steps for every approvers, including rec leader
 		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeHiringJob)
 		return err
 	})
@@ -233,14 +218,6 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, record, status)
-		var stepType hiringjobstep.Type
-		switch result.Status {
-		case hiringjob.StatusOpened:
-			stepType = hiringjobstep.TypeOpened
-		case hiringjob.StatusClosed:
-			stepType = hiringjobstep.TypeClosed
-		}
-		err = svc.hiringJobStepSvc.CreateHiringJobStep(ctx, stepType, record.ID, repoRegistry)
 		return err
 	})
 	if err != nil {

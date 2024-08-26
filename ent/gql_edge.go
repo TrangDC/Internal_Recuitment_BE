@@ -652,32 +652,44 @@ func (hj *HiringJob) JobPositionEdge(ctx context.Context) (*JobPosition, error) 
 	return result, MaskNotFound(err)
 }
 
-func (hj *HiringJob) HiringJobStep(ctx context.Context) (result []*HiringJobStep, err error) {
+func (hj *HiringJob) ApprovalUsers(ctx context.Context) (result []*User, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = hj.NamedHiringJobStep(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = hj.NamedApprovalUsers(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = hj.Edges.HiringJobStepOrErr()
+		result, err = hj.Edges.ApprovalUsersOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = hj.QueryHiringJobStep().All(ctx)
+		result, err = hj.QueryApprovalUsers().All(ctx)
 	}
 	return result, err
 }
 
-func (hjs *HiringJobStep) HiringJobEdge(ctx context.Context) (*HiringJob, error) {
-	result, err := hjs.Edges.HiringJobEdgeOrErr()
-	if IsNotLoaded(err) {
-		result, err = hjs.QueryHiringJobEdge().Only(ctx)
+func (hj *HiringJob) ApprovalSteps(ctx context.Context) (result []*HiringJobStep, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = hj.NamedApprovalSteps(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = hj.Edges.ApprovalStepsOrErr()
 	}
-	return result, MaskNotFound(err)
+	if IsNotLoaded(err) {
+		result, err = hj.QueryApprovalSteps().All(ctx)
+	}
+	return result, err
 }
 
-func (hjs *HiringJobStep) CreatedByEdge(ctx context.Context) (*User, error) {
-	result, err := hjs.Edges.CreatedByEdgeOrErr()
+func (hjs *HiringJobStep) ApprovalJob(ctx context.Context) (*HiringJob, error) {
+	result, err := hjs.Edges.ApprovalJobOrErr()
 	if IsNotLoaded(err) {
-		result, err = hjs.QueryCreatedByEdge().Only(ctx)
+		result, err = hjs.QueryApprovalJob().Only(ctx)
 	}
-	return result, MaskNotFound(err)
+	return result, err
+}
+
+func (hjs *HiringJobStep) ApprovalUser(ctx context.Context) (*User, error) {
+	result, err := hjs.Edges.ApprovalUserOrErr()
+	if IsNotLoaded(err) {
+		result, err = hjs.QueryApprovalUser().Only(ctx)
+	}
+	return result, err
 }
 
 func (ht *HiringTeam) HiringTeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
@@ -1148,14 +1160,14 @@ func (u *User) CandidateHistoryCallEdges(ctx context.Context) (result []*Candida
 	return result, err
 }
 
-func (u *User) HiringJobStepEdges(ctx context.Context) (result []*HiringJobStep, err error) {
+func (u *User) ApprovalJobs(ctx context.Context) (result []*HiringJob, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedHiringJobStepEdges(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = u.NamedApprovalJobs(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = u.Edges.HiringJobStepEdgesOrErr()
+		result, err = u.Edges.ApprovalJobsOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = u.QueryHiringJobStepEdges().All(ctx)
+		result, err = u.QueryApprovalJobs().All(ctx)
 	}
 	return result, err
 }
@@ -1204,6 +1216,18 @@ func (u *User) HiringTeamApprovers(ctx context.Context) (result []*HiringTeamApp
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryHiringTeamApprovers().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) ApprovalSteps(ctx context.Context) (result []*HiringJobStep, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedApprovalSteps(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.ApprovalStepsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryApprovalSteps().All(ctx)
 	}
 	return result, err
 }

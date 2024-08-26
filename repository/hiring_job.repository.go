@@ -96,9 +96,9 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 		func(query *ent.JobPositionQuery) {
 			query.Where(jobposition.DeletedAtIsNil())
 		},
-	).WithHiringJobStep(
+	).WithApprovalSteps(
 		func(query *ent.HiringJobStepQuery) {
-			query.WithCreatedByEdge().Order(ent.Asc(hiringjobstep.FieldCreatedAt))
+			query.WithApprovalUser().Order(ent.Asc(hiringjobstep.FieldOrderID))
 		},
 	)
 }

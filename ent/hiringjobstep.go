@@ -21,14 +21,16 @@ type HiringJobStep struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// HiringJobID holds the value of the "hiring_job_id" field.
 	HiringJobID uuid.UUID `json:"hiring_job_id,omitempty"`
-	// Type holds the value of the "type" field.
-	Type hiringjobstep.Type `json:"type,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
+	// Status holds the value of the "status" field.
+	Status hiringjobstep.Status `json:"status,omitempty"`
+	// OrderID holds the value of the "order_id" field.
+	OrderID int `json:"order_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// CreatedByID holds the value of the "created_by_id" field.
-	CreatedByID uuid.UUID `json:"created_by_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobStepQuery when eager-loading is set.
 	Edges HiringJobStepEdges `json:"edges"`
@@ -36,10 +38,10 @@ type HiringJobStep struct {
 
 // HiringJobStepEdges holds the relations/edges for other nodes in the graph.
 type HiringJobStepEdges struct {
-	// HiringJobEdge holds the value of the hiring_job_edge edge.
-	HiringJobEdge *HiringJob `json:"hiring_job_edge,omitempty"`
-	// CreatedByEdge holds the value of the created_by_edge edge.
-	CreatedByEdge *User `json:"created_by_edge,omitempty"`
+	// ApprovalJob holds the value of the approval_job edge.
+	ApprovalJob *HiringJob `json:"approval_job,omitempty"`
+	// ApprovalUser holds the value of the approval_user edge.
+	ApprovalUser *User `json:"approval_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -47,30 +49,30 @@ type HiringJobStepEdges struct {
 	totalCount [2]map[string]int
 }
 
-// HiringJobEdgeOrErr returns the HiringJobEdge value or an error if the edge
+// ApprovalJobOrErr returns the ApprovalJob value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e HiringJobStepEdges) HiringJobEdgeOrErr() (*HiringJob, error) {
+func (e HiringJobStepEdges) ApprovalJobOrErr() (*HiringJob, error) {
 	if e.loadedTypes[0] {
-		if e.HiringJobEdge == nil {
+		if e.ApprovalJob == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: hiringjob.Label}
 		}
-		return e.HiringJobEdge, nil
+		return e.ApprovalJob, nil
 	}
-	return nil, &NotLoadedError{edge: "hiring_job_edge"}
+	return nil, &NotLoadedError{edge: "approval_job"}
 }
 
-// CreatedByEdgeOrErr returns the CreatedByEdge value or an error if the edge
+// ApprovalUserOrErr returns the ApprovalUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e HiringJobStepEdges) CreatedByEdgeOrErr() (*User, error) {
+func (e HiringJobStepEdges) ApprovalUserOrErr() (*User, error) {
 	if e.loadedTypes[1] {
-		if e.CreatedByEdge == nil {
+		if e.ApprovalUser == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.CreatedByEdge, nil
+		return e.ApprovalUser, nil
 	}
-	return nil, &NotLoadedError{edge: "created_by_edge"}
+	return nil, &NotLoadedError{edge: "approval_user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -78,11 +80,13 @@ func (*HiringJobStep) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case hiringjobstep.FieldType:
+		case hiringjobstep.FieldOrderID:
+			values[i] = new(sql.NullInt64)
+		case hiringjobstep.FieldStatus:
 			values[i] = new(sql.NullString)
 		case hiringjobstep.FieldCreatedAt, hiringjobstep.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case hiringjobstep.FieldID, hiringjobstep.FieldHiringJobID, hiringjobstep.FieldCreatedByID:
+		case hiringjobstep.FieldID, hiringjobstep.FieldHiringJobID, hiringjobstep.FieldUserID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type HiringJobStep", columns[i])
@@ -111,11 +115,23 @@ func (hjs *HiringJobStep) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				hjs.HiringJobID = *value
 			}
-		case hiringjobstep.FieldType:
+		case hiringjobstep.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				hjs.UserID = *value
+			}
+		case hiringjobstep.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				hjs.Type = hiringjobstep.Type(value.String)
+				hjs.Status = hiringjobstep.Status(value.String)
+			}
+		case hiringjobstep.FieldOrderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_id", values[i])
+			} else if value.Valid {
+				hjs.OrderID = int(value.Int64)
 			}
 		case hiringjobstep.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -129,25 +145,19 @@ func (hjs *HiringJobStep) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hjs.UpdatedAt = value.Time
 			}
-		case hiringjobstep.FieldCreatedByID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field created_by_id", values[i])
-			} else if value != nil {
-				hjs.CreatedByID = *value
-			}
 		}
 	}
 	return nil
 }
 
-// QueryHiringJobEdge queries the "hiring_job_edge" edge of the HiringJobStep entity.
-func (hjs *HiringJobStep) QueryHiringJobEdge() *HiringJobQuery {
-	return (&HiringJobStepClient{config: hjs.config}).QueryHiringJobEdge(hjs)
+// QueryApprovalJob queries the "approval_job" edge of the HiringJobStep entity.
+func (hjs *HiringJobStep) QueryApprovalJob() *HiringJobQuery {
+	return (&HiringJobStepClient{config: hjs.config}).QueryApprovalJob(hjs)
 }
 
-// QueryCreatedByEdge queries the "created_by_edge" edge of the HiringJobStep entity.
-func (hjs *HiringJobStep) QueryCreatedByEdge() *UserQuery {
-	return (&HiringJobStepClient{config: hjs.config}).QueryCreatedByEdge(hjs)
+// QueryApprovalUser queries the "approval_user" edge of the HiringJobStep entity.
+func (hjs *HiringJobStep) QueryApprovalUser() *UserQuery {
+	return (&HiringJobStepClient{config: hjs.config}).QueryApprovalUser(hjs)
 }
 
 // Update returns a builder for updating this HiringJobStep.
@@ -176,17 +186,20 @@ func (hjs *HiringJobStep) String() string {
 	builder.WriteString("hiring_job_id=")
 	builder.WriteString(fmt.Sprintf("%v", hjs.HiringJobID))
 	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(fmt.Sprintf("%v", hjs.Type))
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", hjs.UserID))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", hjs.Status))
+	builder.WriteString(", ")
+	builder.WriteString("order_id=")
+	builder.WriteString(fmt.Sprintf("%v", hjs.OrderID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(hjs.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(hjs.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("created_by_id=")
-	builder.WriteString(fmt.Sprintf("%v", hjs.CreatedByID))
 	builder.WriteByte(')')
 	return builder.String()
 }

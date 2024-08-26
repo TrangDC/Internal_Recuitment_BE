@@ -20446,9 +20446,12 @@ type HiringJobMutation struct {
 	clearedhiring_team_edge       bool
 	job_position_edge             *uuid.UUID
 	clearedjob_position_edge      bool
-	hiring_job_step               map[uuid.UUID]struct{}
-	removedhiring_job_step        map[uuid.UUID]struct{}
-	clearedhiring_job_step        bool
+	approval_users                map[uuid.UUID]struct{}
+	removedapproval_users         map[uuid.UUID]struct{}
+	clearedapproval_users         bool
+	approval_steps                map[uuid.UUID]struct{}
+	removedapproval_steps         map[uuid.UUID]struct{}
+	clearedapproval_steps         bool
 	done                          bool
 	oldValue                      func(context.Context) (*HiringJob, error)
 	predicates                    []predicate.HiringJob
@@ -21589,58 +21592,112 @@ func (m *HiringJobMutation) ResetJobPositionEdge() {
 	m.clearedjob_position_edge = false
 }
 
-// AddHiringJobStepIDs adds the "hiring_job_step" edge to the HiringJobStep entity by ids.
-func (m *HiringJobMutation) AddHiringJobStepIDs(ids ...uuid.UUID) {
-	if m.hiring_job_step == nil {
-		m.hiring_job_step = make(map[uuid.UUID]struct{})
+// AddApprovalUserIDs adds the "approval_users" edge to the User entity by ids.
+func (m *HiringJobMutation) AddApprovalUserIDs(ids ...uuid.UUID) {
+	if m.approval_users == nil {
+		m.approval_users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.hiring_job_step[ids[i]] = struct{}{}
+		m.approval_users[ids[i]] = struct{}{}
 	}
 }
 
-// ClearHiringJobStep clears the "hiring_job_step" edge to the HiringJobStep entity.
-func (m *HiringJobMutation) ClearHiringJobStep() {
-	m.clearedhiring_job_step = true
+// ClearApprovalUsers clears the "approval_users" edge to the User entity.
+func (m *HiringJobMutation) ClearApprovalUsers() {
+	m.clearedapproval_users = true
 }
 
-// HiringJobStepCleared reports if the "hiring_job_step" edge to the HiringJobStep entity was cleared.
-func (m *HiringJobMutation) HiringJobStepCleared() bool {
-	return m.clearedhiring_job_step
+// ApprovalUsersCleared reports if the "approval_users" edge to the User entity was cleared.
+func (m *HiringJobMutation) ApprovalUsersCleared() bool {
+	return m.clearedapproval_users
 }
 
-// RemoveHiringJobStepIDs removes the "hiring_job_step" edge to the HiringJobStep entity by IDs.
-func (m *HiringJobMutation) RemoveHiringJobStepIDs(ids ...uuid.UUID) {
-	if m.removedhiring_job_step == nil {
-		m.removedhiring_job_step = make(map[uuid.UUID]struct{})
+// RemoveApprovalUserIDs removes the "approval_users" edge to the User entity by IDs.
+func (m *HiringJobMutation) RemoveApprovalUserIDs(ids ...uuid.UUID) {
+	if m.removedapproval_users == nil {
+		m.removedapproval_users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.hiring_job_step, ids[i])
-		m.removedhiring_job_step[ids[i]] = struct{}{}
+		delete(m.approval_users, ids[i])
+		m.removedapproval_users[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedHiringJobStep returns the removed IDs of the "hiring_job_step" edge to the HiringJobStep entity.
-func (m *HiringJobMutation) RemovedHiringJobStepIDs() (ids []uuid.UUID) {
-	for id := range m.removedhiring_job_step {
+// RemovedApprovalUsers returns the removed IDs of the "approval_users" edge to the User entity.
+func (m *HiringJobMutation) RemovedApprovalUsersIDs() (ids []uuid.UUID) {
+	for id := range m.removedapproval_users {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// HiringJobStepIDs returns the "hiring_job_step" edge IDs in the mutation.
-func (m *HiringJobMutation) HiringJobStepIDs() (ids []uuid.UUID) {
-	for id := range m.hiring_job_step {
+// ApprovalUsersIDs returns the "approval_users" edge IDs in the mutation.
+func (m *HiringJobMutation) ApprovalUsersIDs() (ids []uuid.UUID) {
+	for id := range m.approval_users {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetHiringJobStep resets all changes to the "hiring_job_step" edge.
-func (m *HiringJobMutation) ResetHiringJobStep() {
-	m.hiring_job_step = nil
-	m.clearedhiring_job_step = false
-	m.removedhiring_job_step = nil
+// ResetApprovalUsers resets all changes to the "approval_users" edge.
+func (m *HiringJobMutation) ResetApprovalUsers() {
+	m.approval_users = nil
+	m.clearedapproval_users = false
+	m.removedapproval_users = nil
+}
+
+// AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by ids.
+func (m *HiringJobMutation) AddApprovalStepIDs(ids ...uuid.UUID) {
+	if m.approval_steps == nil {
+		m.approval_steps = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.approval_steps[ids[i]] = struct{}{}
+	}
+}
+
+// ClearApprovalSteps clears the "approval_steps" edge to the HiringJobStep entity.
+func (m *HiringJobMutation) ClearApprovalSteps() {
+	m.clearedapproval_steps = true
+}
+
+// ApprovalStepsCleared reports if the "approval_steps" edge to the HiringJobStep entity was cleared.
+func (m *HiringJobMutation) ApprovalStepsCleared() bool {
+	return m.clearedapproval_steps
+}
+
+// RemoveApprovalStepIDs removes the "approval_steps" edge to the HiringJobStep entity by IDs.
+func (m *HiringJobMutation) RemoveApprovalStepIDs(ids ...uuid.UUID) {
+	if m.removedapproval_steps == nil {
+		m.removedapproval_steps = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.approval_steps, ids[i])
+		m.removedapproval_steps[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedApprovalSteps returns the removed IDs of the "approval_steps" edge to the HiringJobStep entity.
+func (m *HiringJobMutation) RemovedApprovalStepsIDs() (ids []uuid.UUID) {
+	for id := range m.removedapproval_steps {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ApprovalStepsIDs returns the "approval_steps" edge IDs in the mutation.
+func (m *HiringJobMutation) ApprovalStepsIDs() (ids []uuid.UUID) {
+	for id := range m.approval_steps {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetApprovalSteps resets all changes to the "approval_steps" edge.
+func (m *HiringJobMutation) ResetApprovalSteps() {
+	m.approval_steps = nil
+	m.clearedapproval_steps = false
+	m.removedapproval_steps = nil
 }
 
 // Where appends a list predicates to the HiringJobMutation builder.
@@ -22140,7 +22197,7 @@ func (m *HiringJobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HiringJobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.owner_edge != nil {
 		edges = append(edges, hiringjob.EdgeOwnerEdge)
 	}
@@ -22156,8 +22213,11 @@ func (m *HiringJobMutation) AddedEdges() []string {
 	if m.job_position_edge != nil {
 		edges = append(edges, hiringjob.EdgeJobPositionEdge)
 	}
-	if m.hiring_job_step != nil {
-		edges = append(edges, hiringjob.EdgeHiringJobStep)
+	if m.approval_users != nil {
+		edges = append(edges, hiringjob.EdgeApprovalUsers)
+	}
+	if m.approval_steps != nil {
+		edges = append(edges, hiringjob.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -22190,9 +22250,15 @@ func (m *HiringJobMutation) AddedIDs(name string) []ent.Value {
 		if id := m.job_position_edge; id != nil {
 			return []ent.Value{*id}
 		}
-	case hiringjob.EdgeHiringJobStep:
-		ids := make([]ent.Value, 0, len(m.hiring_job_step))
-		for id := range m.hiring_job_step {
+	case hiringjob.EdgeApprovalUsers:
+		ids := make([]ent.Value, 0, len(m.approval_users))
+		for id := range m.approval_users {
+			ids = append(ids, id)
+		}
+		return ids
+	case hiringjob.EdgeApprovalSteps:
+		ids := make([]ent.Value, 0, len(m.approval_steps))
+		for id := range m.approval_steps {
 			ids = append(ids, id)
 		}
 		return ids
@@ -22202,15 +22268,18 @@ func (m *HiringJobMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *HiringJobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedcandidate_job_edges != nil {
 		edges = append(edges, hiringjob.EdgeCandidateJobEdges)
 	}
 	if m.removedhiring_job_skill_edges != nil {
 		edges = append(edges, hiringjob.EdgeHiringJobSkillEdges)
 	}
-	if m.removedhiring_job_step != nil {
-		edges = append(edges, hiringjob.EdgeHiringJobStep)
+	if m.removedapproval_users != nil {
+		edges = append(edges, hiringjob.EdgeApprovalUsers)
+	}
+	if m.removedapproval_steps != nil {
+		edges = append(edges, hiringjob.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -22231,9 +22300,15 @@ func (m *HiringJobMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case hiringjob.EdgeHiringJobStep:
-		ids := make([]ent.Value, 0, len(m.removedhiring_job_step))
-		for id := range m.removedhiring_job_step {
+	case hiringjob.EdgeApprovalUsers:
+		ids := make([]ent.Value, 0, len(m.removedapproval_users))
+		for id := range m.removedapproval_users {
+			ids = append(ids, id)
+		}
+		return ids
+	case hiringjob.EdgeApprovalSteps:
+		ids := make([]ent.Value, 0, len(m.removedapproval_steps))
+		for id := range m.removedapproval_steps {
 			ids = append(ids, id)
 		}
 		return ids
@@ -22243,7 +22318,7 @@ func (m *HiringJobMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HiringJobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedowner_edge {
 		edges = append(edges, hiringjob.EdgeOwnerEdge)
 	}
@@ -22259,8 +22334,11 @@ func (m *HiringJobMutation) ClearedEdges() []string {
 	if m.clearedjob_position_edge {
 		edges = append(edges, hiringjob.EdgeJobPositionEdge)
 	}
-	if m.clearedhiring_job_step {
-		edges = append(edges, hiringjob.EdgeHiringJobStep)
+	if m.clearedapproval_users {
+		edges = append(edges, hiringjob.EdgeApprovalUsers)
+	}
+	if m.clearedapproval_steps {
+		edges = append(edges, hiringjob.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -22279,8 +22357,10 @@ func (m *HiringJobMutation) EdgeCleared(name string) bool {
 		return m.clearedhiring_team_edge
 	case hiringjob.EdgeJobPositionEdge:
 		return m.clearedjob_position_edge
-	case hiringjob.EdgeHiringJobStep:
-		return m.clearedhiring_job_step
+	case hiringjob.EdgeApprovalUsers:
+		return m.clearedapproval_users
+	case hiringjob.EdgeApprovalSteps:
+		return m.clearedapproval_steps
 	}
 	return false
 }
@@ -22321,8 +22401,11 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 	case hiringjob.EdgeJobPositionEdge:
 		m.ResetJobPositionEdge()
 		return nil
-	case hiringjob.EdgeHiringJobStep:
-		m.ResetHiringJobStep()
+	case hiringjob.EdgeApprovalUsers:
+		m.ResetApprovalUsers()
+		return nil
+	case hiringjob.EdgeApprovalSteps:
+		m.ResetApprovalSteps()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob edge %s", name)
@@ -22331,20 +22414,22 @@ func (m *HiringJobMutation) ResetEdge(name string) error {
 // HiringJobStepMutation represents an operation that mutates the HiringJobStep nodes in the graph.
 type HiringJobStepMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	_type                  *hiringjobstep.Type
-	created_at             *time.Time
-	updated_at             *time.Time
-	clearedFields          map[string]struct{}
-	hiring_job_edge        *uuid.UUID
-	clearedhiring_job_edge bool
-	created_by_edge        *uuid.UUID
-	clearedcreated_by_edge bool
-	done                   bool
-	oldValue               func(context.Context) (*HiringJobStep, error)
-	predicates             []predicate.HiringJobStep
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	status               *hiringjobstep.Status
+	order_id             *int
+	addorder_id          *int
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	approval_job         *uuid.UUID
+	clearedapproval_job  bool
+	approval_user        *uuid.UUID
+	clearedapproval_user bool
+	done                 bool
+	oldValue             func(context.Context) (*HiringJobStep, error)
+	predicates           []predicate.HiringJobStep
 }
 
 var _ ent.Mutation = (*HiringJobStepMutation)(nil)
@@ -22453,12 +22538,12 @@ func (m *HiringJobStepMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 
 // SetHiringJobID sets the "hiring_job_id" field.
 func (m *HiringJobStepMutation) SetHiringJobID(u uuid.UUID) {
-	m.hiring_job_edge = &u
+	m.approval_job = &u
 }
 
 // HiringJobID returns the value of the "hiring_job_id" field in the mutation.
 func (m *HiringJobStepMutation) HiringJobID() (r uuid.UUID, exists bool) {
-	v := m.hiring_job_edge
+	v := m.approval_job
 	if v == nil {
 		return
 	}
@@ -22482,58 +22567,137 @@ func (m *HiringJobStepMutation) OldHiringJobID(ctx context.Context) (v uuid.UUID
 	return oldValue.HiringJobID, nil
 }
 
-// ClearHiringJobID clears the value of the "hiring_job_id" field.
-func (m *HiringJobStepMutation) ClearHiringJobID() {
-	m.hiring_job_edge = nil
-	m.clearedFields[hiringjobstep.FieldHiringJobID] = struct{}{}
-}
-
-// HiringJobIDCleared returns if the "hiring_job_id" field was cleared in this mutation.
-func (m *HiringJobStepMutation) HiringJobIDCleared() bool {
-	_, ok := m.clearedFields[hiringjobstep.FieldHiringJobID]
-	return ok
-}
-
 // ResetHiringJobID resets all changes to the "hiring_job_id" field.
 func (m *HiringJobStepMutation) ResetHiringJobID() {
-	m.hiring_job_edge = nil
-	delete(m.clearedFields, hiringjobstep.FieldHiringJobID)
+	m.approval_job = nil
 }
 
-// SetType sets the "type" field.
-func (m *HiringJobStepMutation) SetType(h hiringjobstep.Type) {
-	m._type = &h
+// SetUserID sets the "user_id" field.
+func (m *HiringJobStepMutation) SetUserID(u uuid.UUID) {
+	m.approval_user = &u
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *HiringJobStepMutation) GetType() (r hiringjobstep.Type, exists bool) {
-	v := m._type
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *HiringJobStepMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.approval_user
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the HiringJobStep entity.
+// OldUserID returns the old "user_id" field's value of the HiringJobStep entity.
 // If the HiringJobStep object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HiringJobStepMutation) OldType(ctx context.Context) (v hiringjobstep.Type, err error) {
+func (m *HiringJobStepMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
+		return v, errors.New("OldUserID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.UserID, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *HiringJobStepMutation) ResetType() {
-	m._type = nil
+// ResetUserID resets all changes to the "user_id" field.
+func (m *HiringJobStepMutation) ResetUserID() {
+	m.approval_user = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *HiringJobStepMutation) SetStatus(h hiringjobstep.Status) {
+	m.status = &h
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *HiringJobStepMutation) Status() (r hiringjobstep.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the HiringJobStep entity.
+// If the HiringJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobStepMutation) OldStatus(ctx context.Context) (v hiringjobstep.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *HiringJobStepMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *HiringJobStepMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *HiringJobStepMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the HiringJobStep entity.
+// If the HiringJobStep object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobStepMutation) OldOrderID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *HiringJobStepMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *HiringJobStepMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *HiringJobStepMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -22621,131 +22785,82 @@ func (m *HiringJobStepMutation) ResetUpdatedAt() {
 	delete(m.clearedFields, hiringjobstep.FieldUpdatedAt)
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (m *HiringJobStepMutation) SetCreatedByID(u uuid.UUID) {
-	m.created_by_edge = &u
+// SetApprovalJobID sets the "approval_job" edge to the HiringJob entity by id.
+func (m *HiringJobStepMutation) SetApprovalJobID(id uuid.UUID) {
+	m.approval_job = &id
 }
 
-// CreatedByID returns the value of the "created_by_id" field in the mutation.
-func (m *HiringJobStepMutation) CreatedByID() (r uuid.UUID, exists bool) {
-	v := m.created_by_edge
-	if v == nil {
-		return
-	}
-	return *v, true
+// ClearApprovalJob clears the "approval_job" edge to the HiringJob entity.
+func (m *HiringJobStepMutation) ClearApprovalJob() {
+	m.clearedapproval_job = true
 }
 
-// OldCreatedByID returns the old "created_by_id" field's value of the HiringJobStep entity.
-// If the HiringJobStep object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HiringJobStepMutation) OldCreatedByID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByID: %w", err)
-	}
-	return oldValue.CreatedByID, nil
+// ApprovalJobCleared reports if the "approval_job" edge to the HiringJob entity was cleared.
+func (m *HiringJobStepMutation) ApprovalJobCleared() bool {
+	return m.clearedapproval_job
 }
 
-// ClearCreatedByID clears the value of the "created_by_id" field.
-func (m *HiringJobStepMutation) ClearCreatedByID() {
-	m.created_by_edge = nil
-	m.clearedFields[hiringjobstep.FieldCreatedByID] = struct{}{}
-}
-
-// CreatedByIDCleared returns if the "created_by_id" field was cleared in this mutation.
-func (m *HiringJobStepMutation) CreatedByIDCleared() bool {
-	_, ok := m.clearedFields[hiringjobstep.FieldCreatedByID]
-	return ok
-}
-
-// ResetCreatedByID resets all changes to the "created_by_id" field.
-func (m *HiringJobStepMutation) ResetCreatedByID() {
-	m.created_by_edge = nil
-	delete(m.clearedFields, hiringjobstep.FieldCreatedByID)
-}
-
-// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by id.
-func (m *HiringJobStepMutation) SetHiringJobEdgeID(id uuid.UUID) {
-	m.hiring_job_edge = &id
-}
-
-// ClearHiringJobEdge clears the "hiring_job_edge" edge to the HiringJob entity.
-func (m *HiringJobStepMutation) ClearHiringJobEdge() {
-	m.clearedhiring_job_edge = true
-}
-
-// HiringJobEdgeCleared reports if the "hiring_job_edge" edge to the HiringJob entity was cleared.
-func (m *HiringJobStepMutation) HiringJobEdgeCleared() bool {
-	return m.HiringJobIDCleared() || m.clearedhiring_job_edge
-}
-
-// HiringJobEdgeID returns the "hiring_job_edge" edge ID in the mutation.
-func (m *HiringJobStepMutation) HiringJobEdgeID() (id uuid.UUID, exists bool) {
-	if m.hiring_job_edge != nil {
-		return *m.hiring_job_edge, true
+// ApprovalJobID returns the "approval_job" edge ID in the mutation.
+func (m *HiringJobStepMutation) ApprovalJobID() (id uuid.UUID, exists bool) {
+	if m.approval_job != nil {
+		return *m.approval_job, true
 	}
 	return
 }
 
-// HiringJobEdgeIDs returns the "hiring_job_edge" edge IDs in the mutation.
+// ApprovalJobIDs returns the "approval_job" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// HiringJobEdgeID instead. It exists only for internal usage by the builders.
-func (m *HiringJobStepMutation) HiringJobEdgeIDs() (ids []uuid.UUID) {
-	if id := m.hiring_job_edge; id != nil {
+// ApprovalJobID instead. It exists only for internal usage by the builders.
+func (m *HiringJobStepMutation) ApprovalJobIDs() (ids []uuid.UUID) {
+	if id := m.approval_job; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetHiringJobEdge resets all changes to the "hiring_job_edge" edge.
-func (m *HiringJobStepMutation) ResetHiringJobEdge() {
-	m.hiring_job_edge = nil
-	m.clearedhiring_job_edge = false
+// ResetApprovalJob resets all changes to the "approval_job" edge.
+func (m *HiringJobStepMutation) ResetApprovalJob() {
+	m.approval_job = nil
+	m.clearedapproval_job = false
 }
 
-// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by id.
-func (m *HiringJobStepMutation) SetCreatedByEdgeID(id uuid.UUID) {
-	m.created_by_edge = &id
+// SetApprovalUserID sets the "approval_user" edge to the User entity by id.
+func (m *HiringJobStepMutation) SetApprovalUserID(id uuid.UUID) {
+	m.approval_user = &id
 }
 
-// ClearCreatedByEdge clears the "created_by_edge" edge to the User entity.
-func (m *HiringJobStepMutation) ClearCreatedByEdge() {
-	m.clearedcreated_by_edge = true
+// ClearApprovalUser clears the "approval_user" edge to the User entity.
+func (m *HiringJobStepMutation) ClearApprovalUser() {
+	m.clearedapproval_user = true
 }
 
-// CreatedByEdgeCleared reports if the "created_by_edge" edge to the User entity was cleared.
-func (m *HiringJobStepMutation) CreatedByEdgeCleared() bool {
-	return m.CreatedByIDCleared() || m.clearedcreated_by_edge
+// ApprovalUserCleared reports if the "approval_user" edge to the User entity was cleared.
+func (m *HiringJobStepMutation) ApprovalUserCleared() bool {
+	return m.clearedapproval_user
 }
 
-// CreatedByEdgeID returns the "created_by_edge" edge ID in the mutation.
-func (m *HiringJobStepMutation) CreatedByEdgeID() (id uuid.UUID, exists bool) {
-	if m.created_by_edge != nil {
-		return *m.created_by_edge, true
+// ApprovalUserID returns the "approval_user" edge ID in the mutation.
+func (m *HiringJobStepMutation) ApprovalUserID() (id uuid.UUID, exists bool) {
+	if m.approval_user != nil {
+		return *m.approval_user, true
 	}
 	return
 }
 
-// CreatedByEdgeIDs returns the "created_by_edge" edge IDs in the mutation.
+// ApprovalUserIDs returns the "approval_user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CreatedByEdgeID instead. It exists only for internal usage by the builders.
-func (m *HiringJobStepMutation) CreatedByEdgeIDs() (ids []uuid.UUID) {
-	if id := m.created_by_edge; id != nil {
+// ApprovalUserID instead. It exists only for internal usage by the builders.
+func (m *HiringJobStepMutation) ApprovalUserIDs() (ids []uuid.UUID) {
+	if id := m.approval_user; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCreatedByEdge resets all changes to the "created_by_edge" edge.
-func (m *HiringJobStepMutation) ResetCreatedByEdge() {
-	m.created_by_edge = nil
-	m.clearedcreated_by_edge = false
+// ResetApprovalUser resets all changes to the "approval_user" edge.
+func (m *HiringJobStepMutation) ResetApprovalUser() {
+	m.approval_user = nil
+	m.clearedapproval_user = false
 }
 
 // Where appends a list predicates to the HiringJobStepMutation builder.
@@ -22767,21 +22882,24 @@ func (m *HiringJobStepMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringJobStepMutation) Fields() []string {
-	fields := make([]string, 0, 5)
-	if m.hiring_job_edge != nil {
+	fields := make([]string, 0, 6)
+	if m.approval_job != nil {
 		fields = append(fields, hiringjobstep.FieldHiringJobID)
 	}
-	if m._type != nil {
-		fields = append(fields, hiringjobstep.FieldType)
+	if m.approval_user != nil {
+		fields = append(fields, hiringjobstep.FieldUserID)
+	}
+	if m.status != nil {
+		fields = append(fields, hiringjobstep.FieldStatus)
+	}
+	if m.order_id != nil {
+		fields = append(fields, hiringjobstep.FieldOrderID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, hiringjobstep.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, hiringjobstep.FieldUpdatedAt)
-	}
-	if m.created_by_edge != nil {
-		fields = append(fields, hiringjobstep.FieldCreatedByID)
 	}
 	return fields
 }
@@ -22793,14 +22911,16 @@ func (m *HiringJobStepMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case hiringjobstep.FieldHiringJobID:
 		return m.HiringJobID()
-	case hiringjobstep.FieldType:
-		return m.GetType()
+	case hiringjobstep.FieldUserID:
+		return m.UserID()
+	case hiringjobstep.FieldStatus:
+		return m.Status()
+	case hiringjobstep.FieldOrderID:
+		return m.OrderID()
 	case hiringjobstep.FieldCreatedAt:
 		return m.CreatedAt()
 	case hiringjobstep.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case hiringjobstep.FieldCreatedByID:
-		return m.CreatedByID()
 	}
 	return nil, false
 }
@@ -22812,14 +22932,16 @@ func (m *HiringJobStepMutation) OldField(ctx context.Context, name string) (ent.
 	switch name {
 	case hiringjobstep.FieldHiringJobID:
 		return m.OldHiringJobID(ctx)
-	case hiringjobstep.FieldType:
-		return m.OldType(ctx)
+	case hiringjobstep.FieldUserID:
+		return m.OldUserID(ctx)
+	case hiringjobstep.FieldStatus:
+		return m.OldStatus(ctx)
+	case hiringjobstep.FieldOrderID:
+		return m.OldOrderID(ctx)
 	case hiringjobstep.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case hiringjobstep.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case hiringjobstep.FieldCreatedByID:
-		return m.OldCreatedByID(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringJobStep field %s", name)
 }
@@ -22836,12 +22958,26 @@ func (m *HiringJobStepMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetHiringJobID(v)
 		return nil
-	case hiringjobstep.FieldType:
-		v, ok := value.(hiringjobstep.Type)
+	case hiringjobstep.FieldUserID:
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetUserID(v)
+		return nil
+	case hiringjobstep.FieldStatus:
+		v, ok := value.(hiringjobstep.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case hiringjobstep.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
 		return nil
 	case hiringjobstep.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -22857,13 +22993,6 @@ func (m *HiringJobStepMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case hiringjobstep.FieldCreatedByID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedByID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep field %s", name)
 }
@@ -22871,13 +23000,21 @@ func (m *HiringJobStepMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *HiringJobStepMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addorder_id != nil {
+		fields = append(fields, hiringjobstep.FieldOrderID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *HiringJobStepMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case hiringjobstep.FieldOrderID:
+		return m.AddedOrderID()
+	}
 	return nil, false
 }
 
@@ -22886,6 +23023,13 @@ func (m *HiringJobStepMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *HiringJobStepMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case hiringjobstep.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep numeric field %s", name)
 }
@@ -22894,14 +23038,8 @@ func (m *HiringJobStepMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *HiringJobStepMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(hiringjobstep.FieldHiringJobID) {
-		fields = append(fields, hiringjobstep.FieldHiringJobID)
-	}
 	if m.FieldCleared(hiringjobstep.FieldUpdatedAt) {
 		fields = append(fields, hiringjobstep.FieldUpdatedAt)
-	}
-	if m.FieldCleared(hiringjobstep.FieldCreatedByID) {
-		fields = append(fields, hiringjobstep.FieldCreatedByID)
 	}
 	return fields
 }
@@ -22917,14 +23055,8 @@ func (m *HiringJobStepMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *HiringJobStepMutation) ClearField(name string) error {
 	switch name {
-	case hiringjobstep.FieldHiringJobID:
-		m.ClearHiringJobID()
-		return nil
 	case hiringjobstep.FieldUpdatedAt:
 		m.ClearUpdatedAt()
-		return nil
-	case hiringjobstep.FieldCreatedByID:
-		m.ClearCreatedByID()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep nullable field %s", name)
@@ -22937,17 +23069,20 @@ func (m *HiringJobStepMutation) ResetField(name string) error {
 	case hiringjobstep.FieldHiringJobID:
 		m.ResetHiringJobID()
 		return nil
-	case hiringjobstep.FieldType:
-		m.ResetType()
+	case hiringjobstep.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case hiringjobstep.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case hiringjobstep.FieldOrderID:
+		m.ResetOrderID()
 		return nil
 	case hiringjobstep.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
 	case hiringjobstep.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case hiringjobstep.FieldCreatedByID:
-		m.ResetCreatedByID()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep field %s", name)
@@ -22956,11 +23091,11 @@ func (m *HiringJobStepMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HiringJobStepMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.hiring_job_edge != nil {
-		edges = append(edges, hiringjobstep.EdgeHiringJobEdge)
+	if m.approval_job != nil {
+		edges = append(edges, hiringjobstep.EdgeApprovalJob)
 	}
-	if m.created_by_edge != nil {
-		edges = append(edges, hiringjobstep.EdgeCreatedByEdge)
+	if m.approval_user != nil {
+		edges = append(edges, hiringjobstep.EdgeApprovalUser)
 	}
 	return edges
 }
@@ -22969,12 +23104,12 @@ func (m *HiringJobStepMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *HiringJobStepMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case hiringjobstep.EdgeHiringJobEdge:
-		if id := m.hiring_job_edge; id != nil {
+	case hiringjobstep.EdgeApprovalJob:
+		if id := m.approval_job; id != nil {
 			return []ent.Value{*id}
 		}
-	case hiringjobstep.EdgeCreatedByEdge:
-		if id := m.created_by_edge; id != nil {
+	case hiringjobstep.EdgeApprovalUser:
+		if id := m.approval_user; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -22996,11 +23131,11 @@ func (m *HiringJobStepMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HiringJobStepMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedhiring_job_edge {
-		edges = append(edges, hiringjobstep.EdgeHiringJobEdge)
+	if m.clearedapproval_job {
+		edges = append(edges, hiringjobstep.EdgeApprovalJob)
 	}
-	if m.clearedcreated_by_edge {
-		edges = append(edges, hiringjobstep.EdgeCreatedByEdge)
+	if m.clearedapproval_user {
+		edges = append(edges, hiringjobstep.EdgeApprovalUser)
 	}
 	return edges
 }
@@ -23009,10 +23144,10 @@ func (m *HiringJobStepMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *HiringJobStepMutation) EdgeCleared(name string) bool {
 	switch name {
-	case hiringjobstep.EdgeHiringJobEdge:
-		return m.clearedhiring_job_edge
-	case hiringjobstep.EdgeCreatedByEdge:
-		return m.clearedcreated_by_edge
+	case hiringjobstep.EdgeApprovalJob:
+		return m.clearedapproval_job
+	case hiringjobstep.EdgeApprovalUser:
+		return m.clearedapproval_user
 	}
 	return false
 }
@@ -23021,11 +23156,11 @@ func (m *HiringJobStepMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *HiringJobStepMutation) ClearEdge(name string) error {
 	switch name {
-	case hiringjobstep.EdgeHiringJobEdge:
-		m.ClearHiringJobEdge()
+	case hiringjobstep.EdgeApprovalJob:
+		m.ClearApprovalJob()
 		return nil
-	case hiringjobstep.EdgeCreatedByEdge:
-		m.ClearCreatedByEdge()
+	case hiringjobstep.EdgeApprovalUser:
+		m.ClearApprovalUser()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep unique edge %s", name)
@@ -23035,11 +23170,11 @@ func (m *HiringJobStepMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *HiringJobStepMutation) ResetEdge(name string) error {
 	switch name {
-	case hiringjobstep.EdgeHiringJobEdge:
-		m.ResetHiringJobEdge()
+	case hiringjobstep.EdgeApprovalJob:
+		m.ResetApprovalJob()
 		return nil
-	case hiringjobstep.EdgeCreatedByEdge:
-		m.ResetCreatedByEdge()
+	case hiringjobstep.EdgeApprovalUser:
+		m.ResetApprovalUser()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJobStep edge %s", name)
@@ -33050,9 +33185,9 @@ type UserMutation struct {
 	candidate_history_call_edges        map[uuid.UUID]struct{}
 	removedcandidate_history_call_edges map[uuid.UUID]struct{}
 	clearedcandidate_history_call_edges bool
-	hiring_job_step_edges               map[uuid.UUID]struct{}
-	removedhiring_job_step_edges        map[uuid.UUID]struct{}
-	clearedhiring_job_step_edges        bool
+	approval_jobs                       map[uuid.UUID]struct{}
+	removedapproval_jobs                map[uuid.UUID]struct{}
+	clearedapproval_jobs                bool
 	interview_users                     map[uuid.UUID]struct{}
 	removedinterview_users              map[uuid.UUID]struct{}
 	clearedinterview_users              bool
@@ -33065,6 +33200,9 @@ type UserMutation struct {
 	hiring_team_approvers               map[uuid.UUID]struct{}
 	removedhiring_team_approvers        map[uuid.UUID]struct{}
 	clearedhiring_team_approvers        bool
+	approval_steps                      map[uuid.UUID]struct{}
+	removedapproval_steps               map[uuid.UUID]struct{}
+	clearedapproval_steps               bool
 	done                                bool
 	oldValue                            func(context.Context) (*User, error)
 	predicates                          []predicate.User
@@ -34418,58 +34556,58 @@ func (m *UserMutation) ResetCandidateHistoryCallEdges() {
 	m.removedcandidate_history_call_edges = nil
 }
 
-// AddHiringJobStepEdgeIDs adds the "hiring_job_step_edges" edge to the HiringJobStep entity by ids.
-func (m *UserMutation) AddHiringJobStepEdgeIDs(ids ...uuid.UUID) {
-	if m.hiring_job_step_edges == nil {
-		m.hiring_job_step_edges = make(map[uuid.UUID]struct{})
+// AddApprovalJobIDs adds the "approval_jobs" edge to the HiringJob entity by ids.
+func (m *UserMutation) AddApprovalJobIDs(ids ...uuid.UUID) {
+	if m.approval_jobs == nil {
+		m.approval_jobs = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.hiring_job_step_edges[ids[i]] = struct{}{}
+		m.approval_jobs[ids[i]] = struct{}{}
 	}
 }
 
-// ClearHiringJobStepEdges clears the "hiring_job_step_edges" edge to the HiringJobStep entity.
-func (m *UserMutation) ClearHiringJobStepEdges() {
-	m.clearedhiring_job_step_edges = true
+// ClearApprovalJobs clears the "approval_jobs" edge to the HiringJob entity.
+func (m *UserMutation) ClearApprovalJobs() {
+	m.clearedapproval_jobs = true
 }
 
-// HiringJobStepEdgesCleared reports if the "hiring_job_step_edges" edge to the HiringJobStep entity was cleared.
-func (m *UserMutation) HiringJobStepEdgesCleared() bool {
-	return m.clearedhiring_job_step_edges
+// ApprovalJobsCleared reports if the "approval_jobs" edge to the HiringJob entity was cleared.
+func (m *UserMutation) ApprovalJobsCleared() bool {
+	return m.clearedapproval_jobs
 }
 
-// RemoveHiringJobStepEdgeIDs removes the "hiring_job_step_edges" edge to the HiringJobStep entity by IDs.
-func (m *UserMutation) RemoveHiringJobStepEdgeIDs(ids ...uuid.UUID) {
-	if m.removedhiring_job_step_edges == nil {
-		m.removedhiring_job_step_edges = make(map[uuid.UUID]struct{})
+// RemoveApprovalJobIDs removes the "approval_jobs" edge to the HiringJob entity by IDs.
+func (m *UserMutation) RemoveApprovalJobIDs(ids ...uuid.UUID) {
+	if m.removedapproval_jobs == nil {
+		m.removedapproval_jobs = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.hiring_job_step_edges, ids[i])
-		m.removedhiring_job_step_edges[ids[i]] = struct{}{}
+		delete(m.approval_jobs, ids[i])
+		m.removedapproval_jobs[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedHiringJobStepEdges returns the removed IDs of the "hiring_job_step_edges" edge to the HiringJobStep entity.
-func (m *UserMutation) RemovedHiringJobStepEdgesIDs() (ids []uuid.UUID) {
-	for id := range m.removedhiring_job_step_edges {
+// RemovedApprovalJobs returns the removed IDs of the "approval_jobs" edge to the HiringJob entity.
+func (m *UserMutation) RemovedApprovalJobsIDs() (ids []uuid.UUID) {
+	for id := range m.removedapproval_jobs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// HiringJobStepEdgesIDs returns the "hiring_job_step_edges" edge IDs in the mutation.
-func (m *UserMutation) HiringJobStepEdgesIDs() (ids []uuid.UUID) {
-	for id := range m.hiring_job_step_edges {
+// ApprovalJobsIDs returns the "approval_jobs" edge IDs in the mutation.
+func (m *UserMutation) ApprovalJobsIDs() (ids []uuid.UUID) {
+	for id := range m.approval_jobs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetHiringJobStepEdges resets all changes to the "hiring_job_step_edges" edge.
-func (m *UserMutation) ResetHiringJobStepEdges() {
-	m.hiring_job_step_edges = nil
-	m.clearedhiring_job_step_edges = false
-	m.removedhiring_job_step_edges = nil
+// ResetApprovalJobs resets all changes to the "approval_jobs" edge.
+func (m *UserMutation) ResetApprovalJobs() {
+	m.approval_jobs = nil
+	m.clearedapproval_jobs = false
+	m.removedapproval_jobs = nil
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by ids.
@@ -34686,6 +34824,60 @@ func (m *UserMutation) ResetHiringTeamApprovers() {
 	m.hiring_team_approvers = nil
 	m.clearedhiring_team_approvers = false
 	m.removedhiring_team_approvers = nil
+}
+
+// AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by ids.
+func (m *UserMutation) AddApprovalStepIDs(ids ...uuid.UUID) {
+	if m.approval_steps == nil {
+		m.approval_steps = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.approval_steps[ids[i]] = struct{}{}
+	}
+}
+
+// ClearApprovalSteps clears the "approval_steps" edge to the HiringJobStep entity.
+func (m *UserMutation) ClearApprovalSteps() {
+	m.clearedapproval_steps = true
+}
+
+// ApprovalStepsCleared reports if the "approval_steps" edge to the HiringJobStep entity was cleared.
+func (m *UserMutation) ApprovalStepsCleared() bool {
+	return m.clearedapproval_steps
+}
+
+// RemoveApprovalStepIDs removes the "approval_steps" edge to the HiringJobStep entity by IDs.
+func (m *UserMutation) RemoveApprovalStepIDs(ids ...uuid.UUID) {
+	if m.removedapproval_steps == nil {
+		m.removedapproval_steps = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.approval_steps, ids[i])
+		m.removedapproval_steps[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedApprovalSteps returns the removed IDs of the "approval_steps" edge to the HiringJobStep entity.
+func (m *UserMutation) RemovedApprovalStepsIDs() (ids []uuid.UUID) {
+	for id := range m.removedapproval_steps {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ApprovalStepsIDs returns the "approval_steps" edge IDs in the mutation.
+func (m *UserMutation) ApprovalStepsIDs() (ids []uuid.UUID) {
+	for id := range m.approval_steps {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetApprovalSteps resets all changes to the "approval_steps" edge.
+func (m *UserMutation) ResetApprovalSteps() {
+	m.approval_steps = nil
+	m.clearedapproval_steps = false
+	m.removedapproval_steps = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -34992,7 +35184,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -35041,8 +35233,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.candidate_history_call_edges != nil {
 		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
-	if m.hiring_job_step_edges != nil {
-		edges = append(edges, user.EdgeHiringJobStepEdges)
+	if m.approval_jobs != nil {
+		edges = append(edges, user.EdgeApprovalJobs)
 	}
 	if m.interview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -35055,6 +35247,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.hiring_team_approvers != nil {
 		edges = append(edges, user.EdgeHiringTeamApprovers)
+	}
+	if m.approval_steps != nil {
+		edges = append(edges, user.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -35153,9 +35348,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeHiringJobStepEdges:
-		ids := make([]ent.Value, 0, len(m.hiring_job_step_edges))
-		for id := range m.hiring_job_step_edges {
+	case user.EdgeApprovalJobs:
+		ids := make([]ent.Value, 0, len(m.approval_jobs))
+		for id := range m.approval_jobs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -35183,13 +35378,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeApprovalSteps:
+		ids := make([]ent.Value, 0, len(m.approval_steps))
+		for id := range m.approval_steps {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -35229,8 +35430,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedcandidate_history_call_edges != nil {
 		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
-	if m.removedhiring_job_step_edges != nil {
-		edges = append(edges, user.EdgeHiringJobStepEdges)
+	if m.removedapproval_jobs != nil {
+		edges = append(edges, user.EdgeApprovalJobs)
 	}
 	if m.removedinterview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -35243,6 +35444,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedhiring_team_approvers != nil {
 		edges = append(edges, user.EdgeHiringTeamApprovers)
+	}
+	if m.removedapproval_steps != nil {
+		edges = append(edges, user.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -35329,9 +35533,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeHiringJobStepEdges:
-		ids := make([]ent.Value, 0, len(m.removedhiring_job_step_edges))
-		for id := range m.removedhiring_job_step_edges {
+	case user.EdgeApprovalJobs:
+		ids := make([]ent.Value, 0, len(m.removedapproval_jobs))
+		for id := range m.removedapproval_jobs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -35359,13 +35563,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeApprovalSteps:
+		ids := make([]ent.Value, 0, len(m.removedapproval_steps))
+		for id := range m.removedapproval_steps {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -35414,8 +35624,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedcandidate_history_call_edges {
 		edges = append(edges, user.EdgeCandidateHistoryCallEdges)
 	}
-	if m.clearedhiring_job_step_edges {
-		edges = append(edges, user.EdgeHiringJobStepEdges)
+	if m.clearedapproval_jobs {
+		edges = append(edges, user.EdgeApprovalJobs)
 	}
 	if m.clearedinterview_users {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -35428,6 +35638,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedhiring_team_approvers {
 		edges = append(edges, user.EdgeHiringTeamApprovers)
+	}
+	if m.clearedapproval_steps {
+		edges = append(edges, user.EdgeApprovalSteps)
 	}
 	return edges
 }
@@ -35468,8 +35681,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcandidate_note_edges
 	case user.EdgeCandidateHistoryCallEdges:
 		return m.clearedcandidate_history_call_edges
-	case user.EdgeHiringJobStepEdges:
-		return m.clearedhiring_job_step_edges
+	case user.EdgeApprovalJobs:
+		return m.clearedapproval_jobs
 	case user.EdgeInterviewUsers:
 		return m.clearedinterview_users
 	case user.EdgeRoleUsers:
@@ -35478,6 +35691,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedhiring_team_users
 	case user.EdgeHiringTeamApprovers:
 		return m.clearedhiring_team_approvers
+	case user.EdgeApprovalSteps:
+		return m.clearedapproval_steps
 	}
 	return false
 }
@@ -35551,8 +35766,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeCandidateHistoryCallEdges:
 		m.ResetCandidateHistoryCallEdges()
 		return nil
-	case user.EdgeHiringJobStepEdges:
-		m.ResetHiringJobStepEdges()
+	case user.EdgeApprovalJobs:
+		m.ResetApprovalJobs()
 		return nil
 	case user.EdgeInterviewUsers:
 		m.ResetInterviewUsers()
@@ -35565,6 +35780,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeHiringTeamApprovers:
 		m.ResetHiringTeamApprovers()
+		return nil
+	case user.EdgeApprovalSteps:
+		m.ResetApprovalSteps()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

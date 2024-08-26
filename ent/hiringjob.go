@@ -73,17 +73,20 @@ type HiringJobEdges struct {
 	HiringTeamEdge *HiringTeam `json:"hiring_team_edge,omitempty"`
 	// JobPositionEdge holds the value of the job_position_edge edge.
 	JobPositionEdge *JobPosition `json:"job_position_edge,omitempty"`
-	// HiringJobStep holds the value of the hiring_job_step edge.
-	HiringJobStep []*HiringJobStep `json:"hiring_job_step,omitempty"`
+	// ApprovalUsers holds the value of the approval_users edge.
+	ApprovalUsers []*User `json:"approval_users,omitempty"`
+	// ApprovalSteps holds the value of the approval_steps edge.
+	ApprovalSteps []*HiringJobStep `json:"approval_steps,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
-	totalCount [6]map[string]int
+	totalCount [7]map[string]int
 
 	namedCandidateJobEdges   map[string][]*CandidateJob
 	namedHiringJobSkillEdges map[string][]*EntitySkill
-	namedHiringJobStep       map[string][]*HiringJobStep
+	namedApprovalUsers       map[string][]*User
+	namedApprovalSteps       map[string][]*HiringJobStep
 }
 
 // OwnerEdgeOrErr returns the OwnerEdge value or an error if the edge
@@ -143,13 +146,22 @@ func (e HiringJobEdges) JobPositionEdgeOrErr() (*JobPosition, error) {
 	return nil, &NotLoadedError{edge: "job_position_edge"}
 }
 
-// HiringJobStepOrErr returns the HiringJobStep value or an error if the edge
+// ApprovalUsersOrErr returns the ApprovalUsers value or an error if the edge
 // was not loaded in eager-loading.
-func (e HiringJobEdges) HiringJobStepOrErr() ([]*HiringJobStep, error) {
+func (e HiringJobEdges) ApprovalUsersOrErr() ([]*User, error) {
 	if e.loadedTypes[5] {
-		return e.HiringJobStep, nil
+		return e.ApprovalUsers, nil
 	}
-	return nil, &NotLoadedError{edge: "hiring_job_step"}
+	return nil, &NotLoadedError{edge: "approval_users"}
+}
+
+// ApprovalStepsOrErr returns the ApprovalSteps value or an error if the edge
+// was not loaded in eager-loading.
+func (e HiringJobEdges) ApprovalStepsOrErr() ([]*HiringJobStep, error) {
+	if e.loadedTypes[6] {
+		return e.ApprovalSteps, nil
+	}
+	return nil, &NotLoadedError{edge: "approval_steps"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -324,9 +336,14 @@ func (hj *HiringJob) QueryJobPositionEdge() *JobPositionQuery {
 	return (&HiringJobClient{config: hj.config}).QueryJobPositionEdge(hj)
 }
 
-// QueryHiringJobStep queries the "hiring_job_step" edge of the HiringJob entity.
-func (hj *HiringJob) QueryHiringJobStep() *HiringJobStepQuery {
-	return (&HiringJobClient{config: hj.config}).QueryHiringJobStep(hj)
+// QueryApprovalUsers queries the "approval_users" edge of the HiringJob entity.
+func (hj *HiringJob) QueryApprovalUsers() *UserQuery {
+	return (&HiringJobClient{config: hj.config}).QueryApprovalUsers(hj)
+}
+
+// QueryApprovalSteps queries the "approval_steps" edge of the HiringJob entity.
+func (hj *HiringJob) QueryApprovalSteps() *HiringJobStepQuery {
+	return (&HiringJobClient{config: hj.config}).QueryApprovalSteps(hj)
 }
 
 // Update returns a builder for updating this HiringJob.
@@ -457,27 +474,51 @@ func (hj *HiringJob) appendNamedHiringJobSkillEdges(name string, edges ...*Entit
 	}
 }
 
-// NamedHiringJobStep returns the HiringJobStep named value or an error if the edge was not
+// NamedApprovalUsers returns the ApprovalUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (hj *HiringJob) NamedHiringJobStep(name string) ([]*HiringJobStep, error) {
-	if hj.Edges.namedHiringJobStep == nil {
+func (hj *HiringJob) NamedApprovalUsers(name string) ([]*User, error) {
+	if hj.Edges.namedApprovalUsers == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := hj.Edges.namedHiringJobStep[name]
+	nodes, ok := hj.Edges.namedApprovalUsers[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (hj *HiringJob) appendNamedHiringJobStep(name string, edges ...*HiringJobStep) {
-	if hj.Edges.namedHiringJobStep == nil {
-		hj.Edges.namedHiringJobStep = make(map[string][]*HiringJobStep)
+func (hj *HiringJob) appendNamedApprovalUsers(name string, edges ...*User) {
+	if hj.Edges.namedApprovalUsers == nil {
+		hj.Edges.namedApprovalUsers = make(map[string][]*User)
 	}
 	if len(edges) == 0 {
-		hj.Edges.namedHiringJobStep[name] = []*HiringJobStep{}
+		hj.Edges.namedApprovalUsers[name] = []*User{}
 	} else {
-		hj.Edges.namedHiringJobStep[name] = append(hj.Edges.namedHiringJobStep[name], edges...)
+		hj.Edges.namedApprovalUsers[name] = append(hj.Edges.namedApprovalUsers[name], edges...)
+	}
+}
+
+// NamedApprovalSteps returns the ApprovalSteps named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (hj *HiringJob) NamedApprovalSteps(name string) ([]*HiringJobStep, error) {
+	if hj.Edges.namedApprovalSteps == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := hj.Edges.namedApprovalSteps[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (hj *HiringJob) appendNamedApprovalSteps(name string, edges ...*HiringJobStep) {
+	if hj.Edges.namedApprovalSteps == nil {
+		hj.Edges.namedApprovalSteps = make(map[string][]*HiringJobStep)
+	}
+	if len(edges) == 0 {
+		hj.Edges.namedApprovalSteps[name] = []*HiringJobStep{}
+	} else {
+		hj.Edges.namedApprovalSteps[name] = append(hj.Edges.namedApprovalSteps[name], edges...)
 	}
 }
 

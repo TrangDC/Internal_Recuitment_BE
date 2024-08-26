@@ -412,19 +412,19 @@ func (uc *UserCreate) AddCandidateHistoryCallEdges(c ...*CandidateHistoryCall) *
 	return uc.AddCandidateHistoryCallEdgeIDs(ids...)
 }
 
-// AddHiringJobStepEdgeIDs adds the "hiring_job_step_edges" edge to the HiringJobStep entity by IDs.
-func (uc *UserCreate) AddHiringJobStepEdgeIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddHiringJobStepEdgeIDs(ids...)
+// AddApprovalJobIDs adds the "approval_jobs" edge to the HiringJob entity by IDs.
+func (uc *UserCreate) AddApprovalJobIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddApprovalJobIDs(ids...)
 	return uc
 }
 
-// AddHiringJobStepEdges adds the "hiring_job_step_edges" edges to the HiringJobStep entity.
-func (uc *UserCreate) AddHiringJobStepEdges(h ...*HiringJobStep) *UserCreate {
+// AddApprovalJobs adds the "approval_jobs" edges to the HiringJob entity.
+func (uc *UserCreate) AddApprovalJobs(h ...*HiringJob) *UserCreate {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return uc.AddHiringJobStepEdgeIDs(ids...)
+	return uc.AddApprovalJobIDs(ids...)
 }
 
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
@@ -485,6 +485,21 @@ func (uc *UserCreate) AddHiringTeamApprovers(h ...*HiringTeamApprover) *UserCrea
 		ids[i] = h[i].ID
 	}
 	return uc.AddHiringTeamApproverIDs(ids...)
+}
+
+// AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by IDs.
+func (uc *UserCreate) AddApprovalStepIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddApprovalStepIDs(ids...)
+	return uc
+}
+
+// AddApprovalSteps adds the "approval_steps" edges to the HiringJobStep entity.
+func (uc *UserCreate) AddApprovalSteps(h ...*HiringJobStep) *UserCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return uc.AddApprovalStepIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1006,23 +1021,27 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.HiringJobStepEdgesIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.ApprovalJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.HiringJobStepEdgesTable,
-			Columns: []string{user.HiringJobStepEdgesColumn},
+			Table:   user.ApprovalJobsTable,
+			Columns: user.ApprovalJobsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: hiringjobstep.FieldID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &HiringJobStepCreate{config: uc.config, mutation: newHiringJobStepMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := uc.mutation.InterviewUsersIDs(); len(nodes) > 0 {
@@ -1093,6 +1112,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringteamapprover.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ApprovalStepsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.ApprovalStepsTable,
+			Columns: []string{user.ApprovalStepsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjobstep.FieldID,
 				},
 			},
 		}

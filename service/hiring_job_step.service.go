@@ -10,7 +10,7 @@ import (
 )
 
 type HiringJobStepService interface {
-	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Type, hiringJobId uuid.UUID, repoRegistry repository.Repository) error
+	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID, repoRegistry repository.Repository) error
 }
 
 type hiringJobStepImpl struct {
@@ -25,6 +25,6 @@ func NewHiringJobStepService(repoRegistry repository.Repository, logger *zap.Log
 	}
 }
 
-func (svc *hiringJobStepImpl) CreateHiringJobStep(ctx context.Context, step hiringjobstep.Type, hiringJobId uuid.UUID, repoRegistry repository.Repository) error {
+func (svc *hiringJobStepImpl) CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID, repoRegistry repository.Repository) error {
 	return repoRegistry.HiringJobStep().CreateHiringJobStep(ctx, step, hiringJobId)
 }

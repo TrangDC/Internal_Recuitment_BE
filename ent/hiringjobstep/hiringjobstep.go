@@ -16,44 +16,47 @@ const (
 	FieldID = "id"
 	// FieldHiringJobID holds the string denoting the hiring_job_id field in the database.
 	FieldHiringJobID = "hiring_job_id"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldOrderID holds the string denoting the order_id field in the database.
+	FieldOrderID = "order_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldCreatedByID holds the string denoting the created_by_id field in the database.
-	FieldCreatedByID = "created_by_id"
-	// EdgeHiringJobEdge holds the string denoting the hiring_job_edge edge name in mutations.
-	EdgeHiringJobEdge = "hiring_job_edge"
-	// EdgeCreatedByEdge holds the string denoting the created_by_edge edge name in mutations.
-	EdgeCreatedByEdge = "created_by_edge"
+	// EdgeApprovalJob holds the string denoting the approval_job edge name in mutations.
+	EdgeApprovalJob = "approval_job"
+	// EdgeApprovalUser holds the string denoting the approval_user edge name in mutations.
+	EdgeApprovalUser = "approval_user"
 	// Table holds the table name of the hiringjobstep in the database.
 	Table = "hiring_job_steps"
-	// HiringJobEdgeTable is the table that holds the hiring_job_edge relation/edge.
-	HiringJobEdgeTable = "hiring_job_steps"
-	// HiringJobEdgeInverseTable is the table name for the HiringJob entity.
+	// ApprovalJobTable is the table that holds the approval_job relation/edge.
+	ApprovalJobTable = "hiring_job_steps"
+	// ApprovalJobInverseTable is the table name for the HiringJob entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
-	HiringJobEdgeInverseTable = "hiring_jobs"
-	// HiringJobEdgeColumn is the table column denoting the hiring_job_edge relation/edge.
-	HiringJobEdgeColumn = "hiring_job_id"
-	// CreatedByEdgeTable is the table that holds the created_by_edge relation/edge.
-	CreatedByEdgeTable = "hiring_job_steps"
-	// CreatedByEdgeInverseTable is the table name for the User entity.
+	ApprovalJobInverseTable = "hiring_jobs"
+	// ApprovalJobColumn is the table column denoting the approval_job relation/edge.
+	ApprovalJobColumn = "hiring_job_id"
+	// ApprovalUserTable is the table that holds the approval_user relation/edge.
+	ApprovalUserTable = "hiring_job_steps"
+	// ApprovalUserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	CreatedByEdgeInverseTable = "users"
-	// CreatedByEdgeColumn is the table column denoting the created_by_edge relation/edge.
-	CreatedByEdgeColumn = "created_by_id"
+	ApprovalUserInverseTable = "users"
+	// ApprovalUserColumn is the table column denoting the approval_user relation/edge.
+	ApprovalUserColumn = "user_id"
 )
 
 // Columns holds all SQL columns for hiringjobstep fields.
 var Columns = []string{
 	FieldID,
 	FieldHiringJobID,
-	FieldType,
+	FieldUserID,
+	FieldStatus,
+	FieldOrderID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldCreatedByID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -67,51 +70,51 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// OrderIDValidator is a validator for the "order_id" field. It is called by the builders before save.
+	OrderIDValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
 
-// Type defines the type for the "type" enum field.
-type Type string
+// Status defines the type for the "status" enum field.
+type Status string
 
-// TypeCreated is the default value of the Type enum.
-const DefaultType = TypeCreated
-
-// Type values.
+// Status values.
 const (
-	TypeCreated Type = "created"
-	TypeOpened  Type = "opened"
-	TypeClosed  Type = "closed"
+	StatusWaiting  Status = "waiting"
+	StatusPending  Status = "pending"
+	StatusAccepted Status = "accepted"
+	StatusRejected Status = "rejected"
 )
 
-func (_type Type) String() string {
-	return string(_type)
+func (s Status) String() string {
+	return string(s)
 }
 
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeCreated, TypeOpened, TypeClosed:
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusWaiting, StatusPending, StatusAccepted, StatusRejected:
 		return nil
 	default:
-		return fmt.Errorf("hiringjobstep: invalid enum value for type field: %q", _type)
+		return fmt.Errorf("hiringjobstep: invalid enum value for status field: %q", s)
 	}
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (e Type) MarshalGQL(w io.Writer) {
+func (e Status) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *Type) UnmarshalGQL(val interface{}) error {
+func (e *Status) UnmarshalGQL(val interface{}) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("enum %T must be a string", val)
 	}
-	*e = Type(str)
-	if err := TypeValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid Type", str)
+	*e = Status(str)
+	if err := StatusValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
 	}
 	return nil
 }

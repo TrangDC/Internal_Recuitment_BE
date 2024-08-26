@@ -460,8 +460,12 @@ func init() {
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
 	hiringjobstepFields := schema.HiringJobStep{}.Fields()
 	_ = hiringjobstepFields
+	// hiringjobstepDescOrderID is the schema descriptor for order_id field.
+	hiringjobstepDescOrderID := hiringjobstepFields[4].Descriptor()
+	// hiringjobstep.OrderIDValidator is a validator for the "order_id" field. It is called by the builders before save.
+	hiringjobstep.OrderIDValidator = hiringjobstepDescOrderID.Validators[0].(func(int) error)
 	// hiringjobstepDescCreatedAt is the schema descriptor for created_at field.
-	hiringjobstepDescCreatedAt := hiringjobstepFields[3].Descriptor()
+	hiringjobstepDescCreatedAt := hiringjobstepFields[5].Descriptor()
 	// hiringjobstep.DefaultCreatedAt holds the default value on creation for the created_at field.
 	hiringjobstep.DefaultCreatedAt = hiringjobstepDescCreatedAt.Default.(func() time.Time)
 	hiringteamMixin := schema.HiringTeam{}.Mixin()

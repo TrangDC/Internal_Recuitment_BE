@@ -95,7 +95,7 @@ func (r *hiringJobResolver) EntitySkillTypes(ctx context.Context, obj *ent.Hirin
 
 // Steps is the resolver for the steps field.
 func (r *hiringJobResolver) Steps(ctx context.Context, obj *ent.HiringJob) ([]*ent.HiringJobStep, error) {
-	return obj.Edges.HiringJobStep, nil
+	return obj.Edges.ApprovalStepsOrErr()
 }
 
 // HiringJob returns graphql1.HiringJobResolver implementation.

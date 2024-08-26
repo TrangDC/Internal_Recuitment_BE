@@ -644,10 +644,11 @@ type ComplexityRoot struct {
 	}
 
 	HiringJobStep struct {
+		Approver  func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
-		CreatedBy func(childComplexity int) int
 		ID        func(childComplexity int) int
-		Type      func(childComplexity int) int
+		OrderID   func(childComplexity int) int
+		Status    func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 
@@ -1380,9 +1381,8 @@ type HiringJobResolver interface {
 }
 type HiringJobStepResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJobStep) (string, error)
-	Type(ctx context.Context, obj *ent.HiringJobStep) (ent.HiringJobStepTypeEnum, error)
-
-	CreatedBy(ctx context.Context, obj *ent.HiringJobStep) (*ent.User, error)
+	Status(ctx context.Context, obj *ent.HiringJobStep) (ent.HiringJobStepStatusEnum, error)
+	Approver(ctx context.Context, obj *ent.HiringJobStep) (*ent.User, error)
 }
 type HiringTeamResolver interface {
 	ID(ctx context.Context, obj *ent.HiringTeam) (string, error)
@@ -4029,19 +4029,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJobSelectionResponseGetAll.Pagination(childComplexity), true
 
+	case "HiringJobStep.approver":
+		if e.complexity.HiringJobStep.Approver == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.Approver(childComplexity), true
+
 	case "HiringJobStep.created_at":
 		if e.complexity.HiringJobStep.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.HiringJobStep.CreatedAt(childComplexity), true
-
-	case "HiringJobStep.created_by":
-		if e.complexity.HiringJobStep.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.HiringJobStep.CreatedBy(childComplexity), true
 
 	case "HiringJobStep.id":
 		if e.complexity.HiringJobStep.ID == nil {
@@ -4050,12 +4050,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJobStep.ID(childComplexity), true
 
-	case "HiringJobStep.type":
-		if e.complexity.HiringJobStep.Type == nil {
+	case "HiringJobStep.order_id":
+		if e.complexity.HiringJobStep.OrderID == nil {
 			break
 		}
 
-		return e.complexity.HiringJobStep.Type(childComplexity), true
+		return e.complexity.HiringJobStep.OrderID(childComplexity), true
+
+	case "HiringJobStep.status":
+		if e.complexity.HiringJobStep.Status == nil {
+			break
+		}
+
+		return e.complexity.HiringJobStep.Status(childComplexity), true
 
 	case "HiringJobStep.updated_at":
 		if e.complexity.HiringJobStep.UpdatedAt == nil {
@@ -8581,19 +8588,22 @@ type HiringJobSelectionResponseGetAll {
 
 # Path: schema/hiring_job.graphql
 `, BuiltIn: false},
-	{Name: "../schema/hiring_job_step.graphql", Input: `enum HiringJobStepTypeEnum {
-  created
-  opened
-  closed
+	{Name: "../schema/hiring_job_step.graphql", Input: `enum HiringJobStepStatusEnum {
+  waiting
+  pending
+  accepted
+  rejected
 }
 
 type HiringJobStep {
   id: ID!
-  type: HiringJobStepTypeEnum!
+  status: HiringJobStepStatusEnum!
+  approver: User!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
-  created_by: User!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../schema/hiring_team.graphql", Input: `enum HiringTeamOrderByField {
   name
   created_at
@@ -29620,14 +29630,16 @@ func (ec *executionContext) fieldContext_HiringJob_steps(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_HiringJobStep_id(ctx, field)
-			case "type":
-				return ec.fieldContext_HiringJobStep_type(ctx, field)
+			case "status":
+				return ec.fieldContext_HiringJobStep_status(ctx, field)
+			case "approver":
+				return ec.fieldContext_HiringJobStep_approver(ctx, field)
+			case "order_id":
+				return ec.fieldContext_HiringJobStep_order_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_HiringJobStep_created_at(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_HiringJobStep_updated_at(ctx, field)
-			case "created_by":
-				return ec.fieldContext_HiringJobStep_created_by(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJobStep", field.Name)
 		},
@@ -30294,8 +30306,8 @@ func (ec *executionContext) fieldContext_HiringJobStep_id(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _HiringJobStep_type(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HiringJobStep_type(ctx, field)
+func (ec *executionContext) _HiringJobStep_status(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -30308,7 +30320,7 @@ func (ec *executionContext) _HiringJobStep_type(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HiringJobStep().Type(rctx, obj)
+		return ec.resolvers.HiringJobStep().Status(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30320,19 +30332,131 @@ func (ec *executionContext) _HiringJobStep_type(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(ent.HiringJobStepTypeEnum)
+	res := resTmp.(ent.HiringJobStepStatusEnum)
 	fc.Result = res
-	return ec.marshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx, field.Selections, res)
+	return ec.marshalNHiringJobStepStatusEnum2trecᚋentᚐHiringJobStepStatusEnum(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_HiringJobStep_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_HiringJobStep_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "HiringJobStep",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type HiringJobStepTypeEnum does not have child fields")
+			return nil, errors.New("field of type HiringJobStepStatusEnum does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_approver(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_approver(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJobStep().Approver(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_approver(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
+			case "entity_permissions":
+				return ec.fieldContext_User_entity_permissions(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobStep_order_id(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobStep_order_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobStep_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobStep",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30421,74 +30545,6 @@ func (ec *executionContext) fieldContext_HiringJobStep_updated_at(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _HiringJobStep_created_by(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobStep) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HiringJobStep_created_by(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HiringJobStep().CreatedBy(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HiringJobStep_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HiringJobStep",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "work_email":
-				return ec.fieldContext_User_work_email(ctx, field)
-			case "status":
-				return ec.fieldContext_User_status(ctx, field)
-			case "hiring_team":
-				return ec.fieldContext_User_hiring_team(ctx, field)
-			case "entity_permissions":
-				return ec.fieldContext_User_entity_permissions(ctx, field)
-			case "roles":
-				return ec.fieldContext_User_roles(ctx, field)
-			case "member_of_hiring_team":
-				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
-			case "member_of_rec_team":
-				return ec.fieldContext_User_member_of_rec_team(ctx, field)
-			case "is_leader_of_rec_team":
-				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
-			case "is_manager_of_hiring_team":
-				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -60677,7 +60733,7 @@ func (ec *executionContext) _HiringJobStep(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
-		case "type":
+		case "status":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -60686,7 +60742,7 @@ func (ec *executionContext) _HiringJobStep(ctx context.Context, sel ast.Selectio
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._HiringJobStep_type(ctx, field, obj)
+				res = ec._HiringJobStep_status(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -60697,6 +60753,33 @@ func (ec *executionContext) _HiringJobStep(ctx context.Context, sel ast.Selectio
 				return innerFunc(ctx)
 
 			})
+		case "approver":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJobStep_approver(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "order_id":
+
+			out.Values[i] = ec._HiringJobStep_order_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._HiringJobStep_created_at(ctx, field, obj)
@@ -60711,26 +60794,6 @@ func (ec *executionContext) _HiringJobStep(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "created_by":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._HiringJobStep_created_by(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -68526,13 +68589,13 @@ func (ec *executionContext) marshalNHiringJobStep2ᚖtrecᚋentᚐHiringJobStep(
 	return ec._HiringJobStep(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx context.Context, v interface{}) (ent.HiringJobStepTypeEnum, error) {
-	var res ent.HiringJobStepTypeEnum
+func (ec *executionContext) unmarshalNHiringJobStepStatusEnum2trecᚋentᚐHiringJobStepStatusEnum(ctx context.Context, v interface{}) (ent.HiringJobStepStatusEnum, error) {
+	var res ent.HiringJobStepStatusEnum
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNHiringJobStepTypeEnum2trecᚋentᚐHiringJobStepTypeEnum(ctx context.Context, sel ast.SelectionSet, v ent.HiringJobStepTypeEnum) graphql.Marshaler {
+func (ec *executionContext) marshalNHiringJobStepStatusEnum2trecᚋentᚐHiringJobStepStatusEnum(ctx context.Context, sel ast.SelectionSet, v ent.HiringJobStepStatusEnum) graphql.Marshaler {
 	return v
 }
 
