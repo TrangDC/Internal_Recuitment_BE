@@ -1401,7 +1401,7 @@ type HiringTeamResolver interface {
 type HiringTeamApproverResolver interface {
 	ID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
 	UserID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
-
+	User(ctx context.Context, obj *ent.HiringTeamApprover) (*ent.User, error)
 	HiringTeamID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error)
 }
 type JobPositionResolver interface {
@@ -8538,7 +8538,6 @@ input HiringJobFreeWord {
 }
 
 input NewHiringJobInput {
-  status: HiringJobStatus!
   name: String!
   description: String!
   amount: Int!
@@ -31410,7 +31409,7 @@ func (ec *executionContext) _HiringTeamApprover_user(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User(ctx)
+		return ec.resolvers.HiringTeamApprover().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31429,7 +31428,7 @@ func (ec *executionContext) fieldContext_HiringTeamApprover_user(ctx context.Con
 		Object:     "HiringTeamApprover",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -53523,21 +53522,13 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "status":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalNHiringJobStatus2trecᚋentᚐHiringJobStatus(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "name":
 			var err error
 

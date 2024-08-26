@@ -24,8 +24,8 @@ func (HiringTeamApprover) Fields() []ent.Field {
 // Edges of the HiringTeamApprover.
 func (HiringTeamApprover) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("user", User.Type).Unique().Required().Field("user_id"),
-		edge.To("hiring_team", HiringTeam.Type).Unique().Required().Field("hiring_team_id"),
+		edge.To("user_edge", User.Type).Unique().Required().Field("user_id"),
+		edge.To("hiring_team_edge", HiringTeam.Type).Unique().Required().Field("hiring_team_id"),
 	}
 }
 

@@ -750,7 +750,6 @@ type NewEntityPermissionInput struct {
 }
 
 type NewHiringJobInput struct {
-	Status             HiringJobStatus           `json:"status"`
 	Name               string                    `json:"name"`
 	Description        string                    `json:"description"`
 	Amount             int                       `json:"amount"`

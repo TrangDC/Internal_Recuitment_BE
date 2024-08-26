@@ -19,6 +19,11 @@ func (r *hiringTeamApproverResolver) UserID(ctx context.Context, obj *ent.Hiring
 	return obj.UserID.String(), nil
 }
 
+// User is the resolver for the user field.
+func (r *hiringTeamApproverResolver) User(ctx context.Context, obj *ent.HiringTeamApprover) (*ent.User, error) {
+	return obj.Edges.UserEdgeOrErr()
+}
+
 // HiringTeamID is the resolver for the hiring_team_id field.
 func (r *hiringTeamApproverResolver) HiringTeamID(ctx context.Context, obj *ent.HiringTeamApprover) (string, error) {
 	return obj.HiringTeamID.String(), nil

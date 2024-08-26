@@ -2334,7 +2334,7 @@ func (hta *HiringTeamApproverQuery) collectField(ctx context.Context, op *graphq
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "user":
+		case "userEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2343,8 +2343,8 @@ func (hta *HiringTeamApproverQuery) collectField(ctx context.Context, op *graphq
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			hta.withUser = query
-		case "hiringTeam":
+			hta.withUserEdge = query
+		case "hiringTeamEdge":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2353,7 +2353,7 @@ func (hta *HiringTeamApproverQuery) collectField(ctx context.Context, op *graphq
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			hta.withHiringTeam = query
+			hta.withHiringTeamEdge = query
 		}
 	}
 	return nil

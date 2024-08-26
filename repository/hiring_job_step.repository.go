@@ -10,10 +10,13 @@ import (
 )
 
 type HiringJobStepRepository interface {
+	// base func
+	BuildCreate() *ent.HiringJobStepCreate
+	BuildQuery() *ent.HiringJobStepQuery
 	// mutation
 	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error
 	DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error
-	BuildQuery() *ent.HiringJobStepQuery
+	CreateBulkHiringJobSteps(ctx context.Context, creates []*ent.HiringJobStepCreate) ([]*ent.HiringJobStep, error)
 }
 
 type hiringJobStepRepoImpl struct {
@@ -28,7 +31,8 @@ func NewHiringJobStepRepository(client *ent.Client) HiringJobStepRepository {
 
 // Base function
 func (rps hiringJobStepRepoImpl) BuildCreate() *ent.HiringJobStepCreate {
-	return rps.client.HiringJobStep.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
+	currentTime := time.Now().UTC()
+	return rps.client.HiringJobStep.Create().SetCreatedAt(currentTime).SetUpdatedAt(currentTime)
 }
 
 func (rps hiringJobStepRepoImpl) BuildQuery() *ent.HiringJobStepQuery {
@@ -44,4 +48,8 @@ func (rps hiringJobStepRepoImpl) CreateHiringJobStep(ctx context.Context, step h
 func (rps hiringJobStepRepoImpl) DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error {
 	_, err := rps.client.HiringJobStep.Delete().Where(hiringjobstep.HiringJobID(hiringJobId)).Exec(ctx)
 	return err
+}
+
+func (rps hiringJobStepRepoImpl) CreateBulkHiringJobSteps(ctx context.Context, creates []*ent.HiringJobStepCreate) ([]*ent.HiringJobStep, error) {
+	return rps.client.HiringJobStep.CreateBulk(creates...).Save(ctx)
 }
