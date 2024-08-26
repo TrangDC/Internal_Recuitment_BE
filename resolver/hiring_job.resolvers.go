@@ -75,7 +75,7 @@ func (r *hiringJobResolver) Status(ctx context.Context, obj *ent.HiringJob) (ent
 // TotalCandidatesRecruited is the resolver for the total_candidates_recruited field.
 func (r *hiringJobResolver) TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error) {
 	return len(lo.Filter(obj.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
-		return item.Status == candidatejob.StatusHired
+		return item.Status == candidatejob.StatusHired || item.Status == candidatejob.StatusExStaff
 	})), nil
 }
 

@@ -529,6 +529,18 @@ type HiringJobFreeWord struct {
 	Name *string `json:"name"`
 }
 
+type HiringJobGroupByStatus struct {
+	PendingApprovals []*HiringJob `json:"pending_approvals"`
+	Opened           []*HiringJob `json:"opened"`
+	Closed           []*HiringJob `json:"closed"`
+	Cancelled        []*HiringJob `json:"cancelled"`
+}
+
+type HiringJobGroupByStatusResponse struct {
+	Data       *HiringJobGroupByStatus `json:"data"`
+	Pagination *Pagination             `json:"pagination"`
+}
+
 type HiringJobOrderBy struct {
 	Direction OrderDirection        `json:"direction"`
 	Field     HiringJobOrderByField `json:"field"`

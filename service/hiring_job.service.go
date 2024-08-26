@@ -8,9 +8,12 @@ import (
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/skill"
+	"trec/ent/skilltype"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
@@ -31,6 +34,8 @@ type HiringJobService interface {
 	GetHiringJob(ctx context.Context, id uuid.UUID) (*ent.HiringJobResponse, error)
 	GetHiringJobs(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
+	GetHiringJobsGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobGroupByStatusResponse, error)
 	Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
 		filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobSelectionResponseGetAll, error)
 
@@ -290,6 +295,71 @@ func (svc *hiringJobSvcImpl) GetHiringJobs(ctx context.Context, pagination *ent.
 		},
 	}
 	return result, nil
+}
+
+func (svc *hiringJobSvcImpl) GetHiringJobsGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,
+	filter *ent.HiringJobFilter, orderBy ent.HiringJobOrderBy) (*ent.HiringJobGroupByStatusResponse, error) {
+	query := svc.repoRegistry.HiringJob().BuildBaseQuery().WithCandidateJobEdges(func(query *ent.CandidateJobQuery) {
+		query.Where(candidatejob.DeletedAtIsNil())
+	}).WithHiringTeamEdge(func(query *ent.HiringTeamQuery) {
+		query.Where(hiringteam.DeletedAtIsNil())
+	}).WithHiringJobSkillEdges(func(query *ent.EntitySkillQuery) {
+		query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
+			func(sq *ent.SkillQuery) {
+				sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
+					func(stq *ent.SkillTypeQuery) {
+						stq.Where(skilltype.DeletedAtIsNil())
+					})
+			})
+	})
+	hiringJobs, count, page, perPage, err := svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	sampleEdge := &ent.HiringJobGroupByStatus{}
+	for _, hiringJob := range hiringJobs {
+		switch hiringJob.Status {
+		case hiringjob.StatusPendingApprovals:
+			sampleEdge.PendingApprovals = append(sampleEdge.PendingApprovals, hiringJob)
+		case hiringjob.StatusOpened:
+			sampleEdge.Opened = append(sampleEdge.Opened, hiringJob)
+		case hiringjob.StatusClosed:
+			sampleEdge.Closed = append(sampleEdge.Closed, hiringJob)
+		case hiringjob.StatusCancelled:
+			sampleEdge.Cancelled = append(sampleEdge.Cancelled, hiringJob)
+		}
+	}
+	edge := &ent.HiringJobGroupByStatus{
+		PendingApprovals: svc.pagination(sampleEdge.PendingApprovals, page, perPage),
+		Opened:           svc.pagination(sampleEdge.Opened, page, perPage),
+		Closed:           svc.pagination(sampleEdge.Closed, page, perPage),
+		Cancelled:        svc.pagination(sampleEdge.Cancelled, page, perPage),
+	}
+	result := &ent.HiringJobGroupByStatusResponse{
+		Data: edge,
+		Pagination: &ent.Pagination{
+			Total:   count,
+			Page:    page,
+			PerPage: perPage,
+		},
+	}
+	return result, nil
+}
+
+func (svc hiringJobSvcImpl) pagination(records []*ent.HiringJob, page int, perPage int) []*ent.HiringJob {
+	if page != 0 && perPage != 0 {
+		start := (page - 1) * perPage
+		end := start + perPage
+		if start > len(records) {
+			return nil
+		}
+		if start <= len(records) && end > len(records) {
+			return records[start:]
+		}
+		records = records[start:end]
+	}
+	return records
 }
 
 func (svc *hiringJobSvcImpl) Selections(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.HiringJobFreeWord,

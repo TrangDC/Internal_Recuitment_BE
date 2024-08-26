@@ -100,7 +100,7 @@ func (rps *hiringJobRepoImpl) BuildQuery() *ent.HiringJobQuery {
 		func(query *ent.HiringJobStepQuery) {
 			query.WithApprovalUser().Order(ent.Asc(hiringjobstep.FieldOrderID))
 		},
-	)
+	).WithRecTeamEdge().WithRecInChargeEdge()
 }
 
 func (rps *hiringJobRepoImpl) BuildGetOne(ctx context.Context, query *ent.HiringJobQuery) (*ent.HiringJob, error) {

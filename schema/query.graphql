@@ -19,6 +19,7 @@ type Query {
   # HiringJob
   GetHiringJob(id: ID!): HiringJobResponse!
   GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
+  GetAllHiringJobsGroupByStatus(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobGroupByStatusResponse!
 
   # AuditTrail
   GetAuditTrail(id: ID!): AuditTrailResponse!
