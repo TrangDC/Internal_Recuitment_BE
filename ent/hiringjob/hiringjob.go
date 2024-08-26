@@ -48,8 +48,14 @@ const (
 	FieldPriority = "priority"
 	// FieldHiringTeamID holds the string denoting the hiring_team_id field in the database.
 	FieldHiringTeamID = "hiring_team_id"
+	// FieldRecTeamID holds the string denoting the rec_team_id field in the database.
+	FieldRecTeamID = "rec_team_id"
+	// FieldRecInChargeID holds the string denoting the rec_in_charge_id field in the database.
+	FieldRecInChargeID = "rec_in_charge_id"
 	// FieldJobPositionID holds the string denoting the job_position_id field in the database.
 	FieldJobPositionID = "job_position_id"
+	// FieldLevel holds the string denoting the level field in the database.
+	FieldLevel = "level"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
@@ -62,6 +68,10 @@ const (
 	EdgeJobPositionEdge = "job_position_edge"
 	// EdgeApprovalUsers holds the string denoting the approval_users edge name in mutations.
 	EdgeApprovalUsers = "approval_users"
+	// EdgeRecTeamEdge holds the string denoting the rec_team_edge edge name in mutations.
+	EdgeRecTeamEdge = "rec_team_edge"
+	// EdgeRecInChargeEdge holds the string denoting the rec_in_charge_edge edge name in mutations.
+	EdgeRecInChargeEdge = "rec_in_charge_edge"
 	// EdgeApprovalSteps holds the string denoting the approval_steps edge name in mutations.
 	EdgeApprovalSteps = "approval_steps"
 	// Table holds the table name of the hiringjob in the database.
@@ -106,6 +116,20 @@ const (
 	// ApprovalUsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	ApprovalUsersInverseTable = "users"
+	// RecTeamEdgeTable is the table that holds the rec_team_edge relation/edge.
+	RecTeamEdgeTable = "hiring_jobs"
+	// RecTeamEdgeInverseTable is the table name for the RecTeam entity.
+	// It exists in this package in order to avoid circular dependency with the "recteam" package.
+	RecTeamEdgeInverseTable = "rec_teams"
+	// RecTeamEdgeColumn is the table column denoting the rec_team_edge relation/edge.
+	RecTeamEdgeColumn = "rec_team_id"
+	// RecInChargeEdgeTable is the table that holds the rec_in_charge_edge relation/edge.
+	RecInChargeEdgeTable = "hiring_jobs"
+	// RecInChargeEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	RecInChargeEdgeInverseTable = "users"
+	// RecInChargeEdgeColumn is the table column denoting the rec_in_charge_edge relation/edge.
+	RecInChargeEdgeColumn = "rec_in_charge_id"
 	// ApprovalStepsTable is the table that holds the approval_steps relation/edge.
 	ApprovalStepsTable = "hiring_job_steps"
 	// ApprovalStepsInverseTable is the table name for the HiringJobStep entity.
@@ -135,7 +159,10 @@ var Columns = []string{
 	FieldLastApplyDate,
 	FieldPriority,
 	FieldHiringTeamID,
+	FieldRecTeamID,
+	FieldRecInChargeID,
 	FieldJobPositionID,
+	FieldLevel,
 }
 
 var (
@@ -176,14 +203,15 @@ var (
 // Status defines the type for the "status" enum field.
 type Status string
 
-// StatusOpened is the default value of the Status enum.
-const DefaultStatus = StatusOpened
+// StatusPendingApprovals is the default value of the Status enum.
+const DefaultStatus = StatusPendingApprovals
 
 // Status values.
 const (
-	StatusDraft  Status = "draft"
-	StatusOpened Status = "opened"
-	StatusClosed Status = "closed"
+	StatusPendingApprovals Status = "pending_approvals"
+	StatusOpened           Status = "opened"
+	StatusClosed           Status = "closed"
+	StatusCancelled        Status = "cancelled"
 )
 
 func (s Status) String() string {
@@ -193,7 +221,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDraft, StatusOpened, StatusClosed:
+	case StatusPendingApprovals, StatusOpened, StatusClosed, StatusCancelled:
 		return nil
 	default:
 		return fmt.Errorf("hiringjob: invalid enum value for status field: %q", s)
@@ -275,6 +303,34 @@ func CurrencyValidator(c Currency) error {
 	}
 }
 
+// Level defines the type for the "level" enum field.
+type Level string
+
+// Level values.
+const (
+	LevelIntern   Level = "intern"
+	LevelFresher  Level = "fresher"
+	LevelJunior   Level = "junior"
+	LevelMiddle   Level = "middle"
+	LevelSenior   Level = "senior"
+	LevelManager  Level = "manager"
+	LevelDirector Level = "director"
+)
+
+func (l Level) String() string {
+	return string(l)
+}
+
+// LevelValidator is a validator for the "level" field enum values. It is called by the builders before save.
+func LevelValidator(l Level) error {
+	switch l {
+	case LevelIntern, LevelFresher, LevelJunior, LevelMiddle, LevelSenior, LevelManager, LevelDirector:
+		return nil
+	default:
+		return fmt.Errorf("hiringjob: invalid enum value for level field: %q", l)
+	}
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (e Status) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
@@ -343,6 +399,24 @@ func (e *Currency) UnmarshalGQL(val interface{}) error {
 	*e = Currency(str)
 	if err := CurrencyValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid Currency", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Level) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Level) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Level(str)
+	if err := LevelValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Level", str)
 	}
 	return nil
 }

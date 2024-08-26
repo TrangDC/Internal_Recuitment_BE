@@ -80,6 +80,8 @@ type UserEdges struct {
 	CandidateHistoryCallEdges []*CandidateHistoryCall `json:"candidate_history_call_edges,omitempty"`
 	// ApprovalJobs holds the value of the approval_jobs edge.
 	ApprovalJobs []*HiringJob `json:"approval_jobs,omitempty"`
+	// HiringJobRecEdges holds the value of the hiring_job_rec_edges edge.
+	HiringJobRecEdges []*HiringJob `json:"hiring_job_rec_edges,omitempty"`
 	// InterviewUsers holds the value of the interview_users edge.
 	InterviewUsers []*CandidateInterviewer `json:"interview_users,omitempty"`
 	// RoleUsers holds the value of the role_users edge.
@@ -92,9 +94,9 @@ type UserEdges struct {
 	ApprovalSteps []*HiringJobStep `json:"approval_steps,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [22]bool
+	loadedTypes [23]bool
 	// totalCount holds the count of the edges above.
-	totalCount [22]map[string]int
+	totalCount [23]map[string]int
 
 	namedAuditEdge                 map[string][]*AuditTrail
 	namedHiringOwner               map[string][]*HiringJob
@@ -110,6 +112,7 @@ type UserEdges struct {
 	namedCandidateNoteEdges        map[string][]*CandidateNote
 	namedCandidateHistoryCallEdges map[string][]*CandidateHistoryCall
 	namedApprovalJobs              map[string][]*HiringJob
+	namedHiringJobRecEdges         map[string][]*HiringJob
 	namedInterviewUsers            map[string][]*CandidateInterviewer
 	namedRoleUsers                 map[string][]*UserRole
 	namedHiringTeamUsers           map[string][]*HiringTeamManager
@@ -282,10 +285,19 @@ func (e UserEdges) ApprovalJobsOrErr() ([]*HiringJob, error) {
 	return nil, &NotLoadedError{edge: "approval_jobs"}
 }
 
+// HiringJobRecEdgesOrErr returns the HiringJobRecEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) HiringJobRecEdgesOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[17] {
+		return e.HiringJobRecEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "hiring_job_rec_edges"}
+}
+
 // InterviewUsersOrErr returns the InterviewUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[18] {
 		return e.InterviewUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "interview_users"}
@@ -294,7 +306,7 @@ func (e UserEdges) InterviewUsersOrErr() ([]*CandidateInterviewer, error) {
 // RoleUsersOrErr returns the RoleUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RoleUsersOrErr() ([]*UserRole, error) {
-	if e.loadedTypes[18] {
+	if e.loadedTypes[19] {
 		return e.RoleUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "role_users"}
@@ -303,7 +315,7 @@ func (e UserEdges) RoleUsersOrErr() ([]*UserRole, error) {
 // HiringTeamUsersOrErr returns the HiringTeamUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) HiringTeamUsersOrErr() ([]*HiringTeamManager, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[20] {
 		return e.HiringTeamUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "hiring_team_users"}
@@ -312,7 +324,7 @@ func (e UserEdges) HiringTeamUsersOrErr() ([]*HiringTeamManager, error) {
 // HiringTeamApproversOrErr returns the HiringTeamApprovers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) HiringTeamApproversOrErr() ([]*HiringTeamApprover, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.HiringTeamApprovers, nil
 	}
 	return nil, &NotLoadedError{edge: "hiring_team_approvers"}
@@ -321,7 +333,7 @@ func (e UserEdges) HiringTeamApproversOrErr() ([]*HiringTeamApprover, error) {
 // ApprovalStepsOrErr returns the ApprovalSteps value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ApprovalStepsOrErr() ([]*HiringJobStep, error) {
-	if e.loadedTypes[21] {
+	if e.loadedTypes[22] {
 		return e.ApprovalSteps, nil
 	}
 	return nil, &NotLoadedError{edge: "approval_steps"}
@@ -507,6 +519,11 @@ func (u *User) QueryCandidateHistoryCallEdges() *CandidateHistoryCallQuery {
 // QueryApprovalJobs queries the "approval_jobs" edge of the User entity.
 func (u *User) QueryApprovalJobs() *HiringJobQuery {
 	return (&UserClient{config: u.config}).QueryApprovalJobs(u)
+}
+
+// QueryHiringJobRecEdges queries the "hiring_job_rec_edges" edge of the User entity.
+func (u *User) QueryHiringJobRecEdges() *HiringJobQuery {
+	return (&UserClient{config: u.config}).QueryHiringJobRecEdges(u)
 }
 
 // QueryInterviewUsers queries the "interview_users" edge of the User entity.
@@ -923,6 +940,30 @@ func (u *User) appendNamedApprovalJobs(name string, edges ...*HiringJob) {
 		u.Edges.namedApprovalJobs[name] = []*HiringJob{}
 	} else {
 		u.Edges.namedApprovalJobs[name] = append(u.Edges.namedApprovalJobs[name], edges...)
+	}
+}
+
+// NamedHiringJobRecEdges returns the HiringJobRecEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedHiringJobRecEdges(name string) ([]*HiringJob, error) {
+	if u.Edges.namedHiringJobRecEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedHiringJobRecEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedHiringJobRecEdges(name string, edges ...*HiringJob) {
+	if u.Edges.namedHiringJobRecEdges == nil {
+		u.Edges.namedHiringJobRecEdges = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedHiringJobRecEdges[name] = []*HiringJob{}
+	} else {
+		u.Edges.namedHiringJobRecEdges[name] = append(u.Edges.namedHiringJobRecEdges[name], edges...)
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
+	"trec/ent/recteam"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -217,6 +218,26 @@ func (hjc *HiringJobCreate) SetNillableHiringTeamID(u *uuid.UUID) *HiringJobCrea
 	return hjc
 }
 
+// SetRecTeamID sets the "rec_team_id" field.
+func (hjc *HiringJobCreate) SetRecTeamID(u uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetRecTeamID(u)
+	return hjc
+}
+
+// SetRecInChargeID sets the "rec_in_charge_id" field.
+func (hjc *HiringJobCreate) SetRecInChargeID(u uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetRecInChargeID(u)
+	return hjc
+}
+
+// SetNillableRecInChargeID sets the "rec_in_charge_id" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableRecInChargeID(u *uuid.UUID) *HiringJobCreate {
+	if u != nil {
+		hjc.SetRecInChargeID(*u)
+	}
+	return hjc
+}
+
 // SetJobPositionID sets the "job_position_id" field.
 func (hjc *HiringJobCreate) SetJobPositionID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetJobPositionID(u)
@@ -228,6 +249,12 @@ func (hjc *HiringJobCreate) SetNillableJobPositionID(u *uuid.UUID) *HiringJobCre
 	if u != nil {
 		hjc.SetJobPositionID(*u)
 	}
+	return hjc
+}
+
+// SetLevel sets the "level" field.
+func (hjc *HiringJobCreate) SetLevel(h hiringjob.Level) *HiringJobCreate {
+	hjc.mutation.SetLevel(h)
 	return hjc
 }
 
@@ -337,6 +364,36 @@ func (hjc *HiringJobCreate) AddApprovalUsers(u ...*User) *HiringJobCreate {
 		ids[i] = u[i].ID
 	}
 	return hjc.AddApprovalUserIDs(ids...)
+}
+
+// SetRecTeamEdgeID sets the "rec_team_edge" edge to the RecTeam entity by ID.
+func (hjc *HiringJobCreate) SetRecTeamEdgeID(id uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetRecTeamEdgeID(id)
+	return hjc
+}
+
+// SetRecTeamEdge sets the "rec_team_edge" edge to the RecTeam entity.
+func (hjc *HiringJobCreate) SetRecTeamEdge(r *RecTeam) *HiringJobCreate {
+	return hjc.SetRecTeamEdgeID(r.ID)
+}
+
+// SetRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by ID.
+func (hjc *HiringJobCreate) SetRecInChargeEdgeID(id uuid.UUID) *HiringJobCreate {
+	hjc.mutation.SetRecInChargeEdgeID(id)
+	return hjc
+}
+
+// SetNillableRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by ID if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableRecInChargeEdgeID(id *uuid.UUID) *HiringJobCreate {
+	if id != nil {
+		hjc = hjc.SetRecInChargeEdgeID(*id)
+	}
+	return hjc
+}
+
+// SetRecInChargeEdge sets the "rec_in_charge_edge" edge to the User entity.
+func (hjc *HiringJobCreate) SetRecInChargeEdge(u *User) *HiringJobCreate {
+	return hjc.SetRecInChargeEdgeID(u.ID)
 }
 
 // AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by IDs.
@@ -530,6 +587,20 @@ func (hjc *HiringJobCreate) check() error {
 	if _, ok := hjc.mutation.Priority(); !ok {
 		return &ValidationError{Name: "priority", err: errors.New(`ent: missing required field "HiringJob.priority"`)}
 	}
+	if _, ok := hjc.mutation.RecTeamID(); !ok {
+		return &ValidationError{Name: "rec_team_id", err: errors.New(`ent: missing required field "HiringJob.rec_team_id"`)}
+	}
+	if _, ok := hjc.mutation.Level(); !ok {
+		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "HiringJob.level"`)}
+	}
+	if v, ok := hjc.mutation.Level(); ok {
+		if err := hiringjob.LevelValidator(v); err != nil {
+			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "HiringJob.level": %w`, err)}
+		}
+	}
+	if _, ok := hjc.mutation.RecTeamEdgeID(); !ok {
+		return &ValidationError{Name: "rec_team_edge", err: errors.New(`ent: missing required edge "HiringJob.rec_team_edge"`)}
+	}
 	return nil
 }
 
@@ -625,6 +696,10 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 	if value, ok := hjc.mutation.Priority(); ok {
 		_spec.SetField(hiringjob.FieldPriority, field.TypeInt, value)
 		_node.Priority = value
+	}
+	if value, ok := hjc.mutation.Level(); ok {
+		_spec.SetField(hiringjob.FieldLevel, field.TypeEnum, value)
+		_node.Level = value
 	}
 	if nodes := hjc.mutation.OwnerEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -745,6 +820,46 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjc.mutation.RecTeamEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.RecTeamEdgeTable,
+			Columns: []string{hiringjob.RecTeamEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: recteam.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RecTeamID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := hjc.mutation.RecInChargeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   hiringjob.RecInChargeEdgeTable,
+			Columns: []string{hiringjob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RecInChargeID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := hjc.mutation.ApprovalStepsIDs(); len(nodes) > 0 {

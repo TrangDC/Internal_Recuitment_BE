@@ -46,6 +46,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("candidate_note_edges", CandidateNote.Type),
 		edge.To("candidate_history_call_edges", CandidateHistoryCall.Type),
 		edge.To("approval_jobs", HiringJob.Type).Through("approval_steps", HiringJobStep.Type),
+		edge.To("hiring_job_rec_edges", HiringJob.Type),
 	}
 }
 

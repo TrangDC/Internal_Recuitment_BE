@@ -52,6 +52,16 @@ func (r *hiringJobResolver) HiringTeam(ctx context.Context, obj *ent.HiringJob) 
 	return obj.Edges.HiringTeamEdge, nil
 }
 
+// RecTeam is the resolver for the rec_team field.
+func (r *hiringJobResolver) RecTeam(ctx context.Context, obj *ent.HiringJob) (*ent.RecTeam, error) {
+	return obj.Edges.RecTeamEdge, nil
+}
+
+// RecInCharge is the resolver for the rec_in_charge field.
+func (r *hiringJobResolver) RecInCharge(ctx context.Context, obj *ent.HiringJob) (*ent.User, error) {
+	return obj.Edges.RecInChargeEdge, nil
+}
+
 // User is the resolver for the user field.
 func (r *hiringJobResolver) User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error) {
 	return obj.Edges.OwnerEdge, nil
@@ -96,6 +106,11 @@ func (r *hiringJobResolver) EntitySkillTypes(ctx context.Context, obj *ent.Hirin
 // Steps is the resolver for the steps field.
 func (r *hiringJobResolver) Steps(ctx context.Context, obj *ent.HiringJob) ([]*ent.HiringJobStep, error) {
 	return obj.Edges.ApprovalStepsOrErr()
+}
+
+// Level is the resolver for the level field.
+func (r *hiringJobResolver) Level(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobLevel, error) {
+	return ent.HiringJobLevel(obj.Level), nil
 }
 
 // HiringJob returns graphql1.HiringJobResolver implementation.

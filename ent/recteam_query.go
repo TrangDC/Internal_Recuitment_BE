@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/recteam"
 	"trec/ent/user"
@@ -20,17 +21,19 @@ import (
 // RecTeamQuery is the builder for querying RecTeam entities.
 type RecTeamQuery struct {
 	config
-	limit                   *int
-	offset                  *int
-	unique                  *bool
-	order                   []OrderFunc
-	fields                  []string
-	predicates              []predicate.RecTeam
-	withRecMemberEdges      *UserQuery
-	withRecLeaderEdge       *UserQuery
-	modifiers               []func(*sql.Selector)
-	loadTotal               []func(context.Context, []*RecTeam) error
-	withNamedRecMemberEdges map[string]*UserQuery
+	limit                    *int
+	offset                   *int
+	unique                   *bool
+	order                    []OrderFunc
+	fields                   []string
+	predicates               []predicate.RecTeam
+	withRecMemberEdges       *UserQuery
+	withRecTeamJobEdges      *HiringJobQuery
+	withRecLeaderEdge        *UserQuery
+	modifiers                []func(*sql.Selector)
+	loadTotal                []func(context.Context, []*RecTeam) error
+	withNamedRecMemberEdges  map[string]*UserQuery
+	withNamedRecTeamJobEdges map[string]*HiringJobQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,6 +85,28 @@ func (rtq *RecTeamQuery) QueryRecMemberEdges() *UserQuery {
 			sqlgraph.From(recteam.Table, recteam.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, recteam.RecMemberEdgesTable, recteam.RecMemberEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRecTeamJobEdges chains the current query on the "rec_team_job_edges" edge.
+func (rtq *RecTeamQuery) QueryRecTeamJobEdges() *HiringJobQuery {
+	query := &HiringJobQuery{config: rtq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rtq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rtq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recteam.Table, recteam.FieldID, selector),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, recteam.RecTeamJobEdgesTable, recteam.RecTeamJobEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
 		return fromU, nil
@@ -287,13 +312,14 @@ func (rtq *RecTeamQuery) Clone() *RecTeamQuery {
 		return nil
 	}
 	return &RecTeamQuery{
-		config:             rtq.config,
-		limit:              rtq.limit,
-		offset:             rtq.offset,
-		order:              append([]OrderFunc{}, rtq.order...),
-		predicates:         append([]predicate.RecTeam{}, rtq.predicates...),
-		withRecMemberEdges: rtq.withRecMemberEdges.Clone(),
-		withRecLeaderEdge:  rtq.withRecLeaderEdge.Clone(),
+		config:              rtq.config,
+		limit:               rtq.limit,
+		offset:              rtq.offset,
+		order:               append([]OrderFunc{}, rtq.order...),
+		predicates:          append([]predicate.RecTeam{}, rtq.predicates...),
+		withRecMemberEdges:  rtq.withRecMemberEdges.Clone(),
+		withRecTeamJobEdges: rtq.withRecTeamJobEdges.Clone(),
+		withRecLeaderEdge:   rtq.withRecLeaderEdge.Clone(),
 		// clone intermediate query.
 		sql:    rtq.sql.Clone(),
 		path:   rtq.path,
@@ -309,6 +335,17 @@ func (rtq *RecTeamQuery) WithRecMemberEdges(opts ...func(*UserQuery)) *RecTeamQu
 		opt(query)
 	}
 	rtq.withRecMemberEdges = query
+	return rtq
+}
+
+// WithRecTeamJobEdges tells the query-builder to eager-load the nodes that are connected to
+// the "rec_team_job_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (rtq *RecTeamQuery) WithRecTeamJobEdges(opts ...func(*HiringJobQuery)) *RecTeamQuery {
+	query := &HiringJobQuery{config: rtq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rtq.withRecTeamJobEdges = query
 	return rtq
 }
 
@@ -396,8 +433,9 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 	var (
 		nodes       = []*RecTeam{}
 		_spec       = rtq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			rtq.withRecMemberEdges != nil,
+			rtq.withRecTeamJobEdges != nil,
 			rtq.withRecLeaderEdge != nil,
 		}
 	)
@@ -429,6 +467,13 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 			return nil, err
 		}
 	}
+	if query := rtq.withRecTeamJobEdges; query != nil {
+		if err := rtq.loadRecTeamJobEdges(ctx, query, nodes,
+			func(n *RecTeam) { n.Edges.RecTeamJobEdges = []*HiringJob{} },
+			func(n *RecTeam, e *HiringJob) { n.Edges.RecTeamJobEdges = append(n.Edges.RecTeamJobEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := rtq.withRecLeaderEdge; query != nil {
 		if err := rtq.loadRecLeaderEdge(ctx, query, nodes, nil,
 			func(n *RecTeam, e *User) { n.Edges.RecLeaderEdge = e }); err != nil {
@@ -439,6 +484,13 @@ func (rtq *RecTeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rec
 		if err := rtq.loadRecMemberEdges(ctx, query, nodes,
 			func(n *RecTeam) { n.appendNamedRecMemberEdges(name) },
 			func(n *RecTeam, e *User) { n.appendNamedRecMemberEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rtq.withNamedRecTeamJobEdges {
+		if err := rtq.loadRecTeamJobEdges(ctx, query, nodes,
+			func(n *RecTeam) { n.appendNamedRecTeamJobEdges(name) },
+			func(n *RecTeam, e *HiringJob) { n.appendNamedRecTeamJobEdges(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -462,6 +514,33 @@ func (rtq *RecTeamQuery) loadRecMemberEdges(ctx context.Context, query *UserQuer
 	}
 	query.Where(predicate.User(func(s *sql.Selector) {
 		s.Where(sql.InValues(recteam.RecMemberEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RecTeamID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "rec_team_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rtq *RecTeamQuery) loadRecTeamJobEdges(ctx context.Context, query *HiringJobQuery, nodes []*RecTeam, init func(*RecTeam), assign func(*RecTeam, *HiringJob)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*RecTeam)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.InValues(recteam.RecTeamJobEdgesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -618,6 +697,20 @@ func (rtq *RecTeamQuery) WithNamedRecMemberEdges(name string, opts ...func(*User
 		rtq.withNamedRecMemberEdges = make(map[string]*UserQuery)
 	}
 	rtq.withNamedRecMemberEdges[name] = query
+	return rtq
+}
+
+// WithNamedRecTeamJobEdges tells the query-builder to eager-load the nodes that are connected to the "rec_team_job_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rtq *RecTeamQuery) WithNamedRecTeamJobEdges(name string, opts ...func(*HiringJobQuery)) *RecTeamQuery {
+	query := &HiringJobQuery{config: rtq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rtq.withNamedRecTeamJobEdges == nil {
+		rtq.withNamedRecTeamJobEdges = make(map[string]*HiringJobQuery)
+	}
+	rtq.withNamedRecTeamJobEdges[name] = query
 	return rtq
 }
 

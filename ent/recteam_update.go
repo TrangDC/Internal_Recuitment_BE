@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/hiringjob"
 	"trec/ent/predicate"
 	"trec/ent/recteam"
 	"trec/ent/user"
@@ -131,6 +132,21 @@ func (rtu *RecTeamUpdate) AddRecMemberEdges(u ...*User) *RecTeamUpdate {
 	return rtu.AddRecMemberEdgeIDs(ids...)
 }
 
+// AddRecTeamJobEdgeIDs adds the "rec_team_job_edges" edge to the HiringJob entity by IDs.
+func (rtu *RecTeamUpdate) AddRecTeamJobEdgeIDs(ids ...uuid.UUID) *RecTeamUpdate {
+	rtu.mutation.AddRecTeamJobEdgeIDs(ids...)
+	return rtu
+}
+
+// AddRecTeamJobEdges adds the "rec_team_job_edges" edges to the HiringJob entity.
+func (rtu *RecTeamUpdate) AddRecTeamJobEdges(h ...*HiringJob) *RecTeamUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return rtu.AddRecTeamJobEdgeIDs(ids...)
+}
+
 // SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
 func (rtu *RecTeamUpdate) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdate {
 	rtu.mutation.SetRecLeaderEdgeID(id)
@@ -174,6 +190,27 @@ func (rtu *RecTeamUpdate) RemoveRecMemberEdges(u ...*User) *RecTeamUpdate {
 		ids[i] = u[i].ID
 	}
 	return rtu.RemoveRecMemberEdgeIDs(ids...)
+}
+
+// ClearRecTeamJobEdges clears all "rec_team_job_edges" edges to the HiringJob entity.
+func (rtu *RecTeamUpdate) ClearRecTeamJobEdges() *RecTeamUpdate {
+	rtu.mutation.ClearRecTeamJobEdges()
+	return rtu
+}
+
+// RemoveRecTeamJobEdgeIDs removes the "rec_team_job_edges" edge to HiringJob entities by IDs.
+func (rtu *RecTeamUpdate) RemoveRecTeamJobEdgeIDs(ids ...uuid.UUID) *RecTeamUpdate {
+	rtu.mutation.RemoveRecTeamJobEdgeIDs(ids...)
+	return rtu
+}
+
+// RemoveRecTeamJobEdges removes "rec_team_job_edges" edges to HiringJob entities.
+func (rtu *RecTeamUpdate) RemoveRecTeamJobEdges(h ...*HiringJob) *RecTeamUpdate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return rtu.RemoveRecTeamJobEdgeIDs(ids...)
 }
 
 // ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
@@ -350,6 +387,60 @@ func (rtu *RecTeamUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if rtu.mutation.RecTeamJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtu.mutation.RemovedRecTeamJobEdgesIDs(); len(nodes) > 0 && !rtu.mutation.RecTeamJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtu.mutation.RecTeamJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if rtu.mutation.RecLeaderEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
@@ -505,6 +596,21 @@ func (rtuo *RecTeamUpdateOne) AddRecMemberEdges(u ...*User) *RecTeamUpdateOne {
 	return rtuo.AddRecMemberEdgeIDs(ids...)
 }
 
+// AddRecTeamJobEdgeIDs adds the "rec_team_job_edges" edge to the HiringJob entity by IDs.
+func (rtuo *RecTeamUpdateOne) AddRecTeamJobEdgeIDs(ids ...uuid.UUID) *RecTeamUpdateOne {
+	rtuo.mutation.AddRecTeamJobEdgeIDs(ids...)
+	return rtuo
+}
+
+// AddRecTeamJobEdges adds the "rec_team_job_edges" edges to the HiringJob entity.
+func (rtuo *RecTeamUpdateOne) AddRecTeamJobEdges(h ...*HiringJob) *RecTeamUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return rtuo.AddRecTeamJobEdgeIDs(ids...)
+}
+
 // SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
 func (rtuo *RecTeamUpdateOne) SetRecLeaderEdgeID(id uuid.UUID) *RecTeamUpdateOne {
 	rtuo.mutation.SetRecLeaderEdgeID(id)
@@ -548,6 +654,27 @@ func (rtuo *RecTeamUpdateOne) RemoveRecMemberEdges(u ...*User) *RecTeamUpdateOne
 		ids[i] = u[i].ID
 	}
 	return rtuo.RemoveRecMemberEdgeIDs(ids...)
+}
+
+// ClearRecTeamJobEdges clears all "rec_team_job_edges" edges to the HiringJob entity.
+func (rtuo *RecTeamUpdateOne) ClearRecTeamJobEdges() *RecTeamUpdateOne {
+	rtuo.mutation.ClearRecTeamJobEdges()
+	return rtuo
+}
+
+// RemoveRecTeamJobEdgeIDs removes the "rec_team_job_edges" edge to HiringJob entities by IDs.
+func (rtuo *RecTeamUpdateOne) RemoveRecTeamJobEdgeIDs(ids ...uuid.UUID) *RecTeamUpdateOne {
+	rtuo.mutation.RemoveRecTeamJobEdgeIDs(ids...)
+	return rtuo
+}
+
+// RemoveRecTeamJobEdges removes "rec_team_job_edges" edges to HiringJob entities.
+func (rtuo *RecTeamUpdateOne) RemoveRecTeamJobEdges(h ...*HiringJob) *RecTeamUpdateOne {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return rtuo.RemoveRecTeamJobEdgeIDs(ids...)
 }
 
 // ClearRecLeaderEdge clears the "rec_leader_edge" edge to the User entity.
@@ -746,6 +873,60 @@ func (rtuo *RecTeamUpdateOne) sqlSave(ctx context.Context) (_node *RecTeam, err 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rtuo.mutation.RecTeamJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtuo.mutation.RemovedRecTeamJobEdgesIDs(); len(nodes) > 0 && !rtuo.mutation.RecTeamJobEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtuo.mutation.RecTeamJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}

@@ -2003,6 +2003,26 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 			hj.WithNamedApprovalUsers(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "recTeamEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecTeamQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withRecTeamEdge = query
+		case "recInChargeEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.withRecInChargeEdge = query
 		case "approvalSteps":
 			var (
 				alias = field.Alias
@@ -2858,6 +2878,18 @@ func (rt *RecTeamQuery) collectField(ctx context.Context, op *graphql.OperationC
 			rt.WithNamedRecMemberEdges(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
+		case "recTeamJobEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: rt.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			rt.WithNamedRecTeamJobEdges(alias, func(wq *HiringJobQuery) {
+				*wq = *query
+			})
 		case "recLeaderEdge":
 			var (
 				alias = field.Alias
@@ -3434,6 +3466,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedApprovalJobs(alias, func(wq *HiringJobQuery) {
+				*wq = *query
+			})
+		case "hiringJobRecEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedHiringJobRecEdges(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "interviewUsers":
