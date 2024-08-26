@@ -664,6 +664,22 @@ func (hj *HiringJob) ApprovalUsers(ctx context.Context) (result []*User, err err
 	return result, err
 }
 
+func (hj *HiringJob) RecTeamEdge(ctx context.Context) (*RecTeam, error) {
+	result, err := hj.Edges.RecTeamEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hj.QueryRecTeamEdge().Only(ctx)
+	}
+	return result, err
+}
+
+func (hj *HiringJob) RecInChargeEdge(ctx context.Context) (*User, error) {
+	result, err := hj.Edges.RecInChargeEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = hj.QueryRecInChargeEdge().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (hj *HiringJob) ApprovalSteps(ctx context.Context) (result []*HiringJobStep, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = hj.NamedApprovalSteps(graphql.GetFieldContext(ctx).Field.Alias)
@@ -876,6 +892,18 @@ func (rt *RecTeam) RecMemberEdges(ctx context.Context) (result []*User, err erro
 	}
 	if IsNotLoaded(err) {
 		result, err = rt.QueryRecMemberEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (rt *RecTeam) RecTeamJobEdges(ctx context.Context) (result []*HiringJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = rt.NamedRecTeamJobEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = rt.Edges.RecTeamJobEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = rt.QueryRecTeamJobEdges().All(ctx)
 	}
 	return result, err
 }
@@ -1168,6 +1196,18 @@ func (u *User) ApprovalJobs(ctx context.Context) (result []*HiringJob, err error
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryApprovalJobs().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) HiringJobRecEdges(ctx context.Context) (result []*HiringJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedHiringJobRecEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.HiringJobRecEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryHiringJobRecEdges().All(ctx)
 	}
 	return result, err
 }

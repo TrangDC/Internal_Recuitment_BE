@@ -265,8 +265,10 @@ func (d hiringJobDtoImpl) statusI18n(input hiringjob.Status) string {
 		return "model.hiring_jobs.status_enum.opened"
 	case hiringjob.StatusClosed:
 		return "model.hiring_jobs.status_enum.closed"
-	case hiringjob.StatusDraft:
-		return "model.hiring_jobs.status_enum.draft"
+	case hiringjob.StatusPendingApprovals:
+		return "model.hiring_jobs.status_enum.pending_approvals"
+	case hiringjob.StatusCancelled:
+		return "model.hiring_jobs.status_enum.cancelled"
 	}
 	return ""
 }
@@ -355,6 +357,10 @@ func (d hiringJobDtoImpl) MappingStatus(input hiringjob.Status) string {
 		return "Opening"
 	case hiringjob.StatusClosed:
 		return "Closed"
+	case hiringjob.StatusPendingApprovals:
+		return "Pending approvals"
+	case hiringjob.StatusCancelled:
+		return "Cancelled"
 	}
 	return ""
 }

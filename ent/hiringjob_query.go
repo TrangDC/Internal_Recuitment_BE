@@ -14,6 +14,7 @@ import (
 	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
 	"trec/ent/predicate"
+	"trec/ent/recteam"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -37,6 +38,8 @@ type HiringJobQuery struct {
 	withHiringTeamEdge           *HiringTeamQuery
 	withJobPositionEdge          *JobPositionQuery
 	withApprovalUsers            *UserQuery
+	withRecTeamEdge              *RecTeamQuery
+	withRecInChargeEdge          *UserQuery
 	withApprovalSteps            *HiringJobStepQuery
 	modifiers                    []func(*sql.Selector)
 	loadTotal                    []func(context.Context, []*HiringJob) error
@@ -205,6 +208,50 @@ func (hjq *HiringJobQuery) QueryApprovalUsers() *UserQuery {
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, hiringjob.ApprovalUsersTable, hiringjob.ApprovalUsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRecTeamEdge chains the current query on the "rec_team_edge" edge.
+func (hjq *HiringJobQuery) QueryRecTeamEdge() *RecTeamQuery {
+	query := &RecTeamQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(recteam.Table, recteam.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.RecTeamEdgeTable, hiringjob.RecTeamEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRecInChargeEdge chains the current query on the "rec_in_charge_edge" edge.
+func (hjq *HiringJobQuery) QueryRecInChargeEdge() *UserQuery {
+	query := &UserQuery{config: hjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := hjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := hjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, hiringjob.RecInChargeEdgeTable, hiringjob.RecInChargeEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjq.driver.Dialect(), step)
 		return fromU, nil
@@ -421,6 +468,8 @@ func (hjq *HiringJobQuery) Clone() *HiringJobQuery {
 		withHiringTeamEdge:      hjq.withHiringTeamEdge.Clone(),
 		withJobPositionEdge:     hjq.withJobPositionEdge.Clone(),
 		withApprovalUsers:       hjq.withApprovalUsers.Clone(),
+		withRecTeamEdge:         hjq.withRecTeamEdge.Clone(),
+		withRecInChargeEdge:     hjq.withRecInChargeEdge.Clone(),
 		withApprovalSteps:       hjq.withApprovalSteps.Clone(),
 		// clone intermediate query.
 		sql:    hjq.sql.Clone(),
@@ -492,6 +541,28 @@ func (hjq *HiringJobQuery) WithApprovalUsers(opts ...func(*UserQuery)) *HiringJo
 		opt(query)
 	}
 	hjq.withApprovalUsers = query
+	return hjq
+}
+
+// WithRecTeamEdge tells the query-builder to eager-load the nodes that are connected to
+// the "rec_team_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithRecTeamEdge(opts ...func(*RecTeamQuery)) *HiringJobQuery {
+	query := &RecTeamQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withRecTeamEdge = query
+	return hjq
+}
+
+// WithRecInChargeEdge tells the query-builder to eager-load the nodes that are connected to
+// the "rec_in_charge_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjq *HiringJobQuery) WithRecInChargeEdge(opts ...func(*UserQuery)) *HiringJobQuery {
+	query := &UserQuery{config: hjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	hjq.withRecInChargeEdge = query
 	return hjq
 }
 
@@ -579,13 +650,15 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 	var (
 		nodes       = []*HiringJob{}
 		_spec       = hjq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [9]bool{
 			hjq.withOwnerEdge != nil,
 			hjq.withCandidateJobEdges != nil,
 			hjq.withHiringJobSkillEdges != nil,
 			hjq.withHiringTeamEdge != nil,
 			hjq.withJobPositionEdge != nil,
 			hjq.withApprovalUsers != nil,
+			hjq.withRecTeamEdge != nil,
+			hjq.withRecInChargeEdge != nil,
 			hjq.withApprovalSteps != nil,
 		}
 	)
@@ -648,6 +721,18 @@ func (hjq *HiringJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*H
 		if err := hjq.loadApprovalUsers(ctx, query, nodes,
 			func(n *HiringJob) { n.Edges.ApprovalUsers = []*User{} },
 			func(n *HiringJob, e *User) { n.Edges.ApprovalUsers = append(n.Edges.ApprovalUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := hjq.withRecTeamEdge; query != nil {
+		if err := hjq.loadRecTeamEdge(ctx, query, nodes, nil,
+			func(n *HiringJob, e *RecTeam) { n.Edges.RecTeamEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := hjq.withRecInChargeEdge; query != nil {
+		if err := hjq.loadRecInChargeEdge(ctx, query, nodes, nil,
+			func(n *HiringJob, e *User) { n.Edges.RecInChargeEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -880,6 +965,58 @@ func (hjq *HiringJobQuery) loadApprovalUsers(ctx context.Context, query *UserQue
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (hjq *HiringJobQuery) loadRecTeamEdge(ctx context.Context, query *RecTeamQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *RecTeam)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*HiringJob)
+	for i := range nodes {
+		fk := nodes[i].RecTeamID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(recteam.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "rec_team_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (hjq *HiringJobQuery) loadRecInChargeEdge(ctx context.Context, query *UserQuery, nodes []*HiringJob, init func(*HiringJob), assign func(*HiringJob, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*HiringJob)
+	for i := range nodes {
+		fk := nodes[i].RecInChargeID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "rec_in_charge_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

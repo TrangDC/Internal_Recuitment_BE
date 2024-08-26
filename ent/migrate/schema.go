@@ -634,7 +634,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 256},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "amount", Type: field.TypeInt, Default: 0},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "opened", "closed"}, Default: "opened"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending_approvals", "opened", "closed", "cancelled"}, Default: "pending_approvals"},
 		{Name: "location", Type: field.TypeEnum, Enums: []string{"ha_noi", "ho_chi_minh", "da_nang", "japan", "singapore"}},
 		{Name: "salary_type", Type: field.TypeEnum, Enums: []string{"range", "up_to", "negotiate", "minimum"}},
 		{Name: "salary_from", Type: field.TypeInt, Default: 0},
@@ -642,9 +642,12 @@ var (
 		{Name: "currency", Type: field.TypeEnum, Enums: []string{"vnd", "usd", "jpy"}},
 		{Name: "last_apply_date", Type: field.TypeTime, Nullable: true},
 		{Name: "priority", Type: field.TypeInt, Default: 4},
+		{Name: "level", Type: field.TypeEnum, Enums: []string{"intern", "fresher", "junior", "middle", "senior", "manager", "director"}},
 		{Name: "hiring_team_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "job_position_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "rec_team_id", Type: field.TypeUUID},
 		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "rec_in_charge_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// HiringJobsTable holds the schema information for the "hiring_jobs" table.
 	HiringJobsTable = &schema.Table{
@@ -654,19 +657,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "hiring_jobs_hiring_teams_hiring_team_job_edges",
-				Columns:    []*schema.Column{HiringJobsColumns[16]},
+				Columns:    []*schema.Column{HiringJobsColumns[17]},
 				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "hiring_jobs_job_positions_hiring_job_position_edges",
-				Columns:    []*schema.Column{HiringJobsColumns[17]},
+				Columns:    []*schema.Column{HiringJobsColumns[18]},
 				RefColumns: []*schema.Column{JobPositionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:     "hiring_jobs_rec_teams_rec_team_job_edges",
+				Columns:    []*schema.Column{HiringJobsColumns[19]},
+				RefColumns: []*schema.Column{RecTeamsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "hiring_jobs_users_hiring_owner",
-				Columns:    []*schema.Column{HiringJobsColumns[18]},
+				Columns:    []*schema.Column{HiringJobsColumns[20]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "hiring_jobs_users_hiring_job_rec_edges",
+				Columns:    []*schema.Column{HiringJobsColumns[21]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1125,7 +1140,9 @@ func init() {
 	EntitySkillsTable.ForeignKeys[2].RefTable = SkillsTable
 	HiringJobsTable.ForeignKeys[0].RefTable = HiringTeamsTable
 	HiringJobsTable.ForeignKeys[1].RefTable = JobPositionsTable
-	HiringJobsTable.ForeignKeys[2].RefTable = UsersTable
+	HiringJobsTable.ForeignKeys[2].RefTable = RecTeamsTable
+	HiringJobsTable.ForeignKeys[3].RefTable = UsersTable
+	HiringJobsTable.ForeignKeys[4].RefTable = UsersTable
 	HiringJobStepsTable.ForeignKeys[0].RefTable = HiringJobsTable
 	HiringJobStepsTable.ForeignKeys[1].RefTable = UsersTable
 	HiringTeamApproversTable.ForeignKeys[0].RefTable = UsersTable

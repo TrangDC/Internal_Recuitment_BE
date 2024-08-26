@@ -9,6 +9,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/jobposition"
+	"trec/ent/recteam"
 	"trec/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -54,8 +55,14 @@ type HiringJob struct {
 	Priority int `json:"priority,omitempty"`
 	// HiringTeamID holds the value of the "hiring_team_id" field.
 	HiringTeamID uuid.UUID `json:"hiring_team_id,omitempty"`
+	// RecTeamID holds the value of the "rec_team_id" field.
+	RecTeamID uuid.UUID `json:"rec_team_id,omitempty"`
+	// RecInChargeID holds the value of the "rec_in_charge_id" field.
+	RecInChargeID uuid.UUID `json:"rec_in_charge_id,omitempty"`
 	// JobPositionID holds the value of the "job_position_id" field.
 	JobPositionID uuid.UUID `json:"job_position_id,omitempty"`
+	// Level holds the value of the "level" field.
+	Level hiringjob.Level `json:"level,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobQuery when eager-loading is set.
 	Edges HiringJobEdges `json:"edges"`
@@ -75,13 +82,17 @@ type HiringJobEdges struct {
 	JobPositionEdge *JobPosition `json:"job_position_edge,omitempty"`
 	// ApprovalUsers holds the value of the approval_users edge.
 	ApprovalUsers []*User `json:"approval_users,omitempty"`
+	// RecTeamEdge holds the value of the rec_team_edge edge.
+	RecTeamEdge *RecTeam `json:"rec_team_edge,omitempty"`
+	// RecInChargeEdge holds the value of the rec_in_charge_edge edge.
+	RecInChargeEdge *User `json:"rec_in_charge_edge,omitempty"`
 	// ApprovalSteps holds the value of the approval_steps edge.
 	ApprovalSteps []*HiringJobStep `json:"approval_steps,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [9]bool
 	// totalCount holds the count of the edges above.
-	totalCount [7]map[string]int
+	totalCount [9]map[string]int
 
 	namedCandidateJobEdges   map[string][]*CandidateJob
 	namedHiringJobSkillEdges map[string][]*EntitySkill
@@ -155,10 +166,36 @@ func (e HiringJobEdges) ApprovalUsersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "approval_users"}
 }
 
+// RecTeamEdgeOrErr returns the RecTeamEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HiringJobEdges) RecTeamEdgeOrErr() (*RecTeam, error) {
+	if e.loadedTypes[6] {
+		if e.RecTeamEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: recteam.Label}
+		}
+		return e.RecTeamEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_team_edge"}
+}
+
+// RecInChargeEdgeOrErr returns the RecInChargeEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e HiringJobEdges) RecInChargeEdgeOrErr() (*User, error) {
+	if e.loadedTypes[7] {
+		if e.RecInChargeEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.RecInChargeEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_in_charge_edge"}
+}
+
 // ApprovalStepsOrErr returns the ApprovalSteps value or an error if the edge
 // was not loaded in eager-loading.
 func (e HiringJobEdges) ApprovalStepsOrErr() ([]*HiringJobStep, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[8] {
 		return e.ApprovalSteps, nil
 	}
 	return nil, &NotLoadedError{edge: "approval_steps"}
@@ -171,11 +208,11 @@ func (*HiringJob) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case hiringjob.FieldAmount, hiringjob.FieldSalaryFrom, hiringjob.FieldSalaryTo, hiringjob.FieldPriority:
 			values[i] = new(sql.NullInt64)
-		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency:
+		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency, hiringjob.FieldLevel:
 			values[i] = new(sql.NullString)
 		case hiringjob.FieldCreatedAt, hiringjob.FieldUpdatedAt, hiringjob.FieldDeletedAt, hiringjob.FieldLastApplyDate:
 			values[i] = new(sql.NullTime)
-		case hiringjob.FieldID, hiringjob.FieldCreatedBy, hiringjob.FieldHiringTeamID, hiringjob.FieldJobPositionID:
+		case hiringjob.FieldID, hiringjob.FieldCreatedBy, hiringjob.FieldHiringTeamID, hiringjob.FieldRecTeamID, hiringjob.FieldRecInChargeID, hiringjob.FieldJobPositionID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type HiringJob", columns[i])
@@ -300,11 +337,29 @@ func (hj *HiringJob) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				hj.HiringTeamID = *value
 			}
+		case hiringjob.FieldRecTeamID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field rec_team_id", values[i])
+			} else if value != nil {
+				hj.RecTeamID = *value
+			}
+		case hiringjob.FieldRecInChargeID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field rec_in_charge_id", values[i])
+			} else if value != nil {
+				hj.RecInChargeID = *value
+			}
 		case hiringjob.FieldJobPositionID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field job_position_id", values[i])
 			} else if value != nil {
 				hj.JobPositionID = *value
+			}
+		case hiringjob.FieldLevel:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field level", values[i])
+			} else if value.Valid {
+				hj.Level = hiringjob.Level(value.String)
 			}
 		}
 	}
@@ -339,6 +394,16 @@ func (hj *HiringJob) QueryJobPositionEdge() *JobPositionQuery {
 // QueryApprovalUsers queries the "approval_users" edge of the HiringJob entity.
 func (hj *HiringJob) QueryApprovalUsers() *UserQuery {
 	return (&HiringJobClient{config: hj.config}).QueryApprovalUsers(hj)
+}
+
+// QueryRecTeamEdge queries the "rec_team_edge" edge of the HiringJob entity.
+func (hj *HiringJob) QueryRecTeamEdge() *RecTeamQuery {
+	return (&HiringJobClient{config: hj.config}).QueryRecTeamEdge(hj)
+}
+
+// QueryRecInChargeEdge queries the "rec_in_charge_edge" edge of the HiringJob entity.
+func (hj *HiringJob) QueryRecInChargeEdge() *UserQuery {
+	return (&HiringJobClient{config: hj.config}).QueryRecInChargeEdge(hj)
 }
 
 // QueryApprovalSteps queries the "approval_steps" edge of the HiringJob entity.
@@ -420,8 +485,17 @@ func (hj *HiringJob) String() string {
 	builder.WriteString("hiring_team_id=")
 	builder.WriteString(fmt.Sprintf("%v", hj.HiringTeamID))
 	builder.WriteString(", ")
+	builder.WriteString("rec_team_id=")
+	builder.WriteString(fmt.Sprintf("%v", hj.RecTeamID))
+	builder.WriteString(", ")
+	builder.WriteString("rec_in_charge_id=")
+	builder.WriteString(fmt.Sprintf("%v", hj.RecInChargeID))
+	builder.WriteString(", ")
 	builder.WriteString("job_position_id=")
 	builder.WriteString(fmt.Sprintf("%v", hj.JobPositionID))
+	builder.WriteString(", ")
+	builder.WriteString("level=")
+	builder.WriteString(fmt.Sprintf("%v", hj.Level))
 	builder.WriteByte(')')
 	return builder.String()
 }

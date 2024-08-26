@@ -20,9 +20,20 @@ enum CurrencyEnum {
 }
 
 enum HiringJobStatus {
-  draft
+  pending_approvals
   opened
   closed
+  cancelled
+}
+
+enum HiringJobLevel {
+  intern
+  fresher
+  junior
+  middle
+  senior
+  manager
+  director
 }
 
 enum HiringJobOrderByField {
@@ -48,6 +59,8 @@ input HiringJobOrderBy {
 input HiringJobFilter {
   name: String
   hiring_team_ids: [ID!]
+  rec_team_ids: [ID!]
+  rec_in_charge_ids: [ID!]
   status: HiringJobStatus
   priority: Int
   location: [LocationEnum]
@@ -73,10 +86,12 @@ input NewHiringJobInput {
   salary_to: Int!
   currency: CurrencyEnum!
   hiring_team_id: ID!
+  rec_team_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
   job_position_id: ID!
+  level: HiringJobLevel!
 }
 
 input UpdateHiringJobInput {
@@ -89,10 +104,13 @@ input UpdateHiringJobInput {
   salary_to: Int!
   currency: CurrencyEnum!
   hiring_team_id: ID!
+  rec_team_id: ID!
+  rec_in_charge_id: ID!
   created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
   job_position_id: ID!
+  level: HiringJobLevel!
 }
 
 type HiringJob {
@@ -109,6 +127,8 @@ type HiringJob {
   job_position: JobPosition
   job_position_id: ID
   hiring_team: HiringTeam!
+  rec_team: RecTeam!
+  rec_in_charge: User
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!
@@ -120,6 +140,7 @@ type HiringJob {
   updated_at: Time!
   deleted_at: Time
   steps: [HiringJobStep!]
+  level: HiringJobLevel!
 }
 
 type HiringJobResponse {

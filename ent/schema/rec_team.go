@@ -26,6 +26,7 @@ func (RecTeam) Fields() []ent.Field {
 func (RecTeam) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("rec_member_edges", User.Type),
+		edge.To("rec_team_job_edges", HiringJob.Type),
 		edge.From("rec_leader_edge", User.Type).Ref("leader_rec_edge").Unique().Field("leader_id"),
 	}
 }

@@ -634,6 +634,34 @@ func HasRecMemberEdgesWith(preds ...predicate.User) predicate.RecTeam {
 	})
 }
 
+// HasRecTeamJobEdges applies the HasEdge predicate on the "rec_team_job_edges" edge.
+func HasRecTeamJobEdges() predicate.RecTeam {
+	return predicate.RecTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecTeamJobEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecTeamJobEdgesTable, RecTeamJobEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecTeamJobEdgesWith applies the HasEdge predicate on the "rec_team_job_edges" edge with a given conditions (other predicates).
+func HasRecTeamJobEdgesWith(preds ...predicate.HiringJob) predicate.RecTeam {
+	return predicate.RecTeam(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecTeamJobEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecTeamJobEdgesTable, RecTeamJobEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasRecLeaderEdge applies the HasEdge predicate on the "rec_leader_edge" edge.
 func HasRecLeaderEdge() predicate.RecTeam {
 	return predicate.RecTeam(func(s *sql.Selector) {

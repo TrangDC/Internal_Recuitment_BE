@@ -513,6 +513,8 @@ type GetEmailTemplateKeywordResponse struct {
 type HiringJobFilter struct {
 	Name           *string          `json:"name"`
 	HiringTeamIds  []string         `json:"hiring_team_ids"`
+	RecTeamIds     []string         `json:"rec_team_ids"`
+	RecInChargeIds []string         `json:"rec_in_charge_ids"`
 	Status         *HiringJobStatus `json:"status"`
 	Priority       *int             `json:"priority"`
 	Location       []*LocationEnum  `json:"location"`
@@ -758,10 +760,12 @@ type NewHiringJobInput struct {
 	SalaryTo           int                       `json:"salary_to"`
 	Currency           CurrencyEnum              `json:"currency"`
 	HiringTeamID       string                    `json:"hiring_team_id"`
+	RecTeamID          string                    `json:"rec_team_id"`
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 	JobPositionID      string                    `json:"job_position_id"`
+	Level              HiringJobLevel            `json:"level"`
 }
 
 type NewHiringTeamInput struct {
@@ -1192,10 +1196,13 @@ type UpdateHiringJobInput struct {
 	SalaryTo           int                       `json:"salary_to"`
 	Currency           CurrencyEnum              `json:"currency"`
 	HiringTeamID       string                    `json:"hiring_team_id"`
+	RecTeamID          string                    `json:"rec_team_id"`
+	RecInChargeID      string                    `json:"rec_in_charge_id"`
 	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 	JobPositionID      string                    `json:"job_position_id"`
+	Level              HiringJobLevel            `json:"level"`
 }
 
 type UpdateHiringTeamInput struct {
@@ -2659,6 +2666,57 @@ func (e EmailTemplateStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type HiringJobLevel string
+
+const (
+	HiringJobLevelIntern   HiringJobLevel = "intern"
+	HiringJobLevelFresher  HiringJobLevel = "fresher"
+	HiringJobLevelJunior   HiringJobLevel = "junior"
+	HiringJobLevelMiddle   HiringJobLevel = "middle"
+	HiringJobLevelSenior   HiringJobLevel = "senior"
+	HiringJobLevelManager  HiringJobLevel = "manager"
+	HiringJobLevelDirector HiringJobLevel = "director"
+)
+
+var AllHiringJobLevel = []HiringJobLevel{
+	HiringJobLevelIntern,
+	HiringJobLevelFresher,
+	HiringJobLevelJunior,
+	HiringJobLevelMiddle,
+	HiringJobLevelSenior,
+	HiringJobLevelManager,
+	HiringJobLevelDirector,
+}
+
+func (e HiringJobLevel) IsValid() bool {
+	switch e {
+	case HiringJobLevelIntern, HiringJobLevelFresher, HiringJobLevelJunior, HiringJobLevelMiddle, HiringJobLevelSenior, HiringJobLevelManager, HiringJobLevelDirector:
+		return true
+	}
+	return false
+}
+
+func (e HiringJobLevel) String() string {
+	return string(e)
+}
+
+func (e *HiringJobLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HiringJobLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HiringJobLevel", str)
+	}
+	return nil
+}
+
+func (e HiringJobLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type HiringJobOrderByAdditionalField string
 
 const (
@@ -2754,20 +2812,22 @@ func (e HiringJobOrderByField) MarshalGQL(w io.Writer) {
 type HiringJobStatus string
 
 const (
-	HiringJobStatusDraft  HiringJobStatus = "draft"
-	HiringJobStatusOpened HiringJobStatus = "opened"
-	HiringJobStatusClosed HiringJobStatus = "closed"
+	HiringJobStatusPendingApprovals HiringJobStatus = "pending_approvals"
+	HiringJobStatusOpened           HiringJobStatus = "opened"
+	HiringJobStatusClosed           HiringJobStatus = "closed"
+	HiringJobStatusCancelled        HiringJobStatus = "cancelled"
 )
 
 var AllHiringJobStatus = []HiringJobStatus{
-	HiringJobStatusDraft,
+	HiringJobStatusPendingApprovals,
 	HiringJobStatusOpened,
 	HiringJobStatusClosed,
+	HiringJobStatusCancelled,
 }
 
 func (e HiringJobStatus) IsValid() bool {
 	switch e {
-	case HiringJobStatusDraft, HiringJobStatusOpened, HiringJobStatusClosed:
+	case HiringJobStatusPendingApprovals, HiringJobStatusOpened, HiringJobStatusClosed, HiringJobStatusCancelled:
 		return true
 	}
 	return false

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/hiringjob"
 	"trec/ent/recteam"
 	"trec/ent/user"
 
@@ -117,6 +118,21 @@ func (rtc *RecTeamCreate) AddRecMemberEdges(u ...*User) *RecTeamCreate {
 		ids[i] = u[i].ID
 	}
 	return rtc.AddRecMemberEdgeIDs(ids...)
+}
+
+// AddRecTeamJobEdgeIDs adds the "rec_team_job_edges" edge to the HiringJob entity by IDs.
+func (rtc *RecTeamCreate) AddRecTeamJobEdgeIDs(ids ...uuid.UUID) *RecTeamCreate {
+	rtc.mutation.AddRecTeamJobEdgeIDs(ids...)
+	return rtc
+}
+
+// AddRecTeamJobEdges adds the "rec_team_job_edges" edges to the HiringJob entity.
+func (rtc *RecTeamCreate) AddRecTeamJobEdges(h ...*HiringJob) *RecTeamCreate {
+	ids := make([]uuid.UUID, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return rtc.AddRecTeamJobEdgeIDs(ids...)
 }
 
 // SetRecLeaderEdgeID sets the "rec_leader_edge" edge to the User entity by ID.
@@ -306,6 +322,25 @@ func (rtc *RecTeamCreate) createSpec() (*RecTeam, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rtc.mutation.RecTeamJobEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recteam.RecTeamJobEdgesTable,
+			Columns: []string{recteam.RecTeamJobEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: hiringjob.FieldID,
 				},
 			},
 		}

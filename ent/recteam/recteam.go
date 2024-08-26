@@ -25,6 +25,8 @@ const (
 	FieldLeaderID = "leader_id"
 	// EdgeRecMemberEdges holds the string denoting the rec_member_edges edge name in mutations.
 	EdgeRecMemberEdges = "rec_member_edges"
+	// EdgeRecTeamJobEdges holds the string denoting the rec_team_job_edges edge name in mutations.
+	EdgeRecTeamJobEdges = "rec_team_job_edges"
 	// EdgeRecLeaderEdge holds the string denoting the rec_leader_edge edge name in mutations.
 	EdgeRecLeaderEdge = "rec_leader_edge"
 	// Table holds the table name of the recteam in the database.
@@ -36,6 +38,13 @@ const (
 	RecMemberEdgesInverseTable = "users"
 	// RecMemberEdgesColumn is the table column denoting the rec_member_edges relation/edge.
 	RecMemberEdgesColumn = "rec_team_id"
+	// RecTeamJobEdgesTable is the table that holds the rec_team_job_edges relation/edge.
+	RecTeamJobEdgesTable = "hiring_jobs"
+	// RecTeamJobEdgesInverseTable is the table name for the HiringJob entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
+	RecTeamJobEdgesInverseTable = "hiring_jobs"
+	// RecTeamJobEdgesColumn is the table column denoting the rec_team_job_edges relation/edge.
+	RecTeamJobEdgesColumn = "rec_team_id"
 	// RecLeaderEdgeTable is the table that holds the rec_leader_edge relation/edge.
 	RecLeaderEdgeTable = "rec_teams"
 	// RecLeaderEdgeInverseTable is the table name for the User entity.

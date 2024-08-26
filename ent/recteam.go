@@ -39,15 +39,18 @@ type RecTeam struct {
 type RecTeamEdges struct {
 	// RecMemberEdges holds the value of the rec_member_edges edge.
 	RecMemberEdges []*User `json:"rec_member_edges,omitempty"`
+	// RecTeamJobEdges holds the value of the rec_team_job_edges edge.
+	RecTeamJobEdges []*HiringJob `json:"rec_team_job_edges,omitempty"`
 	// RecLeaderEdge holds the value of the rec_leader_edge edge.
 	RecLeaderEdge *User `json:"rec_leader_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
-	namedRecMemberEdges map[string][]*User
+	namedRecMemberEdges  map[string][]*User
+	namedRecTeamJobEdges map[string][]*HiringJob
 }
 
 // RecMemberEdgesOrErr returns the RecMemberEdges value or an error if the edge
@@ -59,10 +62,19 @@ func (e RecTeamEdges) RecMemberEdgesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "rec_member_edges"}
 }
 
+// RecTeamJobEdgesOrErr returns the RecTeamJobEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e RecTeamEdges) RecTeamJobEdgesOrErr() ([]*HiringJob, error) {
+	if e.loadedTypes[1] {
+		return e.RecTeamJobEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_team_job_edges"}
+}
+
 // RecLeaderEdgeOrErr returns the RecLeaderEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e RecTeamEdges) RecLeaderEdgeOrErr() (*User, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.RecLeaderEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
@@ -150,6 +162,11 @@ func (rt *RecTeam) QueryRecMemberEdges() *UserQuery {
 	return (&RecTeamClient{config: rt.config}).QueryRecMemberEdges(rt)
 }
 
+// QueryRecTeamJobEdges queries the "rec_team_job_edges" edge of the RecTeam entity.
+func (rt *RecTeam) QueryRecTeamJobEdges() *HiringJobQuery {
+	return (&RecTeamClient{config: rt.config}).QueryRecTeamJobEdges(rt)
+}
+
 // QueryRecLeaderEdge queries the "rec_leader_edge" edge of the RecTeam entity.
 func (rt *RecTeam) QueryRecLeaderEdge() *UserQuery {
 	return (&RecTeamClient{config: rt.config}).QueryRecLeaderEdge(rt)
@@ -220,6 +237,30 @@ func (rt *RecTeam) appendNamedRecMemberEdges(name string, edges ...*User) {
 		rt.Edges.namedRecMemberEdges[name] = []*User{}
 	} else {
 		rt.Edges.namedRecMemberEdges[name] = append(rt.Edges.namedRecMemberEdges[name], edges...)
+	}
+}
+
+// NamedRecTeamJobEdges returns the RecTeamJobEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (rt *RecTeam) NamedRecTeamJobEdges(name string) ([]*HiringJob, error) {
+	if rt.Edges.namedRecTeamJobEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := rt.Edges.namedRecTeamJobEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (rt *RecTeam) appendNamedRecTeamJobEdges(name string, edges ...*HiringJob) {
+	if rt.Edges.namedRecTeamJobEdges == nil {
+		rt.Edges.namedRecTeamJobEdges = make(map[string][]*HiringJob)
+	}
+	if len(edges) == 0 {
+		rt.Edges.namedRecTeamJobEdges[name] = []*HiringJob{}
+	} else {
+		rt.Edges.namedRecTeamJobEdges[name] = append(rt.Edges.namedRecTeamJobEdges[name], edges...)
 	}
 }
 

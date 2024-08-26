@@ -173,6 +173,20 @@ func HiringTeamID(v uuid.UUID) predicate.HiringJob {
 	})
 }
 
+// RecTeamID applies equality check predicate on the "rec_team_id" field. It's identical to RecTeamIDEQ.
+func RecTeamID(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecTeamID), v))
+	})
+}
+
+// RecInChargeID applies equality check predicate on the "rec_in_charge_id" field. It's identical to RecInChargeIDEQ.
+func RecInChargeID(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecInChargeID), v))
+	})
+}
+
 // JobPositionID applies equality check predicate on the "job_position_id" field. It's identical to JobPositionIDEQ.
 func JobPositionID(v uuid.UUID) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -1275,6 +1289,92 @@ func HiringTeamIDNotNil() predicate.HiringJob {
 	})
 }
 
+// RecTeamIDEQ applies the EQ predicate on the "rec_team_id" field.
+func RecTeamIDEQ(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecTeamID), v))
+	})
+}
+
+// RecTeamIDNEQ applies the NEQ predicate on the "rec_team_id" field.
+func RecTeamIDNEQ(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRecTeamID), v))
+	})
+}
+
+// RecTeamIDIn applies the In predicate on the "rec_team_id" field.
+func RecTeamIDIn(vs ...uuid.UUID) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldRecTeamID), v...))
+	})
+}
+
+// RecTeamIDNotIn applies the NotIn predicate on the "rec_team_id" field.
+func RecTeamIDNotIn(vs ...uuid.UUID) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldRecTeamID), v...))
+	})
+}
+
+// RecInChargeIDEQ applies the EQ predicate on the "rec_in_charge_id" field.
+func RecInChargeIDEQ(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRecInChargeID), v))
+	})
+}
+
+// RecInChargeIDNEQ applies the NEQ predicate on the "rec_in_charge_id" field.
+func RecInChargeIDNEQ(v uuid.UUID) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRecInChargeID), v))
+	})
+}
+
+// RecInChargeIDIn applies the In predicate on the "rec_in_charge_id" field.
+func RecInChargeIDIn(vs ...uuid.UUID) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldRecInChargeID), v...))
+	})
+}
+
+// RecInChargeIDNotIn applies the NotIn predicate on the "rec_in_charge_id" field.
+func RecInChargeIDNotIn(vs ...uuid.UUID) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldRecInChargeID), v...))
+	})
+}
+
+// RecInChargeIDIsNil applies the IsNil predicate on the "rec_in_charge_id" field.
+func RecInChargeIDIsNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldRecInChargeID)))
+	})
+}
+
+// RecInChargeIDNotNil applies the NotNil predicate on the "rec_in_charge_id" field.
+func RecInChargeIDNotNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldRecInChargeID)))
+	})
+}
+
 // JobPositionIDEQ applies the EQ predicate on the "job_position_id" field.
 func JobPositionIDEQ(v uuid.UUID) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -1322,6 +1422,42 @@ func JobPositionIDIsNil() predicate.HiringJob {
 func JobPositionIDNotNil() predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldJobPositionID)))
+	})
+}
+
+// LevelEQ applies the EQ predicate on the "level" field.
+func LevelEQ(v Level) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLevel), v))
+	})
+}
+
+// LevelNEQ applies the NEQ predicate on the "level" field.
+func LevelNEQ(v Level) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLevel), v))
+	})
+}
+
+// LevelIn applies the In predicate on the "level" field.
+func LevelIn(vs ...Level) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldLevel), v...))
+	})
+}
+
+// LevelNotIn applies the NotIn predicate on the "level" field.
+func LevelNotIn(vs ...Level) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldLevel), v...))
 	})
 }
 
@@ -1484,6 +1620,62 @@ func HasApprovalUsersWith(preds ...predicate.User) predicate.HiringJob {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ApprovalUsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, ApprovalUsersTable, ApprovalUsersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRecTeamEdge applies the HasEdge predicate on the "rec_team_edge" edge.
+func HasRecTeamEdge() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecTeamEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecTeamEdgeTable, RecTeamEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecTeamEdgeWith applies the HasEdge predicate on the "rec_team_edge" edge with a given conditions (other predicates).
+func HasRecTeamEdgeWith(preds ...predicate.RecTeam) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecTeamEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecTeamEdgeTable, RecTeamEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRecInChargeEdge applies the HasEdge predicate on the "rec_in_charge_edge" edge.
+func HasRecInChargeEdge() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecInChargeEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecInChargeEdgeTable, RecInChargeEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecInChargeEdgeWith applies the HasEdge predicate on the "rec_in_charge_edge" edge with a given conditions (other predicates).
+func HasRecInChargeEdgeWith(preds ...predicate.User) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecInChargeEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RecInChargeEdgeTable, RecInChargeEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
