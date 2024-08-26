@@ -2794,46 +2794,48 @@ func (e HiringJobStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type HiringJobStepTypeEnum string
+type HiringJobStepStatusEnum string
 
 const (
-	HiringJobStepTypeEnumCreated HiringJobStepTypeEnum = "created"
-	HiringJobStepTypeEnumOpened  HiringJobStepTypeEnum = "opened"
-	HiringJobStepTypeEnumClosed  HiringJobStepTypeEnum = "closed"
+	HiringJobStepStatusEnumWaiting  HiringJobStepStatusEnum = "waiting"
+	HiringJobStepStatusEnumPending  HiringJobStepStatusEnum = "pending"
+	HiringJobStepStatusEnumAccepted HiringJobStepStatusEnum = "accepted"
+	HiringJobStepStatusEnumRejected HiringJobStepStatusEnum = "rejected"
 )
 
-var AllHiringJobStepTypeEnum = []HiringJobStepTypeEnum{
-	HiringJobStepTypeEnumCreated,
-	HiringJobStepTypeEnumOpened,
-	HiringJobStepTypeEnumClosed,
+var AllHiringJobStepStatusEnum = []HiringJobStepStatusEnum{
+	HiringJobStepStatusEnumWaiting,
+	HiringJobStepStatusEnumPending,
+	HiringJobStepStatusEnumAccepted,
+	HiringJobStepStatusEnumRejected,
 }
 
-func (e HiringJobStepTypeEnum) IsValid() bool {
+func (e HiringJobStepStatusEnum) IsValid() bool {
 	switch e {
-	case HiringJobStepTypeEnumCreated, HiringJobStepTypeEnumOpened, HiringJobStepTypeEnumClosed:
+	case HiringJobStepStatusEnumWaiting, HiringJobStepStatusEnumPending, HiringJobStepStatusEnumAccepted, HiringJobStepStatusEnumRejected:
 		return true
 	}
 	return false
 }
 
-func (e HiringJobStepTypeEnum) String() string {
+func (e HiringJobStepStatusEnum) String() string {
 	return string(e)
 }
 
-func (e *HiringJobStepTypeEnum) UnmarshalGQL(v interface{}) error {
+func (e *HiringJobStepStatusEnum) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = HiringJobStepTypeEnum(str)
+	*e = HiringJobStepStatusEnum(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid HiringJobStepTypeEnum", str)
+		return fmt.Errorf("%s is not a valid HiringJobStepStatusEnum", str)
 	}
 	return nil
 }
 
-func (e HiringJobStepTypeEnum) MarshalGQL(w io.Writer) {
+func (e HiringJobStepStatusEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -1465,25 +1465,53 @@ func HasJobPositionEdgeWith(preds ...predicate.JobPosition) predicate.HiringJob 
 	})
 }
 
-// HasHiringJobStep applies the HasEdge predicate on the "hiring_job_step" edge.
-func HasHiringJobStep() predicate.HiringJob {
+// HasApprovalUsers applies the HasEdge predicate on the "approval_users" edge.
+func HasApprovalUsers() predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(HiringJobStepTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepTable, HiringJobStepColumn),
+			sqlgraph.To(ApprovalUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ApprovalUsersTable, ApprovalUsersPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasHiringJobStepWith applies the HasEdge predicate on the "hiring_job_step" edge with a given conditions (other predicates).
-func HasHiringJobStepWith(preds ...predicate.HiringJobStep) predicate.HiringJob {
+// HasApprovalUsersWith applies the HasEdge predicate on the "approval_users" edge with a given conditions (other predicates).
+func HasApprovalUsersWith(preds ...predicate.User) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(HiringJobStepInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, HiringJobStepTable, HiringJobStepColumn),
+			sqlgraph.To(ApprovalUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ApprovalUsersTable, ApprovalUsersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasApprovalSteps applies the HasEdge predicate on the "approval_steps" edge.
+func HasApprovalSteps() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ApprovalStepsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, ApprovalStepsTable, ApprovalStepsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasApprovalStepsWith applies the HasEdge predicate on the "approval_steps" edge with a given conditions (other predicates).
+func HasApprovalStepsWith(preds ...predicate.HiringJobStep) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ApprovalStepsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, ApprovalStepsTable, ApprovalStepsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

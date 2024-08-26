@@ -19,18 +19,19 @@ type HiringJobStep struct {
 func (HiringJobStep) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Unique().Annotations(entgql.OrderField("ID")),
-		field.UUID("hiring_job_id", uuid.UUID{}).Optional(),
-		field.Enum("type").Values("created", "opened", "closed").Default("created"),
+		field.UUID("hiring_job_id", uuid.UUID{}),
+		field.UUID("user_id", uuid.UUID{}),
+		field.Enum("status").Values("waiting", "pending", "accepted", "rejected"),
+		field.Int("order_id").Positive(),
 		field.Time("created_at").Default(time.Now).Immutable().Annotations(entgql.OrderField("created_at")),
 		field.Time("updated_at").Optional().Annotations(entgql.OrderField("updated_at")),
-		field.UUID("created_by_id", uuid.UUID{}).Optional(),
 	}
 }
 
 // Edges of the HiringJobStep
 func (HiringJobStep) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("hiring_job_edge", HiringJob.Type).Ref("hiring_job_step").Unique().Field("hiring_job_id"),
-		edge.From("created_by_edge", User.Type).Ref("hiring_job_step_edges").Unique().Field("created_by_id"),
+		edge.To("approval_job", HiringJob.Type).Unique().Field("hiring_job_id").Required(),
+		edge.To("approval_user", User.Type).Unique().Field("user_id").Required(),
 	}
 }

@@ -675,11 +675,12 @@ var (
 	// HiringJobStepsColumns holds the columns for the "hiring_job_steps" table.
 	HiringJobStepsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"created", "opened", "closed"}, Default: "created"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"waiting", "pending", "accepted", "rejected"}},
+		{Name: "order_id", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "hiring_job_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "created_by_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "hiring_job_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// HiringJobStepsTable holds the schema information for the "hiring_job_steps" table.
 	HiringJobStepsTable = &schema.Table{
@@ -688,16 +689,23 @@ var (
 		PrimaryKey: []*schema.Column{HiringJobStepsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "hiring_job_steps_hiring_jobs_hiring_job_step",
-				Columns:    []*schema.Column{HiringJobStepsColumns[4]},
+				Symbol:     "hiring_job_steps_hiring_jobs_approval_job",
+				Columns:    []*schema.Column{HiringJobStepsColumns[5]},
 				RefColumns: []*schema.Column{HiringJobsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "hiring_job_steps_users_hiring_job_step_edges",
-				Columns:    []*schema.Column{HiringJobStepsColumns[5]},
+				Symbol:     "hiring_job_steps_users_approval_user",
+				Columns:    []*schema.Column{HiringJobStepsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "hiringjobstep_user_id_hiring_job_id",
+				Unique:  true,
+				Columns: []*schema.Column{HiringJobStepsColumns[6], HiringJobStepsColumns[5]},
 			},
 		},
 	}

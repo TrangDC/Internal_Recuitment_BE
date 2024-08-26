@@ -1991,7 +1991,19 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 				return err
 			}
 			hj.withJobPositionEdge = query
-		case "hiringJobStep":
+		case "approvalUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: hj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			hj.WithNamedApprovalUsers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
+		case "approvalSteps":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2000,7 +2012,7 @@ func (hj *HiringJobQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			hj.WithNamedHiringJobStep(alias, func(wq *HiringJobStepQuery) {
+			hj.WithNamedApprovalSteps(alias, func(wq *HiringJobStepQuery) {
 				*wq = *query
 			})
 		}
@@ -2072,7 +2084,7 @@ func (hjs *HiringJobStepQuery) collectField(ctx context.Context, op *graphql.Ope
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-		case "hiringJobEdge":
+		case "approvalJob":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2081,8 +2093,8 @@ func (hjs *HiringJobStepQuery) collectField(ctx context.Context, op *graphql.Ope
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			hjs.withHiringJobEdge = query
-		case "createdByEdge":
+			hjs.withApprovalJob = query
+		case "approvalUser":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -2091,7 +2103,7 @@ func (hjs *HiringJobStepQuery) collectField(ctx context.Context, op *graphql.Ope
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			hjs.withCreatedByEdge = query
+			hjs.withApprovalUser = query
 		}
 	}
 	return nil
@@ -3412,16 +3424,16 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.WithNamedCandidateHistoryCallEdges(alias, func(wq *CandidateHistoryCallQuery) {
 				*wq = *query
 			})
-		case "hiringJobStepEdges":
+		case "approvalJobs":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &HiringJobStepQuery{config: u.config}
+				query = &HiringJobQuery{config: u.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.WithNamedHiringJobStepEdges(alias, func(wq *HiringJobStepQuery) {
+			u.WithNamedApprovalJobs(alias, func(wq *HiringJobQuery) {
 				*wq = *query
 			})
 		case "interviewUsers":
@@ -3470,6 +3482,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedHiringTeamApprovers(alias, func(wq *HiringTeamApproverQuery) {
+				*wq = *query
+			})
+		case "approvalSteps":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &HiringJobStepQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedApprovalSteps(alias, func(wq *HiringJobStepQuery) {
 				*wq = *query
 			})
 		}

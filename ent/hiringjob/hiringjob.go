@@ -60,8 +60,10 @@ const (
 	EdgeHiringTeamEdge = "hiring_team_edge"
 	// EdgeJobPositionEdge holds the string denoting the job_position_edge edge name in mutations.
 	EdgeJobPositionEdge = "job_position_edge"
-	// EdgeHiringJobStep holds the string denoting the hiring_job_step edge name in mutations.
-	EdgeHiringJobStep = "hiring_job_step"
+	// EdgeApprovalUsers holds the string denoting the approval_users edge name in mutations.
+	EdgeApprovalUsers = "approval_users"
+	// EdgeApprovalSteps holds the string denoting the approval_steps edge name in mutations.
+	EdgeApprovalSteps = "approval_steps"
 	// Table holds the table name of the hiringjob in the database.
 	Table = "hiring_jobs"
 	// OwnerEdgeTable is the table that holds the owner_edge relation/edge.
@@ -99,13 +101,18 @@ const (
 	JobPositionEdgeInverseTable = "job_positions"
 	// JobPositionEdgeColumn is the table column denoting the job_position_edge relation/edge.
 	JobPositionEdgeColumn = "job_position_id"
-	// HiringJobStepTable is the table that holds the hiring_job_step relation/edge.
-	HiringJobStepTable = "hiring_job_steps"
-	// HiringJobStepInverseTable is the table name for the HiringJobStep entity.
+	// ApprovalUsersTable is the table that holds the approval_users relation/edge. The primary key declared below.
+	ApprovalUsersTable = "hiring_job_steps"
+	// ApprovalUsersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	ApprovalUsersInverseTable = "users"
+	// ApprovalStepsTable is the table that holds the approval_steps relation/edge.
+	ApprovalStepsTable = "hiring_job_steps"
+	// ApprovalStepsInverseTable is the table name for the HiringJobStep entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringjobstep" package.
-	HiringJobStepInverseTable = "hiring_job_steps"
-	// HiringJobStepColumn is the table column denoting the hiring_job_step relation/edge.
-	HiringJobStepColumn = "hiring_job_id"
+	ApprovalStepsInverseTable = "hiring_job_steps"
+	// ApprovalStepsColumn is the table column denoting the approval_steps relation/edge.
+	ApprovalStepsColumn = "hiring_job_id"
 )
 
 // Columns holds all SQL columns for hiringjob fields.
@@ -130,6 +137,12 @@ var Columns = []string{
 	FieldHiringTeamID,
 	FieldJobPositionID,
 }
+
+var (
+	// ApprovalUsersPrimaryKey and ApprovalUsersColumn2 are the table columns denoting the
+	// primary key for the approval_users relation (M2M).
+	ApprovalUsersPrimaryKey = []string{"user_id", "hiring_job_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

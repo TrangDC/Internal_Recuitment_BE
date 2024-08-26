@@ -3125,15 +3125,31 @@ func (c *HiringJobClient) QueryJobPositionEdge(hj *HiringJob) *JobPositionQuery 
 	return query
 }
 
-// QueryHiringJobStep queries the hiring_job_step edge of a HiringJob.
-func (c *HiringJobClient) QueryHiringJobStep(hj *HiringJob) *HiringJobStepQuery {
+// QueryApprovalUsers queries the approval_users edge of a HiringJob.
+func (c *HiringJobClient) QueryApprovalUsers(hj *HiringJob) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := hj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, hiringjob.ApprovalUsersTable, hiringjob.ApprovalUsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApprovalSteps queries the approval_steps edge of a HiringJob.
+func (c *HiringJobClient) QueryApprovalSteps(hj *HiringJob) *HiringJobStepQuery {
 	query := &HiringJobStepQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := hj.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringjob.Table, hiringjob.FieldID, id),
 			sqlgraph.To(hiringjobstep.Table, hiringjobstep.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, hiringjob.HiringJobStepTable, hiringjob.HiringJobStepColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, hiringjob.ApprovalStepsTable, hiringjob.ApprovalStepsColumn),
 		)
 		fromV = sqlgraph.Neighbors(hj.driver.Dialect(), step)
 		return fromV, nil
@@ -3231,15 +3247,15 @@ func (c *HiringJobStepClient) GetX(ctx context.Context, id uuid.UUID) *HiringJob
 	return obj
 }
 
-// QueryHiringJobEdge queries the hiring_job_edge edge of a HiringJobStep.
-func (c *HiringJobStepClient) QueryHiringJobEdge(hjs *HiringJobStep) *HiringJobQuery {
+// QueryApprovalJob queries the approval_job edge of a HiringJobStep.
+func (c *HiringJobStepClient) QueryApprovalJob(hjs *HiringJobStep) *HiringJobQuery {
 	query := &HiringJobQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := hjs.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, id),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.HiringJobEdgeTable, hiringjobstep.HiringJobEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringjobstep.ApprovalJobTable, hiringjobstep.ApprovalJobColumn),
 		)
 		fromV = sqlgraph.Neighbors(hjs.driver.Dialect(), step)
 		return fromV, nil
@@ -3247,15 +3263,15 @@ func (c *HiringJobStepClient) QueryHiringJobEdge(hjs *HiringJobStep) *HiringJobQ
 	return query
 }
 
-// QueryCreatedByEdge queries the created_by_edge edge of a HiringJobStep.
-func (c *HiringJobStepClient) QueryCreatedByEdge(hjs *HiringJobStep) *UserQuery {
+// QueryApprovalUser queries the approval_user edge of a HiringJobStep.
+func (c *HiringJobStepClient) QueryApprovalUser(hjs *HiringJobStep) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := hjs.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.CreatedByEdgeTable, hiringjobstep.CreatedByEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringjobstep.ApprovalUserTable, hiringjobstep.ApprovalUserColumn),
 		)
 		fromV = sqlgraph.Neighbors(hjs.driver.Dialect(), step)
 		return fromV, nil
@@ -5031,15 +5047,15 @@ func (c *UserClient) QueryCandidateHistoryCallEdges(u *User) *CandidateHistoryCa
 	return query
 }
 
-// QueryHiringJobStepEdges queries the hiring_job_step_edges edge of a User.
-func (c *UserClient) QueryHiringJobStepEdges(u *User) *HiringJobStepQuery {
-	query := &HiringJobStepQuery{config: c.config}
+// QueryApprovalJobs queries the approval_jobs edge of a User.
+func (c *UserClient) QueryApprovalJobs(u *User) *HiringJobQuery {
+	query := &HiringJobQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(hiringjobstep.Table, hiringjobstep.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.HiringJobStepEdgesTable, user.HiringJobStepEdgesColumn),
+			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.ApprovalJobsTable, user.ApprovalJobsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -5104,6 +5120,22 @@ func (c *UserClient) QueryHiringTeamApprovers(u *User) *HiringTeamApproverQuery 
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(hiringteamapprover.Table, hiringteamapprover.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.HiringTeamApproversTable, user.HiringTeamApproversColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryApprovalSteps queries the approval_steps edge of a User.
+func (c *UserClient) QueryApprovalSteps(u *User) *HiringJobStepQuery {
+	query := &HiringJobStepQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(hiringjobstep.Table, hiringjobstep.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.ApprovalStepsTable, user.ApprovalStepsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

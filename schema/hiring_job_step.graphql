@@ -1,13 +1,15 @@
-enum HiringJobStepTypeEnum {
-  created
-  opened
-  closed
+enum HiringJobStepStatusEnum {
+  waiting
+  pending
+  accepted
+  rejected
 }
 
 type HiringJobStep {
   id: ID!
-  type: HiringJobStepTypeEnum!
+  status: HiringJobStepStatusEnum!
+  approver: User!
+  order_id: Int!
   created_at: Time!
   updated_at: Time!
-  created_by: User!
 }

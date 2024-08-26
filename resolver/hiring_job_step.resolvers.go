@@ -14,14 +14,14 @@ func (r *hiringJobStepResolver) ID(ctx context.Context, obj *ent.HiringJobStep) 
 	return obj.ID.String(), nil
 }
 
-// Type is the resolver for the type field.
-func (r *hiringJobStepResolver) Type(ctx context.Context, obj *ent.HiringJobStep) (ent.HiringJobStepTypeEnum, error) {
-	return ent.HiringJobStepTypeEnum(obj.Type), nil
+// Status is the resolver for the status field.
+func (r *hiringJobStepResolver) Status(ctx context.Context, obj *ent.HiringJobStep) (ent.HiringJobStepStatusEnum, error) {
+	return ent.HiringJobStepStatusEnum(obj.Status), nil
 }
 
-// CreatedBy is the resolver for the created_by field.
-func (r *hiringJobStepResolver) CreatedBy(ctx context.Context, obj *ent.HiringJobStep) (*ent.User, error) {
-	return obj.Edges.CreatedByEdge, nil
+// Approver is the resolver for the approver field.
+func (r *hiringJobStepResolver) Approver(ctx context.Context, obj *ent.HiringJobStep) (*ent.User, error) {
+	return obj.Edges.ApprovalUserOrErr()
 }
 
 // HiringJobStep returns graphql1.HiringJobStepResolver implementation.

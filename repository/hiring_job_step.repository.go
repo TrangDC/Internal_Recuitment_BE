@@ -5,14 +5,13 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/hiringjobstep"
-	"trec/middleware"
 
 	"github.com/google/uuid"
 )
 
 type HiringJobStepRepository interface {
 	// mutation
-	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Type, hiringJobId uuid.UUID) error
+	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error
 	DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error
 	BuildQuery() *ent.HiringJobStepQuery
 }
@@ -37,9 +36,8 @@ func (rps hiringJobStepRepoImpl) BuildQuery() *ent.HiringJobStepQuery {
 }
 
 // mutation
-func (rps hiringJobStepRepoImpl) CreateHiringJobStep(ctx context.Context, step hiringjobstep.Type, hiringJobId uuid.UUID) error {
-	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	_, err := rps.BuildCreate().SetType(step).SetHiringJobID(hiringJobId).SetCreatedByEdgeID(payload.UserID).Save(ctx)
+func (rps hiringJobStepRepoImpl) CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error {
+	_, err := rps.BuildCreate().SetStatus(step).SetHiringJobID(hiringJobId).Save(ctx)
 	return err
 }
 

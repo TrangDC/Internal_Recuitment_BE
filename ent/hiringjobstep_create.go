@@ -29,25 +29,21 @@ func (hjsc *HiringJobStepCreate) SetHiringJobID(u uuid.UUID) *HiringJobStepCreat
 	return hjsc
 }
 
-// SetNillableHiringJobID sets the "hiring_job_id" field if the given value is not nil.
-func (hjsc *HiringJobStepCreate) SetNillableHiringJobID(u *uuid.UUID) *HiringJobStepCreate {
-	if u != nil {
-		hjsc.SetHiringJobID(*u)
-	}
+// SetUserID sets the "user_id" field.
+func (hjsc *HiringJobStepCreate) SetUserID(u uuid.UUID) *HiringJobStepCreate {
+	hjsc.mutation.SetUserID(u)
 	return hjsc
 }
 
-// SetType sets the "type" field.
-func (hjsc *HiringJobStepCreate) SetType(h hiringjobstep.Type) *HiringJobStepCreate {
-	hjsc.mutation.SetType(h)
+// SetStatus sets the "status" field.
+func (hjsc *HiringJobStepCreate) SetStatus(h hiringjobstep.Status) *HiringJobStepCreate {
+	hjsc.mutation.SetStatus(h)
 	return hjsc
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (hjsc *HiringJobStepCreate) SetNillableType(h *hiringjobstep.Type) *HiringJobStepCreate {
-	if h != nil {
-		hjsc.SetType(*h)
-	}
+// SetOrderID sets the "order_id" field.
+func (hjsc *HiringJobStepCreate) SetOrderID(i int) *HiringJobStepCreate {
+	hjsc.mutation.SetOrderID(i)
 	return hjsc
 }
 
@@ -79,62 +75,32 @@ func (hjsc *HiringJobStepCreate) SetNillableUpdatedAt(t *time.Time) *HiringJobSt
 	return hjsc
 }
 
-// SetCreatedByID sets the "created_by_id" field.
-func (hjsc *HiringJobStepCreate) SetCreatedByID(u uuid.UUID) *HiringJobStepCreate {
-	hjsc.mutation.SetCreatedByID(u)
-	return hjsc
-}
-
-// SetNillableCreatedByID sets the "created_by_id" field if the given value is not nil.
-func (hjsc *HiringJobStepCreate) SetNillableCreatedByID(u *uuid.UUID) *HiringJobStepCreate {
-	if u != nil {
-		hjsc.SetCreatedByID(*u)
-	}
-	return hjsc
-}
-
 // SetID sets the "id" field.
 func (hjsc *HiringJobStepCreate) SetID(u uuid.UUID) *HiringJobStepCreate {
 	hjsc.mutation.SetID(u)
 	return hjsc
 }
 
-// SetHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID.
-func (hjsc *HiringJobStepCreate) SetHiringJobEdgeID(id uuid.UUID) *HiringJobStepCreate {
-	hjsc.mutation.SetHiringJobEdgeID(id)
+// SetApprovalJobID sets the "approval_job" edge to the HiringJob entity by ID.
+func (hjsc *HiringJobStepCreate) SetApprovalJobID(id uuid.UUID) *HiringJobStepCreate {
+	hjsc.mutation.SetApprovalJobID(id)
 	return hjsc
 }
 
-// SetNillableHiringJobEdgeID sets the "hiring_job_edge" edge to the HiringJob entity by ID if the given value is not nil.
-func (hjsc *HiringJobStepCreate) SetNillableHiringJobEdgeID(id *uuid.UUID) *HiringJobStepCreate {
-	if id != nil {
-		hjsc = hjsc.SetHiringJobEdgeID(*id)
-	}
+// SetApprovalJob sets the "approval_job" edge to the HiringJob entity.
+func (hjsc *HiringJobStepCreate) SetApprovalJob(h *HiringJob) *HiringJobStepCreate {
+	return hjsc.SetApprovalJobID(h.ID)
+}
+
+// SetApprovalUserID sets the "approval_user" edge to the User entity by ID.
+func (hjsc *HiringJobStepCreate) SetApprovalUserID(id uuid.UUID) *HiringJobStepCreate {
+	hjsc.mutation.SetApprovalUserID(id)
 	return hjsc
 }
 
-// SetHiringJobEdge sets the "hiring_job_edge" edge to the HiringJob entity.
-func (hjsc *HiringJobStepCreate) SetHiringJobEdge(h *HiringJob) *HiringJobStepCreate {
-	return hjsc.SetHiringJobEdgeID(h.ID)
-}
-
-// SetCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID.
-func (hjsc *HiringJobStepCreate) SetCreatedByEdgeID(id uuid.UUID) *HiringJobStepCreate {
-	hjsc.mutation.SetCreatedByEdgeID(id)
-	return hjsc
-}
-
-// SetNillableCreatedByEdgeID sets the "created_by_edge" edge to the User entity by ID if the given value is not nil.
-func (hjsc *HiringJobStepCreate) SetNillableCreatedByEdgeID(id *uuid.UUID) *HiringJobStepCreate {
-	if id != nil {
-		hjsc = hjsc.SetCreatedByEdgeID(*id)
-	}
-	return hjsc
-}
-
-// SetCreatedByEdge sets the "created_by_edge" edge to the User entity.
-func (hjsc *HiringJobStepCreate) SetCreatedByEdge(u *User) *HiringJobStepCreate {
-	return hjsc.SetCreatedByEdgeID(u.ID)
+// SetApprovalUser sets the "approval_user" edge to the User entity.
+func (hjsc *HiringJobStepCreate) SetApprovalUser(u *User) *HiringJobStepCreate {
+	return hjsc.SetApprovalUserID(u.ID)
 }
 
 // Mutation returns the HiringJobStepMutation object of the builder.
@@ -214,10 +180,6 @@ func (hjsc *HiringJobStepCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (hjsc *HiringJobStepCreate) defaults() {
-	if _, ok := hjsc.mutation.GetType(); !ok {
-		v := hiringjobstep.DefaultType
-		hjsc.mutation.SetType(v)
-	}
 	if _, ok := hjsc.mutation.CreatedAt(); !ok {
 		v := hiringjobstep.DefaultCreatedAt()
 		hjsc.mutation.SetCreatedAt(v)
@@ -226,16 +188,36 @@ func (hjsc *HiringJobStepCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (hjsc *HiringJobStepCreate) check() error {
-	if _, ok := hjsc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "HiringJobStep.type"`)}
+	if _, ok := hjsc.mutation.HiringJobID(); !ok {
+		return &ValidationError{Name: "hiring_job_id", err: errors.New(`ent: missing required field "HiringJobStep.hiring_job_id"`)}
 	}
-	if v, ok := hjsc.mutation.GetType(); ok {
-		if err := hiringjobstep.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "HiringJobStep.type": %w`, err)}
+	if _, ok := hjsc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "HiringJobStep.user_id"`)}
+	}
+	if _, ok := hjsc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "HiringJobStep.status"`)}
+	}
+	if v, ok := hjsc.mutation.Status(); ok {
+		if err := hiringjobstep.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "HiringJobStep.status": %w`, err)}
+		}
+	}
+	if _, ok := hjsc.mutation.OrderID(); !ok {
+		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "HiringJobStep.order_id"`)}
+	}
+	if v, ok := hjsc.mutation.OrderID(); ok {
+		if err := hiringjobstep.OrderIDValidator(v); err != nil {
+			return &ValidationError{Name: "order_id", err: fmt.Errorf(`ent: validator failed for field "HiringJobStep.order_id": %w`, err)}
 		}
 	}
 	if _, ok := hjsc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "HiringJobStep.created_at"`)}
+	}
+	if _, ok := hjsc.mutation.ApprovalJobID(); !ok {
+		return &ValidationError{Name: "approval_job", err: errors.New(`ent: missing required edge "HiringJobStep.approval_job"`)}
+	}
+	if _, ok := hjsc.mutation.ApprovalUserID(); !ok {
+		return &ValidationError{Name: "approval_user", err: errors.New(`ent: missing required edge "HiringJobStep.approval_user"`)}
 	}
 	return nil
 }
@@ -273,9 +255,13 @@ func (hjsc *HiringJobStepCreate) createSpec() (*HiringJobStep, *sqlgraph.CreateS
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := hjsc.mutation.GetType(); ok {
-		_spec.SetField(hiringjobstep.FieldType, field.TypeEnum, value)
-		_node.Type = value
+	if value, ok := hjsc.mutation.Status(); ok {
+		_spec.SetField(hiringjobstep.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if value, ok := hjsc.mutation.OrderID(); ok {
+		_spec.SetField(hiringjobstep.FieldOrderID, field.TypeInt, value)
+		_node.OrderID = value
 	}
 	if value, ok := hjsc.mutation.CreatedAt(); ok {
 		_spec.SetField(hiringjobstep.FieldCreatedAt, field.TypeTime, value)
@@ -285,12 +271,12 @@ func (hjsc *HiringJobStepCreate) createSpec() (*HiringJobStep, *sqlgraph.CreateS
 		_spec.SetField(hiringjobstep.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := hjsc.mutation.HiringJobEdgeIDs(); len(nodes) > 0 {
+	if nodes := hjsc.mutation.ApprovalJobIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   hiringjobstep.HiringJobEdgeTable,
-			Columns: []string{hiringjobstep.HiringJobEdgeColumn},
+			Inverse: false,
+			Table:   hiringjobstep.ApprovalJobTable,
+			Columns: []string{hiringjobstep.ApprovalJobColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -305,12 +291,12 @@ func (hjsc *HiringJobStepCreate) createSpec() (*HiringJobStep, *sqlgraph.CreateS
 		_node.HiringJobID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := hjsc.mutation.CreatedByEdgeIDs(); len(nodes) > 0 {
+	if nodes := hjsc.mutation.ApprovalUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   hiringjobstep.CreatedByEdgeTable,
-			Columns: []string{hiringjobstep.CreatedByEdgeColumn},
+			Inverse: false,
+			Table:   hiringjobstep.ApprovalUserTable,
+			Columns: []string{hiringjobstep.ApprovalUserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -322,7 +308,7 @@ func (hjsc *HiringJobStepCreate) createSpec() (*HiringJobStep, *sqlgraph.CreateS
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.CreatedByID = nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

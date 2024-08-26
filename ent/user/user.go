@@ -66,8 +66,8 @@ const (
 	EdgeCandidateNoteEdges = "candidate_note_edges"
 	// EdgeCandidateHistoryCallEdges holds the string denoting the candidate_history_call_edges edge name in mutations.
 	EdgeCandidateHistoryCallEdges = "candidate_history_call_edges"
-	// EdgeHiringJobStepEdges holds the string denoting the hiring_job_step_edges edge name in mutations.
-	EdgeHiringJobStepEdges = "hiring_job_step_edges"
+	// EdgeApprovalJobs holds the string denoting the approval_jobs edge name in mutations.
+	EdgeApprovalJobs = "approval_jobs"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
@@ -76,6 +76,8 @@ const (
 	EdgeHiringTeamUsers = "hiring_team_users"
 	// EdgeHiringTeamApprovers holds the string denoting the hiring_team_approvers edge name in mutations.
 	EdgeHiringTeamApprovers = "hiring_team_approvers"
+	// EdgeApprovalSteps holds the string denoting the approval_steps edge name in mutations.
+	EdgeApprovalSteps = "approval_steps"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// AuditEdgeTable is the table that holds the audit_edge relation/edge.
@@ -182,13 +184,11 @@ const (
 	CandidateHistoryCallEdgesInverseTable = "candidate_history_calls"
 	// CandidateHistoryCallEdgesColumn is the table column denoting the candidate_history_call_edges relation/edge.
 	CandidateHistoryCallEdgesColumn = "created_by_id"
-	// HiringJobStepEdgesTable is the table that holds the hiring_job_step_edges relation/edge.
-	HiringJobStepEdgesTable = "hiring_job_steps"
-	// HiringJobStepEdgesInverseTable is the table name for the HiringJobStep entity.
-	// It exists in this package in order to avoid circular dependency with the "hiringjobstep" package.
-	HiringJobStepEdgesInverseTable = "hiring_job_steps"
-	// HiringJobStepEdgesColumn is the table column denoting the hiring_job_step_edges relation/edge.
-	HiringJobStepEdgesColumn = "created_by_id"
+	// ApprovalJobsTable is the table that holds the approval_jobs relation/edge. The primary key declared below.
+	ApprovalJobsTable = "hiring_job_steps"
+	// ApprovalJobsInverseTable is the table name for the HiringJob entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjob" package.
+	ApprovalJobsInverseTable = "hiring_jobs"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.
@@ -217,6 +217,13 @@ const (
 	HiringTeamApproversInverseTable = "hiring_team_approvers"
 	// HiringTeamApproversColumn is the table column denoting the hiring_team_approvers relation/edge.
 	HiringTeamApproversColumn = "user_id"
+	// ApprovalStepsTable is the table that holds the approval_steps relation/edge.
+	ApprovalStepsTable = "hiring_job_steps"
+	// ApprovalStepsInverseTable is the table name for the HiringJobStep entity.
+	// It exists in this package in order to avoid circular dependency with the "hiringjobstep" package.
+	ApprovalStepsInverseTable = "hiring_job_steps"
+	// ApprovalStepsColumn is the table column denoting the approval_steps relation/edge.
+	ApprovalStepsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -247,6 +254,9 @@ var (
 	// ApproversHiringTeamsPrimaryKey and ApproversHiringTeamsColumn2 are the table columns denoting the
 	// primary key for the approvers_hiring_teams relation (M2M).
 	ApproversHiringTeamsPrimaryKey = []string{"hiring_team_id", "user_id"}
+	// ApprovalJobsPrimaryKey and ApprovalJobsColumn2 are the table columns denoting the
+	// primary key for the approval_jobs relation (M2M).
+	ApprovalJobsPrimaryKey = []string{"user_id", "hiring_job_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

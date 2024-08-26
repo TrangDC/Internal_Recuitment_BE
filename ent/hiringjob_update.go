@@ -376,19 +376,34 @@ func (hju *HiringJobUpdate) SetJobPositionEdge(j *JobPosition) *HiringJobUpdate 
 	return hju.SetJobPositionEdgeID(j.ID)
 }
 
-// AddHiringJobStepIDs adds the "hiring_job_step" edge to the HiringJobStep entity by IDs.
-func (hju *HiringJobUpdate) AddHiringJobStepIDs(ids ...uuid.UUID) *HiringJobUpdate {
-	hju.mutation.AddHiringJobStepIDs(ids...)
+// AddApprovalUserIDs adds the "approval_users" edge to the User entity by IDs.
+func (hju *HiringJobUpdate) AddApprovalUserIDs(ids ...uuid.UUID) *HiringJobUpdate {
+	hju.mutation.AddApprovalUserIDs(ids...)
 	return hju
 }
 
-// AddHiringJobStep adds the "hiring_job_step" edges to the HiringJobStep entity.
-func (hju *HiringJobUpdate) AddHiringJobStep(h ...*HiringJobStep) *HiringJobUpdate {
+// AddApprovalUsers adds the "approval_users" edges to the User entity.
+func (hju *HiringJobUpdate) AddApprovalUsers(u ...*User) *HiringJobUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return hju.AddApprovalUserIDs(ids...)
+}
+
+// AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by IDs.
+func (hju *HiringJobUpdate) AddApprovalStepIDs(ids ...uuid.UUID) *HiringJobUpdate {
+	hju.mutation.AddApprovalStepIDs(ids...)
+	return hju
+}
+
+// AddApprovalSteps adds the "approval_steps" edges to the HiringJobStep entity.
+func (hju *HiringJobUpdate) AddApprovalSteps(h ...*HiringJobStep) *HiringJobUpdate {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return hju.AddHiringJobStepIDs(ids...)
+	return hju.AddApprovalStepIDs(ids...)
 }
 
 // Mutation returns the HiringJobMutation object of the builder.
@@ -456,25 +471,46 @@ func (hju *HiringJobUpdate) ClearJobPositionEdge() *HiringJobUpdate {
 	return hju
 }
 
-// ClearHiringJobStep clears all "hiring_job_step" edges to the HiringJobStep entity.
-func (hju *HiringJobUpdate) ClearHiringJobStep() *HiringJobUpdate {
-	hju.mutation.ClearHiringJobStep()
+// ClearApprovalUsers clears all "approval_users" edges to the User entity.
+func (hju *HiringJobUpdate) ClearApprovalUsers() *HiringJobUpdate {
+	hju.mutation.ClearApprovalUsers()
 	return hju
 }
 
-// RemoveHiringJobStepIDs removes the "hiring_job_step" edge to HiringJobStep entities by IDs.
-func (hju *HiringJobUpdate) RemoveHiringJobStepIDs(ids ...uuid.UUID) *HiringJobUpdate {
-	hju.mutation.RemoveHiringJobStepIDs(ids...)
+// RemoveApprovalUserIDs removes the "approval_users" edge to User entities by IDs.
+func (hju *HiringJobUpdate) RemoveApprovalUserIDs(ids ...uuid.UUID) *HiringJobUpdate {
+	hju.mutation.RemoveApprovalUserIDs(ids...)
 	return hju
 }
 
-// RemoveHiringJobStep removes "hiring_job_step" edges to HiringJobStep entities.
-func (hju *HiringJobUpdate) RemoveHiringJobStep(h ...*HiringJobStep) *HiringJobUpdate {
+// RemoveApprovalUsers removes "approval_users" edges to User entities.
+func (hju *HiringJobUpdate) RemoveApprovalUsers(u ...*User) *HiringJobUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return hju.RemoveApprovalUserIDs(ids...)
+}
+
+// ClearApprovalSteps clears all "approval_steps" edges to the HiringJobStep entity.
+func (hju *HiringJobUpdate) ClearApprovalSteps() *HiringJobUpdate {
+	hju.mutation.ClearApprovalSteps()
+	return hju
+}
+
+// RemoveApprovalStepIDs removes the "approval_steps" edge to HiringJobStep entities by IDs.
+func (hju *HiringJobUpdate) RemoveApprovalStepIDs(ids ...uuid.UUID) *HiringJobUpdate {
+	hju.mutation.RemoveApprovalStepIDs(ids...)
+	return hju
+}
+
+// RemoveApprovalSteps removes "approval_steps" edges to HiringJobStep entities.
+func (hju *HiringJobUpdate) RemoveApprovalSteps(h ...*HiringJobStep) *HiringJobUpdate {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return hju.RemoveHiringJobStepIDs(ids...)
+	return hju.RemoveApprovalStepIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -871,12 +907,78 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if hju.mutation.HiringJobStepCleared() {
+	if hju.mutation.ApprovalUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		createE := &HiringJobStepCreate{config: hju.config, mutation: newHiringJobStepMutation(hju.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hju.mutation.RemovedApprovalUsersIDs(); len(nodes) > 0 && !hju.mutation.ApprovalUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringJobStepCreate{config: hju.config, mutation: newHiringJobStepMutation(hju.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hju.mutation.ApprovalUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringJobStepCreate{config: hju.config, mutation: newHiringJobStepMutation(hju.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hju.mutation.ApprovalStepsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -887,12 +989,12 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := hju.mutation.RemovedHiringJobStepIDs(); len(nodes) > 0 && !hju.mutation.HiringJobStepCleared() {
+	if nodes := hju.mutation.RemovedApprovalStepsIDs(); len(nodes) > 0 && !hju.mutation.ApprovalStepsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -906,12 +1008,12 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := hju.mutation.HiringJobStepIDs(); len(nodes) > 0 {
+	if nodes := hju.mutation.ApprovalStepsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1285,19 +1387,34 @@ func (hjuo *HiringJobUpdateOne) SetJobPositionEdge(j *JobPosition) *HiringJobUpd
 	return hjuo.SetJobPositionEdgeID(j.ID)
 }
 
-// AddHiringJobStepIDs adds the "hiring_job_step" edge to the HiringJobStep entity by IDs.
-func (hjuo *HiringJobUpdateOne) AddHiringJobStepIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
-	hjuo.mutation.AddHiringJobStepIDs(ids...)
+// AddApprovalUserIDs adds the "approval_users" edge to the User entity by IDs.
+func (hjuo *HiringJobUpdateOne) AddApprovalUserIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.AddApprovalUserIDs(ids...)
 	return hjuo
 }
 
-// AddHiringJobStep adds the "hiring_job_step" edges to the HiringJobStep entity.
-func (hjuo *HiringJobUpdateOne) AddHiringJobStep(h ...*HiringJobStep) *HiringJobUpdateOne {
+// AddApprovalUsers adds the "approval_users" edges to the User entity.
+func (hjuo *HiringJobUpdateOne) AddApprovalUsers(u ...*User) *HiringJobUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return hjuo.AddApprovalUserIDs(ids...)
+}
+
+// AddApprovalStepIDs adds the "approval_steps" edge to the HiringJobStep entity by IDs.
+func (hjuo *HiringJobUpdateOne) AddApprovalStepIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.AddApprovalStepIDs(ids...)
+	return hjuo
+}
+
+// AddApprovalSteps adds the "approval_steps" edges to the HiringJobStep entity.
+func (hjuo *HiringJobUpdateOne) AddApprovalSteps(h ...*HiringJobStep) *HiringJobUpdateOne {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return hjuo.AddHiringJobStepIDs(ids...)
+	return hjuo.AddApprovalStepIDs(ids...)
 }
 
 // Mutation returns the HiringJobMutation object of the builder.
@@ -1365,25 +1482,46 @@ func (hjuo *HiringJobUpdateOne) ClearJobPositionEdge() *HiringJobUpdateOne {
 	return hjuo
 }
 
-// ClearHiringJobStep clears all "hiring_job_step" edges to the HiringJobStep entity.
-func (hjuo *HiringJobUpdateOne) ClearHiringJobStep() *HiringJobUpdateOne {
-	hjuo.mutation.ClearHiringJobStep()
+// ClearApprovalUsers clears all "approval_users" edges to the User entity.
+func (hjuo *HiringJobUpdateOne) ClearApprovalUsers() *HiringJobUpdateOne {
+	hjuo.mutation.ClearApprovalUsers()
 	return hjuo
 }
 
-// RemoveHiringJobStepIDs removes the "hiring_job_step" edge to HiringJobStep entities by IDs.
-func (hjuo *HiringJobUpdateOne) RemoveHiringJobStepIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
-	hjuo.mutation.RemoveHiringJobStepIDs(ids...)
+// RemoveApprovalUserIDs removes the "approval_users" edge to User entities by IDs.
+func (hjuo *HiringJobUpdateOne) RemoveApprovalUserIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.RemoveApprovalUserIDs(ids...)
 	return hjuo
 }
 
-// RemoveHiringJobStep removes "hiring_job_step" edges to HiringJobStep entities.
-func (hjuo *HiringJobUpdateOne) RemoveHiringJobStep(h ...*HiringJobStep) *HiringJobUpdateOne {
+// RemoveApprovalUsers removes "approval_users" edges to User entities.
+func (hjuo *HiringJobUpdateOne) RemoveApprovalUsers(u ...*User) *HiringJobUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return hjuo.RemoveApprovalUserIDs(ids...)
+}
+
+// ClearApprovalSteps clears all "approval_steps" edges to the HiringJobStep entity.
+func (hjuo *HiringJobUpdateOne) ClearApprovalSteps() *HiringJobUpdateOne {
+	hjuo.mutation.ClearApprovalSteps()
+	return hjuo
+}
+
+// RemoveApprovalStepIDs removes the "approval_steps" edge to HiringJobStep entities by IDs.
+func (hjuo *HiringJobUpdateOne) RemoveApprovalStepIDs(ids ...uuid.UUID) *HiringJobUpdateOne {
+	hjuo.mutation.RemoveApprovalStepIDs(ids...)
+	return hjuo
+}
+
+// RemoveApprovalSteps removes "approval_steps" edges to HiringJobStep entities.
+func (hjuo *HiringJobUpdateOne) RemoveApprovalSteps(h ...*HiringJobStep) *HiringJobUpdateOne {
 	ids := make([]uuid.UUID, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
-	return hjuo.RemoveHiringJobStepIDs(ids...)
+	return hjuo.RemoveApprovalStepIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1810,12 +1948,78 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if hjuo.mutation.HiringJobStepCleared() {
+	if hjuo.mutation.ApprovalUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		createE := &HiringJobStepCreate{config: hjuo.config, mutation: newHiringJobStepMutation(hjuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hjuo.mutation.RemovedApprovalUsersIDs(); len(nodes) > 0 && !hjuo.mutation.ApprovalUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringJobStepCreate{config: hjuo.config, mutation: newHiringJobStepMutation(hjuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := hjuo.mutation.ApprovalUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hiringjob.ApprovalUsersTable,
+			Columns: hiringjob.ApprovalUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &HiringJobStepCreate{config: hjuo.config, mutation: newHiringJobStepMutation(hjuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if hjuo.mutation.ApprovalStepsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1826,12 +2030,12 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := hjuo.mutation.RemovedHiringJobStepIDs(); len(nodes) > 0 && !hjuo.mutation.HiringJobStepCleared() {
+	if nodes := hjuo.mutation.RemovedApprovalStepsIDs(); len(nodes) > 0 && !hjuo.mutation.ApprovalStepsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1845,12 +2049,12 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := hjuo.mutation.HiringJobStepIDs(); len(nodes) > 0 {
+	if nodes := hjuo.mutation.ApprovalStepsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   hiringjob.HiringJobStepTable,
-			Columns: []string{hiringjob.HiringJobStepColumn},
+			Inverse: true,
+			Table:   hiringjob.ApprovalStepsTable,
+			Columns: []string{hiringjob.ApprovalStepsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

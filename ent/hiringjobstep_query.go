@@ -20,16 +20,16 @@ import (
 // HiringJobStepQuery is the builder for querying HiringJobStep entities.
 type HiringJobStepQuery struct {
 	config
-	limit             *int
-	offset            *int
-	unique            *bool
-	order             []OrderFunc
-	fields            []string
-	predicates        []predicate.HiringJobStep
-	withHiringJobEdge *HiringJobQuery
-	withCreatedByEdge *UserQuery
-	modifiers         []func(*sql.Selector)
-	loadTotal         []func(context.Context, []*HiringJobStep) error
+	limit            *int
+	offset           *int
+	unique           *bool
+	order            []OrderFunc
+	fields           []string
+	predicates       []predicate.HiringJobStep
+	withApprovalJob  *HiringJobQuery
+	withApprovalUser *UserQuery
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*HiringJobStep) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +66,8 @@ func (hjsq *HiringJobStepQuery) Order(o ...OrderFunc) *HiringJobStepQuery {
 	return hjsq
 }
 
-// QueryHiringJobEdge chains the current query on the "hiring_job_edge" edge.
-func (hjsq *HiringJobStepQuery) QueryHiringJobEdge() *HiringJobQuery {
+// QueryApprovalJob chains the current query on the "approval_job" edge.
+func (hjsq *HiringJobStepQuery) QueryApprovalJob() *HiringJobQuery {
 	query := &HiringJobQuery{config: hjsq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := hjsq.prepareQuery(ctx); err != nil {
@@ -80,7 +80,7 @@ func (hjsq *HiringJobStepQuery) QueryHiringJobEdge() *HiringJobQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, selector),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.HiringJobEdgeTable, hiringjobstep.HiringJobEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringjobstep.ApprovalJobTable, hiringjobstep.ApprovalJobColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjsq.driver.Dialect(), step)
 		return fromU, nil
@@ -88,8 +88,8 @@ func (hjsq *HiringJobStepQuery) QueryHiringJobEdge() *HiringJobQuery {
 	return query
 }
 
-// QueryCreatedByEdge chains the current query on the "created_by_edge" edge.
-func (hjsq *HiringJobStepQuery) QueryCreatedByEdge() *UserQuery {
+// QueryApprovalUser chains the current query on the "approval_user" edge.
+func (hjsq *HiringJobStepQuery) QueryApprovalUser() *UserQuery {
 	query := &UserQuery{config: hjsq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := hjsq.prepareQuery(ctx); err != nil {
@@ -102,7 +102,7 @@ func (hjsq *HiringJobStepQuery) QueryCreatedByEdge() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringjobstep.Table, hiringjobstep.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, hiringjobstep.CreatedByEdgeTable, hiringjobstep.CreatedByEdgeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringjobstep.ApprovalUserTable, hiringjobstep.ApprovalUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(hjsq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,13 +286,13 @@ func (hjsq *HiringJobStepQuery) Clone() *HiringJobStepQuery {
 		return nil
 	}
 	return &HiringJobStepQuery{
-		config:            hjsq.config,
-		limit:             hjsq.limit,
-		offset:            hjsq.offset,
-		order:             append([]OrderFunc{}, hjsq.order...),
-		predicates:        append([]predicate.HiringJobStep{}, hjsq.predicates...),
-		withHiringJobEdge: hjsq.withHiringJobEdge.Clone(),
-		withCreatedByEdge: hjsq.withCreatedByEdge.Clone(),
+		config:           hjsq.config,
+		limit:            hjsq.limit,
+		offset:           hjsq.offset,
+		order:            append([]OrderFunc{}, hjsq.order...),
+		predicates:       append([]predicate.HiringJobStep{}, hjsq.predicates...),
+		withApprovalJob:  hjsq.withApprovalJob.Clone(),
+		withApprovalUser: hjsq.withApprovalUser.Clone(),
 		// clone intermediate query.
 		sql:    hjsq.sql.Clone(),
 		path:   hjsq.path,
@@ -300,25 +300,25 @@ func (hjsq *HiringJobStepQuery) Clone() *HiringJobStepQuery {
 	}
 }
 
-// WithHiringJobEdge tells the query-builder to eager-load the nodes that are connected to
-// the "hiring_job_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (hjsq *HiringJobStepQuery) WithHiringJobEdge(opts ...func(*HiringJobQuery)) *HiringJobStepQuery {
+// WithApprovalJob tells the query-builder to eager-load the nodes that are connected to
+// the "approval_job" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjsq *HiringJobStepQuery) WithApprovalJob(opts ...func(*HiringJobQuery)) *HiringJobStepQuery {
 	query := &HiringJobQuery{config: hjsq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	hjsq.withHiringJobEdge = query
+	hjsq.withApprovalJob = query
 	return hjsq
 }
 
-// WithCreatedByEdge tells the query-builder to eager-load the nodes that are connected to
-// the "created_by_edge" edge. The optional arguments are used to configure the query builder of the edge.
-func (hjsq *HiringJobStepQuery) WithCreatedByEdge(opts ...func(*UserQuery)) *HiringJobStepQuery {
+// WithApprovalUser tells the query-builder to eager-load the nodes that are connected to
+// the "approval_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (hjsq *HiringJobStepQuery) WithApprovalUser(opts ...func(*UserQuery)) *HiringJobStepQuery {
 	query := &UserQuery{config: hjsq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	hjsq.withCreatedByEdge = query
+	hjsq.withApprovalUser = query
 	return hjsq
 }
 
@@ -396,8 +396,8 @@ func (hjsq *HiringJobStepQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		nodes       = []*HiringJobStep{}
 		_spec       = hjsq.querySpec()
 		loadedTypes = [2]bool{
-			hjsq.withHiringJobEdge != nil,
-			hjsq.withCreatedByEdge != nil,
+			hjsq.withApprovalJob != nil,
+			hjsq.withApprovalUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -421,15 +421,15 @@ func (hjsq *HiringJobStepQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := hjsq.withHiringJobEdge; query != nil {
-		if err := hjsq.loadHiringJobEdge(ctx, query, nodes, nil,
-			func(n *HiringJobStep, e *HiringJob) { n.Edges.HiringJobEdge = e }); err != nil {
+	if query := hjsq.withApprovalJob; query != nil {
+		if err := hjsq.loadApprovalJob(ctx, query, nodes, nil,
+			func(n *HiringJobStep, e *HiringJob) { n.Edges.ApprovalJob = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := hjsq.withCreatedByEdge; query != nil {
-		if err := hjsq.loadCreatedByEdge(ctx, query, nodes, nil,
-			func(n *HiringJobStep, e *User) { n.Edges.CreatedByEdge = e }); err != nil {
+	if query := hjsq.withApprovalUser; query != nil {
+		if err := hjsq.loadApprovalUser(ctx, query, nodes, nil,
+			func(n *HiringJobStep, e *User) { n.Edges.ApprovalUser = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -441,7 +441,7 @@ func (hjsq *HiringJobStepQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	return nodes, nil
 }
 
-func (hjsq *HiringJobStepQuery) loadHiringJobEdge(ctx context.Context, query *HiringJobQuery, nodes []*HiringJobStep, init func(*HiringJobStep), assign func(*HiringJobStep, *HiringJob)) error {
+func (hjsq *HiringJobStepQuery) loadApprovalJob(ctx context.Context, query *HiringJobQuery, nodes []*HiringJobStep, init func(*HiringJobStep), assign func(*HiringJobStep, *HiringJob)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*HiringJobStep)
 	for i := range nodes {
@@ -467,11 +467,11 @@ func (hjsq *HiringJobStepQuery) loadHiringJobEdge(ctx context.Context, query *Hi
 	}
 	return nil
 }
-func (hjsq *HiringJobStepQuery) loadCreatedByEdge(ctx context.Context, query *UserQuery, nodes []*HiringJobStep, init func(*HiringJobStep), assign func(*HiringJobStep, *User)) error {
+func (hjsq *HiringJobStepQuery) loadApprovalUser(ctx context.Context, query *UserQuery, nodes []*HiringJobStep, init func(*HiringJobStep), assign func(*HiringJobStep, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*HiringJobStep)
 	for i := range nodes {
-		fk := nodes[i].CreatedByID
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -485,7 +485,7 @@ func (hjsq *HiringJobStepQuery) loadCreatedByEdge(ctx context.Context, query *Us
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "created_by_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
