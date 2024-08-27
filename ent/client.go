@@ -3587,15 +3587,15 @@ func (c *HiringTeamApproverClient) GetX(ctx context.Context, id uuid.UUID) *Hiri
 	return obj
 }
 
-// QueryUser queries the user edge of a HiringTeamApprover.
-func (c *HiringTeamApproverClient) QueryUser(hta *HiringTeamApprover) *UserQuery {
+// QueryUserEdge queries the user_edge edge of a HiringTeamApprover.
+func (c *HiringTeamApproverClient) QueryUserEdge(hta *HiringTeamApprover) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := hta.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.UserTable, hiringteamapprover.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.UserEdgeTable, hiringteamapprover.UserEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(hta.driver.Dialect(), step)
 		return fromV, nil
@@ -3603,15 +3603,15 @@ func (c *HiringTeamApproverClient) QueryUser(hta *HiringTeamApprover) *UserQuery
 	return query
 }
 
-// QueryHiringTeam queries the hiring_team edge of a HiringTeamApprover.
-func (c *HiringTeamApproverClient) QueryHiringTeam(hta *HiringTeamApprover) *HiringTeamQuery {
+// QueryHiringTeamEdge queries the hiring_team_edge edge of a HiringTeamApprover.
+func (c *HiringTeamApproverClient) QueryHiringTeamEdge(hta *HiringTeamApprover) *HiringTeamQuery {
 	query := &HiringTeamQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := hta.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, id),
 			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.HiringTeamTable, hiringteamapprover.HiringTeamColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.HiringTeamEdgeTable, hiringteamapprover.HiringTeamEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(hta.driver.Dialect(), step)
 		return fromV, nil

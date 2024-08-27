@@ -74,7 +74,7 @@ func (rps *hiringTeamRepoImpl) BuildQuery() *ent.HiringTeamQuery {
 			query.Where(user.DeletedAtIsNil())
 		}).
 		WithHiringTeamApprovers(func(query *ent.HiringTeamApproverQuery) {
-			query.WithUser().Order(ent.Asc(hiringteamapprover.FieldOrderID))
+			query.WithUserEdge().Order(ent.Asc(hiringteamapprover.FieldOrderID))
 		})
 }
 

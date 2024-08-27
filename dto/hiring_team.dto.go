@@ -142,7 +142,7 @@ func (d hiringTeamDtoImpl) teamMemberAuditTrailUpdate(oldRecord *ent.HiringTeam,
 func (d hiringTeamDtoImpl) teamApproverAuditTrail(teamApprovers []*ent.HiringTeamApprover, atInterface []interface{}) []interface{} {
 	teamApproversAuditTrail := lo.Map(teamApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
 		return models.HiringTeamApproverAuditTrail{
-			Name:    approver.Edges.User.Name,
+			Name:    approver.Edges.UserEdge.Name,
 			OrderID: approver.OrderID,
 		}
 	})
@@ -157,13 +157,13 @@ func (d hiringTeamDtoImpl) teamApproverAuditTrail(teamApprovers []*ent.HiringTea
 func (d hiringTeamDtoImpl) teamApproverAuditTrailUpdate(oldApprovers []*ent.HiringTeamApprover, newApprovers []*ent.HiringTeamApprover, atInterface []interface{}) []interface{} {
 	oldApproversAuditTrail := lo.Map(oldApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
 		return models.HiringTeamApproverAuditTrail{
-			Name:    approver.Edges.User.Name,
+			Name:    approver.Edges.UserEdge.Name,
 			OrderID: approver.OrderID,
 		}
 	})
 	newApproversAuditTrail := lo.Map(newApprovers, func(approver *ent.HiringTeamApprover, _ int) models.HiringTeamApproverAuditTrail {
 		return models.HiringTeamApproverAuditTrail{
-			Name:    approver.Edges.User.Name,
+			Name:    approver.Edges.UserEdge.Name,
 			OrderID: approver.OrderID,
 		}
 	})

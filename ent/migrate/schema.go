@@ -757,13 +757,13 @@ var (
 		PrimaryKey: []*schema.Column{HiringTeamApproversColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "hiring_team_approvers_users_user",
+				Symbol:     "hiring_team_approvers_users_user_edge",
 				Columns:    []*schema.Column{HiringTeamApproversColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "hiring_team_approvers_hiring_teams_hiring_team",
+				Symbol:     "hiring_team_approvers_hiring_teams_hiring_team_edge",
 				Columns:    []*schema.Column{HiringTeamApproversColumns[6]},
 				RefColumns: []*schema.Column{HiringTeamsColumns[0]},
 				OnDelete:   schema.NoAction,

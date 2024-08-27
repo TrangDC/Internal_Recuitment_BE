@@ -24635,22 +24635,22 @@ func (m *HiringTeamMutation) ResetEdge(name string) error {
 // HiringTeamApproverMutation represents an operation that mutates the HiringTeamApprover nodes in the graph.
 type HiringTeamApproverMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	order_id           *int
-	addorder_id        *int
-	clearedFields      map[string]struct{}
-	user               *uuid.UUID
-	cleareduser        bool
-	hiring_team        *uuid.UUID
-	clearedhiring_team bool
-	done               bool
-	oldValue           func(context.Context) (*HiringTeamApprover, error)
-	predicates         []predicate.HiringTeamApprover
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	order_id                *int
+	addorder_id             *int
+	clearedFields           map[string]struct{}
+	user_edge               *uuid.UUID
+	cleareduser_edge        bool
+	hiring_team_edge        *uuid.UUID
+	clearedhiring_team_edge bool
+	done                    bool
+	oldValue                func(context.Context) (*HiringTeamApprover, error)
+	predicates              []predicate.HiringTeamApprover
 }
 
 var _ ent.Mutation = (*HiringTeamApproverMutation)(nil)
@@ -24893,12 +24893,12 @@ func (m *HiringTeamApproverMutation) ResetDeletedAt() {
 
 // SetUserID sets the "user_id" field.
 func (m *HiringTeamApproverMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
+	m.user_edge = &u
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
 func (m *HiringTeamApproverMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
+	v := m.user_edge
 	if v == nil {
 		return
 	}
@@ -24924,17 +24924,17 @@ func (m *HiringTeamApproverMutation) OldUserID(ctx context.Context) (v uuid.UUID
 
 // ResetUserID resets all changes to the "user_id" field.
 func (m *HiringTeamApproverMutation) ResetUserID() {
-	m.user = nil
+	m.user_edge = nil
 }
 
 // SetHiringTeamID sets the "hiring_team_id" field.
 func (m *HiringTeamApproverMutation) SetHiringTeamID(u uuid.UUID) {
-	m.hiring_team = &u
+	m.hiring_team_edge = &u
 }
 
 // HiringTeamID returns the value of the "hiring_team_id" field in the mutation.
 func (m *HiringTeamApproverMutation) HiringTeamID() (r uuid.UUID, exists bool) {
-	v := m.hiring_team
+	v := m.hiring_team_edge
 	if v == nil {
 		return
 	}
@@ -24960,7 +24960,7 @@ func (m *HiringTeamApproverMutation) OldHiringTeamID(ctx context.Context) (v uui
 
 // ResetHiringTeamID resets all changes to the "hiring_team_id" field.
 func (m *HiringTeamApproverMutation) ResetHiringTeamID() {
-	m.hiring_team = nil
+	m.hiring_team_edge = nil
 }
 
 // SetOrderID sets the "order_id" field.
@@ -25019,56 +25019,82 @@ func (m *HiringTeamApproverMutation) ResetOrderID() {
 	m.addorder_id = nil
 }
 
-// ClearUser clears the "user" edge to the User entity.
-func (m *HiringTeamApproverMutation) ClearUser() {
-	m.cleareduser = true
+// SetUserEdgeID sets the "user_edge" edge to the User entity by id.
+func (m *HiringTeamApproverMutation) SetUserEdgeID(id uuid.UUID) {
+	m.user_edge = &id
 }
 
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *HiringTeamApproverMutation) UserCleared() bool {
-	return m.cleareduser
+// ClearUserEdge clears the "user_edge" edge to the User entity.
+func (m *HiringTeamApproverMutation) ClearUserEdge() {
+	m.cleareduser_edge = true
 }
 
-// UserIDs returns the "user" edge IDs in the mutation.
+// UserEdgeCleared reports if the "user_edge" edge to the User entity was cleared.
+func (m *HiringTeamApproverMutation) UserEdgeCleared() bool {
+	return m.cleareduser_edge
+}
+
+// UserEdgeID returns the "user_edge" edge ID in the mutation.
+func (m *HiringTeamApproverMutation) UserEdgeID() (id uuid.UUID, exists bool) {
+	if m.user_edge != nil {
+		return *m.user_edge, true
+	}
+	return
+}
+
+// UserEdgeIDs returns the "user_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *HiringTeamApproverMutation) UserIDs() (ids []uuid.UUID) {
-	if id := m.user; id != nil {
+// UserEdgeID instead. It exists only for internal usage by the builders.
+func (m *HiringTeamApproverMutation) UserEdgeIDs() (ids []uuid.UUID) {
+	if id := m.user_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetUser resets all changes to the "user" edge.
-func (m *HiringTeamApproverMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
+// ResetUserEdge resets all changes to the "user_edge" edge.
+func (m *HiringTeamApproverMutation) ResetUserEdge() {
+	m.user_edge = nil
+	m.cleareduser_edge = false
 }
 
-// ClearHiringTeam clears the "hiring_team" edge to the HiringTeam entity.
-func (m *HiringTeamApproverMutation) ClearHiringTeam() {
-	m.clearedhiring_team = true
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by id.
+func (m *HiringTeamApproverMutation) SetHiringTeamEdgeID(id uuid.UUID) {
+	m.hiring_team_edge = &id
 }
 
-// HiringTeamCleared reports if the "hiring_team" edge to the HiringTeam entity was cleared.
-func (m *HiringTeamApproverMutation) HiringTeamCleared() bool {
-	return m.clearedhiring_team
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (m *HiringTeamApproverMutation) ClearHiringTeamEdge() {
+	m.clearedhiring_team_edge = true
 }
 
-// HiringTeamIDs returns the "hiring_team" edge IDs in the mutation.
+// HiringTeamEdgeCleared reports if the "hiring_team_edge" edge to the HiringTeam entity was cleared.
+func (m *HiringTeamApproverMutation) HiringTeamEdgeCleared() bool {
+	return m.clearedhiring_team_edge
+}
+
+// HiringTeamEdgeID returns the "hiring_team_edge" edge ID in the mutation.
+func (m *HiringTeamApproverMutation) HiringTeamEdgeID() (id uuid.UUID, exists bool) {
+	if m.hiring_team_edge != nil {
+		return *m.hiring_team_edge, true
+	}
+	return
+}
+
+// HiringTeamEdgeIDs returns the "hiring_team_edge" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// HiringTeamID instead. It exists only for internal usage by the builders.
-func (m *HiringTeamApproverMutation) HiringTeamIDs() (ids []uuid.UUID) {
-	if id := m.hiring_team; id != nil {
+// HiringTeamEdgeID instead. It exists only for internal usage by the builders.
+func (m *HiringTeamApproverMutation) HiringTeamEdgeIDs() (ids []uuid.UUID) {
+	if id := m.hiring_team_edge; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetHiringTeam resets all changes to the "hiring_team" edge.
-func (m *HiringTeamApproverMutation) ResetHiringTeam() {
-	m.hiring_team = nil
-	m.clearedhiring_team = false
+// ResetHiringTeamEdge resets all changes to the "hiring_team_edge" edge.
+func (m *HiringTeamApproverMutation) ResetHiringTeamEdge() {
+	m.hiring_team_edge = nil
+	m.clearedhiring_team_edge = false
 }
 
 // Where appends a list predicates to the HiringTeamApproverMutation builder.
@@ -25100,10 +25126,10 @@ func (m *HiringTeamApproverMutation) Fields() []string {
 	if m.deleted_at != nil {
 		fields = append(fields, hiringteamapprover.FieldDeletedAt)
 	}
-	if m.user != nil {
+	if m.user_edge != nil {
 		fields = append(fields, hiringteamapprover.FieldUserID)
 	}
-	if m.hiring_team != nil {
+	if m.hiring_team_edge != nil {
 		fields = append(fields, hiringteamapprover.FieldHiringTeamID)
 	}
 	if m.order_id != nil {
@@ -25305,11 +25331,11 @@ func (m *HiringTeamApproverMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *HiringTeamApproverMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.user != nil {
-		edges = append(edges, hiringteamapprover.EdgeUser)
+	if m.user_edge != nil {
+		edges = append(edges, hiringteamapprover.EdgeUserEdge)
 	}
-	if m.hiring_team != nil {
-		edges = append(edges, hiringteamapprover.EdgeHiringTeam)
+	if m.hiring_team_edge != nil {
+		edges = append(edges, hiringteamapprover.EdgeHiringTeamEdge)
 	}
 	return edges
 }
@@ -25318,12 +25344,12 @@ func (m *HiringTeamApproverMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *HiringTeamApproverMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case hiringteamapprover.EdgeUser:
-		if id := m.user; id != nil {
+	case hiringteamapprover.EdgeUserEdge:
+		if id := m.user_edge; id != nil {
 			return []ent.Value{*id}
 		}
-	case hiringteamapprover.EdgeHiringTeam:
-		if id := m.hiring_team; id != nil {
+	case hiringteamapprover.EdgeHiringTeamEdge:
+		if id := m.hiring_team_edge; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -25345,11 +25371,11 @@ func (m *HiringTeamApproverMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *HiringTeamApproverMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.cleareduser {
-		edges = append(edges, hiringteamapprover.EdgeUser)
+	if m.cleareduser_edge {
+		edges = append(edges, hiringteamapprover.EdgeUserEdge)
 	}
-	if m.clearedhiring_team {
-		edges = append(edges, hiringteamapprover.EdgeHiringTeam)
+	if m.clearedhiring_team_edge {
+		edges = append(edges, hiringteamapprover.EdgeHiringTeamEdge)
 	}
 	return edges
 }
@@ -25358,10 +25384,10 @@ func (m *HiringTeamApproverMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *HiringTeamApproverMutation) EdgeCleared(name string) bool {
 	switch name {
-	case hiringteamapprover.EdgeUser:
-		return m.cleareduser
-	case hiringteamapprover.EdgeHiringTeam:
-		return m.clearedhiring_team
+	case hiringteamapprover.EdgeUserEdge:
+		return m.cleareduser_edge
+	case hiringteamapprover.EdgeHiringTeamEdge:
+		return m.clearedhiring_team_edge
 	}
 	return false
 }
@@ -25370,11 +25396,11 @@ func (m *HiringTeamApproverMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *HiringTeamApproverMutation) ClearEdge(name string) error {
 	switch name {
-	case hiringteamapprover.EdgeUser:
-		m.ClearUser()
+	case hiringteamapprover.EdgeUserEdge:
+		m.ClearUserEdge()
 		return nil
-	case hiringteamapprover.EdgeHiringTeam:
-		m.ClearHiringTeam()
+	case hiringteamapprover.EdgeHiringTeamEdge:
+		m.ClearHiringTeamEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringTeamApprover unique edge %s", name)
@@ -25384,11 +25410,11 @@ func (m *HiringTeamApproverMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *HiringTeamApproverMutation) ResetEdge(name string) error {
 	switch name {
-	case hiringteamapprover.EdgeUser:
-		m.ResetUser()
+	case hiringteamapprover.EdgeUserEdge:
+		m.ResetUserEdge()
 		return nil
-	case hiringteamapprover.EdgeHiringTeam:
-		m.ResetHiringTeam()
+	case hiringteamapprover.EdgeHiringTeamEdge:
+		m.ResetHiringTeamEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringTeamApprover edge %s", name)

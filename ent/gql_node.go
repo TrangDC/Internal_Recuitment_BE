@@ -2744,9 +2744,9 @@ func (hta *HiringTeamApprover) Node(ctx context.Context) (node *Node, err error)
 	}
 	node.Edges[0] = &Edge{
 		Type: "User",
-		Name: "user",
+		Name: "user_edge",
 	}
-	err = hta.QueryUser().
+	err = hta.QueryUserEdge().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -2754,9 +2754,9 @@ func (hta *HiringTeamApprover) Node(ctx context.Context) (node *Node, err error)
 	}
 	node.Edges[1] = &Edge{
 		Type: "HiringTeam",
-		Name: "hiring_team",
+		Name: "hiring_team_edge",
 	}
-	err = hta.QueryHiringTeam().
+	err = hta.QueryHiringTeamEdge().
 		Select(hiringteam.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {

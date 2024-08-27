@@ -20,16 +20,16 @@ import (
 // HiringTeamApproverQuery is the builder for querying HiringTeamApprover entities.
 type HiringTeamApproverQuery struct {
 	config
-	limit          *int
-	offset         *int
-	unique         *bool
-	order          []OrderFunc
-	fields         []string
-	predicates     []predicate.HiringTeamApprover
-	withUser       *UserQuery
-	withHiringTeam *HiringTeamQuery
-	modifiers      []func(*sql.Selector)
-	loadTotal      []func(context.Context, []*HiringTeamApprover) error
+	limit              *int
+	offset             *int
+	unique             *bool
+	order              []OrderFunc
+	fields             []string
+	predicates         []predicate.HiringTeamApprover
+	withUserEdge       *UserQuery
+	withHiringTeamEdge *HiringTeamQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*HiringTeamApprover) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +66,8 @@ func (htaq *HiringTeamApproverQuery) Order(o ...OrderFunc) *HiringTeamApproverQu
 	return htaq
 }
 
-// QueryUser chains the current query on the "user" edge.
-func (htaq *HiringTeamApproverQuery) QueryUser() *UserQuery {
+// QueryUserEdge chains the current query on the "user_edge" edge.
+func (htaq *HiringTeamApproverQuery) QueryUserEdge() *UserQuery {
 	query := &UserQuery{config: htaq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := htaq.prepareQuery(ctx); err != nil {
@@ -80,7 +80,7 @@ func (htaq *HiringTeamApproverQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.UserTable, hiringteamapprover.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.UserEdgeTable, hiringteamapprover.UserEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(htaq.driver.Dialect(), step)
 		return fromU, nil
@@ -88,8 +88,8 @@ func (htaq *HiringTeamApproverQuery) QueryUser() *UserQuery {
 	return query
 }
 
-// QueryHiringTeam chains the current query on the "hiring_team" edge.
-func (htaq *HiringTeamApproverQuery) QueryHiringTeam() *HiringTeamQuery {
+// QueryHiringTeamEdge chains the current query on the "hiring_team_edge" edge.
+func (htaq *HiringTeamApproverQuery) QueryHiringTeamEdge() *HiringTeamQuery {
 	query := &HiringTeamQuery{config: htaq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := htaq.prepareQuery(ctx); err != nil {
@@ -102,7 +102,7 @@ func (htaq *HiringTeamApproverQuery) QueryHiringTeam() *HiringTeamQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(hiringteamapprover.Table, hiringteamapprover.FieldID, selector),
 			sqlgraph.To(hiringteam.Table, hiringteam.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.HiringTeamTable, hiringteamapprover.HiringTeamColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, hiringteamapprover.HiringTeamEdgeTable, hiringteamapprover.HiringTeamEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(htaq.driver.Dialect(), step)
 		return fromU, nil
@@ -286,13 +286,13 @@ func (htaq *HiringTeamApproverQuery) Clone() *HiringTeamApproverQuery {
 		return nil
 	}
 	return &HiringTeamApproverQuery{
-		config:         htaq.config,
-		limit:          htaq.limit,
-		offset:         htaq.offset,
-		order:          append([]OrderFunc{}, htaq.order...),
-		predicates:     append([]predicate.HiringTeamApprover{}, htaq.predicates...),
-		withUser:       htaq.withUser.Clone(),
-		withHiringTeam: htaq.withHiringTeam.Clone(),
+		config:             htaq.config,
+		limit:              htaq.limit,
+		offset:             htaq.offset,
+		order:              append([]OrderFunc{}, htaq.order...),
+		predicates:         append([]predicate.HiringTeamApprover{}, htaq.predicates...),
+		withUserEdge:       htaq.withUserEdge.Clone(),
+		withHiringTeamEdge: htaq.withHiringTeamEdge.Clone(),
 		// clone intermediate query.
 		sql:    htaq.sql.Clone(),
 		path:   htaq.path,
@@ -300,25 +300,25 @@ func (htaq *HiringTeamApproverQuery) Clone() *HiringTeamApproverQuery {
 	}
 }
 
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (htaq *HiringTeamApproverQuery) WithUser(opts ...func(*UserQuery)) *HiringTeamApproverQuery {
+// WithUserEdge tells the query-builder to eager-load the nodes that are connected to
+// the "user_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (htaq *HiringTeamApproverQuery) WithUserEdge(opts ...func(*UserQuery)) *HiringTeamApproverQuery {
 	query := &UserQuery{config: htaq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	htaq.withUser = query
+	htaq.withUserEdge = query
 	return htaq
 }
 
-// WithHiringTeam tells the query-builder to eager-load the nodes that are connected to
-// the "hiring_team" edge. The optional arguments are used to configure the query builder of the edge.
-func (htaq *HiringTeamApproverQuery) WithHiringTeam(opts ...func(*HiringTeamQuery)) *HiringTeamApproverQuery {
+// WithHiringTeamEdge tells the query-builder to eager-load the nodes that are connected to
+// the "hiring_team_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (htaq *HiringTeamApproverQuery) WithHiringTeamEdge(opts ...func(*HiringTeamQuery)) *HiringTeamApproverQuery {
 	query := &HiringTeamQuery{config: htaq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	htaq.withHiringTeam = query
+	htaq.withHiringTeamEdge = query
 	return htaq
 }
 
@@ -396,8 +396,8 @@ func (htaq *HiringTeamApproverQuery) sqlAll(ctx context.Context, hooks ...queryH
 		nodes       = []*HiringTeamApprover{}
 		_spec       = htaq.querySpec()
 		loadedTypes = [2]bool{
-			htaq.withUser != nil,
-			htaq.withHiringTeam != nil,
+			htaq.withUserEdge != nil,
+			htaq.withHiringTeamEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -421,15 +421,15 @@ func (htaq *HiringTeamApproverQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := htaq.withUser; query != nil {
-		if err := htaq.loadUser(ctx, query, nodes, nil,
-			func(n *HiringTeamApprover, e *User) { n.Edges.User = e }); err != nil {
+	if query := htaq.withUserEdge; query != nil {
+		if err := htaq.loadUserEdge(ctx, query, nodes, nil,
+			func(n *HiringTeamApprover, e *User) { n.Edges.UserEdge = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := htaq.withHiringTeam; query != nil {
-		if err := htaq.loadHiringTeam(ctx, query, nodes, nil,
-			func(n *HiringTeamApprover, e *HiringTeam) { n.Edges.HiringTeam = e }); err != nil {
+	if query := htaq.withHiringTeamEdge; query != nil {
+		if err := htaq.loadHiringTeamEdge(ctx, query, nodes, nil,
+			func(n *HiringTeamApprover, e *HiringTeam) { n.Edges.HiringTeamEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -441,7 +441,7 @@ func (htaq *HiringTeamApproverQuery) sqlAll(ctx context.Context, hooks ...queryH
 	return nodes, nil
 }
 
-func (htaq *HiringTeamApproverQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*HiringTeamApprover, init func(*HiringTeamApprover), assign func(*HiringTeamApprover, *User)) error {
+func (htaq *HiringTeamApproverQuery) loadUserEdge(ctx context.Context, query *UserQuery, nodes []*HiringTeamApprover, init func(*HiringTeamApprover), assign func(*HiringTeamApprover, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*HiringTeamApprover)
 	for i := range nodes {
@@ -467,7 +467,7 @@ func (htaq *HiringTeamApproverQuery) loadUser(ctx context.Context, query *UserQu
 	}
 	return nil
 }
-func (htaq *HiringTeamApproverQuery) loadHiringTeam(ctx context.Context, query *HiringTeamQuery, nodes []*HiringTeamApprover, init func(*HiringTeamApprover), assign func(*HiringTeamApprover, *HiringTeam)) error {
+func (htaq *HiringTeamApproverQuery) loadHiringTeamEdge(ctx context.Context, query *HiringTeamQuery, nodes []*HiringTeamApprover, init func(*HiringTeamApprover), assign func(*HiringTeamApprover, *HiringTeam)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*HiringTeamApprover)
 	for i := range nodes {

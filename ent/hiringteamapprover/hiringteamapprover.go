@@ -23,26 +23,26 @@ const (
 	FieldHiringTeamID = "hiring_team_id"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgeHiringTeam holds the string denoting the hiring_team edge name in mutations.
-	EdgeHiringTeam = "hiring_team"
+	// EdgeUserEdge holds the string denoting the user_edge edge name in mutations.
+	EdgeUserEdge = "user_edge"
+	// EdgeHiringTeamEdge holds the string denoting the hiring_team_edge edge name in mutations.
+	EdgeHiringTeamEdge = "hiring_team_edge"
 	// Table holds the table name of the hiringteamapprover in the database.
 	Table = "hiring_team_approvers"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "hiring_team_approvers"
-	// UserInverseTable is the table name for the User entity.
+	// UserEdgeTable is the table that holds the user_edge relation/edge.
+	UserEdgeTable = "hiring_team_approvers"
+	// UserEdgeInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_id"
-	// HiringTeamTable is the table that holds the hiring_team relation/edge.
-	HiringTeamTable = "hiring_team_approvers"
-	// HiringTeamInverseTable is the table name for the HiringTeam entity.
+	UserEdgeInverseTable = "users"
+	// UserEdgeColumn is the table column denoting the user_edge relation/edge.
+	UserEdgeColumn = "user_id"
+	// HiringTeamEdgeTable is the table that holds the hiring_team_edge relation/edge.
+	HiringTeamEdgeTable = "hiring_team_approvers"
+	// HiringTeamEdgeInverseTable is the table name for the HiringTeam entity.
 	// It exists in this package in order to avoid circular dependency with the "hiringteam" package.
-	HiringTeamInverseTable = "hiring_teams"
-	// HiringTeamColumn is the table column denoting the hiring_team relation/edge.
-	HiringTeamColumn = "hiring_team_id"
+	HiringTeamEdgeInverseTable = "hiring_teams"
+	// HiringTeamEdgeColumn is the table column denoting the hiring_team_edge relation/edge.
+	HiringTeamEdgeColumn = "hiring_team_id"
 )
 
 // Columns holds all SQL columns for hiringteamapprover fields.

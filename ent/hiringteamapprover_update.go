@@ -96,14 +96,26 @@ func (htau *HiringTeamApproverUpdate) AddOrderID(i int) *HiringTeamApproverUpdat
 	return htau
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (htau *HiringTeamApproverUpdate) SetUser(u *User) *HiringTeamApproverUpdate {
-	return htau.SetUserID(u.ID)
+// SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
+func (htau *HiringTeamApproverUpdate) SetUserEdgeID(id uuid.UUID) *HiringTeamApproverUpdate {
+	htau.mutation.SetUserEdgeID(id)
+	return htau
 }
 
-// SetHiringTeam sets the "hiring_team" edge to the HiringTeam entity.
-func (htau *HiringTeamApproverUpdate) SetHiringTeam(h *HiringTeam) *HiringTeamApproverUpdate {
-	return htau.SetHiringTeamID(h.ID)
+// SetUserEdge sets the "user_edge" edge to the User entity.
+func (htau *HiringTeamApproverUpdate) SetUserEdge(u *User) *HiringTeamApproverUpdate {
+	return htau.SetUserEdgeID(u.ID)
+}
+
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (htau *HiringTeamApproverUpdate) SetHiringTeamEdgeID(id uuid.UUID) *HiringTeamApproverUpdate {
+	htau.mutation.SetHiringTeamEdgeID(id)
+	return htau
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (htau *HiringTeamApproverUpdate) SetHiringTeamEdge(h *HiringTeam) *HiringTeamApproverUpdate {
+	return htau.SetHiringTeamEdgeID(h.ID)
 }
 
 // Mutation returns the HiringTeamApproverMutation object of the builder.
@@ -111,15 +123,15 @@ func (htau *HiringTeamApproverUpdate) Mutation() *HiringTeamApproverMutation {
 	return htau.mutation
 }
 
-// ClearUser clears the "user" edge to the User entity.
-func (htau *HiringTeamApproverUpdate) ClearUser() *HiringTeamApproverUpdate {
-	htau.mutation.ClearUser()
+// ClearUserEdge clears the "user_edge" edge to the User entity.
+func (htau *HiringTeamApproverUpdate) ClearUserEdge() *HiringTeamApproverUpdate {
+	htau.mutation.ClearUserEdge()
 	return htau
 }
 
-// ClearHiringTeam clears the "hiring_team" edge to the HiringTeam entity.
-func (htau *HiringTeamApproverUpdate) ClearHiringTeam() *HiringTeamApproverUpdate {
-	htau.mutation.ClearHiringTeam()
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (htau *HiringTeamApproverUpdate) ClearHiringTeamEdge() *HiringTeamApproverUpdate {
+	htau.mutation.ClearHiringTeamEdge()
 	return htau
 }
 
@@ -190,11 +202,11 @@ func (htau *HiringTeamApproverUpdate) check() error {
 			return &ValidationError{Name: "order_id", err: fmt.Errorf(`ent: validator failed for field "HiringTeamApprover.order_id": %w`, err)}
 		}
 	}
-	if _, ok := htau.mutation.UserID(); htau.mutation.UserCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.user"`)
+	if _, ok := htau.mutation.UserEdgeID(); htau.mutation.UserEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.user_edge"`)
 	}
-	if _, ok := htau.mutation.HiringTeamID(); htau.mutation.HiringTeamCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.hiring_team"`)
+	if _, ok := htau.mutation.HiringTeamEdgeID(); htau.mutation.HiringTeamEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.hiring_team_edge"`)
 	}
 	return nil
 }
@@ -235,12 +247,12 @@ func (htau *HiringTeamApproverUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := htau.mutation.AddedOrderID(); ok {
 		_spec.AddField(hiringteamapprover.FieldOrderID, field.TypeInt, value)
 	}
-	if htau.mutation.UserCleared() {
+	if htau.mutation.UserEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.UserTable,
-			Columns: []string{hiringteamapprover.UserColumn},
+			Table:   hiringteamapprover.UserEdgeTable,
+			Columns: []string{hiringteamapprover.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -251,12 +263,12 @@ func (htau *HiringTeamApproverUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := htau.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := htau.mutation.UserEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.UserTable,
-			Columns: []string{hiringteamapprover.UserColumn},
+			Table:   hiringteamapprover.UserEdgeTable,
+			Columns: []string{hiringteamapprover.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -270,12 +282,12 @@ func (htau *HiringTeamApproverUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if htau.mutation.HiringTeamCleared() {
+	if htau.mutation.HiringTeamEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.HiringTeamTable,
-			Columns: []string{hiringteamapprover.HiringTeamColumn},
+			Table:   hiringteamapprover.HiringTeamEdgeTable,
+			Columns: []string{hiringteamapprover.HiringTeamEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -286,12 +298,12 @@ func (htau *HiringTeamApproverUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := htau.mutation.HiringTeamIDs(); len(nodes) > 0 {
+	if nodes := htau.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.HiringTeamTable,
-			Columns: []string{hiringteamapprover.HiringTeamColumn},
+			Table:   hiringteamapprover.HiringTeamEdgeTable,
+			Columns: []string{hiringteamapprover.HiringTeamEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -389,14 +401,26 @@ func (htauo *HiringTeamApproverUpdateOne) AddOrderID(i int) *HiringTeamApproverU
 	return htauo
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (htauo *HiringTeamApproverUpdateOne) SetUser(u *User) *HiringTeamApproverUpdateOne {
-	return htauo.SetUserID(u.ID)
+// SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
+func (htauo *HiringTeamApproverUpdateOne) SetUserEdgeID(id uuid.UUID) *HiringTeamApproverUpdateOne {
+	htauo.mutation.SetUserEdgeID(id)
+	return htauo
 }
 
-// SetHiringTeam sets the "hiring_team" edge to the HiringTeam entity.
-func (htauo *HiringTeamApproverUpdateOne) SetHiringTeam(h *HiringTeam) *HiringTeamApproverUpdateOne {
-	return htauo.SetHiringTeamID(h.ID)
+// SetUserEdge sets the "user_edge" edge to the User entity.
+func (htauo *HiringTeamApproverUpdateOne) SetUserEdge(u *User) *HiringTeamApproverUpdateOne {
+	return htauo.SetUserEdgeID(u.ID)
+}
+
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (htauo *HiringTeamApproverUpdateOne) SetHiringTeamEdgeID(id uuid.UUID) *HiringTeamApproverUpdateOne {
+	htauo.mutation.SetHiringTeamEdgeID(id)
+	return htauo
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (htauo *HiringTeamApproverUpdateOne) SetHiringTeamEdge(h *HiringTeam) *HiringTeamApproverUpdateOne {
+	return htauo.SetHiringTeamEdgeID(h.ID)
 }
 
 // Mutation returns the HiringTeamApproverMutation object of the builder.
@@ -404,15 +428,15 @@ func (htauo *HiringTeamApproverUpdateOne) Mutation() *HiringTeamApproverMutation
 	return htauo.mutation
 }
 
-// ClearUser clears the "user" edge to the User entity.
-func (htauo *HiringTeamApproverUpdateOne) ClearUser() *HiringTeamApproverUpdateOne {
-	htauo.mutation.ClearUser()
+// ClearUserEdge clears the "user_edge" edge to the User entity.
+func (htauo *HiringTeamApproverUpdateOne) ClearUserEdge() *HiringTeamApproverUpdateOne {
+	htauo.mutation.ClearUserEdge()
 	return htauo
 }
 
-// ClearHiringTeam clears the "hiring_team" edge to the HiringTeam entity.
-func (htauo *HiringTeamApproverUpdateOne) ClearHiringTeam() *HiringTeamApproverUpdateOne {
-	htauo.mutation.ClearHiringTeam()
+// ClearHiringTeamEdge clears the "hiring_team_edge" edge to the HiringTeam entity.
+func (htauo *HiringTeamApproverUpdateOne) ClearHiringTeamEdge() *HiringTeamApproverUpdateOne {
+	htauo.mutation.ClearHiringTeamEdge()
 	return htauo
 }
 
@@ -496,11 +520,11 @@ func (htauo *HiringTeamApproverUpdateOne) check() error {
 			return &ValidationError{Name: "order_id", err: fmt.Errorf(`ent: validator failed for field "HiringTeamApprover.order_id": %w`, err)}
 		}
 	}
-	if _, ok := htauo.mutation.UserID(); htauo.mutation.UserCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.user"`)
+	if _, ok := htauo.mutation.UserEdgeID(); htauo.mutation.UserEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.user_edge"`)
 	}
-	if _, ok := htauo.mutation.HiringTeamID(); htauo.mutation.HiringTeamCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.hiring_team"`)
+	if _, ok := htauo.mutation.HiringTeamEdgeID(); htauo.mutation.HiringTeamEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "HiringTeamApprover.hiring_team_edge"`)
 	}
 	return nil
 }
@@ -558,12 +582,12 @@ func (htauo *HiringTeamApproverUpdateOne) sqlSave(ctx context.Context) (_node *H
 	if value, ok := htauo.mutation.AddedOrderID(); ok {
 		_spec.AddField(hiringteamapprover.FieldOrderID, field.TypeInt, value)
 	}
-	if htauo.mutation.UserCleared() {
+	if htauo.mutation.UserEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.UserTable,
-			Columns: []string{hiringteamapprover.UserColumn},
+			Table:   hiringteamapprover.UserEdgeTable,
+			Columns: []string{hiringteamapprover.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -574,12 +598,12 @@ func (htauo *HiringTeamApproverUpdateOne) sqlSave(ctx context.Context) (_node *H
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := htauo.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := htauo.mutation.UserEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.UserTable,
-			Columns: []string{hiringteamapprover.UserColumn},
+			Table:   hiringteamapprover.UserEdgeTable,
+			Columns: []string{hiringteamapprover.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -593,12 +617,12 @@ func (htauo *HiringTeamApproverUpdateOne) sqlSave(ctx context.Context) (_node *H
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if htauo.mutation.HiringTeamCleared() {
+	if htauo.mutation.HiringTeamEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.HiringTeamTable,
-			Columns: []string{hiringteamapprover.HiringTeamColumn},
+			Table:   hiringteamapprover.HiringTeamEdgeTable,
+			Columns: []string{hiringteamapprover.HiringTeamEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -609,12 +633,12 @@ func (htauo *HiringTeamApproverUpdateOne) sqlSave(ctx context.Context) (_node *H
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := htauo.mutation.HiringTeamIDs(); len(nodes) > 0 {
+	if nodes := htauo.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.HiringTeamTable,
-			Columns: []string{hiringteamapprover.HiringTeamColumn},
+			Table:   hiringteamapprover.HiringTeamEdgeTable,
+			Columns: []string{hiringteamapprover.HiringTeamEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

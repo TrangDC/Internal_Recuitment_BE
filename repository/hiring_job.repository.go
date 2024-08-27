@@ -147,11 +147,13 @@ func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.Ne
 		SetSalaryFrom(input.SalaryFrom).
 		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
-		SetStatus(hiringjob.Status(input.Status)).
 		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
 		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
+		SetRecTeamID(uuid.MustParse(input.RecTeamID)).
+		SetStatus(hiringjob.StatusPendingApprovals).
+		SetLevel(hiringjob.Level(input.Level)).
 		Save(ctx)
 }
 
@@ -221,7 +223,11 @@ func (rps *hiringJobRepoImpl) ValidName(ctx context.Context, hiringJobId uuid.UU
 }
 
 func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error) {
-	query := rps.BuildQuery().Where(hiringjob.PriorityEQ(priority), hiringjob.HiringTeamID(hiringTeamID))
+	query := rps.BuildQuery().Where(
+		hiringjob.PriorityEQ(priority),
+		hiringjob.HiringTeamID(hiringTeamID),
+		hiringjob.StatusIn(hiringjob.StatusPendingApprovals, hiringjob.StatusOpened),
+	)
 	if hiringJobId != uuid.Nil {
 		query = query.Where(hiringjob.IDNEQ(hiringJobId))
 	}

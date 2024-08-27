@@ -780,18 +780,18 @@ func (ht *HiringTeam) UserHiringTeams(ctx context.Context) (result []*HiringTeam
 	return result, err
 }
 
-func (hta *HiringTeamApprover) User(ctx context.Context) (*User, error) {
-	result, err := hta.Edges.UserOrErr()
+func (hta *HiringTeamApprover) UserEdge(ctx context.Context) (*User, error) {
+	result, err := hta.Edges.UserEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = hta.QueryUser().Only(ctx)
+		result, err = hta.QueryUserEdge().Only(ctx)
 	}
 	return result, err
 }
 
-func (hta *HiringTeamApprover) HiringTeam(ctx context.Context) (*HiringTeam, error) {
-	result, err := hta.Edges.HiringTeamOrErr()
+func (hta *HiringTeamApprover) HiringTeamEdge(ctx context.Context) (*HiringTeam, error) {
+	result, err := hta.Edges.HiringTeamEdgeOrErr()
 	if IsNotLoaded(err) {
-		result, err = hta.QueryHiringTeam().Only(ctx)
+		result, err = hta.QueryHiringTeamEdge().Only(ctx)
 	}
 	return result, err
 }

@@ -85,9 +85,11 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		if err != nil {
 			return err
 		}
-		// TODO: create steps for every approvers, including rec leader
 		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, nil, entityskill.EntityTypeHiringJob)
-		return err
+		if err != nil {
+			return err
+		}
+		return svc.hiringJobStepSvc.CreateBulkHiringJobSteps(ctx, repoRegistry, record)
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())

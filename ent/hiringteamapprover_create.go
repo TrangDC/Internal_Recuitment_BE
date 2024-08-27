@@ -89,14 +89,26 @@ func (htac *HiringTeamApproverCreate) SetID(u uuid.UUID) *HiringTeamApproverCrea
 	return htac
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (htac *HiringTeamApproverCreate) SetUser(u *User) *HiringTeamApproverCreate {
-	return htac.SetUserID(u.ID)
+// SetUserEdgeID sets the "user_edge" edge to the User entity by ID.
+func (htac *HiringTeamApproverCreate) SetUserEdgeID(id uuid.UUID) *HiringTeamApproverCreate {
+	htac.mutation.SetUserEdgeID(id)
+	return htac
 }
 
-// SetHiringTeam sets the "hiring_team" edge to the HiringTeam entity.
-func (htac *HiringTeamApproverCreate) SetHiringTeam(h *HiringTeam) *HiringTeamApproverCreate {
-	return htac.SetHiringTeamID(h.ID)
+// SetUserEdge sets the "user_edge" edge to the User entity.
+func (htac *HiringTeamApproverCreate) SetUserEdge(u *User) *HiringTeamApproverCreate {
+	return htac.SetUserEdgeID(u.ID)
+}
+
+// SetHiringTeamEdgeID sets the "hiring_team_edge" edge to the HiringTeam entity by ID.
+func (htac *HiringTeamApproverCreate) SetHiringTeamEdgeID(id uuid.UUID) *HiringTeamApproverCreate {
+	htac.mutation.SetHiringTeamEdgeID(id)
+	return htac
+}
+
+// SetHiringTeamEdge sets the "hiring_team_edge" edge to the HiringTeam entity.
+func (htac *HiringTeamApproverCreate) SetHiringTeamEdge(h *HiringTeam) *HiringTeamApproverCreate {
+	return htac.SetHiringTeamEdgeID(h.ID)
 }
 
 // Mutation returns the HiringTeamApproverMutation object of the builder.
@@ -201,11 +213,11 @@ func (htac *HiringTeamApproverCreate) check() error {
 			return &ValidationError{Name: "order_id", err: fmt.Errorf(`ent: validator failed for field "HiringTeamApprover.order_id": %w`, err)}
 		}
 	}
-	if _, ok := htac.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "HiringTeamApprover.user"`)}
+	if _, ok := htac.mutation.UserEdgeID(); !ok {
+		return &ValidationError{Name: "user_edge", err: errors.New(`ent: missing required edge "HiringTeamApprover.user_edge"`)}
 	}
-	if _, ok := htac.mutation.HiringTeamID(); !ok {
-		return &ValidationError{Name: "hiring_team", err: errors.New(`ent: missing required edge "HiringTeamApprover.hiring_team"`)}
+	if _, ok := htac.mutation.HiringTeamEdgeID(); !ok {
+		return &ValidationError{Name: "hiring_team_edge", err: errors.New(`ent: missing required edge "HiringTeamApprover.hiring_team_edge"`)}
 	}
 	return nil
 }
@@ -259,12 +271,12 @@ func (htac *HiringTeamApproverCreate) createSpec() (*HiringTeamApprover, *sqlgra
 		_spec.SetField(hiringteamapprover.FieldOrderID, field.TypeInt, value)
 		_node.OrderID = value
 	}
-	if nodes := htac.mutation.UserIDs(); len(nodes) > 0 {
+	if nodes := htac.mutation.UserEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.UserTable,
-			Columns: []string{hiringteamapprover.UserColumn},
+			Table:   hiringteamapprover.UserEdgeTable,
+			Columns: []string{hiringteamapprover.UserEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -279,12 +291,12 @@ func (htac *HiringTeamApproverCreate) createSpec() (*HiringTeamApprover, *sqlgra
 		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := htac.mutation.HiringTeamIDs(); len(nodes) > 0 {
+	if nodes := htac.mutation.HiringTeamEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
-			Table:   hiringteamapprover.HiringTeamTable,
-			Columns: []string{hiringteamapprover.HiringTeamColumn},
+			Table:   hiringteamapprover.HiringTeamEdgeTable,
+			Columns: []string{hiringteamapprover.HiringTeamEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

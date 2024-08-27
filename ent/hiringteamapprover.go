@@ -38,10 +38,10 @@ type HiringTeamApprover struct {
 
 // HiringTeamApproverEdges holds the relations/edges for other nodes in the graph.
 type HiringTeamApproverEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// HiringTeam holds the value of the hiring_team edge.
-	HiringTeam *HiringTeam `json:"hiring_team,omitempty"`
+	// UserEdge holds the value of the user_edge edge.
+	UserEdge *User `json:"user_edge,omitempty"`
+	// HiringTeamEdge holds the value of the hiring_team_edge edge.
+	HiringTeamEdge *HiringTeam `json:"hiring_team_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -49,30 +49,30 @@ type HiringTeamApproverEdges struct {
 	totalCount [2]map[string]int
 }
 
-// UserOrErr returns the User value or an error if the edge
+// UserEdgeOrErr returns the UserEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e HiringTeamApproverEdges) UserOrErr() (*User, error) {
+func (e HiringTeamApproverEdges) UserEdgeOrErr() (*User, error) {
 	if e.loadedTypes[0] {
-		if e.User == nil {
+		if e.UserEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.User, nil
+		return e.UserEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "user"}
+	return nil, &NotLoadedError{edge: "user_edge"}
 }
 
-// HiringTeamOrErr returns the HiringTeam value or an error if the edge
+// HiringTeamEdgeOrErr returns the HiringTeamEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e HiringTeamApproverEdges) HiringTeamOrErr() (*HiringTeam, error) {
+func (e HiringTeamApproverEdges) HiringTeamEdgeOrErr() (*HiringTeam, error) {
 	if e.loadedTypes[1] {
-		if e.HiringTeam == nil {
+		if e.HiringTeamEdge == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: hiringteam.Label}
 		}
-		return e.HiringTeam, nil
+		return e.HiringTeamEdge, nil
 	}
-	return nil, &NotLoadedError{edge: "hiring_team"}
+	return nil, &NotLoadedError{edge: "hiring_team_edge"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -148,14 +148,14 @@ func (hta *HiringTeamApprover) assignValues(columns []string, values []any) erro
 	return nil
 }
 
-// QueryUser queries the "user" edge of the HiringTeamApprover entity.
-func (hta *HiringTeamApprover) QueryUser() *UserQuery {
-	return (&HiringTeamApproverClient{config: hta.config}).QueryUser(hta)
+// QueryUserEdge queries the "user_edge" edge of the HiringTeamApprover entity.
+func (hta *HiringTeamApprover) QueryUserEdge() *UserQuery {
+	return (&HiringTeamApproverClient{config: hta.config}).QueryUserEdge(hta)
 }
 
-// QueryHiringTeam queries the "hiring_team" edge of the HiringTeamApprover entity.
-func (hta *HiringTeamApprover) QueryHiringTeam() *HiringTeamQuery {
-	return (&HiringTeamApproverClient{config: hta.config}).QueryHiringTeam(hta)
+// QueryHiringTeamEdge queries the "hiring_team_edge" edge of the HiringTeamApprover entity.
+func (hta *HiringTeamApprover) QueryHiringTeamEdge() *HiringTeamQuery {
+	return (&HiringTeamApproverClient{config: hta.config}).QueryHiringTeamEdge(hta)
 }
 
 // Update returns a builder for updating this HiringTeamApprover.
