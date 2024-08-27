@@ -66,6 +66,11 @@ func (r *queryResolver) GetAllHiringJobs(ctx context.Context, pagination *ent.Pa
 	return r.serviceRegistry.HiringJob().GetHiringJobs(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// GetAllHiringJobsGroupByStatus is the resolver for the GetAllHiringJobsGroupByStatus field.
+func (r *queryResolver) GetAllHiringJobsGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobGroupByStatusResponse, error) {
+	return r.serviceRegistry.HiringJob().GetHiringJobsGroupByStatus(ctx, pagination, freeWord, filter, orderBy)
+}
+
 // GetAuditTrail is the resolver for the GetAuditTrail field.
 func (r *queryResolver) GetAuditTrail(ctx context.Context, id string) (*ent.AuditTrailResponse, error) {
 	return r.serviceRegistry.AuditTrail().GetAuditTrail(ctx, uuid.MustParse(id))

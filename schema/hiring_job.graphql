@@ -75,6 +75,18 @@ input HiringJobFreeWord {
   name: String
 }
 
+type HiringJobGroupByStatus {
+  pending_approvals: [HiringJob!]
+  opened: [HiringJob!]
+  closed: [HiringJob!]
+  cancelled: [HiringJob!]
+}
+
+type HiringJobGroupByStatusResponse {
+  data: HiringJobGroupByStatus!
+  pagination: Pagination!
+}
+
 input NewHiringJobInput {
   name: String!
   description: String!

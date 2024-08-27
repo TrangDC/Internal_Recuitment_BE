@@ -623,6 +623,18 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	HiringJobGroupByStatus struct {
+		Cancelled        func(childComplexity int) int
+		Closed           func(childComplexity int) int
+		Opened           func(childComplexity int) int
+		PendingApprovals func(childComplexity int) int
+	}
+
+	HiringJobGroupByStatusResponse struct {
+		Data       func(childComplexity int) int
+		Pagination func(childComplexity int) int
+	}
+
 	HiringJobResponse struct {
 		Data func(childComplexity int) int
 	}
@@ -893,6 +905,7 @@ type ComplexityRoot struct {
 		GetAllEmailTemplateKeywords                   func(childComplexity int, filter ent.EmailTemplateKeywordFilter) int
 		GetAllEmailTemplates                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.EmailTemplateFilter, freeWord *ent.EmailTemplateFreeWord, orderBy *ent.EmailTemplateOrder) int
 		GetAllHiringJobs                              func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
+		GetAllHiringJobsGroupByStatus                 func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
 		GetAllHiringTeams                             func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		GetAllJobPositions                            func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
 		GetAllOutgoingEmails                          func(childComplexity int, pagination *ent.PaginationInput, filter ent.OutgoingEmailFilter, freeWord *ent.OutgoingEmailFreeWord, orderBy *ent.OutgoingEmailOrder) int
@@ -1494,6 +1507,7 @@ type QueryResolver interface {
 	GetAllJobPositions(ctx context.Context, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) (*ent.JobPositionResponseGetAll, error)
 	GetHiringJob(ctx context.Context, id string) (*ent.HiringJobResponse, error)
 	GetAllHiringJobs(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobResponseGetAll, error)
+	GetAllHiringJobsGroupByStatus(ctx context.Context, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) (*ent.HiringJobGroupByStatusResponse, error)
 	GetAuditTrail(ctx context.Context, id string) (*ent.AuditTrailResponse, error)
 	GetAllAuditTrails(ctx context.Context, pagination *ent.PaginationInput, filter *ent.AuditTrailFilter, freeWord *ent.AuditTrailFreeWord, orderBy *ent.AuditTrailOrder) (*ent.AuditTrailResponseGetAll, error)
 	GetCandidate(ctx context.Context, id string) (*ent.CandidateResponse, error)
@@ -4001,6 +4015,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJobEdge.Node(childComplexity), true
 
+	case "HiringJobGroupByStatus.cancelled":
+		if e.complexity.HiringJobGroupByStatus.Cancelled == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatus.Cancelled(childComplexity), true
+
+	case "HiringJobGroupByStatus.closed":
+		if e.complexity.HiringJobGroupByStatus.Closed == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatus.Closed(childComplexity), true
+
+	case "HiringJobGroupByStatus.opened":
+		if e.complexity.HiringJobGroupByStatus.Opened == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatus.Opened(childComplexity), true
+
+	case "HiringJobGroupByStatus.pending_approvals":
+		if e.complexity.HiringJobGroupByStatus.PendingApprovals == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatus.PendingApprovals(childComplexity), true
+
+	case "HiringJobGroupByStatusResponse.data":
+		if e.complexity.HiringJobGroupByStatusResponse.Data == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatusResponse.Data(childComplexity), true
+
+	case "HiringJobGroupByStatusResponse.pagination":
+		if e.complexity.HiringJobGroupByStatusResponse.Pagination == nil {
+			break
+		}
+
+		return e.complexity.HiringJobGroupByStatusResponse.Pagination(childComplexity), true
+
 	case "HiringJobResponse.data":
 		if e.complexity.HiringJobResponse.Data == nil {
 			break
@@ -5499,6 +5555,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllHiringJobs(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringJobFilter), args["freeWord"].(*ent.HiringJobFreeWord), args["orderBy"].(ent.HiringJobOrderBy)), true
+
+	case "Query.GetAllHiringJobsGroupByStatus":
+		if e.complexity.Query.GetAllHiringJobsGroupByStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAllHiringJobsGroupByStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllHiringJobsGroupByStatus(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.HiringJobFilter), args["freeWord"].(*ent.HiringJobFreeWord), args["orderBy"].(ent.HiringJobOrderBy)), true
 
 	case "Query.GetAllHiringTeams":
 		if e.complexity.Query.GetAllHiringTeams == nil {
@@ -8545,6 +8613,18 @@ input HiringJobFreeWord {
   name: String
 }
 
+type HiringJobGroupByStatus {
+  pending_approvals: [HiringJob!]
+  opened: [HiringJob!]
+  closed: [HiringJob!]
+  cancelled: [HiringJob!]
+}
+
+type HiringJobGroupByStatusResponse {
+  data: HiringJobGroupByStatus!
+  pagination: Pagination!
+}
+
 input NewHiringJobInput {
   name: String!
   description: String!
@@ -9049,6 +9129,7 @@ enum PermissionGroupType {
   # HiringJob
   GetHiringJob(id: ID!): HiringJobResponse!
   GetAllHiringJobs(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobResponseGetAll!
+  GetAllHiringJobsGroupByStatus(pagination: PaginationInput, filter: HiringJobFilter, freeWord: HiringJobFreeWord, orderBy: HiringJobOrderBy!): HiringJobGroupByStatusResponse!
 
   # AuditTrail
   GetAuditTrail(id: ID!): AuditTrailResponse!
@@ -11570,6 +11651,48 @@ func (ec *executionContext) field_Query_GetAllEmailTemplates_args(ctx context.Co
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 		arg3, err = ec.unmarshalOEmailTemplateOrder2ᚖtrecᚋentᚐEmailTemplateOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetAllHiringJobsGroupByStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.PaginationInput
+	if tmp, ok := rawArgs["pagination"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagination"))
+		arg0, err = ec.unmarshalOPaginationInput2ᚖtrecᚋentᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pagination"] = arg0
+	var arg1 *ent.HiringJobFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOHiringJobFilter2ᚖtrecᚋentᚐHiringJobFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 *ent.HiringJobFreeWord
+	if tmp, ok := rawArgs["freeWord"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeWord"))
+		arg2, err = ec.unmarshalOHiringJobFreeWord2ᚖtrecᚋentᚐHiringJobFreeWord(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["freeWord"] = arg2
+	var arg3 ent.HiringJobOrderBy
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg3, err = ec.unmarshalNHiringJobOrderBy2trecᚋentᚐHiringJobOrderBy(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -30074,6 +30197,500 @@ func (ec *executionContext) fieldContext_HiringJobEdge_cursor(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJobGroupByStatus_pending_approvals(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatus_pending_approvals(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PendingApprovals, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringJob)
+	fc.Result = res
+	return ec.marshalOHiringJob2ᚕᚖtrecᚋentᚐHiringJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatus_pending_approvals(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringJob_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringJob_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringJob_slug(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringJob_description(ctx, field)
+			case "amount":
+				return ec.fieldContext_HiringJob_amount(ctx, field)
+			case "location":
+				return ec.fieldContext_HiringJob_location(ctx, field)
+			case "salary_type":
+				return ec.fieldContext_HiringJob_salary_type(ctx, field)
+			case "salary_from":
+				return ec.fieldContext_HiringJob_salary_from(ctx, field)
+			case "salary_to":
+				return ec.fieldContext_HiringJob_salary_to(ctx, field)
+			case "currency":
+				return ec.fieldContext_HiringJob_currency(ctx, field)
+			case "job_position":
+				return ec.fieldContext_HiringJob_job_position(ctx, field)
+			case "job_position_id":
+				return ec.fieldContext_HiringJob_job_position_id(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_HiringJob_rec_team(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_HiringJob_rec_in_charge(ctx, field)
+			case "user":
+				return ec.fieldContext_HiringJob_user(ctx, field)
+			case "status":
+				return ec.fieldContext_HiringJob_status(ctx, field)
+			case "total_candidates_recruited":
+				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
+			case "entity_skill_types":
+				return ec.fieldContext_HiringJob_entity_skill_types(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringJob_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
+			case "level":
+				return ec.fieldContext_HiringJob_level(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobGroupByStatus_opened(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatus_opened(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Opened, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringJob)
+	fc.Result = res
+	return ec.marshalOHiringJob2ᚕᚖtrecᚋentᚐHiringJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatus_opened(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringJob_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringJob_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringJob_slug(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringJob_description(ctx, field)
+			case "amount":
+				return ec.fieldContext_HiringJob_amount(ctx, field)
+			case "location":
+				return ec.fieldContext_HiringJob_location(ctx, field)
+			case "salary_type":
+				return ec.fieldContext_HiringJob_salary_type(ctx, field)
+			case "salary_from":
+				return ec.fieldContext_HiringJob_salary_from(ctx, field)
+			case "salary_to":
+				return ec.fieldContext_HiringJob_salary_to(ctx, field)
+			case "currency":
+				return ec.fieldContext_HiringJob_currency(ctx, field)
+			case "job_position":
+				return ec.fieldContext_HiringJob_job_position(ctx, field)
+			case "job_position_id":
+				return ec.fieldContext_HiringJob_job_position_id(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_HiringJob_rec_team(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_HiringJob_rec_in_charge(ctx, field)
+			case "user":
+				return ec.fieldContext_HiringJob_user(ctx, field)
+			case "status":
+				return ec.fieldContext_HiringJob_status(ctx, field)
+			case "total_candidates_recruited":
+				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
+			case "entity_skill_types":
+				return ec.fieldContext_HiringJob_entity_skill_types(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringJob_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
+			case "level":
+				return ec.fieldContext_HiringJob_level(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobGroupByStatus_closed(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatus_closed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Closed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringJob)
+	fc.Result = res
+	return ec.marshalOHiringJob2ᚕᚖtrecᚋentᚐHiringJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatus_closed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringJob_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringJob_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringJob_slug(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringJob_description(ctx, field)
+			case "amount":
+				return ec.fieldContext_HiringJob_amount(ctx, field)
+			case "location":
+				return ec.fieldContext_HiringJob_location(ctx, field)
+			case "salary_type":
+				return ec.fieldContext_HiringJob_salary_type(ctx, field)
+			case "salary_from":
+				return ec.fieldContext_HiringJob_salary_from(ctx, field)
+			case "salary_to":
+				return ec.fieldContext_HiringJob_salary_to(ctx, field)
+			case "currency":
+				return ec.fieldContext_HiringJob_currency(ctx, field)
+			case "job_position":
+				return ec.fieldContext_HiringJob_job_position(ctx, field)
+			case "job_position_id":
+				return ec.fieldContext_HiringJob_job_position_id(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_HiringJob_rec_team(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_HiringJob_rec_in_charge(ctx, field)
+			case "user":
+				return ec.fieldContext_HiringJob_user(ctx, field)
+			case "status":
+				return ec.fieldContext_HiringJob_status(ctx, field)
+			case "total_candidates_recruited":
+				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
+			case "entity_skill_types":
+				return ec.fieldContext_HiringJob_entity_skill_types(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringJob_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
+			case "level":
+				return ec.fieldContext_HiringJob_level(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobGroupByStatus_cancelled(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatus_cancelled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cancelled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.HiringJob)
+	fc.Result = res
+	return ec.marshalOHiringJob2ᚕᚖtrecᚋentᚐHiringJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatus_cancelled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_HiringJob_id(ctx, field)
+			case "name":
+				return ec.fieldContext_HiringJob_name(ctx, field)
+			case "slug":
+				return ec.fieldContext_HiringJob_slug(ctx, field)
+			case "description":
+				return ec.fieldContext_HiringJob_description(ctx, field)
+			case "amount":
+				return ec.fieldContext_HiringJob_amount(ctx, field)
+			case "location":
+				return ec.fieldContext_HiringJob_location(ctx, field)
+			case "salary_type":
+				return ec.fieldContext_HiringJob_salary_type(ctx, field)
+			case "salary_from":
+				return ec.fieldContext_HiringJob_salary_from(ctx, field)
+			case "salary_to":
+				return ec.fieldContext_HiringJob_salary_to(ctx, field)
+			case "currency":
+				return ec.fieldContext_HiringJob_currency(ctx, field)
+			case "job_position":
+				return ec.fieldContext_HiringJob_job_position(ctx, field)
+			case "job_position_id":
+				return ec.fieldContext_HiringJob_job_position_id(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_HiringJob_hiring_team(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_HiringJob_rec_team(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_HiringJob_rec_in_charge(ctx, field)
+			case "user":
+				return ec.fieldContext_HiringJob_user(ctx, field)
+			case "status":
+				return ec.fieldContext_HiringJob_status(ctx, field)
+			case "total_candidates_recruited":
+				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
+			case "is_able_to_delete":
+				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
+			case "is_able_to_close":
+				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
+			case "priority":
+				return ec.fieldContext_HiringJob_priority(ctx, field)
+			case "entity_skill_types":
+				return ec.fieldContext_HiringJob_entity_skill_types(ctx, field)
+			case "created_at":
+				return ec.fieldContext_HiringJob_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_HiringJob_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_HiringJob_deleted_at(ctx, field)
+			case "steps":
+				return ec.fieldContext_HiringJob_steps(ctx, field)
+			case "level":
+				return ec.fieldContext_HiringJob_level(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobGroupByStatusResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatusResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatusResponse_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.HiringJobGroupByStatus)
+	fc.Result = res
+	return ec.marshalNHiringJobGroupByStatus2ᚖtrecᚋentᚐHiringJobGroupByStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatusResponse_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatusResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pending_approvals":
+				return ec.fieldContext_HiringJobGroupByStatus_pending_approvals(ctx, field)
+			case "opened":
+				return ec.fieldContext_HiringJobGroupByStatus_opened(ctx, field)
+			case "closed":
+				return ec.fieldContext_HiringJobGroupByStatus_closed(ctx, field)
+			case "cancelled":
+				return ec.fieldContext_HiringJobGroupByStatus_cancelled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJobGroupByStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJobGroupByStatusResponse_pagination(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobGroupByStatusResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJobGroupByStatusResponse_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Pagination)
+	fc.Result = res
+	return ec.marshalNPagination2ᚖtrecᚋentᚐPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJobGroupByStatusResponse_pagination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJobGroupByStatusResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "page":
+				return ec.fieldContext_Pagination_page(ctx, field)
+			case "perPage":
+				return ec.fieldContext_Pagination_perPage(ctx, field)
+			case "total":
+				return ec.fieldContext_Pagination_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Pagination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJobResponse_data(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJobResponse_data(ctx, field)
 	if err != nil {
@@ -38676,6 +39293,67 @@ func (ec *executionContext) fieldContext_Query_GetAllHiringJobs(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllHiringJobs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllHiringJobsGroupByStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllHiringJobsGroupByStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllHiringJobsGroupByStatus(rctx, fc.Args["pagination"].(*ent.PaginationInput), fc.Args["filter"].(*ent.HiringJobFilter), fc.Args["freeWord"].(*ent.HiringJobFreeWord), fc.Args["orderBy"].(ent.HiringJobOrderBy))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.HiringJobGroupByStatusResponse)
+	fc.Result = res
+	return ec.marshalNHiringJobGroupByStatusResponse2ᚖtrecᚋentᚐHiringJobGroupByStatusResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllHiringJobsGroupByStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_HiringJobGroupByStatusResponse_data(ctx, field)
+			case "pagination":
+				return ec.fieldContext_HiringJobGroupByStatusResponse_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type HiringJobGroupByStatusResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetAllHiringJobsGroupByStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -60963,6 +61641,78 @@ func (ec *executionContext) _HiringJobEdge(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var hiringJobGroupByStatusImplementors = []string{"HiringJobGroupByStatus"}
+
+func (ec *executionContext) _HiringJobGroupByStatus(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringJobGroupByStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringJobGroupByStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringJobGroupByStatus")
+		case "pending_approvals":
+
+			out.Values[i] = ec._HiringJobGroupByStatus_pending_approvals(ctx, field, obj)
+
+		case "opened":
+
+			out.Values[i] = ec._HiringJobGroupByStatus_opened(ctx, field, obj)
+
+		case "closed":
+
+			out.Values[i] = ec._HiringJobGroupByStatus_closed(ctx, field, obj)
+
+		case "cancelled":
+
+			out.Values[i] = ec._HiringJobGroupByStatus_cancelled(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var hiringJobGroupByStatusResponseImplementors = []string{"HiringJobGroupByStatusResponse"}
+
+func (ec *executionContext) _HiringJobGroupByStatusResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringJobGroupByStatusResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, hiringJobGroupByStatusResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HiringJobGroupByStatusResponse")
+		case "data":
+
+			out.Values[i] = ec._HiringJobGroupByStatusResponse_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pagination":
+
+			out.Values[i] = ec._HiringJobGroupByStatusResponse_pagination(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var hiringJobResponseImplementors = []string{"HiringJobResponse"}
 
 func (ec *executionContext) _HiringJobResponse(ctx context.Context, sel ast.SelectionSet, obj *ent.HiringJobResponse) graphql.Marshaler {
@@ -63394,6 +64144,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllHiringJobs(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "GetAllHiringJobsGroupByStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllHiringJobsGroupByStatus(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -68873,6 +69646,30 @@ func (ec *executionContext) marshalNHiringJobEdge2ᚖtrecᚋentᚐHiringJobEdge(
 	return ec._HiringJobEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNHiringJobGroupByStatus2ᚖtrecᚋentᚐHiringJobGroupByStatus(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJobGroupByStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringJobGroupByStatus(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHiringJobGroupByStatusResponse2trecᚋentᚐHiringJobGroupByStatusResponse(ctx context.Context, sel ast.SelectionSet, v ent.HiringJobGroupByStatusResponse) graphql.Marshaler {
+	return ec._HiringJobGroupByStatusResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHiringJobGroupByStatusResponse2ᚖtrecᚋentᚐHiringJobGroupByStatusResponse(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJobGroupByStatusResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HiringJobGroupByStatusResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNHiringJobLevel2trecᚋentᚐHiringJobLevel(ctx context.Context, v interface{}) (ent.HiringJobLevel, error) {
 	var res ent.HiringJobLevel
 	err := res.UnmarshalGQL(v)
@@ -73435,6 +74232,53 @@ func (ec *executionContext) marshalOEntitySkillType2ᚕᚖtrecᚋentᚐEntitySki
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNEntitySkillType2ᚖtrecᚋentᚐEntitySkillType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOHiringJob2ᚕᚖtrecᚋentᚐHiringJobᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.HiringJob) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHiringJob2ᚖtrecᚋentᚐHiringJob(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
