@@ -8629,9 +8629,10 @@ input HiringJobFilter {
   name: String
   hiring_team_ids: [ID!]
   rec_team_ids: [ID!]
+  has_rec_in_charge: Boolean
   rec_in_charge_ids: [ID!]
   status: HiringJobStatus
-  priority: Int
+  priorities: [Int!]
   location: [LocationEnum]
   skill_ids: [ID!]
   created_by_ids: [ID!]
@@ -53236,7 +53237,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "hiring_team_ids", "rec_team_ids", "rec_in_charge_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team", "job_position_ids", "approver_id", "approver_status"}
+	fieldsInOrder := [...]string{"name", "hiring_team_ids", "rec_team_ids", "has_rec_in_charge", "rec_in_charge_ids", "status", "priorities", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team", "job_position_ids", "approver_id", "approver_status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53267,6 +53268,14 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "has_rec_in_charge":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_rec_in_charge"))
+			it.HasRecInCharge, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "rec_in_charge_ids":
 			var err error
 
@@ -53283,11 +53292,11 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "priority":
+		case "priorities":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
-			it.Priority, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorities"))
+			it.Priorities, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

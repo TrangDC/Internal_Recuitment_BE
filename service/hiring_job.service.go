@@ -13,6 +13,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
+	"trec/ent/predicate"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/user"
@@ -523,11 +524,36 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 			})
 			hiringJobQuery.Where(hiringjob.HiringTeamIDIn(ids...))
 		}
+		if input.RecTeamIds != nil {
+			ids := lo.Map(input.RecTeamIds, func(item string, index int) uuid.UUID {
+				return uuid.MustParse(item)
+			})
+			hiringJobQuery.Where(hiringjob.RecTeamIDIn(ids...))
+		}
+		if input.HasRecInCharge != nil || input.RecInChargeIds != nil {
+			var conditions []predicate.HiringJob
+			if input.HasRecInCharge != nil {
+				if *input.HasRecInCharge {
+					conditions = append(conditions, hiringjob.RecInChargeIDIsNil())
+				} else {
+					conditions = append(conditions, hiringjob.RecInChargeIDNotNil())
+				}
+			}
+			if input.RecInChargeIds != nil {
+				ids := lo.Map(input.RecInChargeIds, func(item string, index int) uuid.UUID {
+					return uuid.MustParse(item)
+				})
+				conditions = append(conditions, hiringjob.RecInChargeIDIn(ids...))
+			}
+			if len(conditions) > 0 {
+				hiringJobQuery.Where(hiringjob.Or(conditions...))
+			}
+		}
 		if input.Status != nil {
 			hiringJobQuery.Where(hiringjob.StatusEQ(hiringjob.Status(*input.Status)))
 		}
-		if input.Priority != nil {
-			hiringJobQuery.Where(hiringjob.PriorityEQ(*input.Priority))
+		if input.Priorities != nil {
+			hiringJobQuery.Where(hiringjob.PriorityIn(input.Priorities...))
 		}
 		if input.Location != nil {
 			locations := lo.Map(input.Location, func(item *ent.LocationEnum, index int) hiringjob.Location {

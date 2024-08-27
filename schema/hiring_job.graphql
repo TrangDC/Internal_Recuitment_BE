@@ -60,9 +60,10 @@ input HiringJobFilter {
   name: String
   hiring_team_ids: [ID!]
   rec_team_ids: [ID!]
+  has_rec_in_charge: Boolean
   rec_in_charge_ids: [ID!]
   status: HiringJobStatus
-  priority: Int
+  priorities: [Int!]
   location: [LocationEnum]
   skill_ids: [ID!]
   created_by_ids: [ID!]
