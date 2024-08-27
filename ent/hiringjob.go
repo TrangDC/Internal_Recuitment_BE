@@ -63,6 +63,8 @@ type HiringJob struct {
 	JobPositionID uuid.UUID `json:"job_position_id,omitempty"`
 	// Level holds the value of the "level" field.
 	Level hiringjob.Level `json:"level,omitempty"`
+	// Note holds the value of the "note" field.
+	Note string `json:"note,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobQuery when eager-loading is set.
 	Edges HiringJobEdges `json:"edges"`
@@ -208,7 +210,7 @@ func (*HiringJob) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case hiringjob.FieldAmount, hiringjob.FieldSalaryFrom, hiringjob.FieldSalaryTo, hiringjob.FieldPriority:
 			values[i] = new(sql.NullInt64)
-		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency, hiringjob.FieldLevel:
+		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency, hiringjob.FieldLevel, hiringjob.FieldNote:
 			values[i] = new(sql.NullString)
 		case hiringjob.FieldCreatedAt, hiringjob.FieldUpdatedAt, hiringjob.FieldDeletedAt, hiringjob.FieldLastApplyDate:
 			values[i] = new(sql.NullTime)
@@ -361,6 +363,12 @@ func (hj *HiringJob) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hj.Level = hiringjob.Level(value.String)
 			}
+		case hiringjob.FieldNote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field note", values[i])
+			} else if value.Valid {
+				hj.Note = value.String
+			}
 		}
 	}
 	return nil
@@ -496,6 +504,9 @@ func (hj *HiringJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", hj.Level))
+	builder.WriteString(", ")
+	builder.WriteString("note=")
+	builder.WriteString(hj.Note)
 	builder.WriteByte(')')
 	return builder.String()
 }

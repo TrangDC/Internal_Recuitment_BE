@@ -458,6 +458,10 @@ func init() {
 	hiringjobDescPriority := hiringjobFields[11].Descriptor()
 	// hiringjob.DefaultPriority holds the default value on creation for the priority field.
 	hiringjob.DefaultPriority = hiringjobDescPriority.Default.(int)
+	// hiringjobDescNote is the schema descriptor for note field.
+	hiringjobDescNote := hiringjobFields[17].Descriptor()
+	// hiringjob.NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	hiringjob.NoteValidator = hiringjobDescNote.Validators[0].(func(string) error)
 	hiringjobstepFields := schema.HiringJobStep{}.Fields()
 	_ = hiringjobstepFields
 	// hiringjobstepDescOrderID is the schema descriptor for order_id field.

@@ -258,6 +258,20 @@ func (hjc *HiringJobCreate) SetLevel(h hiringjob.Level) *HiringJobCreate {
 	return hjc
 }
 
+// SetNote sets the "note" field.
+func (hjc *HiringJobCreate) SetNote(s string) *HiringJobCreate {
+	hjc.mutation.SetNote(s)
+	return hjc
+}
+
+// SetNillableNote sets the "note" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableNote(s *string) *HiringJobCreate {
+	if s != nil {
+		hjc.SetNote(*s)
+	}
+	return hjc
+}
+
 // SetID sets the "id" field.
 func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetID(u)
@@ -598,6 +612,11 @@ func (hjc *HiringJobCreate) check() error {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "HiringJob.level": %w`, err)}
 		}
 	}
+	if v, ok := hjc.mutation.Note(); ok {
+		if err := hiringjob.NoteValidator(v); err != nil {
+			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "HiringJob.note": %w`, err)}
+		}
+	}
 	if _, ok := hjc.mutation.RecTeamEdgeID(); !ok {
 		return &ValidationError{Name: "rec_team_edge", err: errors.New(`ent: missing required edge "HiringJob.rec_team_edge"`)}
 	}
@@ -700,6 +719,10 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 	if value, ok := hjc.mutation.Level(); ok {
 		_spec.SetField(hiringjob.FieldLevel, field.TypeEnum, value)
 		_node.Level = value
+	}
+	if value, ok := hjc.mutation.Note(); ok {
+		_spec.SetField(hiringjob.FieldNote, field.TypeString, value)
+		_node.Note = value
 	}
 	if nodes := hjc.mutation.OwnerEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

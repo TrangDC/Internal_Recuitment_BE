@@ -20434,6 +20434,7 @@ type HiringJobMutation struct {
 	priority                      *int
 	addpriority                   *int
 	level                         *hiringjob.Level
+	note                          *string
 	clearedFields                 map[string]struct{}
 	owner_edge                    *uuid.UUID
 	clearedowner_edge             bool
@@ -21493,6 +21494,55 @@ func (m *HiringJobMutation) ResetLevel() {
 	m.level = nil
 }
 
+// SetNote sets the "note" field.
+func (m *HiringJobMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *HiringJobMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the HiringJob entity.
+// If the HiringJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *HiringJobMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[hiringjob.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *HiringJobMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[hiringjob.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *HiringJobMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, hiringjob.FieldNote)
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by id.
 func (m *HiringJobMutation) SetOwnerEdgeID(id uuid.UUID) {
 	m.owner_edge = &id
@@ -21923,7 +21973,7 @@ func (m *HiringJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringJobMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 22)
 	if m.created_at != nil {
 		fields = append(fields, hiringjob.FieldCreatedAt)
 	}
@@ -21987,6 +22037,9 @@ func (m *HiringJobMutation) Fields() []string {
 	if m.level != nil {
 		fields = append(fields, hiringjob.FieldLevel)
 	}
+	if m.note != nil {
+		fields = append(fields, hiringjob.FieldNote)
+	}
 	return fields
 }
 
@@ -22037,6 +22090,8 @@ func (m *HiringJobMutation) Field(name string) (ent.Value, bool) {
 		return m.JobPositionID()
 	case hiringjob.FieldLevel:
 		return m.Level()
+	case hiringjob.FieldNote:
+		return m.Note()
 	}
 	return nil, false
 }
@@ -22088,6 +22143,8 @@ func (m *HiringJobMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldJobPositionID(ctx)
 	case hiringjob.FieldLevel:
 		return m.OldLevel(ctx)
+	case hiringjob.FieldNote:
+		return m.OldNote(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -22244,6 +22301,13 @@ func (m *HiringJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLevel(v)
 		return nil
+	case hiringjob.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -22346,6 +22410,9 @@ func (m *HiringJobMutation) ClearedFields() []string {
 	if m.FieldCleared(hiringjob.FieldJobPositionID) {
 		fields = append(fields, hiringjob.FieldJobPositionID)
 	}
+	if m.FieldCleared(hiringjob.FieldNote) {
+		fields = append(fields, hiringjob.FieldNote)
+	}
 	return fields
 }
 
@@ -22380,6 +22447,9 @@ func (m *HiringJobMutation) ClearField(name string) error {
 		return nil
 	case hiringjob.FieldJobPositionID:
 		m.ClearJobPositionID()
+		return nil
+	case hiringjob.FieldNote:
+		m.ClearNote()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob nullable field %s", name)
@@ -22451,6 +22521,9 @@ func (m *HiringJobMutation) ResetField(name string) error {
 		return nil
 	case hiringjob.FieldLevel:
 		m.ResetLevel()
+		return nil
+	case hiringjob.FieldNote:
+		m.ResetNote()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)

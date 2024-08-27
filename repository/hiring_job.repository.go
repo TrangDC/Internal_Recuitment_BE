@@ -154,6 +154,7 @@ func (rps *hiringJobRepoImpl) CreateHiringJob(ctx context.Context, input *ent.Ne
 		SetRecTeamID(uuid.MustParse(input.RecTeamID)).
 		SetStatus(hiringjob.StatusPendingApprovals).
 		SetLevel(hiringjob.Level(input.Level)).
+		SetNote(input.Note).
 		Save(ctx)
 }
 
@@ -172,6 +173,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetPriority(input.Priority).
 		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
+		SetNote(input.Note).
 		Save(ctx)
 }
 

@@ -56,6 +56,8 @@ const (
 	FieldJobPositionID = "job_position_id"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
+	// FieldNote holds the string denoting the note field in the database.
+	FieldNote = "note"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
@@ -163,6 +165,7 @@ var Columns = []string{
 	FieldRecInChargeID,
 	FieldJobPositionID,
 	FieldLevel,
+	FieldNote,
 }
 
 var (
@@ -198,6 +201,8 @@ var (
 	DefaultSalaryTo int
 	// DefaultPriority holds the default value on creation for the "priority" field.
 	DefaultPriority int
+	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
+	NoteValidator func(string) error
 )
 
 // Status defines the type for the "status" enum field.
