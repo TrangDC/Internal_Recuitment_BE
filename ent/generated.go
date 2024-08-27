@@ -1850,7 +1850,6 @@ const (
 	CandidateJobStatusApplied         CandidateJobStatus = "applied"
 	CandidateJobStatusInterviewing    CandidateJobStatus = "interviewing"
 	CandidateJobStatusOffering        CandidateJobStatus = "offering"
-	CandidateJobStatusNew             CandidateJobStatus = "new"
 )
 
 var AllCandidateJobStatus = []CandidateJobStatus{
@@ -1862,12 +1861,11 @@ var AllCandidateJobStatus = []CandidateJobStatus{
 	CandidateJobStatusApplied,
 	CandidateJobStatusInterviewing,
 	CandidateJobStatusOffering,
-	CandidateJobStatusNew,
 }
 
 func (e CandidateJobStatus) IsValid() bool {
 	switch e {
-	case CandidateJobStatusHired, CandidateJobStatusFailedCv, CandidateJobStatusFailedInterview, CandidateJobStatusOfferLost, CandidateJobStatusExStaff, CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering, CandidateJobStatusNew:
+	case CandidateJobStatusHired, CandidateJobStatusFailedCv, CandidateJobStatusFailedInterview, CandidateJobStatusOfferLost, CandidateJobStatusExStaff, CandidateJobStatusApplied, CandidateJobStatusInterviewing, CandidateJobStatusOffering:
 		return true
 	}
 	return false

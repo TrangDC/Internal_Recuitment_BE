@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"trec/internal/util"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type HiringJobRepository interface {
@@ -38,6 +40,7 @@ type HiringJobRepository interface {
 	// common function
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string, hiringTeamID string) (error, error)
 	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error)
+	ValidStatus(recordStatus hiringjob.Status, inputStatus ent.HiringJobStatus, cdJobs []*ent.CandidateJob) error
 }
 
 type hiringJobRepoImpl struct {
@@ -178,7 +181,14 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 }
 
 func (rps *hiringJobRepoImpl) UpdateHiringJobStatus(ctx context.Context, record *ent.HiringJob, status ent.HiringJobStatus) (*ent.HiringJob, error) {
-	return rps.BuildUpdateOne(ctx, record).SetStatus(hiringjob.Status(status)).Save(ctx)
+	update := rps.BuildUpdateOne(ctx, record).SetStatus(hiringjob.Status(status))
+	switch status {
+	case ent.HiringJobStatusOpened:
+		update.SetOpenedAt(time.Now().UTC())
+	case ent.HiringJobStatusClosed:
+		update.SetClosedAt(time.Now().UTC())
+	}
+	return update.Save(ctx)
 }
 
 func (rps *hiringJobRepoImpl) DeleteHiringJob(ctx context.Context, record *ent.HiringJob) error {
@@ -246,6 +256,44 @@ func (rps *hiringJobRepoImpl) ValidPriority(ctx context.Context, hiringJobId uui
 		}
 	}
 	return nil, nil
+}
+
+func (rps *hiringJobRepoImpl) ValidStatus(recordStatus hiringjob.Status, inputStatus ent.HiringJobStatus, cdJobs []*ent.CandidateJob) error {
+	switch recordStatus {
+	case hiringjob.StatusPendingApprovals:
+		if inputStatus != ent.HiringJobStatusCancelled {
+			return errors.New("model.hiring_jobs.validation.invalid_status_update")
+		}
+	case hiringjob.StatusOpened:
+		switch inputStatus {
+		case ent.HiringJobStatusClosed:
+			cdJobHiredExists := false
+			for _, cdJob := range cdJobs {
+				switch cdJob.Status {
+				case candidatejob.StatusApplied, candidatejob.StatusInterviewing, candidatejob.StatusOffering:
+					return errors.New("model.hiring_jobs.validation.close_processing_job")
+				case candidatejob.StatusHired:
+					cdJobHiredExists = true
+				}
+			}
+			if !cdJobHiredExists {
+				return errors.New("model.hiring_jobs.validation.close_not_hired_job")
+			}
+		case ent.HiringJobStatusCancelled:
+			if lo.SomeBy(cdJobs, func(item *ent.CandidateJob) bool {
+				return !ent.CandidateJobStatusFailed.IsValid(ent.CandidateJobStatusFailed(item.Status))
+			}) {
+				return errors.New("model.hiring_jobs.validation.cancel_not_failed_job")
+			}
+		}
+	case hiringjob.StatusClosed:
+		if inputStatus != ent.HiringJobStatusOpened {
+			return errors.New("model.hiring_jobs.validation.invalid_status_update")
+		}
+	case hiringjob.StatusCancelled:
+		return errors.New("model.hiring_jobs.validation.invalid_status_update")
+	}
+	return nil
 }
 
 // Path: repository/hiring_job.repository.go

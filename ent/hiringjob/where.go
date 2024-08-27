@@ -201,6 +201,20 @@ func Note(v string) predicate.HiringJob {
 	})
 }
 
+// OpenedAt applies equality check predicate on the "opened_at" field. It's identical to OpenedAtEQ.
+func OpenedAt(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOpenedAt), v))
+	})
+}
+
+// ClosedAt applies equality check predicate on the "closed_at" field. It's identical to ClosedAtEQ.
+func ClosedAt(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosedAt), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
@@ -1578,6 +1592,162 @@ func NoteEqualFold(v string) predicate.HiringJob {
 func NoteContainsFold(v string) predicate.HiringJob {
 	return predicate.HiringJob(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldNote), v))
+	})
+}
+
+// OpenedAtEQ applies the EQ predicate on the "opened_at" field.
+func OpenedAtEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtNEQ applies the NEQ predicate on the "opened_at" field.
+func OpenedAtNEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtIn applies the In predicate on the "opened_at" field.
+func OpenedAtIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOpenedAt), v...))
+	})
+}
+
+// OpenedAtNotIn applies the NotIn predicate on the "opened_at" field.
+func OpenedAtNotIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOpenedAt), v...))
+	})
+}
+
+// OpenedAtGT applies the GT predicate on the "opened_at" field.
+func OpenedAtGT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtGTE applies the GTE predicate on the "opened_at" field.
+func OpenedAtGTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtLT applies the LT predicate on the "opened_at" field.
+func OpenedAtLT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtLTE applies the LTE predicate on the "opened_at" field.
+func OpenedAtLTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOpenedAt), v))
+	})
+}
+
+// OpenedAtIsNil applies the IsNil predicate on the "opened_at" field.
+func OpenedAtIsNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOpenedAt)))
+	})
+}
+
+// OpenedAtNotNil applies the NotNil predicate on the "opened_at" field.
+func OpenedAtNotNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOpenedAt)))
+	})
+}
+
+// ClosedAtEQ applies the EQ predicate on the "closed_at" field.
+func ClosedAtEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtNEQ applies the NEQ predicate on the "closed_at" field.
+func ClosedAtNEQ(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtIn applies the In predicate on the "closed_at" field.
+func ClosedAtIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldClosedAt), v...))
+	})
+}
+
+// ClosedAtNotIn applies the NotIn predicate on the "closed_at" field.
+func ClosedAtNotIn(vs ...time.Time) predicate.HiringJob {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldClosedAt), v...))
+	})
+}
+
+// ClosedAtGT applies the GT predicate on the "closed_at" field.
+func ClosedAtGT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtGTE applies the GTE predicate on the "closed_at" field.
+func ClosedAtGTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtLT applies the LT predicate on the "closed_at" field.
+func ClosedAtLT(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtLTE applies the LTE predicate on the "closed_at" field.
+func ClosedAtLTE(v time.Time) predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldClosedAt), v))
+	})
+}
+
+// ClosedAtIsNil applies the IsNil predicate on the "closed_at" field.
+func ClosedAtIsNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldClosedAt)))
+	})
+}
+
+// ClosedAtNotNil applies the NotNil predicate on the "closed_at" field.
+func ClosedAtNotNil() predicate.HiringJob {
+	return predicate.HiringJob(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldClosedAt)))
 	})
 }
 

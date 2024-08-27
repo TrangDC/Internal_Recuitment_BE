@@ -58,6 +58,10 @@ const (
 	FieldLevel = "level"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldOpenedAt holds the string denoting the opened_at field in the database.
+	FieldOpenedAt = "opened_at"
+	// FieldClosedAt holds the string denoting the closed_at field in the database.
+	FieldClosedAt = "closed_at"
 	// EdgeOwnerEdge holds the string denoting the owner_edge edge name in mutations.
 	EdgeOwnerEdge = "owner_edge"
 	// EdgeCandidateJobEdges holds the string denoting the candidate_job_edges edge name in mutations.
@@ -166,6 +170,8 @@ var Columns = []string{
 	FieldJobPositionID,
 	FieldLevel,
 	FieldNote,
+	FieldOpenedAt,
+	FieldClosedAt,
 }
 
 var (

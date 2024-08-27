@@ -272,6 +272,34 @@ func (hjc *HiringJobCreate) SetNillableNote(s *string) *HiringJobCreate {
 	return hjc
 }
 
+// SetOpenedAt sets the "opened_at" field.
+func (hjc *HiringJobCreate) SetOpenedAt(t time.Time) *HiringJobCreate {
+	hjc.mutation.SetOpenedAt(t)
+	return hjc
+}
+
+// SetNillableOpenedAt sets the "opened_at" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableOpenedAt(t *time.Time) *HiringJobCreate {
+	if t != nil {
+		hjc.SetOpenedAt(*t)
+	}
+	return hjc
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (hjc *HiringJobCreate) SetClosedAt(t time.Time) *HiringJobCreate {
+	hjc.mutation.SetClosedAt(t)
+	return hjc
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (hjc *HiringJobCreate) SetNillableClosedAt(t *time.Time) *HiringJobCreate {
+	if t != nil {
+		hjc.SetClosedAt(*t)
+	}
+	return hjc
+}
+
 // SetID sets the "id" field.
 func (hjc *HiringJobCreate) SetID(u uuid.UUID) *HiringJobCreate {
 	hjc.mutation.SetID(u)
@@ -723,6 +751,14 @@ func (hjc *HiringJobCreate) createSpec() (*HiringJob, *sqlgraph.CreateSpec) {
 	if value, ok := hjc.mutation.Note(); ok {
 		_spec.SetField(hiringjob.FieldNote, field.TypeString, value)
 		_node.Note = value
+	}
+	if value, ok := hjc.mutation.OpenedAt(); ok {
+		_spec.SetField(hiringjob.FieldOpenedAt, field.TypeTime, value)
+		_node.OpenedAt = value
+	}
+	if value, ok := hjc.mutation.ClosedAt(); ok {
+		_spec.SetField(hiringjob.FieldClosedAt, field.TypeTime, value)
+		_node.ClosedAt = value
 	}
 	if nodes := hjc.mutation.OwnerEdgeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
