@@ -322,6 +322,26 @@ func (hju *HiringJobUpdate) SetLevel(h hiringjob.Level) *HiringJobUpdate {
 	return hju
 }
 
+// SetNote sets the "note" field.
+func (hju *HiringJobUpdate) SetNote(s string) *HiringJobUpdate {
+	hju.mutation.SetNote(s)
+	return hju
+}
+
+// SetNillableNote sets the "note" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableNote(s *string) *HiringJobUpdate {
+	if s != nil {
+		hju.SetNote(*s)
+	}
+	return hju
+}
+
+// ClearNote clears the value of the "note" field.
+func (hju *HiringJobUpdate) ClearNote() *HiringJobUpdate {
+	hju.mutation.ClearNote()
+	return hju
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hju *HiringJobUpdate) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdate {
 	hju.mutation.SetOwnerEdgeID(id)
@@ -690,6 +710,11 @@ func (hju *HiringJobUpdate) check() error {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "HiringJob.level": %w`, err)}
 		}
 	}
+	if v, ok := hju.mutation.Note(); ok {
+		if err := hiringjob.NoteValidator(v); err != nil {
+			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "HiringJob.note": %w`, err)}
+		}
+	}
 	if _, ok := hju.mutation.RecTeamEdgeID(); hju.mutation.RecTeamEdgeCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "HiringJob.rec_team_edge"`)
 	}
@@ -779,6 +804,12 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := hju.mutation.Level(); ok {
 		_spec.SetField(hiringjob.FieldLevel, field.TypeEnum, value)
+	}
+	if value, ok := hju.mutation.Note(); ok {
+		_spec.SetField(hiringjob.FieldNote, field.TypeString, value)
+	}
+	if hju.mutation.NoteCleared() {
+		_spec.ClearField(hiringjob.FieldNote, field.TypeString)
 	}
 	if hju.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1488,6 +1519,26 @@ func (hjuo *HiringJobUpdateOne) SetLevel(h hiringjob.Level) *HiringJobUpdateOne 
 	return hjuo
 }
 
+// SetNote sets the "note" field.
+func (hjuo *HiringJobUpdateOne) SetNote(s string) *HiringJobUpdateOne {
+	hjuo.mutation.SetNote(s)
+	return hjuo
+}
+
+// SetNillableNote sets the "note" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableNote(s *string) *HiringJobUpdateOne {
+	if s != nil {
+		hjuo.SetNote(*s)
+	}
+	return hjuo
+}
+
+// ClearNote clears the value of the "note" field.
+func (hjuo *HiringJobUpdateOne) ClearNote() *HiringJobUpdateOne {
+	hjuo.mutation.ClearNote()
+	return hjuo
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjuo *HiringJobUpdateOne) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdateOne {
 	hjuo.mutation.SetOwnerEdgeID(id)
@@ -1869,6 +1920,11 @@ func (hjuo *HiringJobUpdateOne) check() error {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "HiringJob.level": %w`, err)}
 		}
 	}
+	if v, ok := hjuo.mutation.Note(); ok {
+		if err := hiringjob.NoteValidator(v); err != nil {
+			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "HiringJob.note": %w`, err)}
+		}
+	}
 	if _, ok := hjuo.mutation.RecTeamEdgeID(); hjuo.mutation.RecTeamEdgeCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "HiringJob.rec_team_edge"`)
 	}
@@ -1975,6 +2031,12 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 	}
 	if value, ok := hjuo.mutation.Level(); ok {
 		_spec.SetField(hiringjob.FieldLevel, field.TypeEnum, value)
+	}
+	if value, ok := hjuo.mutation.Note(); ok {
+		_spec.SetField(hiringjob.FieldNote, field.TypeString, value)
+	}
+	if hjuo.mutation.NoteCleared() {
+		_spec.ClearField(hiringjob.FieldNote, field.TypeString)
 	}
 	if hjuo.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

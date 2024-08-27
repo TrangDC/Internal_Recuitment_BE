@@ -603,6 +603,7 @@ type ComplexityRoot struct {
 		Level                    func(childComplexity int) int
 		Location                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
+		Note                     func(childComplexity int) int
 		Priority                 func(childComplexity int) int
 		RecInCharge              func(childComplexity int) int
 		RecTeam                  func(childComplexity int) int
@@ -3894,6 +3895,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.Name(childComplexity), true
+
+	case "HiringJob.note":
+		if e.complexity.HiringJob.Note == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.Note(childComplexity), true
 
 	case "HiringJob.priority":
 		if e.complexity.HiringJob.Priority == nil {
@@ -8553,6 +8561,7 @@ input NewHiringJobInput {
   entity_skill_records: [EntitySkillRecordInput!]
   job_position_id: ID!
   level: HiringJobLevel!
+  note: String!
 }
 
 input UpdateHiringJobInput {
@@ -8572,6 +8581,7 @@ input UpdateHiringJobInput {
   entity_skill_records: [EntitySkillRecordInput!]
   job_position_id: ID!
   level: HiringJobLevel!
+  note: String!
 }
 
 type HiringJob {
@@ -8602,6 +8612,7 @@ type HiringJob {
   deleted_at: Time
   steps: [HiringJobStep!]
   level: HiringJobLevel!
+  note: String!
 }
 
 type HiringJobResponse {
@@ -21925,6 +21936,8 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -29871,6 +29884,50 @@ func (ec *executionContext) fieldContext_HiringJob_level(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJob_note(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_note(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Note, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_note(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJobEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJobEdge_node(ctx, field)
 	if err != nil {
@@ -29964,6 +30021,8 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30105,6 +30164,8 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -53522,7 +53583,7 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level", "note"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53646,6 +53707,14 @@ func (ec *executionContext) unmarshalInputNewHiringJobInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
 			it.Level, err = ec.unmarshalNHiringJobLevel2trecᚋentᚐHiringJobLevel(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "note":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+			it.Note, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -55350,7 +55419,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "rec_in_charge_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "rec_in_charge_id", "created_by", "priority", "entity_skill_records", "job_position_id", "level", "note"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55482,6 +55551,14 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("level"))
 			it.Level, err = ec.unmarshalNHiringJobLevel2trecᚋentᚐHiringJobLevel(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "note":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+			it.Note, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -60833,6 +60910,13 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 				return innerFunc(ctx)
 
 			})
+		case "note":
+
+			out.Values[i] = ec._HiringJob_note(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -765,6 +765,7 @@ type NewHiringJobInput struct {
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 	JobPositionID      string                    `json:"job_position_id"`
 	Level              HiringJobLevel            `json:"level"`
+	Note               string                    `json:"note"`
 }
 
 type NewHiringTeamInput struct {
@@ -1202,6 +1203,7 @@ type UpdateHiringJobInput struct {
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 	JobPositionID      string                    `json:"job_position_id"`
 	Level              HiringJobLevel            `json:"level"`
+	Note               string                    `json:"note"`
 }
 
 type UpdateHiringTeamInput struct {

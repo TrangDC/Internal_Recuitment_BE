@@ -33,6 +33,7 @@ func (HiringJob) Fields() []ent.Field {
 		field.UUID("rec_in_charge_id", uuid.UUID{}).Optional(),
 		field.UUID("job_position_id", uuid.UUID{}).Optional(),
 		field.Enum("level").Values("intern", "fresher", "junior", "middle", "senior", "manager", "director"),
+		field.String("note").Optional().MaxLen(512),
 	}
 }
 
