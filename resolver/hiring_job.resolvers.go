@@ -80,14 +80,6 @@ func (r *hiringJobResolver) TotalCandidatesRecruited(ctx context.Context, obj *e
 	})), nil
 }
 
-// IsAbleToDelete is the resolver for the is_able_to_delete field.
-func (r *hiringJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.HiringJob) (bool, error) {
-	if len(obj.Edges.CandidateJobEdges) > 0 {
-		return false, nil
-	}
-	return true, nil
-}
-
 // IsAbleToClose is the resolver for the is_able_to_close field.
 func (r *hiringJobResolver) IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error) {
 	return obj.Status == hiringjob.StatusOpened, nil
