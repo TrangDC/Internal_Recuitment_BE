@@ -312,7 +312,7 @@ func (svc *hiringJobSvcImpl) GetHiringJobsGroupByStatus(ctx context.Context, pag
 					})
 			})
 	})
-	hiringJobs, count, page, perPage, err := svc.getHiringJobs(ctx, query, pagination, freeWord, filter, orderBy)
+	hiringJobs, count, _, _, err := svc.getHiringJobs(ctx, query, nil, freeWord, filter, orderBy)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -330,6 +330,8 @@ func (svc *hiringJobSvcImpl) GetHiringJobsGroupByStatus(ctx context.Context, pag
 			sampleEdge.Cancelled = append(sampleEdge.Cancelled, hiringJob)
 		}
 	}
+	page := *pagination.Page
+	perPage := *pagination.PerPage
 	edge := &ent.HiringJobGroupByStatus{
 		PendingApprovals: svc.pagination(sampleEdge.PendingApprovals, page, perPage),
 		Opened:           svc.pagination(sampleEdge.Opened, page, perPage),
