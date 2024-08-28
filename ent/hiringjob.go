@@ -65,6 +65,10 @@ type HiringJob struct {
 	Level hiringjob.Level `json:"level,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// OpenedAt holds the value of the "opened_at" field.
+	OpenedAt time.Time `json:"opened_at,omitempty"`
+	// ClosedAt holds the value of the "closed_at" field.
+	ClosedAt time.Time `json:"closed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HiringJobQuery when eager-loading is set.
 	Edges HiringJobEdges `json:"edges"`
@@ -212,7 +216,7 @@ func (*HiringJob) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case hiringjob.FieldSlug, hiringjob.FieldName, hiringjob.FieldDescription, hiringjob.FieldStatus, hiringjob.FieldLocation, hiringjob.FieldSalaryType, hiringjob.FieldCurrency, hiringjob.FieldLevel, hiringjob.FieldNote:
 			values[i] = new(sql.NullString)
-		case hiringjob.FieldCreatedAt, hiringjob.FieldUpdatedAt, hiringjob.FieldDeletedAt, hiringjob.FieldLastApplyDate:
+		case hiringjob.FieldCreatedAt, hiringjob.FieldUpdatedAt, hiringjob.FieldDeletedAt, hiringjob.FieldLastApplyDate, hiringjob.FieldOpenedAt, hiringjob.FieldClosedAt:
 			values[i] = new(sql.NullTime)
 		case hiringjob.FieldID, hiringjob.FieldCreatedBy, hiringjob.FieldHiringTeamID, hiringjob.FieldRecTeamID, hiringjob.FieldRecInChargeID, hiringjob.FieldJobPositionID:
 			values[i] = new(uuid.UUID)
@@ -369,6 +373,18 @@ func (hj *HiringJob) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hj.Note = value.String
 			}
+		case hiringjob.FieldOpenedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field opened_at", values[i])
+			} else if value.Valid {
+				hj.OpenedAt = value.Time
+			}
+		case hiringjob.FieldClosedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field closed_at", values[i])
+			} else if value.Valid {
+				hj.ClosedAt = value.Time
+			}
 		}
 	}
 	return nil
@@ -507,6 +523,12 @@ func (hj *HiringJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(hj.Note)
+	builder.WriteString(", ")
+	builder.WriteString("opened_at=")
+	builder.WriteString(hj.OpenedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("closed_at=")
+	builder.WriteString(hj.ClosedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

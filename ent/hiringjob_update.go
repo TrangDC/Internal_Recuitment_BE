@@ -342,6 +342,46 @@ func (hju *HiringJobUpdate) ClearNote() *HiringJobUpdate {
 	return hju
 }
 
+// SetOpenedAt sets the "opened_at" field.
+func (hju *HiringJobUpdate) SetOpenedAt(t time.Time) *HiringJobUpdate {
+	hju.mutation.SetOpenedAt(t)
+	return hju
+}
+
+// SetNillableOpenedAt sets the "opened_at" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableOpenedAt(t *time.Time) *HiringJobUpdate {
+	if t != nil {
+		hju.SetOpenedAt(*t)
+	}
+	return hju
+}
+
+// ClearOpenedAt clears the value of the "opened_at" field.
+func (hju *HiringJobUpdate) ClearOpenedAt() *HiringJobUpdate {
+	hju.mutation.ClearOpenedAt()
+	return hju
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (hju *HiringJobUpdate) SetClosedAt(t time.Time) *HiringJobUpdate {
+	hju.mutation.SetClosedAt(t)
+	return hju
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (hju *HiringJobUpdate) SetNillableClosedAt(t *time.Time) *HiringJobUpdate {
+	if t != nil {
+		hju.SetClosedAt(*t)
+	}
+	return hju
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (hju *HiringJobUpdate) ClearClosedAt() *HiringJobUpdate {
+	hju.mutation.ClearClosedAt()
+	return hju
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hju *HiringJobUpdate) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdate {
 	hju.mutation.SetOwnerEdgeID(id)
@@ -810,6 +850,18 @@ func (hju *HiringJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if hju.mutation.NoteCleared() {
 		_spec.ClearField(hiringjob.FieldNote, field.TypeString)
+	}
+	if value, ok := hju.mutation.OpenedAt(); ok {
+		_spec.SetField(hiringjob.FieldOpenedAt, field.TypeTime, value)
+	}
+	if hju.mutation.OpenedAtCleared() {
+		_spec.ClearField(hiringjob.FieldOpenedAt, field.TypeTime)
+	}
+	if value, ok := hju.mutation.ClosedAt(); ok {
+		_spec.SetField(hiringjob.FieldClosedAt, field.TypeTime, value)
+	}
+	if hju.mutation.ClosedAtCleared() {
+		_spec.ClearField(hiringjob.FieldClosedAt, field.TypeTime)
 	}
 	if hju.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1539,6 +1591,46 @@ func (hjuo *HiringJobUpdateOne) ClearNote() *HiringJobUpdateOne {
 	return hjuo
 }
 
+// SetOpenedAt sets the "opened_at" field.
+func (hjuo *HiringJobUpdateOne) SetOpenedAt(t time.Time) *HiringJobUpdateOne {
+	hjuo.mutation.SetOpenedAt(t)
+	return hjuo
+}
+
+// SetNillableOpenedAt sets the "opened_at" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableOpenedAt(t *time.Time) *HiringJobUpdateOne {
+	if t != nil {
+		hjuo.SetOpenedAt(*t)
+	}
+	return hjuo
+}
+
+// ClearOpenedAt clears the value of the "opened_at" field.
+func (hjuo *HiringJobUpdateOne) ClearOpenedAt() *HiringJobUpdateOne {
+	hjuo.mutation.ClearOpenedAt()
+	return hjuo
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (hjuo *HiringJobUpdateOne) SetClosedAt(t time.Time) *HiringJobUpdateOne {
+	hjuo.mutation.SetClosedAt(t)
+	return hjuo
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (hjuo *HiringJobUpdateOne) SetNillableClosedAt(t *time.Time) *HiringJobUpdateOne {
+	if t != nil {
+		hjuo.SetClosedAt(*t)
+	}
+	return hjuo
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (hjuo *HiringJobUpdateOne) ClearClosedAt() *HiringJobUpdateOne {
+	hjuo.mutation.ClearClosedAt()
+	return hjuo
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by ID.
 func (hjuo *HiringJobUpdateOne) SetOwnerEdgeID(id uuid.UUID) *HiringJobUpdateOne {
 	hjuo.mutation.SetOwnerEdgeID(id)
@@ -2037,6 +2129,18 @@ func (hjuo *HiringJobUpdateOne) sqlSave(ctx context.Context) (_node *HiringJob, 
 	}
 	if hjuo.mutation.NoteCleared() {
 		_spec.ClearField(hiringjob.FieldNote, field.TypeString)
+	}
+	if value, ok := hjuo.mutation.OpenedAt(); ok {
+		_spec.SetField(hiringjob.FieldOpenedAt, field.TypeTime, value)
+	}
+	if hjuo.mutation.OpenedAtCleared() {
+		_spec.ClearField(hiringjob.FieldOpenedAt, field.TypeTime)
+	}
+	if value, ok := hjuo.mutation.ClosedAt(); ok {
+		_spec.SetField(hiringjob.FieldClosedAt, field.TypeTime, value)
+	}
+	if hjuo.mutation.ClosedAtCleared() {
+		_spec.ClearField(hiringjob.FieldClosedAt, field.TypeTime)
 	}
 	if hjuo.mutation.OwnerEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

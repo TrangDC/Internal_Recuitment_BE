@@ -214,14 +214,15 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
+	if status == ent.HiringJobStatus(record.Status) {
+		return &ent.HiringJobResponse{Data: record}, nil
+	}
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	candidateJobWithStatusOpen := lo.Filter(record.Edges.CandidateJobEdges, func(item *ent.CandidateJob, _ int) bool {
-		return ent.CandidateJobStatusAbleToClose.IsValid(ent.CandidateJobStatusAbleToClose(item.Status))
-	})
-	if len(candidateJobWithStatusOpen) > 0 && record.Status == hiringjob.StatusOpened && hiringjob.Status(status) == hiringjob.StatusClosed {
-		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.candidate_job_open_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	err = svc.repoRegistry.HiringJob().ValidStatus(record.Status, status, record.Edges.CandidateJobEdges)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, record, status)

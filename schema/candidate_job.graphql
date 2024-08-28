@@ -31,7 +31,6 @@ enum CandidateJobStatus {
   applied
   interviewing
   offering
-  new
 }
 
 enum CandidateJobOrderField {

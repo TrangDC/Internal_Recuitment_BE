@@ -7,6 +7,7 @@ import (
 	"context"
 	"trec/ent"
 	"trec/ent/candidatejob"
+	"trec/ent/hiringjob"
 	graphql1 "trec/graphql"
 
 	"github.com/google/uuid"
@@ -89,13 +90,7 @@ func (r *hiringJobResolver) IsAbleToDelete(ctx context.Context, obj *ent.HiringJ
 
 // IsAbleToClose is the resolver for the is_able_to_close field.
 func (r *hiringJobResolver) IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error) {
-	candidateJobWithStatusOpen := lo.Filter(obj.Edges.CandidateJobEdges, func(item *ent.CandidateJob, index int) bool {
-		return ent.CandidateJobStatusAbleToClose.IsValid(ent.CandidateJobStatusAbleToClose(item.Status))
-	})
-	if len(candidateJobWithStatusOpen) > 0 {
-		return false, nil
-	}
-	return true, nil
+	return obj.Status == hiringjob.StatusOpened, nil
 }
 
 // EntitySkillTypes is the resolver for the entity_skill_types field.
@@ -111,6 +106,24 @@ func (r *hiringJobResolver) Steps(ctx context.Context, obj *ent.HiringJob) ([]*e
 // Level is the resolver for the level field.
 func (r *hiringJobResolver) Level(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobLevel, error) {
 	return ent.HiringJobLevel(obj.Level), nil
+}
+
+// IsAbleToCancel is the resolver for the is_able_to_cancel field.
+func (r *hiringJobResolver) IsAbleToCancel(ctx context.Context, obj *ent.HiringJob) (bool, error) {
+	switch obj.Status {
+	case hiringjob.StatusPendingApprovals:
+		return true, nil
+	case hiringjob.StatusOpened:
+		canCancel := lo.NoneBy(
+			obj.Edges.CandidateJobEdges,
+			func(item *ent.CandidateJob) bool {
+				return item.Status == candidatejob.StatusHired || item.Status == candidatejob.StatusExStaff
+			},
+		)
+		return canCancel, nil
+	default:
+		return false, nil
+	}
 }
 
 // HiringJob returns graphql1.HiringJobResolver implementation.

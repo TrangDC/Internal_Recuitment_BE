@@ -589,6 +589,7 @@ type ComplexityRoot struct {
 
 	HiringJob struct {
 		Amount                   func(childComplexity int) int
+		ClosedAt                 func(childComplexity int) int
 		CreatedAt                func(childComplexity int) int
 		Currency                 func(childComplexity int) int
 		DeletedAt                func(childComplexity int) int
@@ -596,6 +597,7 @@ type ComplexityRoot struct {
 		EntitySkillTypes         func(childComplexity int) int
 		HiringTeam               func(childComplexity int) int
 		ID                       func(childComplexity int) int
+		IsAbleToCancel           func(childComplexity int) int
 		IsAbleToClose            func(childComplexity int) int
 		IsAbleToDelete           func(childComplexity int) int
 		JobPosition              func(childComplexity int) int
@@ -604,6 +606,7 @@ type ComplexityRoot struct {
 		Location                 func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		Note                     func(childComplexity int) int
+		OpenedAt                 func(childComplexity int) int
 		Priority                 func(childComplexity int) int
 		RecInCharge              func(childComplexity int) int
 		RecTeam                  func(childComplexity int) int
@@ -1398,6 +1401,8 @@ type HiringJobResolver interface {
 
 	Steps(ctx context.Context, obj *ent.HiringJob) ([]*ent.HiringJobStep, error)
 	Level(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobLevel, error)
+
+	IsAbleToCancel(ctx context.Context, obj *ent.HiringJob) (bool, error)
 }
 type HiringJobStepResolver interface {
 	ID(ctx context.Context, obj *ent.HiringJobStep) (string, error)
@@ -3812,6 +3817,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.HiringJob.Amount(childComplexity), true
 
+	case "HiringJob.closed_at":
+		if e.complexity.HiringJob.ClosedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.ClosedAt(childComplexity), true
+
 	case "HiringJob.created_at":
 		if e.complexity.HiringJob.CreatedAt == nil {
 			break
@@ -3860,6 +3872,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.ID(childComplexity), true
+
+	case "HiringJob.is_able_to_cancel":
+		if e.complexity.HiringJob.IsAbleToCancel == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.IsAbleToCancel(childComplexity), true
 
 	case "HiringJob.is_able_to_close":
 		if e.complexity.HiringJob.IsAbleToClose == nil {
@@ -3916,6 +3935,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.Note(childComplexity), true
+
+	case "HiringJob.opened_at":
+		if e.complexity.HiringJob.OpenedAt == nil {
+			break
+		}
+
+		return e.complexity.HiringJob.OpenedAt(childComplexity), true
 
 	case "HiringJob.priority":
 		if e.complexity.HiringJob.Priority == nil {
@@ -7741,7 +7767,6 @@ enum CandidateJobStatus {
   applied
   interviewing
   offering
-  new
 }
 
 enum CandidateJobOrderField {
@@ -8693,6 +8718,9 @@ type HiringJob {
   steps: [HiringJobStep!]
   level: HiringJobLevel!
   note: String!
+  is_able_to_cancel: Boolean!
+  opened_at: Time!
+  closed_at: Time!
 }
 
 type HiringJobResponse {
@@ -22061,6 +22089,12 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_level(ctx, field)
 			case "note":
 				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30051,6 +30085,138 @@ func (ec *executionContext) fieldContext_HiringJob_note(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _HiringJob_is_able_to_cancel(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HiringJob().IsAbleToCancel(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_is_able_to_cancel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJob_opened_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_opened_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OpenedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_opened_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HiringJob_closed_at(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HiringJob_closed_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClosedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HiringJob_closed_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HiringJob",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HiringJobEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJobEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJobEdge_node(ctx, field)
 	if err != nil {
@@ -30146,6 +30312,12 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_level(ctx, field)
 			case "note":
 				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30287,6 +30459,14 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_pending_approval
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30384,6 +30564,14 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_opened(ctx conte
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30481,6 +30669,14 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_closed(ctx conte
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30578,6 +30774,14 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_cancelled(ctx co
 				return ec.fieldContext_HiringJob_steps(ctx, field)
 			case "level":
 				return ec.fieldContext_HiringJob_level(ctx, field)
+			case "note":
+				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -30783,6 +30987,12 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_level(ctx, field)
 			case "note":
 				return ec.fieldContext_HiringJob_note(ctx, field)
+			case "is_able_to_cancel":
+				return ec.fieldContext_HiringJob_is_able_to_cancel(ctx, field)
+			case "opened_at":
+				return ec.fieldContext_HiringJob_opened_at(ctx, field)
+			case "closed_at":
+				return ec.fieldContext_HiringJob_closed_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HiringJob", field.Name)
 		},
@@ -61591,6 +61801,40 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 		case "note":
 
 			out.Values[i] = ec._HiringJob_note(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "is_able_to_cancel":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HiringJob_is_able_to_cancel(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "opened_at":
+
+			out.Values[i] = ec._HiringJob_opened_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "closed_at":
+
+			out.Values[i] = ec._HiringJob_closed_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

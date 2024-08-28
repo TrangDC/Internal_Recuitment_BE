@@ -20435,6 +20435,8 @@ type HiringJobMutation struct {
 	addpriority                   *int
 	level                         *hiringjob.Level
 	note                          *string
+	opened_at                     *time.Time
+	closed_at                     *time.Time
 	clearedFields                 map[string]struct{}
 	owner_edge                    *uuid.UUID
 	clearedowner_edge             bool
@@ -21543,6 +21545,104 @@ func (m *HiringJobMutation) ResetNote() {
 	delete(m.clearedFields, hiringjob.FieldNote)
 }
 
+// SetOpenedAt sets the "opened_at" field.
+func (m *HiringJobMutation) SetOpenedAt(t time.Time) {
+	m.opened_at = &t
+}
+
+// OpenedAt returns the value of the "opened_at" field in the mutation.
+func (m *HiringJobMutation) OpenedAt() (r time.Time, exists bool) {
+	v := m.opened_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOpenedAt returns the old "opened_at" field's value of the HiringJob entity.
+// If the HiringJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobMutation) OldOpenedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOpenedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOpenedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOpenedAt: %w", err)
+	}
+	return oldValue.OpenedAt, nil
+}
+
+// ClearOpenedAt clears the value of the "opened_at" field.
+func (m *HiringJobMutation) ClearOpenedAt() {
+	m.opened_at = nil
+	m.clearedFields[hiringjob.FieldOpenedAt] = struct{}{}
+}
+
+// OpenedAtCleared returns if the "opened_at" field was cleared in this mutation.
+func (m *HiringJobMutation) OpenedAtCleared() bool {
+	_, ok := m.clearedFields[hiringjob.FieldOpenedAt]
+	return ok
+}
+
+// ResetOpenedAt resets all changes to the "opened_at" field.
+func (m *HiringJobMutation) ResetOpenedAt() {
+	m.opened_at = nil
+	delete(m.clearedFields, hiringjob.FieldOpenedAt)
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (m *HiringJobMutation) SetClosedAt(t time.Time) {
+	m.closed_at = &t
+}
+
+// ClosedAt returns the value of the "closed_at" field in the mutation.
+func (m *HiringJobMutation) ClosedAt() (r time.Time, exists bool) {
+	v := m.closed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosedAt returns the old "closed_at" field's value of the HiringJob entity.
+// If the HiringJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HiringJobMutation) OldClosedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosedAt: %w", err)
+	}
+	return oldValue.ClosedAt, nil
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (m *HiringJobMutation) ClearClosedAt() {
+	m.closed_at = nil
+	m.clearedFields[hiringjob.FieldClosedAt] = struct{}{}
+}
+
+// ClosedAtCleared returns if the "closed_at" field was cleared in this mutation.
+func (m *HiringJobMutation) ClosedAtCleared() bool {
+	_, ok := m.clearedFields[hiringjob.FieldClosedAt]
+	return ok
+}
+
+// ResetClosedAt resets all changes to the "closed_at" field.
+func (m *HiringJobMutation) ResetClosedAt() {
+	m.closed_at = nil
+	delete(m.clearedFields, hiringjob.FieldClosedAt)
+}
+
 // SetOwnerEdgeID sets the "owner_edge" edge to the User entity by id.
 func (m *HiringJobMutation) SetOwnerEdgeID(id uuid.UUID) {
 	m.owner_edge = &id
@@ -21973,7 +22073,7 @@ func (m *HiringJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HiringJobMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 24)
 	if m.created_at != nil {
 		fields = append(fields, hiringjob.FieldCreatedAt)
 	}
@@ -22040,6 +22140,12 @@ func (m *HiringJobMutation) Fields() []string {
 	if m.note != nil {
 		fields = append(fields, hiringjob.FieldNote)
 	}
+	if m.opened_at != nil {
+		fields = append(fields, hiringjob.FieldOpenedAt)
+	}
+	if m.closed_at != nil {
+		fields = append(fields, hiringjob.FieldClosedAt)
+	}
 	return fields
 }
 
@@ -22092,6 +22198,10 @@ func (m *HiringJobMutation) Field(name string) (ent.Value, bool) {
 		return m.Level()
 	case hiringjob.FieldNote:
 		return m.Note()
+	case hiringjob.FieldOpenedAt:
+		return m.OpenedAt()
+	case hiringjob.FieldClosedAt:
+		return m.ClosedAt()
 	}
 	return nil, false
 }
@@ -22145,6 +22255,10 @@ func (m *HiringJobMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldLevel(ctx)
 	case hiringjob.FieldNote:
 		return m.OldNote(ctx)
+	case hiringjob.FieldOpenedAt:
+		return m.OldOpenedAt(ctx)
+	case hiringjob.FieldClosedAt:
+		return m.OldClosedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -22308,6 +22422,20 @@ func (m *HiringJobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNote(v)
 		return nil
+	case hiringjob.FieldOpenedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOpenedAt(v)
+		return nil
+	case hiringjob.FieldClosedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
 }
@@ -22413,6 +22541,12 @@ func (m *HiringJobMutation) ClearedFields() []string {
 	if m.FieldCleared(hiringjob.FieldNote) {
 		fields = append(fields, hiringjob.FieldNote)
 	}
+	if m.FieldCleared(hiringjob.FieldOpenedAt) {
+		fields = append(fields, hiringjob.FieldOpenedAt)
+	}
+	if m.FieldCleared(hiringjob.FieldClosedAt) {
+		fields = append(fields, hiringjob.FieldClosedAt)
+	}
 	return fields
 }
 
@@ -22450,6 +22584,12 @@ func (m *HiringJobMutation) ClearField(name string) error {
 		return nil
 	case hiringjob.FieldNote:
 		m.ClearNote()
+		return nil
+	case hiringjob.FieldOpenedAt:
+		m.ClearOpenedAt()
+		return nil
+	case hiringjob.FieldClosedAt:
+		m.ClearClosedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob nullable field %s", name)
@@ -22524,6 +22664,12 @@ func (m *HiringJobMutation) ResetField(name string) error {
 		return nil
 	case hiringjob.FieldNote:
 		m.ResetNote()
+		return nil
+	case hiringjob.FieldOpenedAt:
+		m.ResetOpenedAt()
+		return nil
+	case hiringjob.FieldClosedAt:
+		m.ResetClosedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown HiringJob field %s", name)
