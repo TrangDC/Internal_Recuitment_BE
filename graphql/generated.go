@@ -599,7 +599,6 @@ type ComplexityRoot struct {
 		ID                       func(childComplexity int) int
 		IsAbleToCancel           func(childComplexity int) int
 		IsAbleToClose            func(childComplexity int) int
-		IsAbleToDelete           func(childComplexity int) int
 		JobPosition              func(childComplexity int) int
 		JobPositionID            func(childComplexity int) int
 		Level                    func(childComplexity int) int
@@ -1394,7 +1393,6 @@ type HiringJobResolver interface {
 	User(ctx context.Context, obj *ent.HiringJob) (*ent.User, error)
 	Status(ctx context.Context, obj *ent.HiringJob) (ent.HiringJobStatus, error)
 	TotalCandidatesRecruited(ctx context.Context, obj *ent.HiringJob) (int, error)
-	IsAbleToDelete(ctx context.Context, obj *ent.HiringJob) (bool, error)
 	IsAbleToClose(ctx context.Context, obj *ent.HiringJob) (bool, error)
 
 	EntitySkillTypes(ctx context.Context, obj *ent.HiringJob) ([]*ent.EntitySkillType, error)
@@ -3886,13 +3884,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HiringJob.IsAbleToClose(childComplexity), true
-
-	case "HiringJob.is_able_to_delete":
-		if e.complexity.HiringJob.IsAbleToDelete == nil {
-			break
-		}
-
-		return e.complexity.HiringJob.IsAbleToDelete(childComplexity), true
 
 	case "HiringJob.job_position":
 		if e.complexity.HiringJob.JobPosition == nil {
@@ -8708,7 +8699,6 @@ type HiringJob {
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!
-  is_able_to_delete: Boolean!
   is_able_to_close: Boolean!
   priority: Int!
   entity_skill_types: [EntitySkillType!]
@@ -22069,8 +22059,6 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -29628,50 +29616,6 @@ func (ec *executionContext) fieldContext_HiringJob_total_candidates_recruited(ct
 	return fc, nil
 }
 
-func (ec *executionContext) _HiringJob_is_able_to_delete(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HiringJob().IsAbleToDelete(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_HiringJob_is_able_to_delete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "HiringJob",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _HiringJob_is_able_to_close(ctx context.Context, field graphql.CollectedField, obj *ent.HiringJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 	if err != nil {
@@ -30292,8 +30236,6 @@ func (ec *executionContext) fieldContext_HiringJobEdge_node(ctx context.Context,
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -30441,8 +30383,6 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_pending_approval
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -30546,8 +30486,6 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_opened(ctx conte
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -30651,8 +30589,6 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_closed(ctx conte
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -30756,8 +30692,6 @@ func (ec *executionContext) fieldContext_HiringJobGroupByStatus_cancelled(ctx co
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -30967,8 +30901,6 @@ func (ec *executionContext) fieldContext_HiringJobResponse_data(ctx context.Cont
 				return ec.fieldContext_HiringJob_status(ctx, field)
 			case "total_candidates_recruited":
 				return ec.fieldContext_HiringJob_total_candidates_recruited(ctx, field)
-			case "is_able_to_delete":
-				return ec.fieldContext_HiringJob_is_able_to_delete(ctx, field)
 			case "is_able_to_close":
 				return ec.fieldContext_HiringJob_is_able_to_close(ctx, field)
 			case "priority":
@@ -61669,26 +61601,6 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._HiringJob_total_candidates_recruited(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "is_able_to_delete":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._HiringJob_is_able_to_delete(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

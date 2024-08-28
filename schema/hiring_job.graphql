@@ -145,7 +145,6 @@ type HiringJob {
   user: User!
   status: HiringJobStatus!
   total_candidates_recruited: Int!
-  is_able_to_delete: Boolean!
   is_able_to_close: Boolean!
   priority: Int!
   entity_skill_types: [EntitySkillType!]

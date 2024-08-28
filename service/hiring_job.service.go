@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatejob"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/skill"
 	"trec/ent/skilltype"
@@ -124,8 +125,15 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	if len(record.Edges.CandidateJobEdges) > 0 {
-		return util.WrapGQLError(ctx, "model.hiring_jobs.validation.candidate_job_exist", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	if record.Status == hiringjob.StatusPendingApprovals {
+		approvalSteps := lo.Filter(record.Edges.ApprovalSteps, func(item *ent.HiringJobStep, index int) bool {
+			return item.Status == hiringjobstep.StatusAccepted && item.UserID != record.CreatedBy
+		})
+		if len(approvalSteps) > 0 {
+			return util.WrapGQLError(ctx, "model.hiring_jobs.validation.job_already_approving", http.StatusBadRequest, util.ErrorFlagValidateFail)
+		}
+	} else {
+		return util.WrapGQLError(ctx, "model.hiring_jobs.validation.invalid_deleted_status", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		err = repoRegistry.HiringJob().DeleteHiringJob(ctx, record)
