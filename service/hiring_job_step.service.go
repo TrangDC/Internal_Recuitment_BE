@@ -21,6 +21,7 @@ import (
 type HiringJobStepService interface {
 	CreateBulkHiringJobSteps(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob) error
 	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) error
+	UpdateHiringJobStepByRecLeader(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob, newRecLeaderID uuid.UUID) error
 }
 
 type hiringJobStepImpl struct {
@@ -155,6 +156,20 @@ func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, rep
 		if err != nil {
 			return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 		}
+	}
+	return nil
+}
+
+func (svc *hiringJobStepImpl) UpdateHiringJobStepByRecLeader(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob, oldRecLeaderID uuid.UUID) error {
+	recLeaderStep, found := lo.Find(hiringJob.Edges.ApprovalSteps, func(step *ent.HiringJobStep) bool {
+		return step.UserID == oldRecLeaderID && step.OrderID != 1 && step.Status != hiringjobstep.StatusAccepted
+	})
+	if !found || recLeaderStep == nil {
+		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_rec_leader", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	_, err := repoRegistry.HiringJobStep().BuildUpdateOne(ctx, recLeaderStep).SetUserID(hiringJob.Edges.RecTeamEdge.LeaderID).Save(ctx)
+	if err != nil {
+		return err
 	}
 	return nil
 }

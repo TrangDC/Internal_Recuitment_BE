@@ -29,6 +29,7 @@ type RecTeamRepository interface {
 
 	// common function
 	ValidInput(ctx context.Context, recTeamId uuid.UUID, name string, userID uuid.UUID) (error, error, *ent.User)
+	ValidRecInCharge(ctx context.Context, recTeamID uuid.UUID, recInChargeID uuid.UUID) (error, error)
 }
 
 type recTeamRepoImpl struct {
@@ -157,6 +158,21 @@ func (rps *recTeamRepoImpl) ValidInput(ctx context.Context, recTeamID uuid.UUID,
 		return fmt.Errorf("model.rec_teams.validation.invalid_leader"), nil, nil
 	}
 	return nil, nil, userRecord
+}
+
+func (rps *recTeamRepoImpl) ValidRecInCharge(ctx context.Context, recTeamID uuid.UUID, recInChargeID uuid.UUID) (error, error) {
+	query := rps.BuildBaseQuery().Where(
+		recteam.ID(recTeamID),
+		recteam.HasRecMemberEdgesWith(user.ID(recInChargeID)),
+	)
+	isExist, err := rps.BuildExist(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if !isExist {
+		return fmt.Errorf("model.rec_teams.validation.invalid_rec_in_charge"), nil
+	}
+	return nil, nil
 }
 
 // Path: repository/rec_team.repository.go

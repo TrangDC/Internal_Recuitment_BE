@@ -1213,7 +1213,6 @@ type UpdateHiringJobInput struct {
 	HiringTeamID       string                    `json:"hiring_team_id"`
 	RecTeamID          string                    `json:"rec_team_id"`
 	RecInChargeID      string                    `json:"rec_in_charge_id"`
-	CreatedBy          string                    `json:"created_by"`
 	Priority           int                       `json:"priority"`
 	EntitySkillRecords []*EntitySkillRecordInput `json:"entity_skill_records"`
 	JobPositionID      string                    `json:"job_position_id"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 	"trec/ent"
@@ -41,6 +42,7 @@ type HiringJobRepository interface {
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string, hiringTeamID string) (error, error)
 	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error)
 	ValidStatus(recordStatus hiringjob.Status, inputStatus ent.HiringJobStatus, cdJobs []*ent.CandidateJob) error
+	ValidStatusWhenUpdate(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error)
 }
 
 type hiringJobRepoImpl struct {
@@ -173,7 +175,8 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
 		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
-		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
+		SetRecTeamEdgeID(uuid.MustParse(input.RecTeamID)).
+		SetRecInChargeID(uuid.MustParse(input.RecInChargeID)).
 		SetPriority(input.Priority).
 		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
 		SetNote(input.Note).
@@ -294,6 +297,27 @@ func (rps *hiringJobRepoImpl) ValidStatus(recordStatus hiringjob.Status, inputSt
 		return errors.New("model.hiring_jobs.validation.invalid_status_update")
 	}
 	return nil
+}
+
+func (r *hiringJobRepoImpl) ValidStatusWhenUpdate(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error) {
+	switch record.Status {
+	case hiringjob.StatusPendingApprovals:
+		if hiringTeamChange {
+			approvalSteps := lo.Filter(record.Edges.ApprovalSteps, func(item *ent.HiringJobStep, index int) bool {
+				return item.Status == hiringjobstep.StatusAccepted
+			})
+			if len(approvalSteps) > 0 {
+				return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.job_already_approving", http.StatusBadRequest, util.ErrorFlagValidateFail)
+			}
+		}
+	case hiringjob.StatusOpened:
+		if recTeamChange || hiringTeamChange {
+			return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.invalid_status_update_team", http.StatusBadRequest, util.ErrorFlagValidateFail)
+		}
+	case hiringjob.StatusClosed, hiringjob.StatusCancelled:
+		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.invalid_status", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	return nil, nil
 }
 
 // Path: repository/hiring_job.repository.go
