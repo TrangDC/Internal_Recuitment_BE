@@ -13,3 +13,8 @@ type HiringJobStep {
   created_at: Time!
   updated_at: Time!
 }
+
+input UpdateHiringJobStepInput {
+  hiring_job_ids: [ID!]!
+  status: HiringJobStepStatusEnum!
+}

@@ -511,18 +511,20 @@ type GetEmailTemplateKeywordResponse struct {
 }
 
 type HiringJobFilter struct {
-	Name           *string          `json:"name"`
-	HiringTeamIds  []string         `json:"hiring_team_ids"`
-	RecTeamIds     []string         `json:"rec_team_ids"`
-	RecInChargeIds []string         `json:"rec_in_charge_ids"`
-	Status         *HiringJobStatus `json:"status"`
-	Priority       *int             `json:"priority"`
-	Location       []*LocationEnum  `json:"location"`
-	SkillIds       []string         `json:"skill_ids"`
-	CreatedByIds   []string         `json:"created_by_ids"`
-	ForOwner       *bool            `json:"for_owner"`
-	ForHiringTeam  *bool            `json:"for_hiring_team"`
-	JobPositionIds []string         `json:"job_position_ids"`
+	Name           *string                  `json:"name"`
+	HiringTeamIds  []string                 `json:"hiring_team_ids"`
+	RecTeamIds     []string                 `json:"rec_team_ids"`
+	RecInChargeIds []string                 `json:"rec_in_charge_ids"`
+	Status         *HiringJobStatus         `json:"status"`
+	Priority       *int                     `json:"priority"`
+	Location       []*LocationEnum          `json:"location"`
+	SkillIds       []string                 `json:"skill_ids"`
+	CreatedByIds   []string                 `json:"created_by_ids"`
+	ForOwner       *bool                    `json:"for_owner"`
+	ForHiringTeam  *bool                    `json:"for_hiring_team"`
+	JobPositionIds []string                 `json:"job_position_ids"`
+	ApproverID     *string                  `json:"approver_id"`
+	ApproverStatus *HiringJobStepStatusEnum `json:"approver_status"`
 }
 
 type HiringJobFreeWord struct {
@@ -1216,6 +1218,11 @@ type UpdateHiringJobInput struct {
 	JobPositionID      string                    `json:"job_position_id"`
 	Level              HiringJobLevel            `json:"level"`
 	Note               string                    `json:"note"`
+}
+
+type UpdateHiringJobStepInput struct {
+	HiringJobIds []string                `json:"hiring_job_ids"`
+	Status       HiringJobStepStatusEnum `json:"status"`
 }
 
 type UpdateHiringTeamInput struct {

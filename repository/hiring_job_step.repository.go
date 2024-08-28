@@ -17,6 +17,7 @@ type HiringJobStepRepository interface {
 	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error
 	DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error
 	CreateBulkHiringJobSteps(ctx context.Context, creates []*ent.HiringJobStepCreate) ([]*ent.HiringJobStep, error)
+	UpdateHiringJobStepStatus(ctx context.Context, record *ent.HiringJobStep, inputStatus ent.HiringJobStepStatusEnum) (*ent.HiringJobStep, error)
 }
 
 type hiringJobStepRepoImpl struct {
@@ -52,4 +53,8 @@ func (rps hiringJobStepRepoImpl) DeleteHiringJobStep(ctx context.Context, hiring
 
 func (rps hiringJobStepRepoImpl) CreateBulkHiringJobSteps(ctx context.Context, creates []*ent.HiringJobStepCreate) ([]*ent.HiringJobStep, error) {
 	return rps.client.HiringJobStep.CreateBulk(creates...).Save(ctx)
+}
+
+func (rps hiringJobStepRepoImpl) UpdateHiringJobStepStatus(ctx context.Context, record *ent.HiringJobStep, inputStatus ent.HiringJobStepStatusEnum) (*ent.HiringJobStep, error) {
+	return record.Update().SetUpdatedAt(time.Now().UTC()).SetStatus(hiringjobstep.Status(inputStatus)).Save(ctx)
 }
