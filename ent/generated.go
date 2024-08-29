@@ -514,9 +514,10 @@ type HiringJobFilter struct {
 	Name           *string                  `json:"name"`
 	HiringTeamIds  []string                 `json:"hiring_team_ids"`
 	RecTeamIds     []string                 `json:"rec_team_ids"`
+	HasRecInCharge *bool                    `json:"has_rec_in_charge"`
 	RecInChargeIds []string                 `json:"rec_in_charge_ids"`
 	Status         *HiringJobStatus         `json:"status"`
-	Priority       *int                     `json:"priority"`
+	Priorities     []int                    `json:"priorities"`
 	Location       []*LocationEnum          `json:"location"`
 	SkillIds       []string                 `json:"skill_ids"`
 	CreatedByIds   []string                 `json:"created_by_ids"`
