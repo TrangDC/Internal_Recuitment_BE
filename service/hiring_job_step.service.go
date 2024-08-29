@@ -59,10 +59,11 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 	loggedInUserID := ctx.Value(middleware.Payload{}).(*middleware.Payload).UserID
 	orderID := 1
 	status := hiringjobstep.StatusPending
+	currentUserAccepted := false
 	for i, approver := range approvers {
 		create := repoRegistry.HiringJobStep().BuildCreate().
 			SetHiringJobID(hiringJob.ID).SetUserID(approver.ID)
-		if approver.ID == loggedInUserID {
+		if approver.ID == loggedInUserID && !currentUserAccepted {
 			orderID = 1
 			status = hiringjobstep.StatusAccepted
 			creates = []*ent.HiringJobStepCreate{create.SetOrderID(orderID).SetStatus(status)}
@@ -72,8 +73,8 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 					return err
 				}
 			}
-			creates = append(creates, create.SetOrderID(orderID).SetStatus(status))
 			orderID++
+			currentUserAccepted = true
 			continue
 		}
 		switch status {
