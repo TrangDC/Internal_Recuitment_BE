@@ -69,6 +69,8 @@ input HiringJobFilter {
   for_owner: Boolean
   for_hiring_team: Boolean
   job_position_ids: [ID!]
+  approver_id: ID
+  approver_status: HiringJobStepStatusEnum
 }
 
 input HiringJobFreeWord {
@@ -155,8 +157,8 @@ type HiringJob {
   level: HiringJobLevel!
   note: String!
   is_able_to_cancel: Boolean!
-  opened_at: Time!
-  closed_at: Time!
+  opened_at: Time
+  closed_at: Time
 }
 
 type HiringJobResponse {

@@ -800,6 +800,7 @@ type ComplexityRoot struct {
 		DeleteSkillType                   func(childComplexity int, id string, note string) int
 		ImportCandidate                   func(childComplexity int, file graphql.Upload) int
 		SetBlackListCandidate             func(childComplexity int, id string, isBlackList bool, note string) int
+		UpdateBulkHiringJobStepsStatus    func(childComplexity int, input ent.UpdateHiringJobStepInput) int
 		UpdateCandidate                   func(childComplexity int, id string, input ent.UpdateCandidateInput, note string) int
 		UpdateCandidateHistoryCall        func(childComplexity int, id string, input ent.UpdateCandidateHistoryCallInput, note string) int
 		UpdateCandidateInterview          func(childComplexity int, id string, input ent.UpdateCandidateInterviewInput, note *string) int
@@ -1481,6 +1482,7 @@ type MutationResolver interface {
 	CreateCandidateNote(ctx context.Context, input ent.NewCandidateNoteInput) (*ent.CandidateNoteResponse, error)
 	UpdateCandidateNote(ctx context.Context, id string, input ent.UpdateCandidateNoteInput, note string) (*ent.CandidateNoteResponse, error)
 	DeleteCandidateNote(ctx context.Context, id string, note string) (bool, error)
+	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) (bool, error)
 }
 type OutgoingEmailResolver interface {
 	ID(ctx context.Context, obj *ent.OutgoingEmail) (string, error)
@@ -4906,6 +4908,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetBlackListCandidate(childComplexity, args["id"].(string), args["is_black_list"].(bool), args["note"].(string)), true
 
+	case "Mutation.UpdateBulkHiringJobStepsStatus":
+		if e.complexity.Mutation.UpdateBulkHiringJobStepsStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateBulkHiringJobStepsStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateBulkHiringJobStepsStatus(childComplexity, args["input"].(ent.UpdateHiringJobStepInput)), true
+
 	case "Mutation.UpdateCandidate":
 		if e.complexity.Mutation.UpdateCandidate == nil {
 			break
@@ -7204,6 +7218,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateEmailTemplateInput,
 		ec.unmarshalInputUpdateEmailTemplateStatusInput,
 		ec.unmarshalInputUpdateHiringJobInput,
+		ec.unmarshalInputUpdateHiringJobStepInput,
 		ec.unmarshalInputUpdateHiringTeamInput,
 		ec.unmarshalInputUpdateJobPositionInput,
 		ec.unmarshalInputUpdateRecTeamInput,
@@ -8623,6 +8638,8 @@ input HiringJobFilter {
   for_owner: Boolean
   for_hiring_team: Boolean
   job_position_ids: [ID!]
+  approver_id: ID
+  approver_status: HiringJobStepStatusEnum
 }
 
 input HiringJobFreeWord {
@@ -8709,8 +8726,8 @@ type HiringJob {
   level: HiringJobLevel!
   note: String!
   is_able_to_cancel: Boolean!
-  opened_at: Time!
-  closed_at: Time!
+  opened_at: Time
+  closed_at: Time
 }
 
 type HiringJobResponse {
@@ -8758,6 +8775,11 @@ type HiringJobStep {
   order_id: Int!
   created_at: Time!
   updated_at: Time!
+}
+
+input UpdateHiringJobStepInput {
+  hiring_job_ids: [ID!]!
+  status: HiringJobStepStatusEnum!
 }
 `, BuiltIn: false},
 	{Name: "../schema/hiring_team.graphql", Input: `enum HiringTeamOrderByField {
@@ -9023,6 +9045,9 @@ type JobPositionSelectionResponseGetAll {
   CreateCandidateNote(input: NewCandidateNoteInput!): CandidateNoteResponse!
   UpdateCandidateNote(id: ID!, input: UpdateCandidateNoteInput!, note: String!): CandidateNoteResponse!
   DeleteCandidateNote(id: ID!, note: String!): Boolean!
+
+  #HiringJobStep
+  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/outgoing_email.graphql", Input: `enum OutgoingEmailRecipientType {
@@ -10567,6 +10592,21 @@ func (ec *executionContext) field_Mutation_SetBlackListCandidate_args(ctx contex
 		}
 	}
 	args["note"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateBulkHiringJobStepsStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.UpdateHiringJobStepInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateHiringJobStepInput2trecᚋentᚐUpdateHiringJobStepInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -30094,14 +30134,11 @@ func (ec *executionContext) _HiringJob_opened_at(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_HiringJob_opened_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30138,14 +30175,11 @@ func (ec *executionContext) _HiringJob_closed_at(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_HiringJob_closed_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37062,6 +37096,61 @@ func (ec *executionContext) fieldContext_Mutation_DeleteCandidateNote(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_DeleteCandidateNote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateBulkHiringJobStepsStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateBulkHiringJobStepsStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateBulkHiringJobStepsStatus(rctx, fc.Args["input"].(ent.UpdateHiringJobStepInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateBulkHiringJobStepsStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateBulkHiringJobStepsStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -53147,7 +53236,7 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "hiring_team_ids", "rec_team_ids", "rec_in_charge_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team", "job_position_ids"}
+	fieldsInOrder := [...]string{"name", "hiring_team_ids", "rec_team_ids", "rec_in_charge_ids", "status", "priority", "location", "skill_ids", "created_by_ids", "for_owner", "for_hiring_team", "job_position_ids", "approver_id", "approver_status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -53247,6 +53336,22 @@ func (ec *executionContext) unmarshalInputHiringJobFilter(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("job_position_ids"))
 			it.JobPositionIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "approver_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approver_id"))
+			it.ApproverID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "approver_status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("approver_status"))
+			it.ApproverStatus, err = ec.unmarshalOHiringJobStepStatusEnum2ᚖtrecᚋentᚐHiringJobStepStatusEnum(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56379,6 +56484,42 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
 			it.Note, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateHiringJobStepInput(ctx context.Context, obj interface{}) (ent.UpdateHiringJobStepInput, error) {
+	var it ent.UpdateHiringJobStepInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"hiring_job_ids", "status"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "hiring_job_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_ids"))
+			it.HiringJobIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNHiringJobStepStatusEnum2trecᚋentᚐHiringJobStepStatusEnum(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -61741,16 +61882,10 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 
 			out.Values[i] = ec._HiringJob_opened_at(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "closed_at":
 
 			out.Values[i] = ec._HiringJob_closed_at(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -63440,6 +63575,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_DeleteCandidateNote(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateBulkHiringJobStepsStatus":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateBulkHiringJobStepsStatus(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -72240,6 +72384,11 @@ func (ec *executionContext) unmarshalNUpdateHiringJobInput2trecᚋentᚐUpdateHi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateHiringJobStepInput2trecᚋentᚐUpdateHiringJobStepInput(ctx context.Context, v interface{}) (ent.UpdateHiringJobStepInput, error) {
+	res, err := ec.unmarshalInputUpdateHiringJobStepInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateHiringTeamInput2trecᚋentᚐUpdateHiringTeamInput(ctx context.Context, v interface{}) (ent.UpdateHiringTeamInput, error) {
 	res, err := ec.unmarshalInputUpdateHiringTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -74538,6 +74687,22 @@ func (ec *executionContext) marshalOHiringJobStep2ᚕᚖtrecᚋentᚐHiringJobSt
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOHiringJobStepStatusEnum2ᚖtrecᚋentᚐHiringJobStepStatusEnum(ctx context.Context, v interface{}) (*ent.HiringJobStepStatusEnum, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(ent.HiringJobStepStatusEnum)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOHiringJobStepStatusEnum2ᚖtrecᚋentᚐHiringJobStepStatusEnum(ctx context.Context, sel ast.SelectionSet, v *ent.HiringJobStepStatusEnum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOHiringTeam2ᚖtrecᚋentᚐHiringTeam(ctx context.Context, sel ast.SelectionSet, v *ent.HiringTeam) graphql.Marshaler {

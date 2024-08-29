@@ -410,6 +410,15 @@ func (r *mutationResolver) DeleteCandidateNote(ctx context.Context, id string, n
 	return true, nil
 }
 
+// UpdateBulkHiringJobStepsStatus is the resolver for the UpdateBulkHiringJobStepsStatus field.
+func (r *mutationResolver) UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) (bool, error) {
+	err := r.serviceRegistry.HiringJobStep().UpdateBulkHiringJobStepsStatus(ctx, input)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Mutation returns graphql1.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql1.MutationResolver { return &mutationResolver{r} }
 

@@ -573,6 +573,16 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 			})
 			hiringJobQuery.Where(hiringjob.JobPositionIDIn(ids...))
 		}
+		if input.ApproverID != nil {
+			hiringJobQuery.Where(hiringjob.HasApprovalStepsWith(
+				hiringjobstep.UserID(uuid.MustParse(*input.ApproverID)),
+			))
+		}
+		if input.ApproverStatus != nil {
+			hiringJobQuery.Where(hiringjob.HasApprovalStepsWith(
+				hiringjobstep.StatusEQ(hiringjobstep.Status(*input.ApproverStatus)),
+			))
+		}
 	}
 }
 

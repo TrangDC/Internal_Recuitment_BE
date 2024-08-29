@@ -89,4 +89,7 @@ type Mutation {
   CreateCandidateNote(input: NewCandidateNoteInput!): CandidateNoteResponse!
   UpdateCandidateNote(id: ID!, input: UpdateCandidateNoteInput!, note: String!): CandidateNoteResponse!
   DeleteCandidateNote(id: ID!, note: String!): Boolean!
+
+  #HiringJobStep
+  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!): Boolean!
 }

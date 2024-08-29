@@ -2,20 +2,25 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"trec/ent"
+	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/recteam"
 	"trec/ent/user"
+	"trec/internal/util"
 	"trec/middleware"
 	"trec/repository"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 type HiringJobStepService interface {
 	CreateBulkHiringJobSteps(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob) error
+	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) error
 }
 
 type hiringJobStepImpl struct {
@@ -66,8 +71,8 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 				if err != nil {
 					return err
 				}
-				break
 			}
+			creates = append(creates, create.SetOrderID(orderID).SetStatus(status))
 			orderID++
 			continue
 		}
@@ -82,4 +87,73 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 	}
 	_, err = repoRegistry.HiringJobStep().CreateBulkHiringJobSteps(ctx, creates)
 	return err
+}
+
+func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) error {
+	switch input.Status {
+	case ent.HiringJobStepStatusEnumPending:
+		return nil
+	case ent.HiringJobStepStatusEnumWaiting:
+		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_status_update", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	default:
+		err := svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+			for _, jobIDStr := range input.HiringJobIds {
+				err := svc.updateHiringJobStepStatus(ctx, repoRegistry, uuid.MustParse(jobIDStr), input.Status)
+				if err != nil {
+					svc.logger.Error(err.Error(), zap.String("job_id", jobIDStr))
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, repoRegistry repository.Repository, hiringJobID uuid.UUID, status ent.HiringJobStepStatusEnum) error {
+	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(
+		ctx,
+		svc.repoRegistry.HiringJob().BuildBaseQuery().
+			Where(hiringjob.DeletedAtIsNil(), hiringjob.ID(hiringJobID)).
+			WithApprovalSteps(func(query *ent.HiringJobStepQuery) {
+				query.Order(ent.Asc(hiringjobstep.FieldOrderID))
+			}),
+	)
+	if err != nil {
+		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	currentUserID := ctx.Value(middleware.Payload{}).(*middleware.Payload).UserID
+	steps := hiringJob.Edges.ApprovalSteps
+	currentStep, stepExists := lo.Find(steps, func(item *ent.HiringJobStep) bool {
+		return item.UserID == currentUserID && item.Status == hiringjobstep.StatusPending
+	})
+	if !stepExists {
+		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_user", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	updatedRec, err := repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, currentStep, status)
+	if err != nil {
+		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	switch updatedRec.Status {
+	case hiringjobstep.StatusAccepted:
+		if updatedRec.OrderID == len(steps) {
+			_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusOpened)
+			if err != nil {
+				return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			}
+		}
+		_, err = repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, steps[updatedRec.OrderID+1], ent.HiringJobStepStatusEnumPending)
+		if err != nil {
+			return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	case hiringjobstep.StatusRejected:
+		_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusCancelled)
+		if err != nil {
+			return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+	}
+	return nil
 }
