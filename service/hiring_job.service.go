@@ -599,15 +599,15 @@ func (svc *hiringJobSvcImpl) filter(ctx context.Context, hiringJobQuery *ent.Hir
 			})
 			hiringJobQuery.Where(hiringjob.JobPositionIDIn(ids...))
 		}
+		hiringJobStepPredicates := make([]predicate.HiringJobStep, 0)
 		if input.ApproverID != nil {
-			hiringJobQuery.Where(hiringjob.HasApprovalStepsWith(
-				hiringjobstep.UserID(uuid.MustParse(*input.ApproverID)),
-			))
+			hiringJobStepPredicates = append(hiringJobStepPredicates, hiringjobstep.UserID(uuid.MustParse(*input.ApproverID)))
 		}
 		if input.ApproverStatus != nil {
-			hiringJobQuery.Where(hiringjob.HasApprovalStepsWith(
-				hiringjobstep.StatusEQ(hiringjobstep.Status(*input.ApproverStatus)),
-			))
+			hiringJobStepPredicates = append(hiringJobStepPredicates, hiringjobstep.StatusEQ(hiringjobstep.Status(*input.ApproverStatus)))
+		}
+		if len(hiringJobStepPredicates) > 0 {
+			hiringJobQuery.Where(hiringjob.HasApprovalStepsWith(hiringJobStepPredicates...))
 		}
 	}
 }
