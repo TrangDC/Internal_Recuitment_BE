@@ -26,6 +26,11 @@ type Mutation {
   # HiringJob
   CreateHiringJob(input: NewHiringJobInput!, note: String!): HiringJobResponse!
   UpdateHiringJob(id: ID!, input: UpdateHiringJobInput!, note: String!): HiringJobResponse!
+  UpdatePendingApprovalsHiringJob(id: ID!, input: UpdateHiringJobInput!, note: String!): HiringJobResponse!
+  UpdateOpenedHiringJob(id: ID!, input: UpdateHiringJobInput!, note: String!): HiringJobResponse!
+  CloseHiringJob(id: ID!, status: HiringJobStatus!, note: String!): HiringJobResponse!
+  CancelHiringJob(id: ID!, status: HiringJobStatus!, note: String!): HiringJobResponse!
+  ReopenHiringJob(id: ID!, status: HiringJobStatus!, note: String!): HiringJobResponse!
   DeleteHiringJob(id: ID!, note: String!): Boolean!
   UpdateHiringJobStatus(id: ID!, status: HiringJobStatus!, note: String!): HiringJobResponse!
 
