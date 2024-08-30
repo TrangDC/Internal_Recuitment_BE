@@ -452,6 +452,14 @@ func (cj *CandidateJob) CandidateJobStep(ctx context.Context) (result []*Candida
 	return result, err
 }
 
+func (cj *CandidateJob) RecInChargeEdge(ctx context.Context) (*User, error) {
+	result, err := cj.Edges.RecInChargeEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = cj.QueryRecInChargeEdge().Only(ctx)
+	}
+	return result, err
+}
+
 func (cjf *CandidateJobFeedback) CreatedByEdge(ctx context.Context) (*User, error) {
 	result, err := cjf.Edges.CreatedByEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -1208,6 +1216,18 @@ func (u *User) HiringJobRecEdges(ctx context.Context) (result []*HiringJob, err 
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryHiringJobRecEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) CandidateJobRecEdges(ctx context.Context) (result []*CandidateJob, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedCandidateJobRecEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.CandidateJobRecEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryCandidateJobRecEdges().All(ctx)
 	}
 	return result, err
 }

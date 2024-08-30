@@ -33,6 +33,8 @@ type CandidateJob struct {
 	CandidateID uuid.UUID `json:"candidate_id,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+	// RecInChargeID holds the value of the "rec_in_charge_id" field.
+	RecInChargeID uuid.UUID `json:"rec_in_charge_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status candidatejob.Status `json:"status,omitempty"`
 	// FailedReason holds the value of the "failed_reason" field.
@@ -64,11 +66,13 @@ type CandidateJobEdges struct {
 	CreatedByEdge *User `json:"created_by_edge,omitempty"`
 	// CandidateJobStep holds the value of the candidate_job_step edge.
 	CandidateJobStep []*CandidateJobStep `json:"candidate_job_step,omitempty"`
+	// RecInChargeEdge holds the value of the rec_in_charge_edge edge.
+	RecInChargeEdge *User `json:"rec_in_charge_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 	// totalCount holds the count of the edges above.
-	totalCount [7]map[string]int
+	totalCount [8]map[string]int
 
 	namedAttachmentEdges       map[string][]*Attachment
 	namedCandidateJobFeedback  map[string][]*CandidateJobFeedback
@@ -151,6 +155,19 @@ func (e CandidateJobEdges) CandidateJobStepOrErr() ([]*CandidateJobStep, error) 
 	return nil, &NotLoadedError{edge: "candidate_job_step"}
 }
 
+// RecInChargeEdgeOrErr returns the RecInChargeEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CandidateJobEdges) RecInChargeEdgeOrErr() (*User, error) {
+	if e.loadedTypes[7] {
+		if e.RecInChargeEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.RecInChargeEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "rec_in_charge_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -162,7 +179,7 @@ func (*CandidateJob) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case candidatejob.FieldCreatedAt, candidatejob.FieldUpdatedAt, candidatejob.FieldDeletedAt, candidatejob.FieldOnboardDate, candidatejob.FieldOfferExpirationDate:
 			values[i] = new(sql.NullTime)
-		case candidatejob.FieldID, candidatejob.FieldHiringJobID, candidatejob.FieldCandidateID, candidatejob.FieldCreatedBy:
+		case candidatejob.FieldID, candidatejob.FieldHiringJobID, candidatejob.FieldCandidateID, candidatejob.FieldCreatedBy, candidatejob.FieldRecInChargeID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type CandidateJob", columns[i])
@@ -220,6 +237,12 @@ func (cj *CandidateJob) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field created_by", values[i])
 			} else if value != nil {
 				cj.CreatedBy = *value
+			}
+		case candidatejob.FieldRecInChargeID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field rec_in_charge_id", values[i])
+			} else if value != nil {
+				cj.RecInChargeID = *value
 			}
 		case candidatejob.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -293,6 +316,11 @@ func (cj *CandidateJob) QueryCandidateJobStep() *CandidateJobStepQuery {
 	return (&CandidateJobClient{config: cj.config}).QueryCandidateJobStep(cj)
 }
 
+// QueryRecInChargeEdge queries the "rec_in_charge_edge" edge of the CandidateJob entity.
+func (cj *CandidateJob) QueryRecInChargeEdge() *UserQuery {
+	return (&CandidateJobClient{config: cj.config}).QueryRecInChargeEdge(cj)
+}
+
 // Update returns a builder for updating this CandidateJob.
 // Note that you need to call CandidateJob.Unwrap() before calling this method if this CandidateJob
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -333,6 +361,9 @@ func (cj *CandidateJob) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", cj.CreatedBy))
+	builder.WriteString(", ")
+	builder.WriteString("rec_in_charge_id=")
+	builder.WriteString(fmt.Sprintf("%v", cj.RecInChargeID))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", cj.Status))

@@ -26,6 +26,8 @@ const (
 	FieldCandidateID = "candidate_id"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
+	// FieldRecInChargeID holds the string denoting the rec_in_charge_id field in the database.
+	FieldRecInChargeID = "rec_in_charge_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldFailedReason holds the string denoting the failed_reason field in the database.
@@ -50,6 +52,8 @@ const (
 	EdgeCreatedByEdge = "created_by_edge"
 	// EdgeCandidateJobStep holds the string denoting the candidate_job_step edge name in mutations.
 	EdgeCandidateJobStep = "candidate_job_step"
+	// EdgeRecInChargeEdge holds the string denoting the rec_in_charge_edge edge name in mutations.
+	EdgeRecInChargeEdge = "rec_in_charge_edge"
 	// Table holds the table name of the candidatejob in the database.
 	Table = "candidate_jobs"
 	// AttachmentEdgesTable is the table that holds the attachment_edges relation/edge.
@@ -101,6 +105,13 @@ const (
 	CandidateJobStepInverseTable = "candidate_job_steps"
 	// CandidateJobStepColumn is the table column denoting the candidate_job_step relation/edge.
 	CandidateJobStepColumn = "candidate_job_id"
+	// RecInChargeEdgeTable is the table that holds the rec_in_charge_edge relation/edge.
+	RecInChargeEdgeTable = "candidate_jobs"
+	// RecInChargeEdgeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	RecInChargeEdgeInverseTable = "users"
+	// RecInChargeEdgeColumn is the table column denoting the rec_in_charge_edge relation/edge.
+	RecInChargeEdgeColumn = "rec_in_charge_id"
 )
 
 // Columns holds all SQL columns for candidatejob fields.
@@ -112,6 +123,7 @@ var Columns = []string{
 	FieldHiringJobID,
 	FieldCandidateID,
 	FieldCreatedBy,
+	FieldRecInChargeID,
 	FieldStatus,
 	FieldFailedReason,
 	FieldOnboardDate,

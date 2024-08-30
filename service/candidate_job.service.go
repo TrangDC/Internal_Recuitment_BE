@@ -19,6 +19,7 @@ import (
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
 	"trec/ent/predicate"
+	"trec/ent/recteam"
 	"trec/ent/user"
 	"trec/internal/servicebus"
 	"trec/internal/util"
@@ -281,6 +282,10 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		_, err = repoRegistry.CandidateJob().UpdateCandidateJobRecInCharge(ctx, candidateJob, uuid.MustParse(input.RecInChargeID))
+		if err != nil {
+			return err
+		}
 		err = svc.repoRegistry.Attachment().CreateAndUpdateAttachment(ctx, candidateJob.ID, input.Attachments, candidateJob.Edges.AttachmentEdges, attachment.RelationTypeCandidateJobs)
 		return err
 	})
@@ -740,6 +745,22 @@ func (svc *candidateJobSvcImpl) filter(ctx context.Context, candidateJobQuery *e
 			),
 		))
 	}
+	if input.RecInChargeIds != nil {
+		recInChargeIds := lo.Map(input.RecInChargeIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.RecInChargeIDIn(recInChargeIds...))
+	}
+	if input.RecTeamIds != nil {
+		recTeamIds := lo.Map(input.RecTeamIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.HasRecTeamEdgeWith(
+				recteam.IDIn(recTeamIds...),
+			),
+		))
+	}
 	if input.HiringJobIds != nil {
 		hiringJobIds := lo.Map(input.HiringJobIds, func(id string, index int) uuid.UUID {
 			return uuid.MustParse(id)
@@ -825,6 +846,22 @@ func (svc *candidateJobSvcImpl) customFilter(candidateJobQuery *ent.CandidateJob
 		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
 			hiringjob.HasHiringTeamEdgeWith(
 				hiringteam.IDIn(hiringTeamIds...),
+			),
+		))
+	}
+	if input.RecInChargeIds != nil {
+		recInChargeIds := lo.Map(input.RecInChargeIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.RecInChargeIDIn(recInChargeIds...))
+	}
+	if input.RecTeamIds != nil {
+		recTeamIds := lo.Map(input.RecTeamIds, func(id string, index int) uuid.UUID {
+			return uuid.MustParse(id)
+		})
+		candidateJobQuery.Where(candidatejob.HasHiringJobEdgeWith(
+			hiringjob.HasRecTeamEdgeWith(
+				recteam.IDIn(recTeamIds...),
 			),
 		))
 	}

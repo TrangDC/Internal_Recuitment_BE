@@ -442,6 +442,21 @@ func (uc *UserCreate) AddHiringJobRecEdges(h ...*HiringJob) *UserCreate {
 	return uc.AddHiringJobRecEdgeIDs(ids...)
 }
 
+// AddCandidateJobRecEdgeIDs adds the "candidate_job_rec_edges" edge to the CandidateJob entity by IDs.
+func (uc *UserCreate) AddCandidateJobRecEdgeIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddCandidateJobRecEdgeIDs(ids...)
+	return uc
+}
+
+// AddCandidateJobRecEdges adds the "candidate_job_rec_edges" edges to the CandidateJob entity.
+func (uc *UserCreate) AddCandidateJobRecEdges(c ...*CandidateJob) *UserCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCandidateJobRecEdgeIDs(ids...)
+}
+
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by IDs.
 func (uc *UserCreate) AddInterviewUserIDs(ids ...uuid.UUID) *UserCreate {
 	uc.mutation.AddInterviewUserIDs(ids...)
@@ -1070,6 +1085,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: hiringjob.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CandidateJobRecEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CandidateJobRecEdgesTable,
+			Columns: []string{user.CandidateJobRecEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: candidatejob.FieldID,
 				},
 			},
 		}

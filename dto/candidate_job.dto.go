@@ -92,10 +92,10 @@ func (d *candidateJobDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateJob, newR
 			switch fieldName {
 			case "":
 				continue
-			case "model.candidate_job.status":
+			case "model.candidate_jobs.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
-			case "model.candidate_job.hiring_job":
+			case "model.candidate_jobs.hiring_job":
 				if oldRecord.Edges.HiringJobEdge != nil {
 					oldValueField = oldRecord.Edges.HiringJobEdge.Name
 				} else {
@@ -106,6 +106,9 @@ func (d *candidateJobDtoImpl) AuditTrailUpdate(oldRecord *ent.CandidateJob, newR
 				} else {
 					newValueField = ""
 				}
+			case "model.candidate_jobs.rec_in_charge":
+				oldValueField = oldRecord.Edges.RecInChargeEdge.Name
+				newValueField = newRecord.Edges.RecInChargeEdge.Name
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -198,6 +201,8 @@ func (d *candidateJobDtoImpl) recordAudit(record *ent.CandidateJob) []interface{
 			} else {
 				valueField = ""
 			}
+		case "model.candidate_jobs.rec_in_charge":
+			valueField = record.Edges.RecInChargeEdge.Name
 		case "model.candidate_jobs.onboard_date":
 			if record.OnboardDate.IsZero() {
 				valueField = ""
@@ -295,6 +300,8 @@ func (d candidateJobDtoImpl) formatFieldI18n(input string) string {
 		return "model.candidate_jobs.hiring_job"
 	case "Status":
 		return "model.candidate_jobs.status"
+	case "RecInChargeID":
+		return "model.candidate_jobs.rec_in_charge"
 	case "OnboardDate":
 		return "model.candidate_jobs.onboard_date"
 	case "OfferExpirationDate":

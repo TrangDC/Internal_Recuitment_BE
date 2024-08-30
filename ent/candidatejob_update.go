@@ -137,6 +137,12 @@ func (cju *CandidateJobUpdate) ClearCreatedBy() *CandidateJobUpdate {
 	return cju
 }
 
+// SetRecInChargeID sets the "rec_in_charge_id" field.
+func (cju *CandidateJobUpdate) SetRecInChargeID(u uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.SetRecInChargeID(u)
+	return cju
+}
+
 // SetStatus sets the "status" field.
 func (cju *CandidateJobUpdate) SetStatus(c candidatejob.Status) *CandidateJobUpdate {
 	cju.mutation.SetStatus(c)
@@ -346,6 +352,17 @@ func (cju *CandidateJobUpdate) AddCandidateJobStep(c ...*CandidateJobStep) *Cand
 	return cju.AddCandidateJobStepIDs(ids...)
 }
 
+// SetRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by ID.
+func (cju *CandidateJobUpdate) SetRecInChargeEdgeID(id uuid.UUID) *CandidateJobUpdate {
+	cju.mutation.SetRecInChargeEdgeID(id)
+	return cju
+}
+
+// SetRecInChargeEdge sets the "rec_in_charge_edge" edge to the User entity.
+func (cju *CandidateJobUpdate) SetRecInChargeEdge(u *User) *CandidateJobUpdate {
+	return cju.SetRecInChargeEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cju *CandidateJobUpdate) Mutation() *CandidateJobMutation {
 	return cju.mutation
@@ -453,6 +470,12 @@ func (cju *CandidateJobUpdate) RemoveCandidateJobStep(c ...*CandidateJobStep) *C
 	return cju.RemoveCandidateJobStepIDs(ids...)
 }
 
+// ClearRecInChargeEdge clears the "rec_in_charge_edge" edge to the User entity.
+func (cju *CandidateJobUpdate) ClearRecInChargeEdge() *CandidateJobUpdate {
+	cju.mutation.ClearRecInChargeEdge()
+	return cju
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cju *CandidateJobUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -524,6 +547,9 @@ func (cju *CandidateJobUpdate) check() error {
 		if err := candidatejob.LevelValidator(v); err != nil {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
 		}
+	}
+	if _, ok := cju.mutation.RecInChargeEdgeID(); cju.mutation.RecInChargeEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "CandidateJob.rec_in_charge_edge"`)
 	}
 	return nil
 }
@@ -911,6 +937,41 @@ func (cju *CandidateJobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cju.mutation.RecInChargeEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.RecInChargeEdgeTable,
+			Columns: []string{candidatejob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cju.mutation.RecInChargeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.RecInChargeEdgeTable,
+			Columns: []string{candidatejob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{candidatejob.Label}
@@ -1027,6 +1088,12 @@ func (cjuo *CandidateJobUpdateOne) SetNillableCreatedBy(u *uuid.UUID) *Candidate
 // ClearCreatedBy clears the value of the "created_by" field.
 func (cjuo *CandidateJobUpdateOne) ClearCreatedBy() *CandidateJobUpdateOne {
 	cjuo.mutation.ClearCreatedBy()
+	return cjuo
+}
+
+// SetRecInChargeID sets the "rec_in_charge_id" field.
+func (cjuo *CandidateJobUpdateOne) SetRecInChargeID(u uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.SetRecInChargeID(u)
 	return cjuo
 }
 
@@ -1239,6 +1306,17 @@ func (cjuo *CandidateJobUpdateOne) AddCandidateJobStep(c ...*CandidateJobStep) *
 	return cjuo.AddCandidateJobStepIDs(ids...)
 }
 
+// SetRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by ID.
+func (cjuo *CandidateJobUpdateOne) SetRecInChargeEdgeID(id uuid.UUID) *CandidateJobUpdateOne {
+	cjuo.mutation.SetRecInChargeEdgeID(id)
+	return cjuo
+}
+
+// SetRecInChargeEdge sets the "rec_in_charge_edge" edge to the User entity.
+func (cjuo *CandidateJobUpdateOne) SetRecInChargeEdge(u *User) *CandidateJobUpdateOne {
+	return cjuo.SetRecInChargeEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cjuo *CandidateJobUpdateOne) Mutation() *CandidateJobMutation {
 	return cjuo.mutation
@@ -1346,6 +1424,12 @@ func (cjuo *CandidateJobUpdateOne) RemoveCandidateJobStep(c ...*CandidateJobStep
 	return cjuo.RemoveCandidateJobStepIDs(ids...)
 }
 
+// ClearRecInChargeEdge clears the "rec_in_charge_edge" edge to the User entity.
+func (cjuo *CandidateJobUpdateOne) ClearRecInChargeEdge() *CandidateJobUpdateOne {
+	cjuo.mutation.ClearRecInChargeEdge()
+	return cjuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (cjuo *CandidateJobUpdateOne) Select(field string, fields ...string) *CandidateJobUpdateOne {
@@ -1430,6 +1514,9 @@ func (cjuo *CandidateJobUpdateOne) check() error {
 		if err := candidatejob.LevelValidator(v); err != nil {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
 		}
+	}
+	if _, ok := cjuo.mutation.RecInChargeEdgeID(); cjuo.mutation.RecInChargeEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "CandidateJob.rec_in_charge_edge"`)
 	}
 	return nil
 }
@@ -1826,6 +1913,41 @@ func (cjuo *CandidateJobUpdateOne) sqlSave(ctx context.Context) (_node *Candidat
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidatejobstep.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cjuo.mutation.RecInChargeEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.RecInChargeEdgeTable,
+			Columns: []string{candidatejob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cjuo.mutation.RecInChargeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.RecInChargeEdgeTable,
+			Columns: []string{candidatejob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
 				},
 			},
 		}

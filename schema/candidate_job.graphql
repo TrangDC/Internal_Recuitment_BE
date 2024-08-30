@@ -79,6 +79,8 @@ input CandidateJobGroupByStatusFilter {
   status: CandidateJobStatus
   hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
+  rec_in_charge_ids: [ID!]
+  rec_team_ids: [ID!]
   priorities: [Int!]
   skill_ids: [ID!]
   from_date: Time
@@ -102,6 +104,8 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate
   hiring_job: HiringJob
+  rec_in_charge: User
+  rec_team: RecTeam
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
@@ -144,6 +148,7 @@ type CandidateJobGroupByStatus {
 input NewCandidateJobInput {
   candidate_id: ID!
   hiring_job_id: ID!
+  rec_in_charge_id: ID!
   status: CandidateJobStatusOpen!
   attachments: [NewAttachmentInput!]
   onboard_date: Time
@@ -154,6 +159,7 @@ input NewCandidateJobInput {
 
 input UpdateCandidateAttachment {
   attachments: [NewAttachmentInput!]
+  rec_in_charge_id: ID!
 }
 
 input UpdateCandidateJobStatus {
@@ -193,6 +199,8 @@ input CandidateJobFilter {
   to_date: Time
   hiring_team_ids: [ID!]
   hiring_job_ids: [ID!]
+  rec_in_charge_ids: [ID!]
+  rec_team_ids: [ID!]
   candidate_id: ID
   failed_reasons: [CandidateJobFailedReason!]
   levels: [CandidateJobLevel!]

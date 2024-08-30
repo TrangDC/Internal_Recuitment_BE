@@ -112,6 +112,12 @@ func (cjc *CandidateJobCreate) SetNillableCreatedBy(u *uuid.UUID) *CandidateJobC
 	return cjc
 }
 
+// SetRecInChargeID sets the "rec_in_charge_id" field.
+func (cjc *CandidateJobCreate) SetRecInChargeID(u uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetRecInChargeID(u)
+	return cjc
+}
+
 // SetStatus sets the "status" field.
 func (cjc *CandidateJobCreate) SetStatus(c candidatejob.Status) *CandidateJobCreate {
 	cjc.mutation.SetStatus(c)
@@ -297,6 +303,17 @@ func (cjc *CandidateJobCreate) AddCandidateJobStep(c ...*CandidateJobStep) *Cand
 	return cjc.AddCandidateJobStepIDs(ids...)
 }
 
+// SetRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by ID.
+func (cjc *CandidateJobCreate) SetRecInChargeEdgeID(id uuid.UUID) *CandidateJobCreate {
+	cjc.mutation.SetRecInChargeEdgeID(id)
+	return cjc
+}
+
+// SetRecInChargeEdge sets the "rec_in_charge_edge" edge to the User entity.
+func (cjc *CandidateJobCreate) SetRecInChargeEdge(u *User) *CandidateJobCreate {
+	return cjc.SetRecInChargeEdgeID(u.ID)
+}
+
 // Mutation returns the CandidateJobMutation object of the builder.
 func (cjc *CandidateJobCreate) Mutation() *CandidateJobMutation {
 	return cjc.mutation
@@ -389,6 +406,9 @@ func (cjc *CandidateJobCreate) check() error {
 	if _, ok := cjc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CandidateJob.created_at"`)}
 	}
+	if _, ok := cjc.mutation.RecInChargeID(); !ok {
+		return &ValidationError{Name: "rec_in_charge_id", err: errors.New(`ent: missing required field "CandidateJob.rec_in_charge_id"`)}
+	}
 	if _, ok := cjc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "CandidateJob.status"`)}
 	}
@@ -401,6 +421,9 @@ func (cjc *CandidateJobCreate) check() error {
 		if err := candidatejob.LevelValidator(v); err != nil {
 			return &ValidationError{Name: "level", err: fmt.Errorf(`ent: validator failed for field "CandidateJob.level": %w`, err)}
 		}
+	}
+	if _, ok := cjc.mutation.RecInChargeEdgeID(); !ok {
+		return &ValidationError{Name: "rec_in_charge_edge", err: errors.New(`ent: missing required edge "CandidateJob.rec_in_charge_edge"`)}
 	}
 	return nil
 }
@@ -604,6 +627,26 @@ func (cjc *CandidateJobCreate) createSpec() (*CandidateJob, *sqlgraph.CreateSpec
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cjc.mutation.RecInChargeEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   candidatejob.RecInChargeEdgeTable,
+			Columns: []string{candidatejob.RecInChargeEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RecInChargeID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

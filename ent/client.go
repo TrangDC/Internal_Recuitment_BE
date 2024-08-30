@@ -2053,6 +2053,22 @@ func (c *CandidateJobClient) QueryCandidateJobStep(cj *CandidateJob) *CandidateJ
 	return query
 }
 
+// QueryRecInChargeEdge queries the rec_in_charge_edge edge of a CandidateJob.
+func (c *CandidateJobClient) QueryRecInChargeEdge(cj *CandidateJob) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.RecInChargeEdgeTable, candidatejob.RecInChargeEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CandidateJobClient) Hooks() []Hook {
 	return c.hooks.CandidateJob
@@ -5120,6 +5136,22 @@ func (c *UserClient) QueryHiringJobRecEdges(u *User) *HiringJobQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(hiringjob.Table, hiringjob.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.HiringJobRecEdgesTable, user.HiringJobRecEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCandidateJobRecEdges queries the candidate_job_rec_edges edge of a User.
+func (c *UserClient) QueryCandidateJobRecEdges(u *User) *CandidateJobQuery {
+	query := &CandidateJobQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(candidatejob.Table, candidatejob.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CandidateJobRecEdgesTable, user.CandidateJobRecEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
