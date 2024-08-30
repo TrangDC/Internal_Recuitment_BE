@@ -13,6 +13,7 @@ type HiringJobStepRepository interface {
 	// base func
 	BuildCreate() *ent.HiringJobStepCreate
 	BuildQuery() *ent.HiringJobStepQuery
+	BuildUpdateOne(ctx context.Context, record *ent.HiringJobStep) *ent.HiringJobStepUpdateOne
 	// mutation
 	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error
 	DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error
@@ -38,6 +39,10 @@ func (rps hiringJobStepRepoImpl) BuildCreate() *ent.HiringJobStepCreate {
 
 func (rps hiringJobStepRepoImpl) BuildQuery() *ent.HiringJobStepQuery {
 	return rps.client.HiringJobStep.Query()
+}
+
+func (rps *hiringJobStepRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.HiringJobStep) *ent.HiringJobStepUpdateOne {
+	return record.Update().SetUpdatedAt(time.Now().UTC())
 }
 
 // mutation

@@ -121,7 +121,6 @@ input UpdateHiringJobInput {
   hiring_team_id: ID!
   rec_team_id: ID!
   rec_in_charge_id: ID!
-  created_by: ID!
   priority: Int!
   entity_skill_records: [EntitySkillRecordInput!]
   job_position_id: ID!

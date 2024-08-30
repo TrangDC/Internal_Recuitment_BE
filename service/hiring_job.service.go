@@ -162,6 +162,9 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.UpdateHiringJobInput, id uuid.UUID, note string) (*ent.HiringJobResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var result *ent.HiringJob
+	if input.Amount == 0 {
+		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	record, err := svc.repoRegistry.HiringJob().GetHiringJob(ctx, id)
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -170,10 +173,18 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if !svc.validPermissionMutation(payload, record.Edges.HiringTeamEdge) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	if input.Amount == 0 && record.Status == hiringjob.StatusOpened {
-		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.amount_neq_zero", http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
+	oldRecLeaderID := record.Edges.RecTeamEdge.LeaderID
+	recTeamChange := record.RecTeamID != uuid.MustParse(input.RecTeamID)
+	hiringTeamChange := record.HiringTeamID != uuid.MustParse(input.HiringTeamID)
 	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name, input.HiringTeamID)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	errString, err = svc.repoRegistry.HiringJob().ValidStatusWhenUpdate(ctx, record, input, recTeamChange, hiringTeamChange)
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
@@ -189,19 +200,40 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	errString, err = svc.repoRegistry.RecTeam().ValidRecInCharge(ctx, uuid.MustParse(input.RecTeamID), uuid.MustParse(input.RecInChargeID))
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+	}
+	if errString != nil {
+		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringJob().UpdateHiringJob(ctx, record, input)
 		if err != nil {
 			return err
 		}
 		err = svc.repoRegistry.EntitySkill().CreateAndUpdateEntitySkill(ctx, record.ID, input.EntitySkillRecords, record.Edges.HiringJobSkillEdges, entityskill.EntityTypeHiringJob)
+		if err != nil {
+			return err
+		}
+		result, _ = repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
+		switch {
+		case hiringTeamChange:
+			err = repoRegistry.HiringJobStep().DeleteHiringJobStep(ctx, id)
+			if err != nil {
+				return err
+			}
+			return svc.hiringJobStepSvc.CreateBulkHiringJobSteps(ctx, repoRegistry, result)
+		case recTeamChange:
+			return svc.hiringJobStepSvc.UpdateHiringJobStepByRecLeader(ctx, repoRegistry, result, oldRecLeaderID)
+		}
 		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error())
