@@ -8711,7 +8711,7 @@ type HiringJob {
   job_position: JobPosition
   job_position_id: ID
   hiring_team: HiringTeam!
-  rec_team: RecTeam!
+  rec_team: RecTeam
   rec_in_charge: User
   user: User!
   status: HiringJobStatus!
@@ -29394,14 +29394,11 @@ func (ec *executionContext) _HiringJob_rec_team(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.RecTeam)
 	fc.Result = res
-	return ec.marshalNRecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
+	return ec.marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_HiringJob_rec_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -61665,9 +61662,6 @@ func (ec *executionContext) _HiringJob(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._HiringJob_rec_team(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			}
 
@@ -71121,10 +71115,6 @@ func (ec *executionContext) unmarshalNPermissionGroupType2trecᚋentᚐPermissio
 
 func (ec *executionContext) marshalNPermissionGroupType2trecᚋentᚐPermissionGroupType(ctx context.Context, sel ast.SelectionSet, v ent.PermissionGroupType) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNRecTeam2trecᚋentᚐRecTeam(ctx context.Context, sel ast.SelectionSet, v ent.RecTeam) graphql.Marshaler {
-	return ec._RecTeam(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNRecTeam2ᚖtrecᚋentᚐRecTeam(ctx context.Context, sel ast.SelectionSet, v *ent.RecTeam) graphql.Marshaler {

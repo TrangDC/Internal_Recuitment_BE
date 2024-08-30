@@ -78,6 +78,11 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 			currentUserAccepted = true
 			continue
 		}
+		if orderID == 1 {
+			creates = append(creates, create.SetOrderID(orderID).SetStatus(status))
+			orderID++
+			continue
+		}
 		switch status {
 		case hiringjobstep.StatusAccepted:
 			status = hiringjobstep.StatusPending
@@ -98,24 +103,18 @@ func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context
 	case ent.HiringJobStepStatusEnumWaiting:
 		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_status_update", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	default:
-		err := svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-			for _, jobIDStr := range input.HiringJobIds {
-				err := svc.updateHiringJobStepStatus(ctx, repoRegistry, uuid.MustParse(jobIDStr), input.Status)
-				if err != nil {
-					svc.logger.Error(err.Error(), zap.String("job_id", jobIDStr))
-					return err
-				}
+		for _, jobIDStr := range input.HiringJobIds {
+			err := svc.updateHiringJobStepStatus(ctx, uuid.MustParse(jobIDStr), input.Status)
+			if err != nil {
+				svc.logger.Error(err.Error(), zap.String("job_id", jobIDStr))
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 		return nil
 	}
 }
 
-func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, repoRegistry repository.Repository, hiringJobID uuid.UUID, status ent.HiringJobStepStatusEnum) error {
+func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, hiringJobID uuid.UUID, status ent.HiringJobStepStatusEnum) error {
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(
 		ctx,
 		svc.repoRegistry.HiringJob().BuildBaseQuery().
@@ -135,29 +134,32 @@ func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, rep
 	if !stepExists {
 		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_user", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	updatedRec, err := repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, currentStep, status)
+	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
+		updatedRec, err := repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, currentStep, status)
+		if err != nil {
+			return err
+		}
+		switch updatedRec.Status {
+		case hiringjobstep.StatusAccepted:
+			if updatedRec.OrderID == len(steps) {
+				_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusOpened)
+				if err != nil {
+					return err
+				}
+				break
+			}
+			_, err = repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, steps[updatedRec.OrderID], ent.HiringJobStepStatusEnumPending)
+			return err
+		case hiringjobstep.StatusRejected:
+			_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusCancelled)
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	switch updatedRec.Status {
-	case hiringjobstep.StatusAccepted:
-		if updatedRec.OrderID == len(steps) {
-			_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusOpened)
-			if err != nil {
-				return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-			}
-		}
-		_, err = repoRegistry.HiringJobStep().UpdateHiringJobStepStatus(ctx, steps[updatedRec.OrderID+1], ent.HiringJobStepStatusEnumPending)
-		if err != nil {
-			return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	case hiringjobstep.StatusRejected:
-		_, err := repoRegistry.HiringJob().UpdateHiringJobStatus(ctx, hiringJob, ent.HiringJobStatusCancelled)
-		if err != nil {
-			return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-		}
-	}
-	return nil
+	return err
 }
 
 func (svc *hiringJobStepImpl) UpdateHiringJobStepByRecLeader(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob, oldRecLeaderID uuid.UUID) error {

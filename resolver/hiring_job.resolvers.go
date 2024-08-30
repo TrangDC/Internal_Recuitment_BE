@@ -55,7 +55,7 @@ func (r *hiringJobResolver) HiringTeam(ctx context.Context, obj *ent.HiringJob) 
 
 // RecTeam is the resolver for the rec_team field.
 func (r *hiringJobResolver) RecTeam(ctx context.Context, obj *ent.HiringJob) (*ent.RecTeam, error) {
-	return obj.Edges.RecTeamEdge, nil
+	return obj.Edges.RecTeamEdgeOrErr()
 }
 
 // RecInCharge is the resolver for the rec_in_charge field.

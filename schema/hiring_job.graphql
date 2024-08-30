@@ -142,7 +142,7 @@ type HiringJob {
   job_position: JobPosition
   job_position_id: ID
   hiring_team: HiringTeam!
-  rec_team: RecTeam!
+  rec_team: RecTeam
   rec_in_charge: User
   user: User!
   status: HiringJobStatus!
