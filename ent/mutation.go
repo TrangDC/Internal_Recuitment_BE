@@ -12644,6 +12644,8 @@ type CandidateJobMutation struct {
 	candidate_job_step             map[uuid.UUID]struct{}
 	removedcandidate_job_step      map[uuid.UUID]struct{}
 	clearedcandidate_job_step      bool
+	rec_in_charge_edge             *uuid.UUID
+	clearedrec_in_charge_edge      bool
 	done                           bool
 	oldValue                       func(context.Context) (*CandidateJob, error)
 	predicates                     []predicate.CandidateJob
@@ -13032,6 +13034,42 @@ func (m *CandidateJobMutation) CreatedByCleared() bool {
 func (m *CandidateJobMutation) ResetCreatedBy() {
 	m.created_by_edge = nil
 	delete(m.clearedFields, candidatejob.FieldCreatedBy)
+}
+
+// SetRecInChargeID sets the "rec_in_charge_id" field.
+func (m *CandidateJobMutation) SetRecInChargeID(u uuid.UUID) {
+	m.rec_in_charge_edge = &u
+}
+
+// RecInChargeID returns the value of the "rec_in_charge_id" field in the mutation.
+func (m *CandidateJobMutation) RecInChargeID() (r uuid.UUID, exists bool) {
+	v := m.rec_in_charge_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecInChargeID returns the old "rec_in_charge_id" field's value of the CandidateJob entity.
+// If the CandidateJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CandidateJobMutation) OldRecInChargeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecInChargeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecInChargeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecInChargeID: %w", err)
+	}
+	return oldValue.RecInChargeID, nil
+}
+
+// ResetRecInChargeID resets all changes to the "rec_in_charge_id" field.
+func (m *CandidateJobMutation) ResetRecInChargeID() {
+	m.rec_in_charge_edge = nil
 }
 
 // SetStatus sets the "status" field.
@@ -13615,6 +13653,45 @@ func (m *CandidateJobMutation) ResetCandidateJobStep() {
 	m.removedcandidate_job_step = nil
 }
 
+// SetRecInChargeEdgeID sets the "rec_in_charge_edge" edge to the User entity by id.
+func (m *CandidateJobMutation) SetRecInChargeEdgeID(id uuid.UUID) {
+	m.rec_in_charge_edge = &id
+}
+
+// ClearRecInChargeEdge clears the "rec_in_charge_edge" edge to the User entity.
+func (m *CandidateJobMutation) ClearRecInChargeEdge() {
+	m.clearedrec_in_charge_edge = true
+}
+
+// RecInChargeEdgeCleared reports if the "rec_in_charge_edge" edge to the User entity was cleared.
+func (m *CandidateJobMutation) RecInChargeEdgeCleared() bool {
+	return m.clearedrec_in_charge_edge
+}
+
+// RecInChargeEdgeID returns the "rec_in_charge_edge" edge ID in the mutation.
+func (m *CandidateJobMutation) RecInChargeEdgeID() (id uuid.UUID, exists bool) {
+	if m.rec_in_charge_edge != nil {
+		return *m.rec_in_charge_edge, true
+	}
+	return
+}
+
+// RecInChargeEdgeIDs returns the "rec_in_charge_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecInChargeEdgeID instead. It exists only for internal usage by the builders.
+func (m *CandidateJobMutation) RecInChargeEdgeIDs() (ids []uuid.UUID) {
+	if id := m.rec_in_charge_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecInChargeEdge resets all changes to the "rec_in_charge_edge" edge.
+func (m *CandidateJobMutation) ResetRecInChargeEdge() {
+	m.rec_in_charge_edge = nil
+	m.clearedrec_in_charge_edge = false
+}
+
 // Where appends a list predicates to the CandidateJobMutation builder.
 func (m *CandidateJobMutation) Where(ps ...predicate.CandidateJob) {
 	m.predicates = append(m.predicates, ps...)
@@ -13634,7 +13711,7 @@ func (m *CandidateJobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CandidateJobMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, candidatejob.FieldCreatedAt)
 	}
@@ -13652,6 +13729,9 @@ func (m *CandidateJobMutation) Fields() []string {
 	}
 	if m.created_by_edge != nil {
 		fields = append(fields, candidatejob.FieldCreatedBy)
+	}
+	if m.rec_in_charge_edge != nil {
+		fields = append(fields, candidatejob.FieldRecInChargeID)
 	}
 	if m.status != nil {
 		fields = append(fields, candidatejob.FieldStatus)
@@ -13688,6 +13768,8 @@ func (m *CandidateJobMutation) Field(name string) (ent.Value, bool) {
 		return m.CandidateID()
 	case candidatejob.FieldCreatedBy:
 		return m.CreatedBy()
+	case candidatejob.FieldRecInChargeID:
+		return m.RecInChargeID()
 	case candidatejob.FieldStatus:
 		return m.Status()
 	case candidatejob.FieldFailedReason:
@@ -13719,6 +13801,8 @@ func (m *CandidateJobMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCandidateID(ctx)
 	case candidatejob.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
+	case candidatejob.FieldRecInChargeID:
+		return m.OldRecInChargeID(ctx)
 	case candidatejob.FieldStatus:
 		return m.OldStatus(ctx)
 	case candidatejob.FieldFailedReason:
@@ -13779,6 +13863,13 @@ func (m *CandidateJobMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedBy(v)
+		return nil
+	case candidatejob.FieldRecInChargeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecInChargeID(v)
 		return nil
 	case candidatejob.FieldStatus:
 		v, ok := value.(candidatejob.Status)
@@ -13939,6 +14030,9 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 	case candidatejob.FieldCreatedBy:
 		m.ResetCreatedBy()
 		return nil
+	case candidatejob.FieldRecInChargeID:
+		m.ResetRecInChargeID()
+		return nil
 	case candidatejob.FieldStatus:
 		m.ResetStatus()
 		return nil
@@ -13960,7 +14054,7 @@ func (m *CandidateJobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CandidateJobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.attachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -13981,6 +14075,9 @@ func (m *CandidateJobMutation) AddedEdges() []string {
 	}
 	if m.candidate_job_step != nil {
 		edges = append(edges, candidatejob.EdgeCandidateJobStep)
+	}
+	if m.rec_in_charge_edge != nil {
+		edges = append(edges, candidatejob.EdgeRecInChargeEdge)
 	}
 	return edges
 }
@@ -14025,13 +14122,17 @@ func (m *CandidateJobMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case candidatejob.EdgeRecInChargeEdge:
+		if id := m.rec_in_charge_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CandidateJobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedattachment_edges != nil {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -14081,7 +14182,7 @@ func (m *CandidateJobMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CandidateJobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedattachment_edges {
 		edges = append(edges, candidatejob.EdgeAttachmentEdges)
 	}
@@ -14102,6 +14203,9 @@ func (m *CandidateJobMutation) ClearedEdges() []string {
 	}
 	if m.clearedcandidate_job_step {
 		edges = append(edges, candidatejob.EdgeCandidateJobStep)
+	}
+	if m.clearedrec_in_charge_edge {
+		edges = append(edges, candidatejob.EdgeRecInChargeEdge)
 	}
 	return edges
 }
@@ -14124,6 +14228,8 @@ func (m *CandidateJobMutation) EdgeCleared(name string) bool {
 		return m.clearedcreated_by_edge
 	case candidatejob.EdgeCandidateJobStep:
 		return m.clearedcandidate_job_step
+	case candidatejob.EdgeRecInChargeEdge:
+		return m.clearedrec_in_charge_edge
 	}
 	return false
 }
@@ -14140,6 +14246,9 @@ func (m *CandidateJobMutation) ClearEdge(name string) error {
 		return nil
 	case candidatejob.EdgeCreatedByEdge:
 		m.ClearCreatedByEdge()
+		return nil
+	case candidatejob.EdgeRecInChargeEdge:
+		m.ClearRecInChargeEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob unique edge %s", name)
@@ -14169,6 +14278,9 @@ func (m *CandidateJobMutation) ResetEdge(name string) error {
 		return nil
 	case candidatejob.EdgeCandidateJobStep:
 		m.ResetCandidateJobStep()
+		return nil
+	case candidatejob.EdgeRecInChargeEdge:
+		m.ResetRecInChargeEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown CandidateJob edge %s", name)
@@ -33816,6 +33928,9 @@ type UserMutation struct {
 	hiring_job_rec_edges                map[uuid.UUID]struct{}
 	removedhiring_job_rec_edges         map[uuid.UUID]struct{}
 	clearedhiring_job_rec_edges         bool
+	candidate_job_rec_edges             map[uuid.UUID]struct{}
+	removedcandidate_job_rec_edges      map[uuid.UUID]struct{}
+	clearedcandidate_job_rec_edges      bool
 	interview_users                     map[uuid.UUID]struct{}
 	removedinterview_users              map[uuid.UUID]struct{}
 	clearedinterview_users              bool
@@ -35292,6 +35407,60 @@ func (m *UserMutation) ResetHiringJobRecEdges() {
 	m.removedhiring_job_rec_edges = nil
 }
 
+// AddCandidateJobRecEdgeIDs adds the "candidate_job_rec_edges" edge to the CandidateJob entity by ids.
+func (m *UserMutation) AddCandidateJobRecEdgeIDs(ids ...uuid.UUID) {
+	if m.candidate_job_rec_edges == nil {
+		m.candidate_job_rec_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.candidate_job_rec_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCandidateJobRecEdges clears the "candidate_job_rec_edges" edge to the CandidateJob entity.
+func (m *UserMutation) ClearCandidateJobRecEdges() {
+	m.clearedcandidate_job_rec_edges = true
+}
+
+// CandidateJobRecEdgesCleared reports if the "candidate_job_rec_edges" edge to the CandidateJob entity was cleared.
+func (m *UserMutation) CandidateJobRecEdgesCleared() bool {
+	return m.clearedcandidate_job_rec_edges
+}
+
+// RemoveCandidateJobRecEdgeIDs removes the "candidate_job_rec_edges" edge to the CandidateJob entity by IDs.
+func (m *UserMutation) RemoveCandidateJobRecEdgeIDs(ids ...uuid.UUID) {
+	if m.removedcandidate_job_rec_edges == nil {
+		m.removedcandidate_job_rec_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.candidate_job_rec_edges, ids[i])
+		m.removedcandidate_job_rec_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCandidateJobRecEdges returns the removed IDs of the "candidate_job_rec_edges" edge to the CandidateJob entity.
+func (m *UserMutation) RemovedCandidateJobRecEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcandidate_job_rec_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CandidateJobRecEdgesIDs returns the "candidate_job_rec_edges" edge IDs in the mutation.
+func (m *UserMutation) CandidateJobRecEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.candidate_job_rec_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCandidateJobRecEdges resets all changes to the "candidate_job_rec_edges" edge.
+func (m *UserMutation) ResetCandidateJobRecEdges() {
+	m.candidate_job_rec_edges = nil
+	m.clearedcandidate_job_rec_edges = false
+	m.removedcandidate_job_rec_edges = nil
+}
+
 // AddInterviewUserIDs adds the "interview_users" edge to the CandidateInterviewer entity by ids.
 func (m *UserMutation) AddInterviewUserIDs(ids ...uuid.UUID) {
 	if m.interview_users == nil {
@@ -35866,7 +36035,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.audit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -35920,6 +36089,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.hiring_job_rec_edges != nil {
 		edges = append(edges, user.EdgeHiringJobRecEdges)
+	}
+	if m.candidate_job_rec_edges != nil {
+		edges = append(edges, user.EdgeCandidateJobRecEdges)
 	}
 	if m.interview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -36045,6 +36217,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCandidateJobRecEdges:
+		ids := make([]ent.Value, 0, len(m.candidate_job_rec_edges))
+		for id := range m.candidate_job_rec_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.interview_users))
 		for id := range m.interview_users {
@@ -36081,7 +36259,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.removedaudit_edge != nil {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -36126,6 +36304,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedhiring_job_rec_edges != nil {
 		edges = append(edges, user.EdgeHiringJobRecEdges)
+	}
+	if m.removedcandidate_job_rec_edges != nil {
+		edges = append(edges, user.EdgeCandidateJobRecEdges)
 	}
 	if m.removedinterview_users != nil {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -36239,6 +36420,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCandidateJobRecEdges:
+		ids := make([]ent.Value, 0, len(m.removedcandidate_job_rec_edges))
+		for id := range m.removedcandidate_job_rec_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeInterviewUsers:
 		ids := make([]ent.Value, 0, len(m.removedinterview_users))
 		for id := range m.removedinterview_users {
@@ -36275,7 +36462,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.clearedaudit_edge {
 		edges = append(edges, user.EdgeAuditEdge)
 	}
@@ -36329,6 +36516,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedhiring_job_rec_edges {
 		edges = append(edges, user.EdgeHiringJobRecEdges)
+	}
+	if m.clearedcandidate_job_rec_edges {
+		edges = append(edges, user.EdgeCandidateJobRecEdges)
 	}
 	if m.clearedinterview_users {
 		edges = append(edges, user.EdgeInterviewUsers)
@@ -36388,6 +36578,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedapproval_jobs
 	case user.EdgeHiringJobRecEdges:
 		return m.clearedhiring_job_rec_edges
+	case user.EdgeCandidateJobRecEdges:
+		return m.clearedcandidate_job_rec_edges
 	case user.EdgeInterviewUsers:
 		return m.clearedinterview_users
 	case user.EdgeRoleUsers:
@@ -36476,6 +36668,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeHiringJobRecEdges:
 		m.ResetHiringJobRecEdges()
+		return nil
+	case user.EdgeCandidateJobRecEdges:
+		m.ResetCandidateJobRecEdges()
 		return nil
 	case user.EdgeInterviewUsers:
 		m.ResetInterviewUsers()

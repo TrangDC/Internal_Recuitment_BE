@@ -70,6 +70,8 @@ const (
 	EdgeApprovalJobs = "approval_jobs"
 	// EdgeHiringJobRecEdges holds the string denoting the hiring_job_rec_edges edge name in mutations.
 	EdgeHiringJobRecEdges = "hiring_job_rec_edges"
+	// EdgeCandidateJobRecEdges holds the string denoting the candidate_job_rec_edges edge name in mutations.
+	EdgeCandidateJobRecEdges = "candidate_job_rec_edges"
 	// EdgeInterviewUsers holds the string denoting the interview_users edge name in mutations.
 	EdgeInterviewUsers = "interview_users"
 	// EdgeRoleUsers holds the string denoting the role_users edge name in mutations.
@@ -198,6 +200,13 @@ const (
 	HiringJobRecEdgesInverseTable = "hiring_jobs"
 	// HiringJobRecEdgesColumn is the table column denoting the hiring_job_rec_edges relation/edge.
 	HiringJobRecEdgesColumn = "rec_in_charge_id"
+	// CandidateJobRecEdgesTable is the table that holds the candidate_job_rec_edges relation/edge.
+	CandidateJobRecEdgesTable = "candidate_jobs"
+	// CandidateJobRecEdgesInverseTable is the table name for the CandidateJob entity.
+	// It exists in this package in order to avoid circular dependency with the "candidatejob" package.
+	CandidateJobRecEdgesInverseTable = "candidate_jobs"
+	// CandidateJobRecEdgesColumn is the table column denoting the candidate_job_rec_edges relation/edge.
+	CandidateJobRecEdgesColumn = "rec_in_charge_id"
 	// InterviewUsersTable is the table that holds the interview_users relation/edge.
 	InterviewUsersTable = "candidate_interviewers"
 	// InterviewUsersInverseTable is the table name for the CandidateInterviewer entity.

@@ -1207,6 +1207,16 @@ func (cj *CandidateJobQuery) collectField(ctx context.Context, op *graphql.Opera
 			cj.WithNamedCandidateJobStep(alias, func(wq *CandidateJobStepQuery) {
 				*wq = *query
 			})
+		case "recInChargeEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &UserQuery{config: cj.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			cj.withRecInChargeEdge = query
 		}
 	}
 	return nil
@@ -3478,6 +3488,18 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.WithNamedHiringJobRecEdges(alias, func(wq *HiringJobQuery) {
+				*wq = *query
+			})
+		case "candidateJobRecEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CandidateJobQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.WithNamedCandidateJobRecEdges(alias, func(wq *CandidateJobQuery) {
 				*wq = *query
 			})
 		case "interviewUsers":

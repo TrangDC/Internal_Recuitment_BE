@@ -18,6 +18,7 @@ func (CandidateJob) Fields() []ent.Field {
 		field.UUID("hiring_job_id", uuid.UUID{}).Optional(),
 		field.UUID("candidate_id", uuid.UUID{}).Optional(),
 		field.UUID("created_by", uuid.UUID{}).Optional(),
+		field.UUID("rec_in_charge_id", uuid.UUID{}),
 		field.Enum("status").Values("applied", "interviewing", "offering", "hired", "failed_cv", "failed_interview", "offer_lost", "ex_staff").Default("applied"),
 		field.JSON("failed_reason", []string{"poor_professionalism",
 			"poor_fit_and_engagement", "over_expectations", "over_qualification", "language_deficiency",
@@ -39,6 +40,7 @@ func (CandidateJob) Edges() []ent.Edge {
 		edge.To("candidate_job_interview", CandidateInterview.Type),
 		edge.From("created_by_edge", User.Type).Ref("candidate_job_edges").Unique().Field("created_by"),
 		edge.To("candidate_job_step", CandidateJobStep.Type),
+		edge.From("rec_in_charge_edge", User.Type).Ref("candidate_job_rec_edges").Unique().Required().Field("rec_in_charge_id"),
 	}
 }
 

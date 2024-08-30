@@ -39,6 +39,7 @@ type CandidateJobQuery struct {
 	withCandidateJobInterview      *CandidateInterviewQuery
 	withCreatedByEdge              *UserQuery
 	withCandidateJobStep           *CandidateJobStepQuery
+	withRecInChargeEdge            *UserQuery
 	modifiers                      []func(*sql.Selector)
 	loadTotal                      []func(context.Context, []*CandidateJob) error
 	withNamedAttachmentEdges       map[string]*AttachmentQuery
@@ -235,6 +236,28 @@ func (cjq *CandidateJobQuery) QueryCandidateJobStep() *CandidateJobStepQuery {
 	return query
 }
 
+// QueryRecInChargeEdge chains the current query on the "rec_in_charge_edge" edge.
+func (cjq *CandidateJobQuery) QueryRecInChargeEdge() *UserQuery {
+	query := &UserQuery{config: cjq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(candidatejob.Table, candidatejob.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, candidatejob.RecInChargeEdgeTable, candidatejob.RecInChargeEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first CandidateJob entity from the query.
 // Returns a *NotFoundError when no CandidateJob was found.
 func (cjq *CandidateJobQuery) First(ctx context.Context) (*CandidateJob, error) {
@@ -423,6 +446,7 @@ func (cjq *CandidateJobQuery) Clone() *CandidateJobQuery {
 		withCandidateJobInterview: cjq.withCandidateJobInterview.Clone(),
 		withCreatedByEdge:         cjq.withCreatedByEdge.Clone(),
 		withCandidateJobStep:      cjq.withCandidateJobStep.Clone(),
+		withRecInChargeEdge:       cjq.withRecInChargeEdge.Clone(),
 		// clone intermediate query.
 		sql:    cjq.sql.Clone(),
 		path:   cjq.path,
@@ -507,6 +531,17 @@ func (cjq *CandidateJobQuery) WithCandidateJobStep(opts ...func(*CandidateJobSte
 	return cjq
 }
 
+// WithRecInChargeEdge tells the query-builder to eager-load the nodes that are connected to
+// the "rec_in_charge_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (cjq *CandidateJobQuery) WithRecInChargeEdge(opts ...func(*UserQuery)) *CandidateJobQuery {
+	query := &UserQuery{config: cjq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cjq.withRecInChargeEdge = query
+	return cjq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -580,7 +615,7 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*CandidateJob{}
 		_spec       = cjq.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			cjq.withAttachmentEdges != nil,
 			cjq.withHiringJobEdge != nil,
 			cjq.withCandidateJobFeedback != nil,
@@ -588,6 +623,7 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			cjq.withCandidateJobInterview != nil,
 			cjq.withCreatedByEdge != nil,
 			cjq.withCandidateJobStep != nil,
+			cjq.withRecInChargeEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -660,6 +696,12 @@ func (cjq *CandidateJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			func(n *CandidateJob, e *CandidateJobStep) {
 				n.Edges.CandidateJobStep = append(n.Edges.CandidateJobStep, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := cjq.withRecInChargeEdge; query != nil {
+		if err := cjq.loadRecInChargeEdge(ctx, query, nodes, nil,
+			func(n *CandidateJob, e *User) { n.Edges.RecInChargeEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -882,6 +924,32 @@ func (cjq *CandidateJobQuery) loadCandidateJobStep(ctx context.Context, query *C
 			return fmt.Errorf(`unexpected foreign-key "candidate_job_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (cjq *CandidateJobQuery) loadRecInChargeEdge(ctx context.Context, query *UserQuery, nodes []*CandidateJob, init func(*CandidateJob), assign func(*CandidateJob, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*CandidateJob)
+	for i := range nodes {
+		fk := nodes[i].RecInChargeID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "rec_in_charge_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

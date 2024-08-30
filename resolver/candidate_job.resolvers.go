@@ -48,6 +48,16 @@ func (r *candidateJobResolver) HiringJob(ctx context.Context, obj *ent.Candidate
 	return obj.Edges.HiringJobEdge, nil
 }
 
+// RecInCharge is the resolver for the rec_in_charge field.
+func (r *candidateJobResolver) RecInCharge(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error) {
+	return obj.Edges.RecInChargeEdgeOrErr()
+}
+
+// RecTeam is the resolver for the rec_team field.
+func (r *candidateJobResolver) RecTeam(ctx context.Context, obj *ent.CandidateJob) (*ent.RecTeam, error) {
+	return obj.Edges.HiringJobEdge.Edges.RecTeamEdgeOrErr()
+}
+
 // Owner is the resolver for the owner field.
 func (r *candidateJobResolver) Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error) {
 	return obj.Edges.CreatedByEdge, nil

@@ -365,6 +365,8 @@ type ComplexityRoot struct {
 		OfferExpirationDate func(childComplexity int) int
 		OnboardDate         func(childComplexity int) int
 		Owner               func(childComplexity int) int
+		RecInCharge         func(childComplexity int) int
+		RecTeam             func(childComplexity int) int
 		Status              func(childComplexity int) int
 		Steps               func(childComplexity int) int
 		UpdatedAt           func(childComplexity int) int
@@ -1334,6 +1336,8 @@ type CandidateJobResolver interface {
 	Attachments(ctx context.Context, obj *ent.CandidateJob) ([]*ent.Attachment, error)
 	Candidate(ctx context.Context, obj *ent.CandidateJob) (*ent.Candidate, error)
 	HiringJob(ctx context.Context, obj *ent.CandidateJob) (*ent.HiringJob, error)
+	RecInCharge(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
+	RecTeam(ctx context.Context, obj *ent.CandidateJob) (*ent.RecTeam, error)
 	Owner(ctx context.Context, obj *ent.CandidateJob) (*ent.User, error)
 	FailedReason(ctx context.Context, obj *ent.CandidateJob) ([]ent.CandidateJobFailedReason, error)
 	IsAbleToDelete(ctx context.Context, obj *ent.CandidateJob) (bool, error)
@@ -2962,6 +2966,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateJob.Owner(childComplexity), true
+
+	case "CandidateJob.rec_in_charge":
+		if e.complexity.CandidateJob.RecInCharge == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.RecInCharge(childComplexity), true
+
+	case "CandidateJob.rec_team":
+		if e.complexity.CandidateJob.RecTeam == nil {
+			break
+		}
+
+		return e.complexity.CandidateJob.RecTeam(childComplexity), true
 
 	case "CandidateJob.status":
 		if e.complexity.CandidateJob.Status == nil {
@@ -7821,6 +7839,8 @@ input CandidateJobGroupByStatusFilter {
   status: CandidateJobStatus
   hiring_job_ids: [ID!]
   hiring_team_ids: [ID!]
+  rec_in_charge_ids: [ID!]
+  rec_team_ids: [ID!]
   priorities: [Int!]
   skill_ids: [ID!]
   from_date: Time
@@ -7844,6 +7864,8 @@ type CandidateJob {
   attachments: [Attachment!]
   candidate: Candidate
   hiring_job: HiringJob
+  rec_in_charge: User
+  rec_team: RecTeam
   owner: User
   failed_reason: [CandidateJobFailedReason!]
   is_able_to_delete: Boolean!
@@ -7886,6 +7908,7 @@ type CandidateJobGroupByStatus {
 input NewCandidateJobInput {
   candidate_id: ID!
   hiring_job_id: ID!
+  rec_in_charge_id: ID!
   status: CandidateJobStatusOpen!
   attachments: [NewAttachmentInput!]
   onboard_date: Time
@@ -7896,6 +7919,7 @@ input NewCandidateJobInput {
 
 input UpdateCandidateAttachment {
   attachments: [NewAttachmentInput!]
+  rec_in_charge_id: ID!
 }
 
 input UpdateCandidateJobStatus {
@@ -7935,6 +7959,8 @@ input CandidateJobFilter {
   to_date: Time
   hiring_team_ids: [ID!]
   hiring_job_ids: [ID!]
+  rec_in_charge_ids: [ID!]
+  rec_team_ids: [ID!]
   candidate_id: ID
   failed_reasons: [CandidateJobFailedReason!]
   levels: [CandidateJobLevel!]
@@ -20777,6 +20803,10 @@ func (ec *executionContext) fieldContext_CandidateInterview_candidate_job(ctx co
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -22130,6 +22160,130 @@ func (ec *executionContext) fieldContext_CandidateJob_hiring_job(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CandidateJob_rec_in_charge(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().RecInCharge(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖtrecᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_rec_in_charge(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "work_email":
+				return ec.fieldContext_User_work_email(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "hiring_team":
+				return ec.fieldContext_User_hiring_team(ctx, field)
+			case "entity_permissions":
+				return ec.fieldContext_User_entity_permissions(ctx, field)
+			case "roles":
+				return ec.fieldContext_User_roles(ctx, field)
+			case "member_of_hiring_team":
+				return ec.fieldContext_User_member_of_hiring_team(ctx, field)
+			case "member_of_rec_team":
+				return ec.fieldContext_User_member_of_rec_team(ctx, field)
+			case "is_leader_of_rec_team":
+				return ec.fieldContext_User_is_leader_of_rec_team(ctx, field)
+			case "is_manager_of_hiring_team":
+				return ec.fieldContext_User_is_manager_of_hiring_team(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CandidateJob_rec_team(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CandidateJob_rec_team(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CandidateJob().RecTeam(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RecTeam)
+	fc.Result = res
+	return ec.marshalORecTeam2ᚖtrecᚋentᚐRecTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CandidateJob_rec_team(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CandidateJob",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecTeam_id(ctx, field)
+			case "name":
+				return ec.fieldContext_RecTeam_name(ctx, field)
+			case "description":
+				return ec.fieldContext_RecTeam_description(ctx, field)
+			case "leader_id":
+				return ec.fieldContext_RecTeam_leader_id(ctx, field)
+			case "leader":
+				return ec.fieldContext_RecTeam_leader(ctx, field)
+			case "created_at":
+				return ec.fieldContext_RecTeam_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_RecTeam_updated_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_RecTeam_deleted_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecTeam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CandidateJob_owner(ctx context.Context, field graphql.CollectedField, obj *ent.CandidateJob) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CandidateJob_owner(ctx, field)
 	if err != nil {
@@ -22641,6 +22795,10 @@ func (ec *executionContext) fieldContext_CandidateJobEdge_node(ctx context.Conte
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -22897,6 +23055,10 @@ func (ec *executionContext) fieldContext_CandidateJobFeedback_candidate_job(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -23977,6 +24139,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_hired(ctx con
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24054,6 +24220,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_failed_cv(ctx
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24131,6 +24301,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_failed_interv
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24208,6 +24382,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offer_lost(ct
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24285,6 +24463,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_ex_staff(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24362,6 +24544,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_applied(ctx c
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24439,6 +24625,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_interviewing(
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24516,6 +24706,10 @@ func (ec *executionContext) fieldContext_CandidateJobGroupByStatus_offering(ctx 
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -24844,6 +25038,10 @@ func (ec *executionContext) fieldContext_CandidateJobResponse_data(ctx context.C
 				return ec.fieldContext_CandidateJob_candidate(ctx, field)
 			case "hiring_job":
 				return ec.fieldContext_CandidateJob_hiring_job(ctx, field)
+			case "rec_in_charge":
+				return ec.fieldContext_CandidateJob_rec_in_charge(ctx, field)
+			case "rec_team":
+				return ec.fieldContext_CandidateJob_rec_team(ctx, field)
 			case "owner":
 				return ec.fieldContext_CandidateJob_owner(ctx, field)
 			case "failed_reason":
@@ -52593,7 +52791,7 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "from_date", "to_date", "hiring_team_ids", "hiring_job_ids", "candidate_id", "failed_reasons", "levels"}
+	fieldsInOrder := [...]string{"status", "from_date", "to_date", "hiring_team_ids", "hiring_job_ids", "rec_in_charge_ids", "rec_team_ids", "candidate_id", "failed_reasons", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -52637,6 +52835,22 @@ func (ec *executionContext) unmarshalInputCandidateJobFilter(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_ids"))
 			it.HiringJobIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_in_charge_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_in_charge_ids"))
+			it.RecInChargeIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_team_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_team_ids"))
+			it.RecTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -52729,7 +52943,7 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "hiring_job_ids", "hiring_team_ids", "priorities", "skill_ids", "from_date", "to_date", "locations", "created_by_ids", "levels"}
+	fieldsInOrder := [...]string{"status", "hiring_job_ids", "hiring_team_ids", "rec_in_charge_ids", "rec_team_ids", "priorities", "skill_ids", "from_date", "to_date", "locations", "created_by_ids", "levels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -52757,6 +52971,22 @@ func (ec *executionContext) unmarshalInputCandidateJobGroupByStatusFilter(ctx co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_ids"))
 			it.HiringTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_in_charge_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_in_charge_ids"))
+			it.RecInChargeIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_team_ids":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_team_ids"))
+			it.RecTeamIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -54233,7 +54463,7 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "status", "attachments", "onboard_date", "offer_expiration_date", "level", "failed_reason"}
+	fieldsInOrder := [...]string{"candidate_id", "hiring_job_id", "rec_in_charge_id", "status", "attachments", "onboard_date", "offer_expiration_date", "level", "failed_reason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -54253,6 +54483,14 @@ func (ec *executionContext) unmarshalInputNewCandidateJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_job_id"))
 			it.HiringJobID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_in_charge_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_in_charge_id"))
+			it.RecInChargeID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -55641,7 +55879,7 @@ func (ec *executionContext) unmarshalInputUpdateCandidateAttachment(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"attachments"}
+	fieldsInOrder := [...]string{"attachments", "rec_in_charge_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -55653,6 +55891,14 @@ func (ec *executionContext) unmarshalInputUpdateCandidateAttachment(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attachments"))
 			it.Attachments, err = ec.unmarshalONewAttachmentInput2ᚕᚖtrecᚋentᚐNewAttachmentInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rec_in_charge_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rec_in_charge_id"))
+			it.RecInChargeID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -59612,6 +59858,40 @@ func (ec *executionContext) _CandidateJob(ctx context.Context, sel ast.Selection
 					}
 				}()
 				res = ec._CandidateJob_hiring_job(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "rec_in_charge":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_rec_in_charge(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "rec_team":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CandidateJob_rec_team(ctx, field, obj)
 				return res
 			}
 

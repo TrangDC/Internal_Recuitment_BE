@@ -30,6 +30,7 @@ type CandidateJobRepository interface {
 	DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error
 	UpdateCandidateJobStatus(ctx context.Context, record *ent.CandidateJob, input ent.UpdateCandidateJobStatus, failedReason []string) (*ent.CandidateJob, error)
 	UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error)
+	UpdateCandidateJobRecInCharge(ctx context.Context, record *ent.CandidateJob, recInChargeID uuid.UUID) (*ent.CandidateJob, error)
 	DeleteRelationCandidateJob(ctx context.Context, recordId uuid.UUID) error
 	// query
 	GetCandidateJob(ctx context.Context, candidateId uuid.UUID) (*ent.CandidateJob, error)
@@ -83,7 +84,7 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		},
 	).WithCandidateEdge().WithHiringJobEdge(
 		func(query *ent.HiringJobQuery) {
-			query.WithHiringTeamEdge().WithOwnerEdge()
+			query.WithHiringTeamEdge().WithOwnerEdge().WithRecTeamEdge()
 		},
 	).WithCreatedByEdge().WithCandidateJobStep(
 		func(query *ent.CandidateJobStepQuery) {
@@ -93,7 +94,7 @@ func (rps candidateJobRepoImpl) BuildQuery() *ent.CandidateJobQuery {
 		func(query *ent.CandidateInterviewQuery) {
 			query.Where(candidateinterview.DeletedAtIsNil())
 		},
-	)
+	).WithRecInChargeEdge()
 }
 
 func (rps candidateJobRepoImpl) BuildBaseQuery() *ent.CandidateJobQuery {
@@ -145,7 +146,8 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 		SetUpdatedAt(time.Now().UTC()).
 		SetCandidateID(uuid.MustParse(input.CandidateID)).
 		SetStatus(candidatejob.Status(input.Status)).
-		SetCreatedBy(createdById)
+		SetCreatedBy(createdById).
+		SetRecInChargeID(uuid.MustParse(input.RecInChargeID))
 	if input.Status == ent.CandidateJobStatusOpenOffering {
 		create.
 			SetOnboardDate(*input.OnboardDate).
@@ -180,6 +182,10 @@ func (rps candidateJobRepoImpl) UpdateCandidateJobStatus(ctx context.Context, re
 // fix it, it not remove attachment
 func (rps candidateJobRepoImpl) UpsetCandidateAttachment(ctx context.Context, record *ent.CandidateJob) (*ent.CandidateJob, error) {
 	return rps.BuildUpdateOne(ctx, record).Save(ctx)
+}
+
+func (rps candidateJobRepoImpl) UpdateCandidateJobRecInCharge(ctx context.Context, record *ent.CandidateJob, recInChargeID uuid.UUID) (*ent.CandidateJob, error) {
+	return rps.BuildUpdateOne(ctx, record).SetRecInChargeID(recInChargeID).Save(ctx)
 }
 
 func (rps candidateJobRepoImpl) DeleteCandidateJob(ctx context.Context, record *ent.CandidateJob) error {

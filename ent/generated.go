@@ -313,14 +313,16 @@ type CandidateJobFeedbackResponseGetAll struct {
 }
 
 type CandidateJobFilter struct {
-	Status        *CandidateJobStatus        `json:"status"`
-	FromDate      *time.Time                 `json:"from_date"`
-	ToDate        *time.Time                 `json:"to_date"`
-	HiringTeamIds []string                   `json:"hiring_team_ids"`
-	HiringJobIds  []string                   `json:"hiring_job_ids"`
-	CandidateID   *string                    `json:"candidate_id"`
-	FailedReasons []CandidateJobFailedReason `json:"failed_reasons"`
-	Levels        []CandidateJobLevel        `json:"levels"`
+	Status         *CandidateJobStatus        `json:"status"`
+	FromDate       *time.Time                 `json:"from_date"`
+	ToDate         *time.Time                 `json:"to_date"`
+	HiringTeamIds  []string                   `json:"hiring_team_ids"`
+	HiringJobIds   []string                   `json:"hiring_job_ids"`
+	RecInChargeIds []string                   `json:"rec_in_charge_ids"`
+	RecTeamIds     []string                   `json:"rec_team_ids"`
+	CandidateID    *string                    `json:"candidate_id"`
+	FailedReasons  []CandidateJobFailedReason `json:"failed_reasons"`
+	Levels         []CandidateJobLevel        `json:"levels"`
 }
 
 type CandidateJobFreeWord struct {
@@ -357,16 +359,18 @@ type CandidateJobGroupByStatus struct {
 }
 
 type CandidateJobGroupByStatusFilter struct {
-	Status        *CandidateJobStatus `json:"status"`
-	HiringJobIds  []string            `json:"hiring_job_ids"`
-	HiringTeamIds []string            `json:"hiring_team_ids"`
-	Priorities    []int               `json:"priorities"`
-	SkillIds      []string            `json:"skill_ids"`
-	FromDate      *time.Time          `json:"from_date"`
-	ToDate        *time.Time          `json:"to_date"`
-	Locations     []LocationEnum      `json:"locations"`
-	CreatedByIds  []string            `json:"created_by_ids"`
-	Levels        []CandidateJobLevel `json:"levels"`
+	Status         *CandidateJobStatus `json:"status"`
+	HiringJobIds   []string            `json:"hiring_job_ids"`
+	HiringTeamIds  []string            `json:"hiring_team_ids"`
+	RecInChargeIds []string            `json:"rec_in_charge_ids"`
+	RecTeamIds     []string            `json:"rec_team_ids"`
+	Priorities     []int               `json:"priorities"`
+	SkillIds       []string            `json:"skill_ids"`
+	FromDate       *time.Time          `json:"from_date"`
+	ToDate         *time.Time          `json:"to_date"`
+	Locations      []LocationEnum      `json:"locations"`
+	CreatedByIds   []string            `json:"created_by_ids"`
+	Levels         []CandidateJobLevel `json:"levels"`
 }
 
 type CandidateJobGroupByStatusFreeWord struct {
@@ -730,6 +734,7 @@ type NewCandidateJobFeedbackInput struct {
 type NewCandidateJobInput struct {
 	CandidateID         string                     `json:"candidate_id"`
 	HiringJobID         string                     `json:"hiring_job_id"`
+	RecInChargeID       string                     `json:"rec_in_charge_id"`
 	Status              CandidateJobStatusOpen     `json:"status"`
 	Attachments         []*NewAttachmentInput      `json:"attachments"`
 	OnboardDate         *time.Time                 `json:"onboard_date"`
@@ -1108,7 +1113,8 @@ type SkillTypeSelectionResponseGetAll struct {
 }
 
 type UpdateCandidateAttachment struct {
-	Attachments []*NewAttachmentInput `json:"attachments"`
+	Attachments   []*NewAttachmentInput `json:"attachments"`
+	RecInChargeID string                `json:"rec_in_charge_id"`
 }
 
 type UpdateCandidateHistoryCallInput struct {
