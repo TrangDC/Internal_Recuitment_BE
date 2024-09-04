@@ -94,6 +94,31 @@ func (r *mutationResolver) UpdateHiringJob(ctx context.Context, id string, input
 	return r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id), note)
 }
 
+// UpdatePendingApprovalsHiringJob is the resolver for the UpdatePendingApprovalsHiringJob field.
+func (r *mutationResolver) UpdatePendingApprovalsHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error) {
+	return r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id), note)
+}
+
+// UpdateOpenedHiringJob is the resolver for the UpdateOpenedHiringJob field.
+func (r *mutationResolver) UpdateOpenedHiringJob(ctx context.Context, id string, input ent.UpdateHiringJobInput, note string) (*ent.HiringJobResponse, error) {
+	return r.serviceRegistry.HiringJob().UpdateHiringJob(ctx, &input, uuid.MustParse(id), note)
+}
+
+// CloseHiringJob is the resolver for the CloseHiringJob field.
+func (r *mutationResolver) CloseHiringJob(ctx context.Context, id string, status ent.HiringJobStatus, note string) (*ent.HiringJobResponse, error) {
+	return r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id), note)
+}
+
+// CancelHiringJob is the resolver for the CancelHiringJob field.
+func (r *mutationResolver) CancelHiringJob(ctx context.Context, id string, status ent.HiringJobStatus, note string) (*ent.HiringJobResponse, error) {
+	return r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id), note)
+}
+
+// ReopenHiringJob is the resolver for the ReopenHiringJob field.
+func (r *mutationResolver) ReopenHiringJob(ctx context.Context, id string, status ent.HiringJobStatus, note string) (*ent.HiringJobResponse, error) {
+	return r.serviceRegistry.HiringJob().UpdateHiringJobStatus(ctx, status, uuid.MustParse(id), note)
+}
+
 // DeleteHiringJob is the resolver for the DeleteHiringJob field.
 func (r *mutationResolver) DeleteHiringJob(ctx context.Context, id string, note string) (bool, error) {
 	err := r.serviceRegistry.HiringJob().DeleteHiringJob(ctx, uuid.MustParse(id), note)
