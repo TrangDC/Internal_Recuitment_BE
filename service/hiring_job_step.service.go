@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 	"net/http"
+	"trec/dto"
 	"trec/ent"
+	"trec/ent/audittrail"
+	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/recteam"
+	"trec/ent/skill"
 	"trec/ent/user"
 	"trec/internal/util"
 	"trec/middleware"
@@ -20,19 +24,21 @@ import (
 
 type HiringJobStepService interface {
 	CreateBulkHiringJobSteps(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob) error
-	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) error
+	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput, note string) error
 	UpdateHiringJobStepByRecLeader(ctx context.Context, repoRegistry repository.Repository, hiringJob *ent.HiringJob) error
 }
 
 type hiringJobStepImpl struct {
 	repoRegistry repository.Repository
 	logger       *zap.Logger
+	dtoRegistry  dto.Dto
 }
 
-func NewHiringJobStepService(repoRegistry repository.Repository, logger *zap.Logger) HiringJobStepService {
+func NewHiringJobStepService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) HiringJobStepService {
 	return &hiringJobStepImpl{
 		repoRegistry: repoRegistry,
 		logger:       logger,
+		dtoRegistry:  dtoRegistry,
 	}
 }
 
@@ -96,7 +102,7 @@ func (svc *hiringJobStepImpl) CreateBulkHiringJobSteps(ctx context.Context, repo
 	return err
 }
 
-func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) error {
+func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput, note string) error {
 	switch input.Status {
 	case ent.HiringJobStepStatusEnumPending:
 		return nil
@@ -104,7 +110,7 @@ func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context
 		return util.WrapGQLError(ctx, "model.hiring_job_steps.validation.invalid_status_update", http.StatusBadRequest, util.ErrorFlagValidateFail)
 	default:
 		for _, jobIDStr := range input.HiringJobIds {
-			err := svc.updateHiringJobStepStatus(ctx, uuid.MustParse(jobIDStr), input.Status)
+			err := svc.updateHiringJobStepStatus(ctx, uuid.MustParse(jobIDStr), input.Status, note)
 			if err != nil {
 				svc.logger.Error(err.Error(), zap.String("job_id", jobIDStr))
 				return err
@@ -114,14 +120,22 @@ func (svc *hiringJobStepImpl) UpdateBulkHiringJobStepsStatus(ctx context.Context
 	}
 }
 
-func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, hiringJobID uuid.UUID, status ent.HiringJobStepStatusEnum) error {
+func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, hiringJobID uuid.UUID, status ent.HiringJobStepStatusEnum, note string) error {
 	hiringJob, err := svc.repoRegistry.HiringJob().BuildGetOne(
 		ctx,
 		svc.repoRegistry.HiringJob().BuildBaseQuery().
 			Where(hiringjob.DeletedAtIsNil(), hiringjob.ID(hiringJobID)).
 			WithApprovalSteps(func(query *ent.HiringJobStepQuery) {
 				query.Order(ent.Asc(hiringjobstep.FieldOrderID))
-			}),
+			}).WithHiringJobSkillEdges(
+			func(query *ent.EntitySkillQuery) {
+				query.Where(entityskill.DeletedAtIsNil()).WithSkillEdge(
+					func(sq *ent.SkillQuery) {
+						sq.Where(skill.DeletedAtIsNil())
+					},
+				)
+			},
+		),
 	)
 	if err != nil {
 		return util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
@@ -158,6 +172,15 @@ func (svc *hiringJobStepImpl) updateHiringJobStepStatus(ctx context.Context, hir
 	})
 	if err != nil {
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result, _ := svc.repoRegistry.HiringJob().GetHiringJob(ctx, hiringJobID)
+	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(hiringJob, result)
+	if err != nil {
+		svc.logger.Error(err.Error())
+	}
+	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringJob.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	if err != nil {
+		svc.logger.Error(err.Error())
 	}
 	return err
 }

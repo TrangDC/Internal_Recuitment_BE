@@ -805,7 +805,7 @@ type ComplexityRoot struct {
 		ImportCandidate                   func(childComplexity int, file graphql.Upload) int
 		ReopenHiringJob                   func(childComplexity int, id string, status ent.HiringJobStatus, note string) int
 		SetBlackListCandidate             func(childComplexity int, id string, isBlackList bool, note string) int
-		UpdateBulkHiringJobStepsStatus    func(childComplexity int, input ent.UpdateHiringJobStepInput) int
+		UpdateBulkHiringJobStepsStatus    func(childComplexity int, input ent.UpdateHiringJobStepInput, note string) int
 		UpdateCandidate                   func(childComplexity int, id string, input ent.UpdateCandidateInput, note string) int
 		UpdateCandidateHistoryCall        func(childComplexity int, id string, input ent.UpdateCandidateHistoryCallInput, note string) int
 		UpdateCandidateInterview          func(childComplexity int, id string, input ent.UpdateCandidateInterviewInput, note *string) int
@@ -1496,7 +1496,7 @@ type MutationResolver interface {
 	CreateCandidateNote(ctx context.Context, input ent.NewCandidateNoteInput) (*ent.CandidateNoteResponse, error)
 	UpdateCandidateNote(ctx context.Context, id string, input ent.UpdateCandidateNoteInput, note string) (*ent.CandidateNoteResponse, error)
 	DeleteCandidateNote(ctx context.Context, id string, note string) (bool, error)
-	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput) (bool, error)
+	UpdateBulkHiringJobStepsStatus(ctx context.Context, input ent.UpdateHiringJobStepInput, note string) (bool, error)
 }
 type OutgoingEmailResolver interface {
 	ID(ctx context.Context, obj *ent.OutgoingEmail) (string, error)
@@ -4982,7 +4982,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateBulkHiringJobStepsStatus(childComplexity, args["input"].(ent.UpdateHiringJobStepInput)), true
+		return e.complexity.Mutation.UpdateBulkHiringJobStepsStatus(childComplexity, args["input"].(ent.UpdateHiringJobStepInput), args["note"].(string)), true
 
 	case "Mutation.UpdateCandidate":
 		if e.complexity.Mutation.UpdateCandidate == nil {
@@ -9148,7 +9148,7 @@ type JobPositionSelectionResponseGetAll {
   DeleteCandidateNote(id: ID!, note: String!): Boolean!
 
   #HiringJobStep
-  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!): Boolean!
+  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!, note: String!): Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/outgoing_email.graphql", Input: `enum OutgoingEmailRecipientType {
@@ -10807,6 +10807,15 @@ func (ec *executionContext) field_Mutation_UpdateBulkHiringJobStepsStatus_args(c
 		}
 	}
 	args["input"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["note"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["note"] = arg1
 	return args, nil
 }
 
@@ -37846,7 +37855,7 @@ func (ec *executionContext) _Mutation_UpdateBulkHiringJobStepsStatus(ctx context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateBulkHiringJobStepsStatus(rctx, fc.Args["input"].(ent.UpdateHiringJobStepInput))
+		return ec.resolvers.Mutation().UpdateBulkHiringJobStepsStatus(rctx, fc.Args["input"].(ent.UpdateHiringJobStepInput), fc.Args["note"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

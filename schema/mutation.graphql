@@ -96,5 +96,5 @@ type Mutation {
   DeleteCandidateNote(id: ID!, note: String!): Boolean!
 
   #HiringJobStep
-  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!): Boolean!
+  UpdateBulkHiringJobStepsStatus(input: UpdateHiringJobStepInput!, note: String!): Boolean!
 }

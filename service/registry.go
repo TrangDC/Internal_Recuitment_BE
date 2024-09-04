@@ -109,7 +109,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		recTeamService:              NewRecTeamService(repoRegistry, dtoRegistry, logger),
 		candidateHistoryCall:        NewCandidateHistoryCallService(repoRegistry, dtoRegistry, logger),
 		candidateNoteService:        NewCandidateNoteService(repoRegistry, dtoRegistry, logger),
-		hiringJobStepService:        NewHiringJobStepService(repoRegistry, logger),
+		hiringJobStepService:        NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
 		candidateActivity:           NewCandidateActivityService(repoRegistry, logger),
 	}
 }

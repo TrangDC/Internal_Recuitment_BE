@@ -56,7 +56,7 @@ func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto
 		repoRegistry:     repoRegistry,
 		dtoRegistry:      dtoRegistry,
 		logger:           logger,
-		hiringJobStepSvc: NewHiringJobStepService(repoRegistry, logger),
+		hiringJobStepSvc: NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
 	}
 }
 
@@ -236,6 +236,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
+	result, _ = svc.repoRegistry.HiringJob().GetHiringJob(ctx, record.ID)
 	jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record, result)
 	if err != nil {
 		svc.logger.Error(err.Error())
