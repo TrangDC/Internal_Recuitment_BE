@@ -720,11 +720,6 @@ func (hju *HiringJobUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "HiringJob.name": %w`, err)}
 		}
 	}
-	if v, ok := hju.mutation.Description(); ok {
-		if err := hiringjob.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringJob.description": %w`, err)}
-		}
-	}
 	if v, ok := hju.mutation.Status(); ok {
 		if err := hiringjob.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "HiringJob.status": %w`, err)}
@@ -1980,11 +1975,6 @@ func (hjuo *HiringJobUpdateOne) check() error {
 	if v, ok := hjuo.mutation.Name(); ok {
 		if err := hiringjob.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "HiringJob.name": %w`, err)}
-		}
-	}
-	if v, ok := hjuo.mutation.Description(); ok {
-		if err := hiringjob.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringJob.description": %w`, err)}
 		}
 	}
 	if v, ok := hjuo.mutation.Status(); ok {

@@ -17,7 +17,7 @@ type HiringJob struct {
 func (HiringJob) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").MaxLen(256).NotEmpty().Annotations(entgql.OrderField("name")),
-		field.Text("description").NotEmpty(),
+		field.Text("description"),
 		field.Int("amount").Default(0).Annotations(entgql.OrderField("amount")),
 		field.Enum("status").Values("pending_approvals", "opened", "closed", "cancelled").Default("pending_approvals"),
 		field.UUID("created_by", uuid.UUID{}).Optional().Annotations(),
