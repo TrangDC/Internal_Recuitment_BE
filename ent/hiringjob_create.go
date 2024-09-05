@@ -580,11 +580,6 @@ func (hjc *HiringJobCreate) check() error {
 	if _, ok := hjc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "HiringJob.description"`)}
 	}
-	if v, ok := hjc.mutation.Description(); ok {
-		if err := hiringjob.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "HiringJob.description": %w`, err)}
-		}
-	}
 	if _, ok := hjc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "HiringJob.amount"`)}
 	}
