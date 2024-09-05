@@ -187,10 +187,10 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
-	errString, err = svc.repoRegistry.HiringJob().ValidStatusWhenUpdate(ctx, record, input, recTeamChange, hiringTeamChange)
+	errString, err = svc.repoRegistry.HiringJob().ValidStatusWhenUpdate(record, input, recTeamChange, hiringTeamChange)
 	if err != nil {
 		svc.logger.Error(err.Error())
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagValidateFail)
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)

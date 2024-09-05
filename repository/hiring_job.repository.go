@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 	"trec/ent"
@@ -42,7 +41,7 @@ type HiringJobRepository interface {
 	ValidName(ctx context.Context, hiringJobId uuid.UUID, name string, hiringTeamID string) (error, error)
 	ValidPriority(ctx context.Context, hiringJobId uuid.UUID, hiringTeamID uuid.UUID, priority int) (error, error)
 	ValidStatus(recordStatus hiringjob.Status, inputStatus ent.HiringJobStatus, cdJobs []*ent.CandidateJob) error
-	ValidStatusWhenUpdate(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error)
+	ValidStatusWhenUpdate(record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error)
 }
 
 type hiringJobRepoImpl struct {
@@ -299,7 +298,7 @@ func (rps *hiringJobRepoImpl) ValidStatus(recordStatus hiringjob.Status, inputSt
 	return nil
 }
 
-func (r *hiringJobRepoImpl) ValidStatusWhenUpdate(ctx context.Context, record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error) {
+func (r *hiringJobRepoImpl) ValidStatusWhenUpdate(record *ent.HiringJob, input *ent.UpdateHiringJobInput, recTeamChange, hiringTeamChange bool) (error, error) {
 	switch record.Status {
 	case hiringjob.StatusPendingApprovals:
 		if hiringTeamChange {
@@ -307,15 +306,15 @@ func (r *hiringJobRepoImpl) ValidStatusWhenUpdate(ctx context.Context, record *e
 				return item.Status == hiringjobstep.StatusAccepted
 			})
 			if len(approvalSteps) > 0 {
-				return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.job_already_approving", http.StatusBadRequest, util.ErrorFlagValidateFail)
+				return nil, errors.New("model.hiring_jobs.validation.job_already_approving")
 			}
 		}
 	case hiringjob.StatusOpened:
 		if recTeamChange || hiringTeamChange {
-			return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.invalid_status_update_team", http.StatusBadRequest, util.ErrorFlagValidateFail)
+			return nil, errors.New("model.hiring_jobs.validation.invalid_status_update_team")
 		}
 	case hiringjob.StatusClosed, hiringjob.StatusCancelled:
-		return nil, util.WrapGQLError(ctx, "model.hiring_jobs.validation.invalid_status", http.StatusBadRequest, util.ErrorFlagValidateFail)
+		return nil, errors.New("model.hiring_jobs.validation.invalid_status")
 	}
 	return nil, nil
 }
