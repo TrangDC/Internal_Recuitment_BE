@@ -359,7 +359,7 @@ func (svc *hiringJobSvcImpl) GetHiringJobsGroupByStatus(ctx context.Context, pag
 						WithSkillTypeEdge(func(query *ent.SkillTypeQuery) { query.Where(skilltype.DeletedAtIsNil()) })
 				})
 		}).
-		WithOwnerEdge()
+		WithOwnerEdge().WithRecInChargeEdge().WithRecTeamEdge()
 	payloadUser, _ := svc.repoRegistry.User().GetOneUser(ctx, svc.repoRegistry.User().BuildBaseQuery().Where(user.ID(payload.UserID)))
 	svc.validPermissionGet(payload, query, payloadUser)
 	hiringJobs, count, _, _, err := svc.getHiringJobs(ctx, query, nil, freeWord, filter, orderBy)
