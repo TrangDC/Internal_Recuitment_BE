@@ -176,7 +176,6 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if !svc.validPermissionUpdate(payload, currentUser, record.Edges.OwnerEdge, record.HiringTeamID, record.RecTeamID) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
-	oldRecLeaderID := record.Edges.RecTeamEdge.LeaderID
 	recTeamChange := record.RecTeamID != uuid.MustParse(input.RecTeamID)
 	hiringTeamChange := record.HiringTeamID != uuid.MustParse(input.HiringTeamID)
 	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, id, input.Name, input.HiringTeamID)
@@ -229,7 +228,7 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 			}
 			return svc.hiringJobStepSvc.CreateBulkHiringJobSteps(ctx, repoRegistry, result)
 		case recTeamChange:
-			return svc.hiringJobStepSvc.UpdateHiringJobStepByRecLeader(ctx, repoRegistry, result, oldRecLeaderID)
+			return svc.hiringJobStepSvc.UpdateHiringJobStepByRecLeader(ctx, repoRegistry, result)
 		}
 		return err
 	})

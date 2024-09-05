@@ -13,12 +13,12 @@ type HiringJobStepRepository interface {
 	// base func
 	BuildCreate() *ent.HiringJobStepCreate
 	BuildQuery() *ent.HiringJobStepQuery
-	BuildUpdateOne(ctx context.Context, record *ent.HiringJobStep) *ent.HiringJobStepUpdateOne
 	// mutation
 	CreateHiringJobStep(ctx context.Context, step hiringjobstep.Status, hiringJobId uuid.UUID) error
 	DeleteHiringJobStep(ctx context.Context, hiringJobId uuid.UUID) error
 	CreateBulkHiringJobSteps(ctx context.Context, creates []*ent.HiringJobStepCreate) ([]*ent.HiringJobStep, error)
 	UpdateHiringJobStepStatus(ctx context.Context, record *ent.HiringJobStep, inputStatus ent.HiringJobStepStatusEnum) (*ent.HiringJobStep, error)
+	UpdateHiringJobStepByRecLeader(ctx context.Context, recLeaderStep *ent.HiringJobStep, recLeaderID uuid.UUID) (*ent.HiringJobStep, error)
 }
 
 type hiringJobStepRepoImpl struct {
@@ -62,4 +62,8 @@ func (rps hiringJobStepRepoImpl) CreateBulkHiringJobSteps(ctx context.Context, c
 
 func (rps hiringJobStepRepoImpl) UpdateHiringJobStepStatus(ctx context.Context, record *ent.HiringJobStep, inputStatus ent.HiringJobStepStatusEnum) (*ent.HiringJobStep, error) {
 	return record.Update().SetUpdatedAt(time.Now().UTC()).SetStatus(hiringjobstep.Status(inputStatus)).Save(ctx)
+}
+
+func (rps hiringJobStepRepoImpl) UpdateHiringJobStepByRecLeader(ctx context.Context, recLeaderStep *ent.HiringJobStep, recLeaderID uuid.UUID) (*ent.HiringJobStep, error) {
+	return rps.BuildUpdateOne(ctx, recLeaderStep).SetUserID(recLeaderID).Save(ctx)
 }
