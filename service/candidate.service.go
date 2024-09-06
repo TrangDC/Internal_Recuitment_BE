@@ -16,6 +16,8 @@ import (
 	"trec/internal/util"
 	"trec/repository"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -467,28 +469,17 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			}
 		}
 		if input.FailedReason != nil && len(input.FailedReason) != 0 {
-			candidateJobIds := []uuid.UUID{}
-			queryString := "SELECT id FROM candidate_jobs WHERE "
-			for i, reason := range input.FailedReason {
-				queryString += "failed_reason @> '[\"" + reason.String() + "\"]'::jsonb"
-				if i != len(input.FailedReason)-1 {
-					queryString += " AND "
-				}
-			}
-			queryString += ";"
-			rows, _ := candidateQuery.QueryContext(ctx, queryString)
-			if rows != nil {
-				for rows.Next() {
-					var id uuid.UUID
-					rows.Scan(&id)
-					candidateJobIds = append(candidateJobIds, id)
-				}
-				candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
-					candidatejob.IDIn(candidateJobIds...),
-				))
-			} else {
-				candidateQuery.Where(candidate.IDIn(uuid.Nil))
-			}
+			failedReasonPredicates := make([]predicate.CandidateJob, 0)
+			lo.ForEach(input.FailedReason, func(item ent.CandidateJobFailedReason, _ int) {
+				failedReasonPredicates = append(
+					failedReasonPredicates,
+					func(s *sql.Selector) { s.Where(sqljson.ValueContains(candidatejob.FieldFailedReason, item)) },
+				)
+			})
+			candidateQuery.Where(candidate.HasCandidateJobEdgesWith(
+				candidatejob.DeletedAtIsNil(),
+				candidatejob.Or(failedReasonPredicates...),
+			))
 		}
 		if input.SkillTypeIds != nil {
 			ids := lo.Map(input.SkillTypeIds, func(skillType string, index int) uuid.UUID {
