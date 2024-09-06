@@ -585,21 +585,20 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	var edges *ent.CandidateJobGroupByInterview
-	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).WithCandidateJobInterview(
-		func(query *ent.CandidateInterviewQuery) {
-			query.Where(candidateinterview.DeletedAtIsNil()).WithCreatedByEdge().WithInterviewerEdges().WithCandidateJobEdge().
+	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).
+		WithCandidateJobInterview(func(query *ent.CandidateInterviewQuery) {
+			query.Where(candidateinterview.DeletedAtIsNil()).
+				WithCreatedByEdge().WithInterviewerEdges().WithCandidateJobEdge().
 				Order(ent.Desc(candidateinterview.FieldCreatedAt))
-		},
-	).WithCandidateJobFeedback(
-		func(query *ent.CandidateJobFeedbackQuery) {
-			query.Where(candidatejobfeedback.DeletedAtIsNil()).WithAttachmentEdges(
-				func(query *ent.AttachmentQuery) {
+		}).
+		WithCandidateJobFeedback(func(query *ent.CandidateJobFeedbackQuery) {
+			query.Where(candidatejobfeedback.DeletedAtIsNil()).
+				WithAttachmentEdges(func(query *ent.AttachmentQuery) {
 					query.Where(attachment.DeletedAtIsNil(), attachment.RelationTypeEQ(attachment.RelationTypeCandidateJobFeedbacks))
-				},
-			).WithCreatedByEdge(func(query *ent.UserQuery) { query.WithHiringTeamEdges() }).
+				}).
+				WithCreatedByEdge(func(query *ent.UserQuery) { query.WithHiringTeamEdges().WithMemberOfHiringTeamEdges() }).
 				Order(ent.Desc(candidatejobfeedback.FieldCreatedAt))
-		},
-	)
+		})
 	svc.validPermissionGet(payload, query)
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetOneCandidateJob(ctx, query)
 	if err != nil {
