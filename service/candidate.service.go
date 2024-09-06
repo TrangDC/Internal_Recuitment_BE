@@ -510,15 +510,17 @@ func (svc *candidateSvcImpl) filter(ctx context.Context, candidateQuery *ent.Can
 			candidateQuery.Where(candidate.GenderIn(genders...))
 		}
 		if input.IgnoreStatuses != nil {
-			statuses := lo.Map(input.IgnoreStatuses, func(status ent.CandidateStatusEnum, index int) candidatejob.Status {
-				return candidatejob.Status(status)
+			statuses := make([]candidatejob.Status, 0)
+			lo.ForEach(input.IgnoreStatuses, func(item ent.CandidateStatusEnum, _ int) {
+				if item == ent.CandidateStatusEnumNew {
+					return
+				}
+				statuses = append(statuses, candidatejob.Status(item))
 			})
-			candidateQuery.Where(candidate.Or(
-				candidate.Not(candidate.HasCandidateJobEdges()),
-				candidate.HasCandidateJobEdgesWith(
-					candidatejob.StatusNotIn(statuses...),
-				),
-			))
+			candidateQuery.Where(candidate.Not(candidate.HasCandidateJobEdgesWith(
+				candidatejob.DeletedAtIsNil(),
+				candidatejob.StatusIn(statuses...),
+			)))
 		}
 	}
 }
