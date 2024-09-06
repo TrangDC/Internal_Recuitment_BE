@@ -656,10 +656,7 @@ func (svc hiringJobSvcImpl) validPermissionUpdate(payload *middleware.Payload, c
 	if payload.ForAll {
 		return true
 	}
-	if payload.ForTeam {
-		return currentUser.HiringTeamID == jobHiringTeamID || currentUser.HiringTeamID == jobRecTeamID
-	}
-	return currentUser.ID == jobCreator.ID
+	return currentUser.ID == jobCreator.ID || (payload.ForTeam && currentUser.HiringTeamID == jobHiringTeamID || currentUser.RecTeamID == jobRecTeamID)
 }
 
 func (svc hiringJobSvcImpl) validPermissionGet(payload *middleware.Payload, query *ent.HiringJobQuery, payloadUser *ent.User) {
@@ -694,10 +691,9 @@ func (svc hiringJobSvcImpl) validPermissionUpdateStatus(payload *middleware.Payl
 	if payload.ForAll {
 		return true
 	}
-	if payload.ForTeam {
-		return currentUser.HiringTeamID == jobHiringTeamID || currentUser.RecTeamID == jobRecTeamID
-	}
-	return currentUser.ID == jobCreator.ID || currentUser.ID == recInChargeID
+	jobBelongsToUser := currentUser.ID == jobCreator.ID || currentUser.ID == recInChargeID
+	jobBelongsToUsersTeam := currentUser.HiringTeamID == jobHiringTeamID || currentUser.RecTeamID == jobRecTeamID
+	return jobBelongsToUser || (payload.ForTeam && jobBelongsToUsersTeam)
 }
 
 // Path: service/hiring_job.service.go

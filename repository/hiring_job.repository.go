@@ -178,6 +178,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetRecInChargeID(uuid.MustParse(input.RecInChargeID)).
 		SetPriority(input.Priority).
 		SetJobPositionID(uuid.MustParse(input.JobPositionID)).
+		SetLevel(hiringjob.Level(input.Level)).
 		SetNote(input.Note).
 		Save(ctx)
 }
