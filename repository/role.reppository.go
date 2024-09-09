@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
-	"trec/ent/permission"
 	"trec/ent/role"
 
 	"github.com/google/uuid"
@@ -23,6 +22,7 @@ type RoleRepository interface {
 	BuildBaseQuery() *ent.RoleQuery
 	BuildCount(ctx context.Context, query *ent.RoleQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.RoleQuery) ([]*ent.Role, error)
+	BuildIDs(ctx context.Context, query *ent.RoleQuery) ([]uuid.UUID, error)
 
 	// common function
 	ValidName(ctx context.Context, teamId uuid.UUID, name string) (error, error)
@@ -54,10 +54,7 @@ func (rps *roleRepoImpl) BuildDelete() *ent.RoleUpdate {
 func (rps *roleRepoImpl) BuildQuery() *ent.RoleQuery {
 	return rps.client.Role.Query().Where(role.DeletedAtIsNil()).
 		WithRolePermissionEdges(func(query *ent.EntityPermissionQuery) {
-			query.
-				WithPermissionEdges(func(query *ent.PermissionQuery) {
-					query.Where(permission.DeletedAtIsNil())
-				})
+			query.WithPermissionEdges()
 		}).
 		WithUserEdges()
 }
@@ -79,6 +76,10 @@ func (rps *roleRepoImpl) BuildCount(ctx context.Context, query *ent.RoleQuery) (
 
 func (rps *roleRepoImpl) BuildExist(ctx context.Context, query *ent.RoleQuery) (bool, error) {
 	return query.Exist(ctx)
+}
+
+func (rps *roleRepoImpl) BuildIDs(ctx context.Context, query *ent.RoleQuery) ([]uuid.UUID, error) {
+	return query.IDs(ctx)
 }
 
 func (rps *roleRepoImpl) BuildUpdateOne(ctx context.Context, record *ent.Role) *ent.RoleUpdateOne {
@@ -103,7 +104,7 @@ func (rps *roleRepoImpl) UpdateRole(ctx context.Context, record *ent.Role, input
 }
 
 func (rps *roleRepoImpl) DeleteRole(ctx context.Context, record *ent.Role) (*ent.Role, error) {
-	update := rps.BuildUpdateOne(ctx, record).ClearUserRoles().SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
+	update := rps.BuildUpdateOne(ctx, record).SetDeletedAt(time.Now()).SetUpdatedAt(time.Now())
 	return update.Save(ctx)
 }
 

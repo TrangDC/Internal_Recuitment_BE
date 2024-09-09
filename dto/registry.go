@@ -93,7 +93,7 @@ const (
 	RoleI18n                 = "model.roles.model_name"
 	EmailTemplateI18n        = "model.email_templates.model_name"
 	RecTeamI18n              = "model.rec_teams.model_name"
-	UserPermissionI18n       = "model.user_permission.model_name"
+	EntityPermissionI18n     = "model.entity_permissions.model_name"
 	CandidateHistoryCallI18n = "model.candidate_history_calls.model_name"
 	CandidateNoteI18n        = "model.candidate_notes.model_name"
 	CandidateAwardI18n       = "model.candidate_awards.model_name"

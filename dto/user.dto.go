@@ -21,19 +21,24 @@ type UserDto interface {
 }
 
 type userDtoImpl struct {
+	entityPermissionDto EntityPermissionDto
 }
 
 func NewUserDto() UserDto {
-	return &userDtoImpl{}
+	return &userDtoImpl{
+		entityPermissionDto: NewEntityPermissionDto(),
+	}
 }
 
 func (d userDtoImpl) AuditTrailCreate(record *ent.User) (string, error) {
 	result := models.AuditTrailData{
-		Module: UserI18n,
-		Create: d.recordAudit(record),
-		Update: []interface{}{},
-		Delete: []interface{}{},
+		Module:    UserI18n,
+		Create:    d.recordAudit(record),
+		Update:    []interface{}{},
+		Delete:    []interface{}{},
+		SubModule: []interface{}{},
 	}
+	d.entityPermissionDto.ProcessAuditTrail([]*ent.EntityPermission{}, record.Edges.UserPermissionEdges, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
@@ -45,6 +50,7 @@ func (d userDtoImpl) AuditTrailDelete(record *ent.User) (string, error) {
 		Update: []interface{}{},
 		Delete: d.recordAudit(record),
 	}
+	d.entityPermissionDto.ProcessAuditTrail(record.Edges.UserPermissionEdges, []*ent.EntityPermission{}, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
@@ -102,6 +108,7 @@ func (d userDtoImpl) AuditTrailUpdate(oldRecord *ent.User, newRecord *ent.User) 
 	}
 	entity = d.userRoleAuditTrailUpdate(oldRecord.Edges.RoleEdges, newRecord.Edges.RoleEdges, entity)
 	result.Update = append(result.Update, entity...)
+	d.entityPermissionDto.ProcessAuditTrail(oldRecord.Edges.UserPermissionEdges, newRecord.Edges.UserPermissionEdges, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }

@@ -62,29 +62,17 @@ func (rps *userRepoImpl) BuildDelete() *ent.UserUpdate {
 
 func (rps *userRepoImpl) BuildQuery() *ent.UserQuery {
 	return rps.client.User.Query().Where(user.DeletedAtIsNil()).
-		WithHiringTeamEdges(func(query *ent.HiringTeamQuery) {
-			query.Where(hiringteam.DeletedAtIsNil())
-		}).
+		WithHiringTeamEdges(func(query *ent.HiringTeamQuery) { query.Where(hiringteam.DeletedAtIsNil()) }).
 		WithUserPermissionEdges(func(query *ent.EntityPermissionQuery) {
 			query.WithPermissionEdges(func(query *ent.PermissionQuery) {
 				query.Where(permission.DeletedAtIsNil()).
-					WithGroupPermissionEdge(func(query *ent.PermissionGroupQuery) {
-						query.Where(permissiongroup.DeletedAtIsNil())
-					})
+					WithGroupPermissionEdge(func(query *ent.PermissionGroupQuery) { query.Where(permissiongroup.DeletedAtIsNil()) })
 			})
 		}).
-		WithMemberOfHiringTeamEdges(func(query *ent.HiringTeamQuery) {
-			query.Where(hiringteam.DeletedAtIsNil())
-		}).
-		WithRoleEdges(func(query *ent.RoleQuery) {
-			query.Where(role.DeletedAtIsNil())
-		}).WithRecTeams(func(query *ent.RecTeamQuery) {
-		query.Where(recteam.DeletedAtIsNil())
-	}).WithLeaderRecEdge(
-		func(query *ent.RecTeamQuery) {
-			query.Where(recteam.DeletedAtIsNil())
-		},
-	)
+		WithMemberOfHiringTeamEdges(func(query *ent.HiringTeamQuery) { query.Where(hiringteam.DeletedAtIsNil()) }).
+		WithRoleEdges(func(query *ent.RoleQuery) { query.Where(role.DeletedAtIsNil()) }).
+		WithRecTeams(func(query *ent.RecTeamQuery) { query.Where(recteam.DeletedAtIsNil()) }).
+		WithLeaderRecEdge(func(query *ent.RecTeamQuery) { query.Where(recteam.DeletedAtIsNil()) })
 }
 
 func (rps *userRepoImpl) BuildBaseQuery() *ent.UserQuery {
