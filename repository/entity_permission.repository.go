@@ -66,8 +66,7 @@ func (rps entityPermissionRepoImpl) DeleteEntityPermissionByIDs(ctx context.Cont
 }
 
 func (rps entityPermissionRepoImpl) UpdateEntityPermission(ctx context.Context, record *ent.EntityPermission, input *ent.NewEntityPermissionInput) error {
-	_, err := rps.client.EntityPermission.UpdateOne(record).
-		SetPermissionID(uuid.MustParse(input.PermissionID)).
+	_, err := record.Update().
 		SetForOwner(input.ForOwner).
 		SetForAll(input.ForAll).
 		SetForTeam(input.ForTeam).
@@ -101,52 +100,44 @@ func (rps entityPermissionRepoImpl) DeleteBulkEntityPermissionByEntityIDs(ctx co
 	return err
 }
 
-func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.Context, entityId uuid.UUID, input []*ent.NewEntityPermissionInput,
-	entityPermissionRecord []*ent.EntityPermission, entityPermissionType entitypermission.EntityType) error {
-	var newInput []*ent.NewEntityPermissionInput
-	var deletedIds []uuid.UUID
-	var updatedRecord []updateEntityPermissionRecord
-	for _, entity := range input {
-		if entity.ID == nil || *entity.ID == "" {
-			newInput = append(newInput, entity)
+func (rps entityPermissionRepoImpl) CreateAndUpdateEntityPermission(ctx context.Context, entityId uuid.UUID, input []*ent.NewEntityPermissionInput, entityPermissionRecord []*ent.EntityPermission, entityPermissionType entitypermission.EntityType) error {
+	deletedIDs := make([]uuid.UUID, 0)
+	updatedRecords := make([]updateEntityPermissionRecord, 0)
+	for _, record := range entityPermissionRecord {
+		// Check if the record needs to be deleted
+		updatedInput, exists := lo.Find(input, func(item *ent.NewEntityPermissionInput) bool {
+			return item.PermissionID == record.PermissionID.String()
+		})
+		if !exists {
+			deletedIDs = append(deletedIDs, record.ID)
+			continue
+		}
+		// Check if the record needs to be updated
+		if updatedInput.ForOwner != record.ForOwner || updatedInput.ForAll != record.ForAll || updatedInput.ForTeam != record.ForTeam {
+			updatedRecords = append(updatedRecords, updateEntityPermissionRecord{RecordInput: updatedInput, Record: record})
 		}
 	}
-	if len(entityPermissionRecord) > 0 {
-		for _, entity := range entityPermissionRecord {
-			inputRecord, exist := lo.Find(input, func(record *ent.NewEntityPermissionInput) bool {
-				return record.ID != nil && *record.ID != "" && *record.ID == entity.ID.String()
-			})
-			if !exist {
-				deletedIds = append(deletedIds, entity.ID)
-			} else {
-				if inputRecord.PermissionID != entity.PermissionID.String() || inputRecord.ForOwner != entity.ForOwner ||
-					inputRecord.ForAll != entity.ForAll || inputRecord.ForTeam != entity.ForTeam {
-					updatedRecord = append(updatedRecord, updateEntityPermissionRecord{
-						RecordInput: inputRecord,
-						Record:      entity,
-					})
-				}
-			}
-		}
-	}
-	if len(newInput) > 0 {
-		err := rps.CreateBulkEntityPermissionByEntityID(ctx, newInput, entityId, entityPermissionType)
+	newInputs := lo.Filter(input, func(item *ent.NewEntityPermissionInput, _ int) bool {
+		return !lo.ContainsBy(entityPermissionRecord, func(record *ent.EntityPermission) bool {
+			return item.PermissionID == record.PermissionID.String()
+		})
+	})
+	if len(newInputs) > 0 {
+		err := rps.CreateBulkEntityPermissionByEntityID(ctx, newInputs, entityId, entityPermissionType)
 		if err != nil {
 			return err
 		}
 	}
-	if len(deletedIds) > 0 {
-		err := rps.DeleteEntityPermissionByIDs(ctx, deletedIds)
+	if len(deletedIDs) > 0 {
+		err := rps.DeleteEntityPermissionByIDs(ctx, deletedIDs)
 		if err != nil {
 			return err
 		}
 	}
-	if len(updatedRecord) > 0 {
-		for _, record := range updatedRecord {
-			err := rps.UpdateEntityPermission(ctx, record.Record, record.RecordInput)
-			if err != nil {
-				return err
-			}
+	for _, record := range updatedRecords {
+		err := rps.UpdateEntityPermission(ctx, record.Record, record.RecordInput)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -159,7 +150,7 @@ func (rps entityPermissionRepoImpl) DeleteBulkEntityPermissionByEntityID(ctx con
 
 // query
 func (rps entityPermissionRepoImpl) BuildQuery() *ent.EntityPermissionQuery {
-	return rps.client.EntityPermission.Query().WithPermissionEdges()
+	return rps.client.EntityPermission.Query().WithPermissionEdges(func(query *ent.PermissionQuery) { query.WithGroupPermissionEdge() })
 }
 
 func (rps entityPermissionRepoImpl) BuildList(ctx context.Context, query *ent.EntityPermissionQuery) ([]*ent.EntityPermission, error) {
