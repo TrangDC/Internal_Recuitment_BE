@@ -3,24 +3,24 @@ package repository
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strings"
 	"time"
 	"trec/ent"
 	"trec/ent/candidate"
 	"trec/ent/candidatejob"
-	"trec/internal/util"
+	"trec/ent/candidatejobstep"
+	"trec/ent/hiringjob"
+	"trec/ent/predicate"
+	"trec/models"
 
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 )
 
 type ReportRepository interface {
-	CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, hiringTeamID uuid.UUID, hiringTeamName string) (*ent.CandidateConversionRateReport, error)
-	GetApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (ent.ApplicationReportFailReason, error)
+	CandidateJobConversion(ctx context.Context, hiringTeamID, jobPositionID uuid.UUID) (*ent.CandidateConversionRateReport, error)
+	GetApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (*ent.ApplicationReportFailReason, error)
 	ReportRecruitment(ctx context.Context, fromDate, toDate carbon.Carbon) (ent.ReportRecruitment, error)
-	ReportApplication(ctx context.Context, fromDate, toDate carbon.Carbon) (ent.ReportApplication, error)
+	ReportApplication(ctx context.Context, fromDate, toDate carbon.Carbon, hiringTeamIDStr *string) (ent.ReportApplication, error)
 	ValidTimeSelect(filter ent.ReportFilter) (carbon.Carbon, carbon.Carbon, error)
 }
 
@@ -34,68 +34,66 @@ func NewReportRepository(client *ent.Client) ReportRepository {
 	}
 }
 
-func (rps reportRepoImpl) CandidateJobConversion(ctx context.Context, candidateJobIds []uuid.UUID, hiringTeamID uuid.UUID, hiringTeamName string) (*ent.CandidateConversionRateReport, error) {
-	var applied int
-	var interviewing int
-	var offering int
-	var hired int
-	queryString := "select cjs.candidate_job_status, count(*) as count from candidate_job_steps cjs join candidate_jobs cj on cjs.candidate_job_id = cj.id " +
-		"where cj.deleted_at is null %s and cjs.candidate_job_status in ('applied', 'interviewing', 'offering', 'hired') group by cjs.candidate_job_status ;"
-	if len(candidateJobIds) > 0 {
-		queryString = fmt.Sprintf(queryString, fmt.Sprintf("and cj.id in ('%s')", strings.Join(lo.Map(candidateJobIds, func(id uuid.UUID, index int) string { return id.String() }), "','")))
-	} else {
-		queryString = fmt.Sprintf(queryString, "")
+func (rps reportRepoImpl) CandidateJobConversion(ctx context.Context, hiringTeamID, jobPositionID uuid.UUID) (*ent.CandidateConversionRateReport, error) {
+	result := &ent.CandidateConversionRateReport{}
+	cdPredicates := []predicate.CandidateJob{candidatejob.DeletedAtIsNil()}
+	switch {
+	case hiringTeamID != uuid.Nil:
+		result.ID = hiringTeamID.String()
+		cdPredicates = append(cdPredicates, candidatejob.HasHiringJobEdgeWith(hiringjob.HiringTeamID(hiringTeamID)))
+	case jobPositionID != uuid.Nil:
+		result.ID = jobPositionID.String()
+		cdPredicates = append(cdPredicates, candidatejob.HasHiringJobEdgeWith(hiringjob.JobPositionID(jobPositionID)))
 	}
-	rows, err := rps.client.CandidateJobStep.Query().QueryContext(ctx, queryString)
+	countsByStatus := make([]models.CdJobStepCountByStatus, 0)
+	err := rps.client.CandidateJobStep.Query().
+		Select(candidatejobstep.FieldCandidateJobStatus).
+		Where(
+			candidatejobstep.CandidateJobStatusIn(
+				candidatejobstep.CandidateJobStatusApplied,
+				candidatejobstep.CandidateJobStatusInterviewing,
+				candidatejobstep.CandidateJobStatusOffering,
+				candidatejobstep.CandidateJobStatusHired,
+			),
+			candidatejobstep.HasCandidateJobEdgeWith(cdPredicates...),
+		).
+		GroupBy(candidatejobstep.FieldCandidateJobStatus).Aggregate(ent.Count()).
+		Scan(ctx, &countsByStatus)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	if rows != nil {
-		for rows.Next() {
-			var status string
-			var count int
-			if err := rows.Scan(&status, &count); err != nil {
-				return nil, err
-			}
-			switch status {
-			case candidatejob.StatusApplied.String():
-				applied = count
-			case candidatejob.StatusInterviewing.String():
-				interviewing = count
-			case candidatejob.StatusOffering.String():
-				offering = count
-			case candidatejob.StatusHired.String():
-				hired = count
-			}
-		}
-		if err := rows.Err(); err != nil {
-			return nil, err
+	for _, v := range countsByStatus {
+		switch v.Status {
+		case candidatejobstep.CandidateJobStatusApplied:
+			result.Applied = v.Count
+		case candidatejobstep.CandidateJobStatusInterviewing:
+			result.Interviewing = v.Count
+		case candidatejobstep.CandidateJobStatusOffering:
+			result.Offering = v.Count
+		case candidatejobstep.CandidateJobStatusHired:
+			result.Hired = v.Count
 		}
 	}
-	resultId := ""
-	if hiringTeamID != uuid.Nil {
-		resultId = hiringTeamID.String()
-	}
-	return &ent.CandidateConversionRateReport{
-		ID:             resultId,
-		HiringTeamName: hiringTeamName,
-		Applied:        applied,
-		Interviewing:   interviewing,
-		Offering:       offering,
-		Hired:          hired,
-	}, nil
+	return result, nil
 }
 
-func (rps reportRepoImpl) GetApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (ent.ApplicationReportFailReason, error) {
-	result := ent.ApplicationReportFailReason{}
-	queryString := "select value as failed_reason, count(*) as count from candidate_jobs as cdj, jsonb_array_elements_text(failed_reason) as value " +
-		"where cdj.status = '%s' and cdj.deleted_at is null and cdj.created_at between '%s' and '%s' group by value order by count desc;"
+func (rps reportRepoImpl) GetApplicationFail(ctx context.Context, filter ent.ReportFilter, status candidatejob.Status) (*ent.ApplicationReportFailReason, error) {
+	result := &ent.ApplicationReportFailReason{}
+	where := "WHERE cdj.status = '%s' AND cdj.deleted_at IS NULL AND cdj.created_at BETWEEN '%s' AND '%s' "
+	if filter.HiringTeamID != nil {
+		where += fmt.Sprintf(" AND cdj.hiring_job_id IN (SELECT id FROM hiring_jobs WHERE hiring_team_id = '%s') ", *filter.HiringTeamID)
+	}
+	queryString := "SELECT value AS failed_reason, count(*) AS count " +
+		"FROM candidate_jobs AS cdj, jsonb_array_elements_text(failed_reason) AS value " +
+		where +
+		"GROUP BY value ORDER BY count DESC;"
 	queryString = fmt.Sprintf(
-		queryString, status, filter.FromDate.Format("2006-01-02 15:04:05"), filter.ToDate.Format("2006-01-02 15:04:05"))
+		queryString,
+		status, filter.FromDate.Format("2006-01-02 15:04:05"), filter.ToDate.Format("2006-01-02 15:04:05"),
+	)
 	rows, err := rps.client.CandidateJob.Query().QueryContext(ctx, queryString)
 	if err != nil {
-		return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		return result, err
 	}
 	defer rows.Close()
 	if rows != nil {
@@ -103,7 +101,7 @@ func (rps reportRepoImpl) GetApplicationFail(ctx context.Context, filter ent.Rep
 			var status string
 			var count int
 			if err := rows.Scan(&status, &count); err != nil {
-				return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+				return result, err
 			}
 			switch status {
 			case ent.CandidateJobFailedReasonPoorProfessionalism.String():
@@ -123,13 +121,15 @@ func (rps reportRepoImpl) GetApplicationFail(ctx context.Context, filter ent.Rep
 			case ent.CandidateJobFailedReasonPoorProblemSolvingSkills.String():
 				result.PoorProblemSolvingSkills = count
 			case ent.CandidateJobFailedReasonPoorManagementSkills.String():
-				result.CandidateWithdrawal = count
+				result.PoorManagementSkills = count
 			case ent.CandidateJobFailedReasonCandidateWithdrawal.String():
+				result.CandidateWithdrawal = count
+			case ent.CandidateJobFailedReasonOthers.String():
 				result.Others = count
 			}
 		}
 		if err := rows.Err(); err != nil {
-			return result, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+			return result, err
 		}
 	}
 	return result, nil
@@ -178,49 +178,49 @@ func (rps reportRepoImpl) ReportRecruitment(ctx context.Context, fromDate, toDat
 	return result, nil
 }
 
-func (rps reportRepoImpl) ReportApplication(ctx context.Context, fromDate, toDate carbon.Carbon) (ent.ReportApplication, error) {
-	var result ent.ReportApplication
+func (rps reportRepoImpl) ReportApplication(ctx context.Context, fromDate, toDate carbon.Carbon, hiringTeamIDStr *string) (ent.ReportApplication, error) {
 	utc, _ := time.LoadLocation(carbon.UTC)
 	fromDateStd := fromDate.SetLocation(utc).StdTime()
 	toDateStd := toDate.SetLocation(utc).StdTime()
-	queryString := "select status, count(*) from candidate_jobs " +
-		"where deleted_at is null and created_at between '%s' and '%s' group by status;"
-	queryString = fmt.Sprintf(queryString, fromDate.SetLocation(utc).ToDateTimeString(), toDate.SetLocation(utc).ToDateTimeString())
-	result.FromDate = fromDateStd
-	result.ToDate = toDateStd
-	rows, err := rps.client.CandidateJob.Query().QueryContext(ctx, queryString)
+	result := ent.ReportApplication{
+		FromDate: fromDateStd,
+		ToDate:   toDateStd,
+	}
+	cdJobPredicates := []predicate.CandidateJob{
+		candidatejob.DeletedAtIsNil(),
+		candidatejob.CreatedAtGTE(fromDateStd), candidatejob.CreatedAtLTE(toDateStd),
+	}
+	if hiringTeamIDStr != nil {
+		cdJobPredicates = append(cdJobPredicates, candidatejob.HasHiringJobEdgeWith(hiringjob.HiringTeamID(uuid.MustParse(*hiringTeamIDStr))))
+	}
+	countsByStatus := make([]models.CandidateJobCountByStatus, 0)
+	err := rps.client.CandidateJob.Query().
+		Select(candidatejob.FieldStatus).
+		Where(cdJobPredicates...).
+		GroupBy(candidatejob.FieldStatus).
+		Aggregate(ent.Count()).
+		Scan(ctx, &countsByStatus)
 	if err != nil {
 		return result, err
 	}
-	defer rows.Close()
-	if rows != nil {
-		for rows.Next() {
-			var status string
-			var count int
-			if err := rows.Scan(&status, &count); err != nil {
-				return result, err
-			}
-			switch status {
-			case candidatejob.StatusApplied.String():
-				result.Applied = count
-			case candidatejob.StatusInterviewing.String():
-				result.Interviewing = count
-			case candidatejob.StatusOffering.String():
-				result.Offering = count
-			case candidatejob.StatusHired.String():
-				result.Hired = count
-			case "kiv":
-				result.Kiv = 0
-			case candidatejob.StatusOfferLost.String():
-				result.OfferLost = count
-			case candidatejob.StatusOffering.String():
-				result.Offering = count
-			case candidatejob.StatusExStaff.String():
-				result.ExStaff = count
-			}
-		}
-		if err := rows.Err(); err != nil {
-			return result, err
+	for _, v := range countsByStatus {
+		switch v.Status {
+		case candidatejob.StatusApplied:
+			result.Applied = v.Count
+		case candidatejob.StatusInterviewing:
+			result.Interviewing = v.Count
+		case candidatejob.StatusOffering:
+			result.Offering = v.Count
+		case candidatejob.StatusHired:
+			result.Hired = v.Count
+		case candidatejob.StatusFailedCv:
+			result.FailedCv = v.Count
+		case candidatejob.StatusFailedInterview:
+			result.FailedInterview = v.Count
+		case candidatejob.StatusOfferLost:
+			result.OfferLost = v.Count
+		case candidatejob.StatusExStaff:
+			result.ExStaff = v.Count
 		}
 	}
 	return result, nil

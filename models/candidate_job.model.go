@@ -4,6 +4,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobstep"
 
 	"github.com/google/uuid"
 )
@@ -32,4 +33,14 @@ type CandidateJobValidInput struct {
 	CandidateJobId uuid.UUID
 	FailedReason   []ent.CandidateJobFailedReason `json:"failed_reason"`
 	HiringJobId    uuid.UUID                      `json:"hiring_job_id,omitempty"`
+}
+
+type CandidateJobCountByStatus struct {
+	Status candidatejob.Status `json:"status"`
+	Count  int                 `json:"count"`
+}
+
+type CdJobStepCountByStatus struct {
+	Status candidatejobstep.CandidateJobStatus `json:"candidate_job_status"`
+	Count  int                                 `json:"count"`
 }

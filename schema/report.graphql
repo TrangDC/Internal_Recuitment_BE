@@ -9,6 +9,8 @@ enum ReportFilterPeriod {
 enum ReportOrderByField {
   hiring_team_name
   hiring_team_created_at
+  job_position_name
+  job_position_created_at
 }
 
 input ReportOrderBy {
@@ -58,6 +60,7 @@ type CandidateConversionRateReportResponse {
 }
 
 input ReportFilter {
+  hiring_team_id: ID
   filter_period: ReportFilterPeriod!
   from_date: Time!
   to_date: Time!
@@ -71,6 +74,7 @@ type ReportCandidateConversionRateChartResponse {
 type CandidateConversionRateReport {
   id: ID!
   hiring_team_name: String!
+  job_position_name: String!
   applied: Int!
   interviewing: Int!
   offering: Int!
@@ -80,18 +84,11 @@ type CandidateConversionRateReport {
 type CandidateConversionRateReportEdge {
   node: CandidateConversionRateReport!
   cursor: Cursor!
-
 }
 
 type ReportCandidateConversionRateTableResponse {
   edges: [CandidateConversionRateReportEdge!]!
   pagination: Pagination!
-}
-
-type ApplicationReportTable {
-  processing: ApplicationReportProcessing!
-  kiv: ApplicationReportFailReason!
-  offered_lost: ApplicationReportFailReason!
 }
 
 type ApplicationReportFailReason {
@@ -106,17 +103,6 @@ type ApplicationReportFailReason {
   poor_management_skills: Int!
   candidate_withdrawal: Int!
   others: Int!
-}
-
-type ApplicationReportProcessing {
-  invite_to_interview: Int!
-  interviewing: Int!
-  done: Int!
-  cancelled: Int!
-}
-
-type ReportApplicationReportTableResponse {
-  data: ApplicationReportTable
 }
 
 # LCC = line circle chart
@@ -166,7 +152,55 @@ type ReportApplication {
   interviewing: Int!
   offering: Int!
   hired: Int!
-  kiv: Int!
+  failed_cv: Int!
+  failed_interview: Int!
   offer_lost: Int!
   ex_staff: Int!
+}
+
+# Report Processing Application
+type ReportProcessingApplicationResponse {
+  edges: [ReportProcessingApplicationEdge!]!
+}
+
+type ReportProcessingApplicationEdge {
+  node: ReportProcessingApplication!
+}
+
+type ReportProcessingApplication {
+  from_date: Time!
+  to_date: Time!
+  actual_interview: Int!
+  cancel: Int!
+}
+
+# Report Failed Application
+type ReportFailedApplicationResponse {
+  data: ReportFailedApplication
+}
+
+type ReportFailedApplication {
+  failed_cv: ApplicationReportFailReason!
+  failed_interview: ApplicationReportFailReason!
+  offer_lost: ApplicationReportFailReason!
+}
+
+# Report Hired Application
+type ReportHiredApplicationResponse {
+  edges: [ReportHiredApplicationEdge!]!
+}
+
+type ReportHiredApplicationEdge {
+  node: ReportHiredApplication!
+}
+
+type ReportHiredApplication {
+  job_position_name: String!
+  intern: Int!
+  fresher: Int!
+  junior: Int!
+  middle: Int!
+  senior: Int!
+  manager: Int!
+  director: Int!
 }
