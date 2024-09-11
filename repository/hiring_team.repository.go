@@ -11,6 +11,7 @@ import (
 	"trec/ent/candidatejobstep"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/hiringteamapprover"
 	"trec/ent/hiringteammanager"
@@ -68,7 +69,11 @@ func (rps *hiringTeamRepoImpl) BuildQuery() *ent.HiringTeamQuery {
 			query.Where(user.DeletedAtIsNil())
 		}).
 		WithHiringTeamJobEdges(func(query *ent.HiringJobQuery) {
-			query.Where(hiringjob.DeletedAtIsNil()).Order(ent.Desc(hiringjob.FieldLastApplyDate))
+			query.Where(hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusPendingApprovals)).
+				Order(ent.Desc(hiringjob.FieldLastApplyDate)).
+				WithApprovalSteps(func(query *ent.HiringJobStepQuery) {
+					query.WithApprovalUser().Order(ent.Asc(hiringjobstep.FieldOrderID))
+				})
 		}).
 		WithHiringMemberEdges(func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())

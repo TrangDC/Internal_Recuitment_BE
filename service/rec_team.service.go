@@ -35,18 +35,20 @@ type RecTeamService interface {
 }
 
 type recTeamSvcImpl struct {
-	userSvcImpl  UserService
-	repoRegistry repository.Repository
-	dtoRegistry  dto.Dto
-	logger       *zap.Logger
+	userSvcImpl          UserService
+	hiringJobStepSvcImpl HiringJobStepService
+	repoRegistry         repository.Repository
+	dtoRegistry          dto.Dto
+	logger               *zap.Logger
 }
 
 func NewRecTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) RecTeamService {
 	return &recTeamSvcImpl{
-		userSvcImpl:  NewUserService(repoRegistry, dtoRegistry, logger),
-		repoRegistry: repoRegistry,
-		dtoRegistry:  dtoRegistry,
-		logger:       logger,
+		userSvcImpl:          NewUserService(repoRegistry, dtoRegistry, logger),
+		hiringJobStepSvcImpl: NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
+		repoRegistry:         repoRegistry,
+		dtoRegistry:          dtoRegistry,
+		logger:               logger,
 	}
 }
 
@@ -150,6 +152,15 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 			return err
 		}
 		err = svc.userSvcImpl.SetRecTeam(ctx, record.Name, record.ID, []uuid.UUID{uuid.MustParse(input.LeaderID)}, oldUserRec, note, repoRegistry)
+		if record.LeaderID != uuid.MustParse(input.LeaderID) {
+			result, _ = svc.repoRegistry.RecTeam().GetRecTeam(ctx, uuid.MustParse(recTeamId))
+			if len(result.Edges.RecTeamJobEdges) > 0 {
+				for _, hiringJob := range result.Edges.RecTeamJobEdges {
+					hiringJob.Edges.RecTeamEdge = result
+					err = svc.hiringJobStepSvcImpl.UpdateHiringJobStepByRecLeader(ctx, repoRegistry, hiringJob)
+				}
+			}
+		}
 		return err
 	})
 	if err != nil {
@@ -164,6 +175,18 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, uuid.MustParse(recTeamId), audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
+	}
+	if len(result.Edges.RecTeamJobEdges) > 0 {
+		for i := 0; i < len(result.Edges.RecTeamJobEdges); i++ {
+			jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record.Edges.RecTeamJobEdges[i], result.Edges.RecTeamJobEdges[i])
+			if err != nil {
+				svc.logger.Error(err.Error())
+			}
+			err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.RecTeamJobEdges[i].ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+			if err != nil {
+				svc.logger.Error(err.Error())
+			}
+		}
 	}
 	return &ent.RecTeamResponse{
 		Data: result,
