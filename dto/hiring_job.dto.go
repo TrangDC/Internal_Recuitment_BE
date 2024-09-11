@@ -23,10 +23,13 @@ type HiringJobDto interface {
 }
 
 type hiringJobDtoImpl struct {
+	hiringJobStepDto HiringJobStepDto
 }
 
 func NewHiringJobDto() HiringJobDto {
-	return &hiringJobDtoImpl{}
+	return &hiringJobDtoImpl{
+		hiringJobStepDto: NewHiringJobStepDto(),
+	}
 }
 
 func (d hiringJobDtoImpl) AuditTrailCreate(record *ent.HiringJob) (string, error) {
@@ -36,6 +39,7 @@ func (d hiringJobDtoImpl) AuditTrailCreate(record *ent.HiringJob) (string, error
 		Update: []interface{}{},
 		Delete: []interface{}{},
 	}
+	d.hiringJobStepDto.ProcessAuditTrail([]*ent.HiringJobStep{}, record.Edges.ApprovalSteps, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
@@ -47,6 +51,7 @@ func (d hiringJobDtoImpl) AuditTrailDelete(record *ent.HiringJob) (string, error
 		Update: []interface{}{},
 		Delete: d.recordAudit(record),
 	}
+	d.hiringJobStepDto.ProcessAuditTrail([]*ent.HiringJobStep{}, record.Edges.ApprovalSteps, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
@@ -113,6 +118,18 @@ func (d hiringJobDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *
 				if newRecord.Edges.JobPositionEdge != nil {
 					newValueField = newRecord.Edges.JobPositionEdge.Name
 				}
+			case "model.hiring_jobs.rec_team":
+				oldValueField = oldRecord.Edges.RecTeamEdge.Name
+				newValueField = newRecord.Edges.RecTeamEdge.Name
+			case "model.hiring_jobs.level":
+				oldValueField = d.levelI18n(oldRecord.Level)
+				newValueField = d.levelI18n(newRecord.Level)
+			case "model.hiring_jobs.rec_in_charge":
+				oldValueField = ""
+				if oldRecord.Edges.RecInChargeEdge != nil {
+					oldValueField = oldRecord.Edges.RecInChargeEdge.Name
+				}
+				newValueField = newRecord.Edges.RecInChargeEdge.Name
 			}
 			entity = append(entity, models.AuditTrailUpdate{
 				Field: fieldName,
@@ -125,6 +142,7 @@ func (d hiringJobDtoImpl) AuditTrailUpdate(oldRecord *ent.HiringJob, newRecord *
 	}
 	entity = d.skillAuditTrailUpdate(oldRecord, newRecord, entity)
 	result.Update = append(result.Update, entity...)
+	d.hiringJobStepDto.ProcessAuditTrail(oldRecord.Edges.ApprovalSteps, newRecord.Edges.ApprovalSteps, &result)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
 }
@@ -165,6 +183,15 @@ func (d hiringJobDtoImpl) recordAudit(record *ent.HiringJob) []interface{} {
 			if record.Edges.JobPositionEdge != nil {
 				valueField = record.Edges.JobPositionEdge.Name
 			}
+		case "model.hiring_jobs.rec_team":
+			valueField = record.Edges.RecTeamEdge.Name
+		case "model.hiring_jobs.rec_in_charge":
+			valueField = ""
+			if record.Edges.RecInChargeEdge != nil {
+				valueField = record.Edges.RecInChargeEdge.Name
+			}
+		case "model.hiring_jobs.level":
+			valueField = d.levelI18n(record.Level)
 		}
 		entity = append(entity, models.AuditTrailCreateDelete{
 			Field: fieldName,
@@ -239,6 +266,14 @@ func (d hiringJobDtoImpl) formatFieldI18n(input string) string {
 		return "model.hiring_jobs.priority"
 	case "JobPositionID":
 		return "model.hiring_jobs.job_position"
+	case "RecInChargeID":
+		return "model.hiring_jobs.rec_in_charge"
+	case "Level":
+		return "model.hiring_jobs.level"
+	case "RecTeamID":
+		return "model.hiring_jobs.rec_team"
+	case "Note":
+		return "model.hiring_jobs.note"
 	}
 	return ""
 }
@@ -309,6 +344,26 @@ func (d hiringJobDtoImpl) priorityI18n(input int) string {
 		return "model.hiring_jobs.priority_enum.high"
 	case 1:
 		return "model.hiring_jobs.priority_enum.urgent"
+	}
+	return ""
+}
+
+func (d hiringJobDtoImpl) levelI18n(input hiringjob.Level) string {
+	switch input {
+	case hiringjob.LevelIntern:
+		return "model.hiring_jobs.level_enum.intern"
+	case hiringjob.LevelJunior:
+		return "model.hiring_jobs.level_enum.junior"
+	case hiringjob.LevelSenior:
+		return "model.hiring_jobs.level_enum.senior"
+	case hiringjob.LevelFresher:
+		return "model.hiring_jobs.level_enum.fresher"
+	case hiringjob.LevelMiddle:
+		return "model.hiring_jobs.level_enum.middle"
+	case hiringjob.LevelManager:
+		return "model.hiring_jobs.level_enum.manager"
+	case hiringjob.LevelDirector:
+		return "model.hiring_jobs.level_enum.director"
 	}
 	return ""
 }

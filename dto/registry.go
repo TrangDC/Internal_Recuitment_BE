@@ -100,6 +100,7 @@ const (
 	CandidateExpI18n         = "model.candidate_exps.model_name"
 	CandidateEducateI18n     = "model.candidate_educates.model_name"
 	CandidateCertificateI18n = "model.candidate_certificates.model_name"
+	HiringJobStepI18n        = "model.hiring_job_steps.model_name"
 )
 
 func (i dtoImpl) Azure() AzureDto {
