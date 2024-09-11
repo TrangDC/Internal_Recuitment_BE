@@ -30,6 +30,11 @@ func (r *candidateJobFeedbackResolver) CandidateJob(ctx context.Context, obj *en
 	return obj.Edges.CandidateJobEdge, nil
 }
 
+// CandidateJobStatus is the resolver for the candidate_job_status field.
+func (r *candidateJobFeedbackResolver) CandidateJobStatus(ctx context.Context, obj *ent.CandidateJobFeedback) (ent.CandidateJobStatus, error) {
+	return ent.CandidateJobStatus(obj.CandidateJobStatus), nil
+}
+
 // Owner is the resolver for the owner field.
 func (r *candidateJobFeedbackResolver) Owner(ctx context.Context, obj *ent.CandidateJobFeedback) (*ent.User, error) {
 	return obj.Edges.CreatedByEdge, nil

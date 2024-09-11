@@ -118,20 +118,9 @@ type CandidateJob {
   updated_at: Time!
 }
 
-type CandidateJobGroupInterviewFeedback {
+type CandidateJobInterviewFeedback {
   interview: [CandidateInterview!]
   feedback: [CandidateJobFeedback!]
-}
-
-type CandidateJobGroupByInterview {
-  hired: CandidateJobGroupInterviewFeedback
-  failed_cv: CandidateJobGroupInterviewFeedback
-  failed_interview: CandidateJobGroupInterviewFeedback
-  offer_lost: CandidateJobGroupInterviewFeedback
-  ex_staff: CandidateJobGroupInterviewFeedback
-  applied: CandidateJobGroupInterviewFeedback
-  interviewing: CandidateJobGroupInterviewFeedback
-  offering: CandidateJobGroupInterviewFeedback
 }
 
 type CandidateJobGroupByStatus {
@@ -180,7 +169,7 @@ type CandidateJobGroupByStatusResponse {
 }
 
 type CandidateJobGroupByInterviewResponse {
-  data: CandidateJobGroupByInterview
+  data: CandidateJobInterviewFeedback
 }
 
 type CandidateJobEdge {

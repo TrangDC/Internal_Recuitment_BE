@@ -29,6 +29,7 @@ type CandidateInterview {
   edit_able: Boolean!
   owner: User
   status: CandidateInterviewStatus!
+  candidate_job_status: CandidateJobStatus!
   edited: Boolean!
   location: String!
   meeting_link: String

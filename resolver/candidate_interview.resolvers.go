@@ -48,6 +48,11 @@ func (r *candidateInterviewResolver) Status(ctx context.Context, obj *ent.Candid
 	return ent.CandidateInterviewStatus(obj.Status), nil
 }
 
+// CandidateJobStatus is the resolver for the candidate_job_status field.
+func (r *candidateInterviewResolver) CandidateJobStatus(ctx context.Context, obj *ent.CandidateInterview) (ent.CandidateJobStatus, error) {
+	return ent.CandidateJobStatus(obj.CandidateJobStatus), nil
+}
+
 // Edited is the resolver for the edited field.
 func (r *candidateInterviewResolver) Edited(ctx context.Context, obj *ent.CandidateInterview) (bool, error) {
 	return dto.IsRecordEdited(obj.CreatedAt, obj.UpdatedAt), nil

@@ -3,6 +3,7 @@ type CandidateJobFeedback {
   created_by: ID!
   candidate_job_id: ID!
   candidate_job: CandidateJob!
+  candidate_job_status: CandidateJobStatus!
   owner: User!
   feedback: String!
   edited: Boolean!
