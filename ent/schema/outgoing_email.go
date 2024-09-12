@@ -22,7 +22,7 @@ func (OutgoingEmail) Fields() []ent.Field {
 		field.Text("content").NotEmpty(),
 		field.Text("signature"),
 		field.UUID("candidate_id", uuid.UUID{}).Annotations().Optional(),
-		field.Enum("recipient_type").Values("interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"),
+		field.Enum("recipient_type").Values(emailSendTos...),
 		field.UUID("email_template_id", uuid.UUID{}).Optional().Annotations(),
 		field.Enum("status").Values("pending", "sent", "failed").Default("pending"),
 		field.Enum("event").

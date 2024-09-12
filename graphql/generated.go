@@ -8718,16 +8718,25 @@ enum EmailTemplateStatus {
 enum EmailTemplateSendTo {
   interviewer
   job_request
+  job_rec_in_charge
+  cd_job_rec_in_charge
   hiring_team_manager
+  hiring_approver
   hiring_team_member
+  rec_leader
+  rec_member
   role
   candidate
 }
 
 enum EmailTemplateApplicationSendToEnum {
   job_request
+  job_rec_in_charge
   hiring_team_manager
+  hiring_approver
   hiring_team_member
+  rec_leader
+  rec_member
   role
   candidate
 }
@@ -9332,12 +9341,17 @@ type JobPositionSelectionResponseGetAll {
 }
 `, BuiltIn: false},
 	{Name: "../schema/outgoing_email.graphql", Input: `enum OutgoingEmailRecipientType {
-  candidate
   interviewer
   job_request
+  job_rec_in_charge
+  cd_job_rec_in_charge
   hiring_team_manager
+  hiring_approver
   hiring_team_member
+  rec_leader
+  rec_member
   role
+  candidate
 }
 
 enum OutgoingEmailStatus {

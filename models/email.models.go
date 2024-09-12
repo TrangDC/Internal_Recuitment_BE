@@ -35,6 +35,7 @@ type GroupModule struct {
 	HiringTeam   *ent.HiringTeam
 	HiringJob    *ent.HiringJob
 	CandidateJob *ent.CandidateJob
+	RecTeam      *ent.RecTeam
 }
 
 type MessageOutput struct {

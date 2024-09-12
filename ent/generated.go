@@ -2494,23 +2494,31 @@ type EmailTemplateApplicationSendToEnum string
 
 const (
 	EmailTemplateApplicationSendToEnumJobRequest        EmailTemplateApplicationSendToEnum = "job_request"
+	EmailTemplateApplicationSendToEnumJobRecInCharge    EmailTemplateApplicationSendToEnum = "job_rec_in_charge"
 	EmailTemplateApplicationSendToEnumHiringTeamManager EmailTemplateApplicationSendToEnum = "hiring_team_manager"
+	EmailTemplateApplicationSendToEnumHiringApprover    EmailTemplateApplicationSendToEnum = "hiring_approver"
 	EmailTemplateApplicationSendToEnumHiringTeamMember  EmailTemplateApplicationSendToEnum = "hiring_team_member"
+	EmailTemplateApplicationSendToEnumRecLeader         EmailTemplateApplicationSendToEnum = "rec_leader"
+	EmailTemplateApplicationSendToEnumRecMember         EmailTemplateApplicationSendToEnum = "rec_member"
 	EmailTemplateApplicationSendToEnumRole              EmailTemplateApplicationSendToEnum = "role"
 	EmailTemplateApplicationSendToEnumCandidate         EmailTemplateApplicationSendToEnum = "candidate"
 )
 
 var AllEmailTemplateApplicationSendToEnum = []EmailTemplateApplicationSendToEnum{
 	EmailTemplateApplicationSendToEnumJobRequest,
+	EmailTemplateApplicationSendToEnumJobRecInCharge,
 	EmailTemplateApplicationSendToEnumHiringTeamManager,
+	EmailTemplateApplicationSendToEnumHiringApprover,
 	EmailTemplateApplicationSendToEnumHiringTeamMember,
+	EmailTemplateApplicationSendToEnumRecLeader,
+	EmailTemplateApplicationSendToEnumRecMember,
 	EmailTemplateApplicationSendToEnumRole,
 	EmailTemplateApplicationSendToEnumCandidate,
 }
 
 func (e EmailTemplateApplicationSendToEnum) IsValid() bool {
 	switch e {
-	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumHiringTeamManager, EmailTemplateApplicationSendToEnumHiringTeamMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
+	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumJobRecInCharge, EmailTemplateApplicationSendToEnumHiringTeamManager, EmailTemplateApplicationSendToEnumHiringApprover, EmailTemplateApplicationSendToEnumHiringTeamMember, EmailTemplateApplicationSendToEnumRecLeader, EmailTemplateApplicationSendToEnumRecMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
 		return true
 	}
 	return false
@@ -2634,8 +2642,13 @@ type EmailTemplateSendTo string
 const (
 	EmailTemplateSendToInterviewer       EmailTemplateSendTo = "interviewer"
 	EmailTemplateSendToJobRequest        EmailTemplateSendTo = "job_request"
+	EmailTemplateSendToJobRecInCharge    EmailTemplateSendTo = "job_rec_in_charge"
+	EmailTemplateSendToCdJobRecInCharge  EmailTemplateSendTo = "cd_job_rec_in_charge"
 	EmailTemplateSendToHiringTeamManager EmailTemplateSendTo = "hiring_team_manager"
+	EmailTemplateSendToHiringApprover    EmailTemplateSendTo = "hiring_approver"
 	EmailTemplateSendToHiringTeamMember  EmailTemplateSendTo = "hiring_team_member"
+	EmailTemplateSendToRecLeader         EmailTemplateSendTo = "rec_leader"
+	EmailTemplateSendToRecMember         EmailTemplateSendTo = "rec_member"
 	EmailTemplateSendToRole              EmailTemplateSendTo = "role"
 	EmailTemplateSendToCandidate         EmailTemplateSendTo = "candidate"
 )
@@ -2643,15 +2656,20 @@ const (
 var AllEmailTemplateSendTo = []EmailTemplateSendTo{
 	EmailTemplateSendToInterviewer,
 	EmailTemplateSendToJobRequest,
+	EmailTemplateSendToJobRecInCharge,
+	EmailTemplateSendToCdJobRecInCharge,
 	EmailTemplateSendToHiringTeamManager,
+	EmailTemplateSendToHiringApprover,
 	EmailTemplateSendToHiringTeamMember,
+	EmailTemplateSendToRecLeader,
+	EmailTemplateSendToRecMember,
 	EmailTemplateSendToRole,
 	EmailTemplateSendToCandidate,
 }
 
 func (e EmailTemplateSendTo) IsValid() bool {
 	switch e {
-	case EmailTemplateSendToInterviewer, EmailTemplateSendToJobRequest, EmailTemplateSendToHiringTeamManager, EmailTemplateSendToHiringTeamMember, EmailTemplateSendToRole, EmailTemplateSendToCandidate:
+	case EmailTemplateSendToInterviewer, EmailTemplateSendToJobRequest, EmailTemplateSendToJobRecInCharge, EmailTemplateSendToCdJobRecInCharge, EmailTemplateSendToHiringTeamManager, EmailTemplateSendToHiringApprover, EmailTemplateSendToHiringTeamMember, EmailTemplateSendToRecLeader, EmailTemplateSendToRecMember, EmailTemplateSendToRole, EmailTemplateSendToCandidate:
 		return true
 	}
 	return false
@@ -3129,26 +3147,36 @@ func (e LocationEnum) MarshalGQL(w io.Writer) {
 type OutgoingEmailRecipientType string
 
 const (
-	OutgoingEmailRecipientTypeCandidate         OutgoingEmailRecipientType = "candidate"
 	OutgoingEmailRecipientTypeInterviewer       OutgoingEmailRecipientType = "interviewer"
 	OutgoingEmailRecipientTypeJobRequest        OutgoingEmailRecipientType = "job_request"
+	OutgoingEmailRecipientTypeJobRecInCharge    OutgoingEmailRecipientType = "job_rec_in_charge"
+	OutgoingEmailRecipientTypeCdJobRecInCharge  OutgoingEmailRecipientType = "cd_job_rec_in_charge"
 	OutgoingEmailRecipientTypeHiringTeamManager OutgoingEmailRecipientType = "hiring_team_manager"
+	OutgoingEmailRecipientTypeHiringApprover    OutgoingEmailRecipientType = "hiring_approver"
 	OutgoingEmailRecipientTypeHiringTeamMember  OutgoingEmailRecipientType = "hiring_team_member"
+	OutgoingEmailRecipientTypeRecLeader         OutgoingEmailRecipientType = "rec_leader"
+	OutgoingEmailRecipientTypeRecMember         OutgoingEmailRecipientType = "rec_member"
 	OutgoingEmailRecipientTypeRole              OutgoingEmailRecipientType = "role"
+	OutgoingEmailRecipientTypeCandidate         OutgoingEmailRecipientType = "candidate"
 )
 
 var AllOutgoingEmailRecipientType = []OutgoingEmailRecipientType{
-	OutgoingEmailRecipientTypeCandidate,
 	OutgoingEmailRecipientTypeInterviewer,
 	OutgoingEmailRecipientTypeJobRequest,
+	OutgoingEmailRecipientTypeJobRecInCharge,
+	OutgoingEmailRecipientTypeCdJobRecInCharge,
 	OutgoingEmailRecipientTypeHiringTeamManager,
+	OutgoingEmailRecipientTypeHiringApprover,
 	OutgoingEmailRecipientTypeHiringTeamMember,
+	OutgoingEmailRecipientTypeRecLeader,
+	OutgoingEmailRecipientTypeRecMember,
 	OutgoingEmailRecipientTypeRole,
+	OutgoingEmailRecipientTypeCandidate,
 }
 
 func (e OutgoingEmailRecipientType) IsValid() bool {
 	switch e {
-	case OutgoingEmailRecipientTypeCandidate, OutgoingEmailRecipientTypeInterviewer, OutgoingEmailRecipientTypeJobRequest, OutgoingEmailRecipientTypeHiringTeamManager, OutgoingEmailRecipientTypeHiringTeamMember, OutgoingEmailRecipientTypeRole:
+	case OutgoingEmailRecipientTypeInterviewer, OutgoingEmailRecipientTypeJobRequest, OutgoingEmailRecipientTypeJobRecInCharge, OutgoingEmailRecipientTypeCdJobRecInCharge, OutgoingEmailRecipientTypeHiringTeamManager, OutgoingEmailRecipientTypeHiringApprover, OutgoingEmailRecipientTypeHiringTeamMember, OutgoingEmailRecipientTypeRecLeader, OutgoingEmailRecipientTypeRecMember, OutgoingEmailRecipientTypeRole, OutgoingEmailRecipientTypeCandidate:
 		return true
 	}
 	return false

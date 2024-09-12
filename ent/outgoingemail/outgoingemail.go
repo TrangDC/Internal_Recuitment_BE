@@ -100,8 +100,13 @@ type RecipientType string
 const (
 	RecipientTypeInterviewer       RecipientType = "interviewer"
 	RecipientTypeJobRequest        RecipientType = "job_request"
+	RecipientTypeJobRecInCharge    RecipientType = "job_rec_in_charge"
+	RecipientTypeCdJobRecInCharge  RecipientType = "cd_job_rec_in_charge"
 	RecipientTypeHiringTeamManager RecipientType = "hiring_team_manager"
+	RecipientTypeHiringApprover    RecipientType = "hiring_approver"
 	RecipientTypeHiringTeamMember  RecipientType = "hiring_team_member"
+	RecipientTypeRecLeader         RecipientType = "rec_leader"
+	RecipientTypeRecMember         RecipientType = "rec_member"
 	RecipientTypeRole              RecipientType = "role"
 	RecipientTypeCandidate         RecipientType = "candidate"
 )
@@ -113,7 +118,7 @@ func (rt RecipientType) String() string {
 // RecipientTypeValidator is a validator for the "recipient_type" field enum values. It is called by the builders before save.
 func RecipientTypeValidator(rt RecipientType) error {
 	switch rt {
-	case RecipientTypeInterviewer, RecipientTypeJobRequest, RecipientTypeHiringTeamManager, RecipientTypeHiringTeamMember, RecipientTypeRole, RecipientTypeCandidate:
+	case RecipientTypeInterviewer, RecipientTypeJobRequest, RecipientTypeJobRecInCharge, RecipientTypeCdJobRecInCharge, RecipientTypeHiringTeamManager, RecipientTypeHiringApprover, RecipientTypeHiringTeamMember, RecipientTypeRecLeader, RecipientTypeRecMember, RecipientTypeRole, RecipientTypeCandidate:
 		return nil
 	default:
 		return fmt.Errorf("outgoingemail: invalid enum value for recipient_type field: %q", rt)

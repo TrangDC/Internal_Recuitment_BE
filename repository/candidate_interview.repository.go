@@ -222,32 +222,22 @@ func (rps *candidateInterviewRepoImpl) GetCandidateInterview(ctx context.Context
 func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, record *ent.CandidateInterview, candidateJobRecord *ent.CandidateJob) (models.GroupModule, error) {
 	var result models.GroupModule
 	candidateQuery := rps.client.Candidate.Query().Where(candidate.DeletedAtIsNil(), candidate.IDEQ(candidateJobRecord.CandidateID)).
-		WithReferenceUserEdge().WithCandidateSkillEdges(
-		func(query *ent.EntitySkillQuery) {
-			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
-				func(sq *ent.SkillQuery) {
-					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
-						func(stq *ent.SkillTypeQuery) {
-							stq.Where(skilltype.DeletedAtIsNil())
-						},
-					)
-				},
-			)
-		},
-	)
-	hiringJobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(candidateJobRecord.HiringJobID)).WithHiringJobSkillEdges(
-		func(query *ent.EntitySkillQuery) {
-			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).WithSkillEdge(
-				func(sq *ent.SkillQuery) {
-					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(
-						func(stq *ent.SkillTypeQuery) {
-							stq.Where(skilltype.DeletedAtIsNil())
-						},
-					)
-				},
-			)
-		},
-	).WithOwnerEdge()
+		WithReferenceUserEdge().
+		WithCandidateSkillEdges(func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).
+				WithSkillEdge(func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).
+						WithSkillTypeEdge(func(stq *ent.SkillTypeQuery) { stq.Where(skilltype.DeletedAtIsNil()) })
+				})
+		})
+	hiringJobQuery := rps.client.HiringJob.Query().Where(hiringjob.DeletedAtIsNil(), hiringjob.IDEQ(candidateJobRecord.HiringJobID)).
+		WithHiringJobSkillEdges(func(query *ent.EntitySkillQuery) {
+			query.Where(entityskill.DeletedAtIsNil()).Order(ent.Asc(entityskill.FieldOrderID)).
+				WithSkillEdge(func(sq *ent.SkillQuery) {
+					sq.Where(skill.DeletedAtIsNil()).WithSkillTypeEdge(func(stq *ent.SkillTypeQuery) { stq.Where(skilltype.DeletedAtIsNil()) })
+				})
+		}).
+		WithOwnerEdge().WithRecInChargeEdge()
 	candidateRecord, err := candidateQuery.First(ctx)
 	if err != nil {
 		return result, err
@@ -256,7 +246,15 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 	if err != nil {
 		return result, err
 	}
-	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).WithUserEdges().First(ctx)
+	hiringTeamRecord, err := rps.client.HiringTeam.Query().Where(hiringteam.DeletedAtIsNil(), hiringteam.IDEQ(hiringJobRecord.HiringTeamID)).
+		WithUserEdges().WithApproversUsers().WithHiringMemberEdges().
+		First(ctx)
+	if err != nil {
+		return result, nil
+	}
+	recTeamRecord, err := rps.client.RecTeam.Query().Where(recteam.DeletedAtIsNil(), recteam.IDEQ(hiringJobRecord.RecTeamID)).
+		WithRecLeaderEdge().WithRecMemberEdges().
+		First(ctx)
 	if err != nil {
 		return result, nil
 	}
@@ -266,6 +264,7 @@ func (rps candidateInterviewRepoImpl) GetDataForKeyword(ctx context.Context, rec
 		HiringTeam:   hiringTeamRecord,
 		CandidateJob: candidateJobRecord,
 		Interview:    record,
+		RecTeam:      recTeamRecord,
 	}, nil
 }
 
