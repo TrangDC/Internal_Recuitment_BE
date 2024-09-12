@@ -524,6 +524,30 @@ func (cn *CandidateNote) AttachmentEdges(ctx context.Context) (result []*Attachm
 	return result, err
 }
 
+func (ee *EmailEvent) TemplateEdges(ctx context.Context) (result []*EmailTemplate, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ee.NamedTemplateEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ee.Edges.TemplateEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ee.QueryTemplateEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (ee *EmailEvent) OutgoingEmailEdges(ctx context.Context) (result []*OutgoingEmail, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ee.NamedOutgoingEmailEdges(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ee.Edges.OutgoingEmailEdgesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ee.QueryOutgoingEmailEdges().All(ctx)
+	}
+	return result, err
+}
+
 func (era *EmailRoleAttribute) EmailTemplateEdge(ctx context.Context) (*EmailTemplate, error) {
 	result, err := era.Edges.EmailTemplateEdgeOrErr()
 	if IsNotLoaded(err) {
@@ -548,6 +572,14 @@ func (et *EmailTemplate) RoleEdges(ctx context.Context) (result []*Role, err err
 	}
 	if IsNotLoaded(err) {
 		result, err = et.QueryRoleEdges().All(ctx)
+	}
+	return result, err
+}
+
+func (et *EmailTemplate) EventEdge(ctx context.Context) (*EmailEvent, error) {
+	result, err := et.Edges.EventEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = et.QueryEventEdge().Only(ctx)
 	}
 	return result, err
 }
@@ -838,6 +870,14 @@ func (oe *OutgoingEmail) CandidateEdge(ctx context.Context) (*Candidate, error) 
 		result, err = oe.QueryCandidateEdge().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (oe *OutgoingEmail) EventEdge(ctx context.Context) (*EmailEvent, error) {
+	result, err := oe.Edges.EventEdgeOrErr()
+	if IsNotLoaded(err) {
+		result, err = oe.QueryEventEdge().Only(ctx)
+	}
+	return result, err
 }
 
 func (pe *Permission) GroupPermissionEdge(ctx context.Context) (*PermissionGroup, error) {

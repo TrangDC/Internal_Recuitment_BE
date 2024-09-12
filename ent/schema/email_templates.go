@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // Job holds the schema definition for the Job entity.
@@ -22,6 +23,7 @@ func (EmailTemplate) Fields() []ent.Field {
 		field.Text("content").NotEmpty(),
 		field.Text("signature").Optional(),
 		field.Enum("status").Values("active", "inactive").Default("active"),
+		field.UUID("event_id", uuid.UUID{}),
 	}
 }
 
@@ -29,6 +31,7 @@ func (EmailTemplate) Fields() []ent.Field {
 func (EmailTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("role_edges", Role.Type).Ref("email_template_edges").Through("role_email_templates", EmailRoleAttribute.Type),
+		edge.From("event_edge", EmailEvent.Type).Ref("template_edges").Unique().Field("event_id").Required(),
 	}
 }
 

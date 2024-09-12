@@ -16770,18 +16770,24 @@ func (m *CandidateNoteMutation) ResetEdge(name string) error {
 // EmailEventMutation represents an operation that mutates the EmailEvent nodes in the graph.
 type EmailEventMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	module        *emailevent.Module
-	action        *emailevent.Action
-	name          *string
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*EmailEvent, error)
-	predicates    []predicate.EmailEvent
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	module                      *emailevent.Module
+	action                      *emailevent.Action
+	name                        *string
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	clearedFields               map[string]struct{}
+	template_edges              map[uuid.UUID]struct{}
+	removedtemplate_edges       map[uuid.UUID]struct{}
+	clearedtemplate_edges       bool
+	outgoing_email_edges        map[uuid.UUID]struct{}
+	removedoutgoing_email_edges map[uuid.UUID]struct{}
+	clearedoutgoing_email_edges bool
+	done                        bool
+	oldValue                    func(context.Context) (*EmailEvent, error)
+	predicates                  []predicate.EmailEvent
 }
 
 var _ ent.Mutation = (*EmailEventMutation)(nil)
@@ -17081,6 +17087,114 @@ func (m *EmailEventMutation) ResetUpdatedAt() {
 	delete(m.clearedFields, emailevent.FieldUpdatedAt)
 }
 
+// AddTemplateEdgeIDs adds the "template_edges" edge to the EmailTemplate entity by ids.
+func (m *EmailEventMutation) AddTemplateEdgeIDs(ids ...uuid.UUID) {
+	if m.template_edges == nil {
+		m.template_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.template_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTemplateEdges clears the "template_edges" edge to the EmailTemplate entity.
+func (m *EmailEventMutation) ClearTemplateEdges() {
+	m.clearedtemplate_edges = true
+}
+
+// TemplateEdgesCleared reports if the "template_edges" edge to the EmailTemplate entity was cleared.
+func (m *EmailEventMutation) TemplateEdgesCleared() bool {
+	return m.clearedtemplate_edges
+}
+
+// RemoveTemplateEdgeIDs removes the "template_edges" edge to the EmailTemplate entity by IDs.
+func (m *EmailEventMutation) RemoveTemplateEdgeIDs(ids ...uuid.UUID) {
+	if m.removedtemplate_edges == nil {
+		m.removedtemplate_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.template_edges, ids[i])
+		m.removedtemplate_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTemplateEdges returns the removed IDs of the "template_edges" edge to the EmailTemplate entity.
+func (m *EmailEventMutation) RemovedTemplateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedtemplate_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TemplateEdgesIDs returns the "template_edges" edge IDs in the mutation.
+func (m *EmailEventMutation) TemplateEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.template_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTemplateEdges resets all changes to the "template_edges" edge.
+func (m *EmailEventMutation) ResetTemplateEdges() {
+	m.template_edges = nil
+	m.clearedtemplate_edges = false
+	m.removedtemplate_edges = nil
+}
+
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by ids.
+func (m *EmailEventMutation) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) {
+	if m.outgoing_email_edges == nil {
+		m.outgoing_email_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.outgoing_email_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOutgoingEmailEdges clears the "outgoing_email_edges" edge to the OutgoingEmail entity.
+func (m *EmailEventMutation) ClearOutgoingEmailEdges() {
+	m.clearedoutgoing_email_edges = true
+}
+
+// OutgoingEmailEdgesCleared reports if the "outgoing_email_edges" edge to the OutgoingEmail entity was cleared.
+func (m *EmailEventMutation) OutgoingEmailEdgesCleared() bool {
+	return m.clearedoutgoing_email_edges
+}
+
+// RemoveOutgoingEmailEdgeIDs removes the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (m *EmailEventMutation) RemoveOutgoingEmailEdgeIDs(ids ...uuid.UUID) {
+	if m.removedoutgoing_email_edges == nil {
+		m.removedoutgoing_email_edges = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.outgoing_email_edges, ids[i])
+		m.removedoutgoing_email_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOutgoingEmailEdges returns the removed IDs of the "outgoing_email_edges" edge to the OutgoingEmail entity.
+func (m *EmailEventMutation) RemovedOutgoingEmailEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.removedoutgoing_email_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OutgoingEmailEdgesIDs returns the "outgoing_email_edges" edge IDs in the mutation.
+func (m *EmailEventMutation) OutgoingEmailEdgesIDs() (ids []uuid.UUID) {
+	for id := range m.outgoing_email_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOutgoingEmailEdges resets all changes to the "outgoing_email_edges" edge.
+func (m *EmailEventMutation) ResetOutgoingEmailEdges() {
+	m.outgoing_email_edges = nil
+	m.clearedoutgoing_email_edges = false
+	m.removedoutgoing_email_edges = nil
+}
+
 // Where appends a list predicates to the EmailEventMutation builder.
 func (m *EmailEventMutation) Where(ps ...predicate.EmailEvent) {
 	m.predicates = append(m.predicates, ps...)
@@ -17276,49 +17390,111 @@ func (m *EmailEventMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EmailEventMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.template_edges != nil {
+		edges = append(edges, emailevent.EdgeTemplateEdges)
+	}
+	if m.outgoing_email_edges != nil {
+		edges = append(edges, emailevent.EdgeOutgoingEmailEdges)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *EmailEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case emailevent.EdgeTemplateEdges:
+		ids := make([]ent.Value, 0, len(m.template_edges))
+		for id := range m.template_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case emailevent.EdgeOutgoingEmailEdges:
+		ids := make([]ent.Value, 0, len(m.outgoing_email_edges))
+		for id := range m.outgoing_email_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EmailEventMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedtemplate_edges != nil {
+		edges = append(edges, emailevent.EdgeTemplateEdges)
+	}
+	if m.removedoutgoing_email_edges != nil {
+		edges = append(edges, emailevent.EdgeOutgoingEmailEdges)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *EmailEventMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case emailevent.EdgeTemplateEdges:
+		ids := make([]ent.Value, 0, len(m.removedtemplate_edges))
+		for id := range m.removedtemplate_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	case emailevent.EdgeOutgoingEmailEdges:
+		ids := make([]ent.Value, 0, len(m.removedoutgoing_email_edges))
+		for id := range m.removedoutgoing_email_edges {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EmailEventMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedtemplate_edges {
+		edges = append(edges, emailevent.EdgeTemplateEdges)
+	}
+	if m.clearedoutgoing_email_edges {
+		edges = append(edges, emailevent.EdgeOutgoingEmailEdges)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *EmailEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case emailevent.EdgeTemplateEdges:
+		return m.clearedtemplate_edges
+	case emailevent.EdgeOutgoingEmailEdges:
+		return m.clearedoutgoing_email_edges
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *EmailEventMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown EmailEvent unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *EmailEventMutation) ResetEdge(name string) error {
+	switch name {
+	case emailevent.EdgeTemplateEdges:
+		m.ResetTemplateEdges()
+		return nil
+	case emailevent.EdgeOutgoingEmailEdges:
+		m.ResetOutgoingEmailEdges()
+		return nil
+	}
 	return fmt.Errorf("unknown EmailEvent edge %s", name)
 }
 
@@ -18044,6 +18220,8 @@ type EmailTemplateMutation struct {
 	role_edges                  map[uuid.UUID]struct{}
 	removedrole_edges           map[uuid.UUID]struct{}
 	clearedrole_edges           bool
+	event_edge                  *uuid.UUID
+	clearedevent_edge           bool
 	role_email_templates        map[uuid.UUID]struct{}
 	removedrole_email_templates map[uuid.UUID]struct{}
 	clearedrole_email_templates bool
@@ -18636,6 +18814,42 @@ func (m *EmailTemplateMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetEventID sets the "event_id" field.
+func (m *EmailTemplateMutation) SetEventID(u uuid.UUID) {
+	m.event_edge = &u
+}
+
+// EventID returns the value of the "event_id" field in the mutation.
+func (m *EmailTemplateMutation) EventID() (r uuid.UUID, exists bool) {
+	v := m.event_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEventID returns the old "event_id" field's value of the EmailTemplate entity.
+// If the EmailTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EmailTemplateMutation) OldEventID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEventID: %w", err)
+	}
+	return oldValue.EventID, nil
+}
+
+// ResetEventID resets all changes to the "event_id" field.
+func (m *EmailTemplateMutation) ResetEventID() {
+	m.event_edge = nil
+}
+
 // AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by ids.
 func (m *EmailTemplateMutation) AddRoleEdgeIDs(ids ...uuid.UUID) {
 	if m.role_edges == nil {
@@ -18688,6 +18902,45 @@ func (m *EmailTemplateMutation) ResetRoleEdges() {
 	m.role_edges = nil
 	m.clearedrole_edges = false
 	m.removedrole_edges = nil
+}
+
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by id.
+func (m *EmailTemplateMutation) SetEventEdgeID(id uuid.UUID) {
+	m.event_edge = &id
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (m *EmailTemplateMutation) ClearEventEdge() {
+	m.clearedevent_edge = true
+}
+
+// EventEdgeCleared reports if the "event_edge" edge to the EmailEvent entity was cleared.
+func (m *EmailTemplateMutation) EventEdgeCleared() bool {
+	return m.clearedevent_edge
+}
+
+// EventEdgeID returns the "event_edge" edge ID in the mutation.
+func (m *EmailTemplateMutation) EventEdgeID() (id uuid.UUID, exists bool) {
+	if m.event_edge != nil {
+		return *m.event_edge, true
+	}
+	return
+}
+
+// EventEdgeIDs returns the "event_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EventEdgeID instead. It exists only for internal usage by the builders.
+func (m *EmailTemplateMutation) EventEdgeIDs() (ids []uuid.UUID) {
+	if id := m.event_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEventEdge resets all changes to the "event_edge" edge.
+func (m *EmailTemplateMutation) ResetEventEdge() {
+	m.event_edge = nil
+	m.clearedevent_edge = false
 }
 
 // AddRoleEmailTemplateIDs adds the "role_email_templates" edge to the EmailRoleAttribute entity by ids.
@@ -18763,7 +19016,7 @@ func (m *EmailTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EmailTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, emailtemplate.FieldCreatedAt)
 	}
@@ -18797,6 +19050,9 @@ func (m *EmailTemplateMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, emailtemplate.FieldStatus)
 	}
+	if m.event_edge != nil {
+		fields = append(fields, emailtemplate.FieldEventID)
+	}
 	return fields
 }
 
@@ -18827,6 +19083,8 @@ func (m *EmailTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.Signature()
 	case emailtemplate.FieldStatus:
 		return m.Status()
+	case emailtemplate.FieldEventID:
+		return m.EventID()
 	}
 	return nil, false
 }
@@ -18858,6 +19116,8 @@ func (m *EmailTemplateMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldSignature(ctx)
 	case emailtemplate.FieldStatus:
 		return m.OldStatus(ctx)
+	case emailtemplate.FieldEventID:
+		return m.OldEventID(ctx)
 	}
 	return nil, fmt.Errorf("unknown EmailTemplate field %s", name)
 }
@@ -18943,6 +19203,13 @@ func (m *EmailTemplateMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case emailtemplate.FieldEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEventID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown EmailTemplate field %s", name)
@@ -19047,15 +19314,21 @@ func (m *EmailTemplateMutation) ResetField(name string) error {
 	case emailtemplate.FieldStatus:
 		m.ResetStatus()
 		return nil
+	case emailtemplate.FieldEventID:
+		m.ResetEventID()
+		return nil
 	}
 	return fmt.Errorf("unknown EmailTemplate field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EmailTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.role_edges != nil {
 		edges = append(edges, emailtemplate.EdgeRoleEdges)
+	}
+	if m.event_edge != nil {
+		edges = append(edges, emailtemplate.EdgeEventEdge)
 	}
 	if m.role_email_templates != nil {
 		edges = append(edges, emailtemplate.EdgeRoleEmailTemplates)
@@ -19073,6 +19346,10 @@ func (m *EmailTemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case emailtemplate.EdgeEventEdge:
+		if id := m.event_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	case emailtemplate.EdgeRoleEmailTemplates:
 		ids := make([]ent.Value, 0, len(m.role_email_templates))
 		for id := range m.role_email_templates {
@@ -19085,7 +19362,7 @@ func (m *EmailTemplateMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EmailTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedrole_edges != nil {
 		edges = append(edges, emailtemplate.EdgeRoleEdges)
 	}
@@ -19117,9 +19394,12 @@ func (m *EmailTemplateMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EmailTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedrole_edges {
 		edges = append(edges, emailtemplate.EdgeRoleEdges)
+	}
+	if m.clearedevent_edge {
+		edges = append(edges, emailtemplate.EdgeEventEdge)
 	}
 	if m.clearedrole_email_templates {
 		edges = append(edges, emailtemplate.EdgeRoleEmailTemplates)
@@ -19133,6 +19413,8 @@ func (m *EmailTemplateMutation) EdgeCleared(name string) bool {
 	switch name {
 	case emailtemplate.EdgeRoleEdges:
 		return m.clearedrole_edges
+	case emailtemplate.EdgeEventEdge:
+		return m.clearedevent_edge
 	case emailtemplate.EdgeRoleEmailTemplates:
 		return m.clearedrole_email_templates
 	}
@@ -19143,6 +19425,9 @@ func (m *EmailTemplateMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *EmailTemplateMutation) ClearEdge(name string) error {
 	switch name {
+	case emailtemplate.EdgeEventEdge:
+		m.ClearEventEdge()
+		return nil
 	}
 	return fmt.Errorf("unknown EmailTemplate unique edge %s", name)
 }
@@ -19153,6 +19438,9 @@ func (m *EmailTemplateMutation) ResetEdge(name string) error {
 	switch name {
 	case emailtemplate.EdgeRoleEdges:
 		m.ResetRoleEdges()
+		return nil
+	case emailtemplate.EdgeEventEdge:
+		m.ResetEventEdge()
 		return nil
 	case emailtemplate.EdgeRoleEmailTemplates:
 		m.ResetRoleEmailTemplates()
@@ -27717,6 +28005,8 @@ type OutgoingEmailMutation struct {
 	clearedFields         map[string]struct{}
 	candidate_edge        *uuid.UUID
 	clearedcandidate_edge bool
+	event_edge            *uuid.UUID
+	clearedevent_edge     bool
 	done                  bool
 	oldValue              func(context.Context) (*OutgoingEmail, error)
 	predicates            []predicate.OutgoingEmail
@@ -28427,6 +28717,42 @@ func (m *OutgoingEmailMutation) ResetEvent() {
 	m.event = nil
 }
 
+// SetEventID sets the "event_id" field.
+func (m *OutgoingEmailMutation) SetEventID(u uuid.UUID) {
+	m.event_edge = &u
+}
+
+// EventID returns the value of the "event_id" field in the mutation.
+func (m *OutgoingEmailMutation) EventID() (r uuid.UUID, exists bool) {
+	v := m.event_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEventID returns the old "event_id" field's value of the OutgoingEmail entity.
+// If the OutgoingEmail object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OutgoingEmailMutation) OldEventID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEventID: %w", err)
+	}
+	return oldValue.EventID, nil
+}
+
+// ResetEventID resets all changes to the "event_id" field.
+func (m *OutgoingEmailMutation) ResetEventID() {
+	m.event_edge = nil
+}
+
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by id.
 func (m *OutgoingEmailMutation) SetCandidateEdgeID(id uuid.UUID) {
 	m.candidate_edge = &id
@@ -28466,6 +28792,45 @@ func (m *OutgoingEmailMutation) ResetCandidateEdge() {
 	m.clearedcandidate_edge = false
 }
 
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by id.
+func (m *OutgoingEmailMutation) SetEventEdgeID(id uuid.UUID) {
+	m.event_edge = &id
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (m *OutgoingEmailMutation) ClearEventEdge() {
+	m.clearedevent_edge = true
+}
+
+// EventEdgeCleared reports if the "event_edge" edge to the EmailEvent entity was cleared.
+func (m *OutgoingEmailMutation) EventEdgeCleared() bool {
+	return m.clearedevent_edge
+}
+
+// EventEdgeID returns the "event_edge" edge ID in the mutation.
+func (m *OutgoingEmailMutation) EventEdgeID() (id uuid.UUID, exists bool) {
+	if m.event_edge != nil {
+		return *m.event_edge, true
+	}
+	return
+}
+
+// EventEdgeIDs returns the "event_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EventEdgeID instead. It exists only for internal usage by the builders.
+func (m *OutgoingEmailMutation) EventEdgeIDs() (ids []uuid.UUID) {
+	if id := m.event_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEventEdge resets all changes to the "event_edge" edge.
+func (m *OutgoingEmailMutation) ResetEventEdge() {
+	m.event_edge = nil
+	m.clearedevent_edge = false
+}
+
 // Where appends a list predicates to the OutgoingEmailMutation builder.
 func (m *OutgoingEmailMutation) Where(ps ...predicate.OutgoingEmail) {
 	m.predicates = append(m.predicates, ps...)
@@ -28485,7 +28850,7 @@ func (m *OutgoingEmailMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OutgoingEmailMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, outgoingemail.FieldCreatedAt)
 	}
@@ -28528,6 +28893,9 @@ func (m *OutgoingEmailMutation) Fields() []string {
 	if m.event != nil {
 		fields = append(fields, outgoingemail.FieldEvent)
 	}
+	if m.event_edge != nil {
+		fields = append(fields, outgoingemail.FieldEventID)
+	}
 	return fields
 }
 
@@ -28564,6 +28932,8 @@ func (m *OutgoingEmailMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case outgoingemail.FieldEvent:
 		return m.Event()
+	case outgoingemail.FieldEventID:
+		return m.EventID()
 	}
 	return nil, false
 }
@@ -28601,6 +28971,8 @@ func (m *OutgoingEmailMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldStatus(ctx)
 	case outgoingemail.FieldEvent:
 		return m.OldEvent(ctx)
+	case outgoingemail.FieldEventID:
+		return m.OldEventID(ctx)
 	}
 	return nil, fmt.Errorf("unknown OutgoingEmail field %s", name)
 }
@@ -28707,6 +29079,13 @@ func (m *OutgoingEmailMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEvent(v)
+		return nil
+	case outgoingemail.FieldEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEventID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail field %s", name)
@@ -28826,15 +29205,21 @@ func (m *OutgoingEmailMutation) ResetField(name string) error {
 	case outgoingemail.FieldEvent:
 		m.ResetEvent()
 		return nil
+	case outgoingemail.FieldEventID:
+		m.ResetEventID()
+		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OutgoingEmailMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.candidate_edge != nil {
 		edges = append(edges, outgoingemail.EdgeCandidateEdge)
+	}
+	if m.event_edge != nil {
+		edges = append(edges, outgoingemail.EdgeEventEdge)
 	}
 	return edges
 }
@@ -28847,13 +29232,17 @@ func (m *OutgoingEmailMutation) AddedIDs(name string) []ent.Value {
 		if id := m.candidate_edge; id != nil {
 			return []ent.Value{*id}
 		}
+	case outgoingemail.EdgeEventEdge:
+		if id := m.event_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OutgoingEmailMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -28865,9 +29254,12 @@ func (m *OutgoingEmailMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OutgoingEmailMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedcandidate_edge {
 		edges = append(edges, outgoingemail.EdgeCandidateEdge)
+	}
+	if m.clearedevent_edge {
+		edges = append(edges, outgoingemail.EdgeEventEdge)
 	}
 	return edges
 }
@@ -28878,6 +29270,8 @@ func (m *OutgoingEmailMutation) EdgeCleared(name string) bool {
 	switch name {
 	case outgoingemail.EdgeCandidateEdge:
 		return m.clearedcandidate_edge
+	case outgoingemail.EdgeEventEdge:
+		return m.clearedevent_edge
 	}
 	return false
 }
@@ -28889,6 +29283,9 @@ func (m *OutgoingEmailMutation) ClearEdge(name string) error {
 	case outgoingemail.EdgeCandidateEdge:
 		m.ClearCandidateEdge()
 		return nil
+	case outgoingemail.EdgeEventEdge:
+		m.ClearEventEdge()
+		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail unique edge %s", name)
 }
@@ -28899,6 +29296,9 @@ func (m *OutgoingEmailMutation) ResetEdge(name string) error {
 	switch name {
 	case outgoingemail.EdgeCandidateEdge:
 		m.ResetCandidateEdge()
+		return nil
+	case outgoingemail.EdgeEventEdge:
+		m.ResetEventEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail edge %s", name)

@@ -42,8 +42,12 @@ const (
 	FieldStatus = "status"
 	// FieldEvent holds the string denoting the event field in the database.
 	FieldEvent = "event"
+	// FieldEventID holds the string denoting the event_id field in the database.
+	FieldEventID = "event_id"
 	// EdgeCandidateEdge holds the string denoting the candidate_edge edge name in mutations.
 	EdgeCandidateEdge = "candidate_edge"
+	// EdgeEventEdge holds the string denoting the event_edge edge name in mutations.
+	EdgeEventEdge = "event_edge"
 	// Table holds the table name of the outgoingemail in the database.
 	Table = "outgoing_emails"
 	// CandidateEdgeTable is the table that holds the candidate_edge relation/edge.
@@ -53,6 +57,13 @@ const (
 	CandidateEdgeInverseTable = "candidates"
 	// CandidateEdgeColumn is the table column denoting the candidate_edge relation/edge.
 	CandidateEdgeColumn = "candidate_id"
+	// EventEdgeTable is the table that holds the event_edge relation/edge.
+	EventEdgeTable = "outgoing_emails"
+	// EventEdgeInverseTable is the table name for the EmailEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "emailevent" package.
+	EventEdgeInverseTable = "email_events"
+	// EventEdgeColumn is the table column denoting the event_edge relation/edge.
+	EventEdgeColumn = "event_id"
 )
 
 // Columns holds all SQL columns for outgoingemail fields.
@@ -72,6 +83,7 @@ var Columns = []string{
 	FieldEmailTemplateID,
 	FieldStatus,
 	FieldEvent,
+	FieldEventID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

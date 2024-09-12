@@ -8,11 +8,14 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/emailevent"
+	"trec/ent/emailtemplate"
+	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // EmailEventUpdate is the builder for updating EmailEvent entities.
@@ -66,9 +69,81 @@ func (eeu *EmailEventUpdate) ClearUpdatedAt() *EmailEventUpdate {
 	return eeu
 }
 
+// AddTemplateEdgeIDs adds the "template_edges" edge to the EmailTemplate entity by IDs.
+func (eeu *EmailEventUpdate) AddTemplateEdgeIDs(ids ...uuid.UUID) *EmailEventUpdate {
+	eeu.mutation.AddTemplateEdgeIDs(ids...)
+	return eeu
+}
+
+// AddTemplateEdges adds the "template_edges" edges to the EmailTemplate entity.
+func (eeu *EmailEventUpdate) AddTemplateEdges(e ...*EmailTemplate) *EmailEventUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eeu.AddTemplateEdgeIDs(ids...)
+}
+
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (eeu *EmailEventUpdate) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *EmailEventUpdate {
+	eeu.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return eeu
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (eeu *EmailEventUpdate) AddOutgoingEmailEdges(o ...*OutgoingEmail) *EmailEventUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return eeu.AddOutgoingEmailEdgeIDs(ids...)
+}
+
 // Mutation returns the EmailEventMutation object of the builder.
 func (eeu *EmailEventUpdate) Mutation() *EmailEventMutation {
 	return eeu.mutation
+}
+
+// ClearTemplateEdges clears all "template_edges" edges to the EmailTemplate entity.
+func (eeu *EmailEventUpdate) ClearTemplateEdges() *EmailEventUpdate {
+	eeu.mutation.ClearTemplateEdges()
+	return eeu
+}
+
+// RemoveTemplateEdgeIDs removes the "template_edges" edge to EmailTemplate entities by IDs.
+func (eeu *EmailEventUpdate) RemoveTemplateEdgeIDs(ids ...uuid.UUID) *EmailEventUpdate {
+	eeu.mutation.RemoveTemplateEdgeIDs(ids...)
+	return eeu
+}
+
+// RemoveTemplateEdges removes "template_edges" edges to EmailTemplate entities.
+func (eeu *EmailEventUpdate) RemoveTemplateEdges(e ...*EmailTemplate) *EmailEventUpdate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eeu.RemoveTemplateEdgeIDs(ids...)
+}
+
+// ClearOutgoingEmailEdges clears all "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (eeu *EmailEventUpdate) ClearOutgoingEmailEdges() *EmailEventUpdate {
+	eeu.mutation.ClearOutgoingEmailEdges()
+	return eeu
+}
+
+// RemoveOutgoingEmailEdgeIDs removes the "outgoing_email_edges" edge to OutgoingEmail entities by IDs.
+func (eeu *EmailEventUpdate) RemoveOutgoingEmailEdgeIDs(ids ...uuid.UUID) *EmailEventUpdate {
+	eeu.mutation.RemoveOutgoingEmailEdgeIDs(ids...)
+	return eeu
+}
+
+// RemoveOutgoingEmailEdges removes "outgoing_email_edges" edges to OutgoingEmail entities.
+func (eeu *EmailEventUpdate) RemoveOutgoingEmailEdges(o ...*OutgoingEmail) *EmailEventUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return eeu.RemoveOutgoingEmailEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -179,6 +254,114 @@ func (eeu *EmailEventUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if eeu.mutation.UpdatedAtCleared() {
 		_spec.ClearField(emailevent.FieldUpdatedAt, field.TypeTime)
 	}
+	if eeu.mutation.TemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeu.mutation.RemovedTemplateEdgesIDs(); len(nodes) > 0 && !eeu.mutation.TemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeu.mutation.TemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eeu.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeu.mutation.RemovedOutgoingEmailEdgesIDs(); len(nodes) > 0 && !eeu.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeu.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, eeu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{emailevent.Label}
@@ -236,9 +419,81 @@ func (eeuo *EmailEventUpdateOne) ClearUpdatedAt() *EmailEventUpdateOne {
 	return eeuo
 }
 
+// AddTemplateEdgeIDs adds the "template_edges" edge to the EmailTemplate entity by IDs.
+func (eeuo *EmailEventUpdateOne) AddTemplateEdgeIDs(ids ...uuid.UUID) *EmailEventUpdateOne {
+	eeuo.mutation.AddTemplateEdgeIDs(ids...)
+	return eeuo
+}
+
+// AddTemplateEdges adds the "template_edges" edges to the EmailTemplate entity.
+func (eeuo *EmailEventUpdateOne) AddTemplateEdges(e ...*EmailTemplate) *EmailEventUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eeuo.AddTemplateEdgeIDs(ids...)
+}
+
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (eeuo *EmailEventUpdateOne) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *EmailEventUpdateOne {
+	eeuo.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return eeuo
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (eeuo *EmailEventUpdateOne) AddOutgoingEmailEdges(o ...*OutgoingEmail) *EmailEventUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return eeuo.AddOutgoingEmailEdgeIDs(ids...)
+}
+
 // Mutation returns the EmailEventMutation object of the builder.
 func (eeuo *EmailEventUpdateOne) Mutation() *EmailEventMutation {
 	return eeuo.mutation
+}
+
+// ClearTemplateEdges clears all "template_edges" edges to the EmailTemplate entity.
+func (eeuo *EmailEventUpdateOne) ClearTemplateEdges() *EmailEventUpdateOne {
+	eeuo.mutation.ClearTemplateEdges()
+	return eeuo
+}
+
+// RemoveTemplateEdgeIDs removes the "template_edges" edge to EmailTemplate entities by IDs.
+func (eeuo *EmailEventUpdateOne) RemoveTemplateEdgeIDs(ids ...uuid.UUID) *EmailEventUpdateOne {
+	eeuo.mutation.RemoveTemplateEdgeIDs(ids...)
+	return eeuo
+}
+
+// RemoveTemplateEdges removes "template_edges" edges to EmailTemplate entities.
+func (eeuo *EmailEventUpdateOne) RemoveTemplateEdges(e ...*EmailTemplate) *EmailEventUpdateOne {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eeuo.RemoveTemplateEdgeIDs(ids...)
+}
+
+// ClearOutgoingEmailEdges clears all "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (eeuo *EmailEventUpdateOne) ClearOutgoingEmailEdges() *EmailEventUpdateOne {
+	eeuo.mutation.ClearOutgoingEmailEdges()
+	return eeuo
+}
+
+// RemoveOutgoingEmailEdgeIDs removes the "outgoing_email_edges" edge to OutgoingEmail entities by IDs.
+func (eeuo *EmailEventUpdateOne) RemoveOutgoingEmailEdgeIDs(ids ...uuid.UUID) *EmailEventUpdateOne {
+	eeuo.mutation.RemoveOutgoingEmailEdgeIDs(ids...)
+	return eeuo
+}
+
+// RemoveOutgoingEmailEdges removes "outgoing_email_edges" edges to OutgoingEmail entities.
+func (eeuo *EmailEventUpdateOne) RemoveOutgoingEmailEdges(o ...*OutgoingEmail) *EmailEventUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return eeuo.RemoveOutgoingEmailEdgeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -378,6 +633,114 @@ func (eeuo *EmailEventUpdateOne) sqlSave(ctx context.Context) (_node *EmailEvent
 	}
 	if eeuo.mutation.UpdatedAtCleared() {
 		_spec.ClearField(emailevent.FieldUpdatedAt, field.TypeTime)
+	}
+	if eeuo.mutation.TemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeuo.mutation.RemovedTemplateEdgesIDs(); len(nodes) > 0 && !eeuo.mutation.TemplateEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeuo.mutation.TemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eeuo.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeuo.mutation.RemovedOutgoingEmailEdgesIDs(); len(nodes) > 0 && !eeuo.mutation.OutgoingEmailEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eeuo.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &EmailEvent{config: eeuo.config}
 	_spec.Assign = _node.assignValues

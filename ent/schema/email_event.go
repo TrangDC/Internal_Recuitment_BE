@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -26,5 +27,12 @@ func (EmailEvent) Fields() []ent.Field {
 		field.Text("name"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Optional(),
+	}
+}
+
+func (EmailEvent) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("template_edges", EmailTemplate.Type),
+		edge.To("outgoing_email_edges", OutgoingEmail.Type),
 	}
 }

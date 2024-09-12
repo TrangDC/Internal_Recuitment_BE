@@ -24,8 +24,26 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeTemplateEdges holds the string denoting the template_edges edge name in mutations.
+	EdgeTemplateEdges = "template_edges"
+	// EdgeOutgoingEmailEdges holds the string denoting the outgoing_email_edges edge name in mutations.
+	EdgeOutgoingEmailEdges = "outgoing_email_edges"
 	// Table holds the table name of the emailevent in the database.
 	Table = "email_events"
+	// TemplateEdgesTable is the table that holds the template_edges relation/edge.
+	TemplateEdgesTable = "email_templates"
+	// TemplateEdgesInverseTable is the table name for the EmailTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "emailtemplate" package.
+	TemplateEdgesInverseTable = "email_templates"
+	// TemplateEdgesColumn is the table column denoting the template_edges relation/edge.
+	TemplateEdgesColumn = "event_id"
+	// OutgoingEmailEdgesTable is the table that holds the outgoing_email_edges relation/edge.
+	OutgoingEmailEdgesTable = "outgoing_emails"
+	// OutgoingEmailEdgesInverseTable is the table name for the OutgoingEmail entity.
+	// It exists in this package in order to avoid circular dependency with the "outgoingemail" package.
+	OutgoingEmailEdgesInverseTable = "outgoing_emails"
+	// OutgoingEmailEdgesColumn is the table column denoting the outgoing_email_edges relation/edge.
+	OutgoingEmailEdgesColumn = "event_id"
 )
 
 // Columns holds all SQL columns for emailevent fields.

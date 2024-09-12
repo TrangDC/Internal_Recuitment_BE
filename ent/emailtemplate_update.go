@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/predicate"
@@ -160,6 +161,12 @@ func (etu *EmailTemplateUpdate) SetNillableStatus(e *emailtemplate.Status) *Emai
 	return etu
 }
 
+// SetEventID sets the "event_id" field.
+func (etu *EmailTemplateUpdate) SetEventID(u uuid.UUID) *EmailTemplateUpdate {
+	etu.mutation.SetEventID(u)
+	return etu
+}
+
 // AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by IDs.
 func (etu *EmailTemplateUpdate) AddRoleEdgeIDs(ids ...uuid.UUID) *EmailTemplateUpdate {
 	etu.mutation.AddRoleEdgeIDs(ids...)
@@ -173,6 +180,17 @@ func (etu *EmailTemplateUpdate) AddRoleEdges(r ...*Role) *EmailTemplateUpdate {
 		ids[i] = r[i].ID
 	}
 	return etu.AddRoleEdgeIDs(ids...)
+}
+
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (etu *EmailTemplateUpdate) SetEventEdgeID(id uuid.UUID) *EmailTemplateUpdate {
+	etu.mutation.SetEventEdgeID(id)
+	return etu
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (etu *EmailTemplateUpdate) SetEventEdge(e *EmailEvent) *EmailTemplateUpdate {
+	return etu.SetEventEdgeID(e.ID)
 }
 
 // AddRoleEmailTemplateIDs adds the "role_email_templates" edge to the EmailRoleAttribute entity by IDs.
@@ -214,6 +232,12 @@ func (etu *EmailTemplateUpdate) RemoveRoleEdges(r ...*Role) *EmailTemplateUpdate
 		ids[i] = r[i].ID
 	}
 	return etu.RemoveRoleEdgeIDs(ids...)
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (etu *EmailTemplateUpdate) ClearEventEdge() *EmailTemplateUpdate {
+	etu.mutation.ClearEventEdge()
+	return etu
 }
 
 // ClearRoleEmailTemplates clears all "role_email_templates" edges to the EmailRoleAttribute entity.
@@ -318,6 +342,9 @@ func (etu *EmailTemplateUpdate) check() error {
 		if err := emailtemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "EmailTemplate.status": %w`, err)}
 		}
+	}
+	if _, ok := etu.mutation.EventEdgeID(); etu.mutation.EventEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "EmailTemplate.event_edge"`)
 	}
 	return nil
 }
@@ -458,6 +485,41 @@ func (etu *EmailTemplateUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if etu.mutation.EventEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   emailtemplate.EventEdgeTable,
+			Columns: []string{emailtemplate.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := etu.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   emailtemplate.EventEdgeTable,
+			Columns: []string{emailtemplate.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if etu.mutation.RoleEmailTemplatesCleared() {
@@ -661,6 +723,12 @@ func (etuo *EmailTemplateUpdateOne) SetNillableStatus(e *emailtemplate.Status) *
 	return etuo
 }
 
+// SetEventID sets the "event_id" field.
+func (etuo *EmailTemplateUpdateOne) SetEventID(u uuid.UUID) *EmailTemplateUpdateOne {
+	etuo.mutation.SetEventID(u)
+	return etuo
+}
+
 // AddRoleEdgeIDs adds the "role_edges" edge to the Role entity by IDs.
 func (etuo *EmailTemplateUpdateOne) AddRoleEdgeIDs(ids ...uuid.UUID) *EmailTemplateUpdateOne {
 	etuo.mutation.AddRoleEdgeIDs(ids...)
@@ -674,6 +742,17 @@ func (etuo *EmailTemplateUpdateOne) AddRoleEdges(r ...*Role) *EmailTemplateUpdat
 		ids[i] = r[i].ID
 	}
 	return etuo.AddRoleEdgeIDs(ids...)
+}
+
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (etuo *EmailTemplateUpdateOne) SetEventEdgeID(id uuid.UUID) *EmailTemplateUpdateOne {
+	etuo.mutation.SetEventEdgeID(id)
+	return etuo
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (etuo *EmailTemplateUpdateOne) SetEventEdge(e *EmailEvent) *EmailTemplateUpdateOne {
+	return etuo.SetEventEdgeID(e.ID)
 }
 
 // AddRoleEmailTemplateIDs adds the "role_email_templates" edge to the EmailRoleAttribute entity by IDs.
@@ -715,6 +794,12 @@ func (etuo *EmailTemplateUpdateOne) RemoveRoleEdges(r ...*Role) *EmailTemplateUp
 		ids[i] = r[i].ID
 	}
 	return etuo.RemoveRoleEdgeIDs(ids...)
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (etuo *EmailTemplateUpdateOne) ClearEventEdge() *EmailTemplateUpdateOne {
+	etuo.mutation.ClearEventEdge()
+	return etuo
 }
 
 // ClearRoleEmailTemplates clears all "role_email_templates" edges to the EmailRoleAttribute entity.
@@ -832,6 +917,9 @@ func (etuo *EmailTemplateUpdateOne) check() error {
 		if err := emailtemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "EmailTemplate.status": %w`, err)}
 		}
+	}
+	if _, ok := etuo.mutation.EventEdgeID(); etuo.mutation.EventEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "EmailTemplate.event_edge"`)
 	}
 	return nil
 }
@@ -989,6 +1077,41 @@ func (etuo *EmailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *EmailTe
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if etuo.mutation.EventEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   emailtemplate.EventEdgeTable,
+			Columns: []string{emailtemplate.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := etuo.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   emailtemplate.EventEdgeTable,
+			Columns: []string{emailtemplate.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if etuo.mutation.RoleEmailTemplatesCleared() {

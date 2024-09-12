@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/emailevent"
 	"trec/ent/outgoingemail"
 
 	"entgo.io/ent/dialect/sql"
@@ -47,6 +48,8 @@ type OutgoingEmail struct {
 	Status outgoingemail.Status `json:"status,omitempty"`
 	// Event holds the value of the "event" field.
 	Event outgoingemail.Event `json:"event,omitempty"`
+	// EventID holds the value of the "event_id" field.
+	EventID uuid.UUID `json:"event_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OutgoingEmailQuery when eager-loading is set.
 	Edges OutgoingEmailEdges `json:"edges"`
@@ -56,11 +59,13 @@ type OutgoingEmail struct {
 type OutgoingEmailEdges struct {
 	// CandidateEdge holds the value of the candidate_edge edge.
 	CandidateEdge *Candidate `json:"candidate_edge,omitempty"`
+	// EventEdge holds the value of the event_edge edge.
+	EventEdge *EmailEvent `json:"event_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // CandidateEdgeOrErr returns the CandidateEdge value or an error if the edge
@@ -76,6 +81,19 @@ func (e OutgoingEmailEdges) CandidateEdgeOrErr() (*Candidate, error) {
 	return nil, &NotLoadedError{edge: "candidate_edge"}
 }
 
+// EventEdgeOrErr returns the EventEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OutgoingEmailEdges) EventEdgeOrErr() (*EmailEvent, error) {
+	if e.loadedTypes[1] {
+		if e.EventEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: emailevent.Label}
+		}
+		return e.EventEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "event_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OutgoingEmail) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -87,7 +105,7 @@ func (*OutgoingEmail) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case outgoingemail.FieldCreatedAt, outgoingemail.FieldUpdatedAt, outgoingemail.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case outgoingemail.FieldID, outgoingemail.FieldCandidateID, outgoingemail.FieldEmailTemplateID:
+		case outgoingemail.FieldID, outgoingemail.FieldCandidateID, outgoingemail.FieldEmailTemplateID, outgoingemail.FieldEventID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type OutgoingEmail", columns[i])
@@ -200,6 +218,12 @@ func (oe *OutgoingEmail) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				oe.Event = outgoingemail.Event(value.String)
 			}
+		case outgoingemail.FieldEventID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field event_id", values[i])
+			} else if value != nil {
+				oe.EventID = *value
+			}
 		}
 	}
 	return nil
@@ -208,6 +232,11 @@ func (oe *OutgoingEmail) assignValues(columns []string, values []any) error {
 // QueryCandidateEdge queries the "candidate_edge" edge of the OutgoingEmail entity.
 func (oe *OutgoingEmail) QueryCandidateEdge() *CandidateQuery {
 	return (&OutgoingEmailClient{config: oe.config}).QueryCandidateEdge(oe)
+}
+
+// QueryEventEdge queries the "event_edge" edge of the OutgoingEmail entity.
+func (oe *OutgoingEmail) QueryEventEdge() *EmailEventQuery {
+	return (&OutgoingEmailClient{config: oe.config}).QueryEventEdge(oe)
 }
 
 // Update returns a builder for updating this OutgoingEmail.
@@ -274,6 +303,9 @@ func (oe *OutgoingEmail) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("event=")
 	builder.WriteString(fmt.Sprintf("%v", oe.Event))
+	builder.WriteString(", ")
+	builder.WriteString("event_id=")
+	builder.WriteString(fmt.Sprintf("%v", oe.EventID))
 	builder.WriteByte(')')
 	return builder.String()
 }

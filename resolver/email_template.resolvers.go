@@ -17,8 +17,8 @@ func (r *emailTemplateResolver) ID(ctx context.Context, obj *ent.EmailTemplate) 
 }
 
 // Event is the resolver for the event field.
-func (r *emailTemplateResolver) Event(ctx context.Context, obj *ent.EmailTemplate) (ent.EmailTemplateEvent, error) {
-	return ent.EmailTemplateEvent(obj.Event), nil
+func (r *emailTemplateResolver) Event(ctx context.Context, obj *ent.EmailTemplate) (*ent.EmailEvent, error) {
+	return obj.Edges.EventEdgeOrErr()
 }
 
 // SendTo is the resolver for the send_to field.

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"trec/ent/candidate"
+	"trec/ent/emailevent"
 	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 
@@ -26,6 +27,7 @@ type OutgoingEmailQuery struct {
 	fields            []string
 	predicates        []predicate.OutgoingEmail
 	withCandidateEdge *CandidateQuery
+	withEventEdge     *EmailEventQuery
 	modifiers         []func(*sql.Selector)
 	loadTotal         []func(context.Context, []*OutgoingEmail) error
 	// intermediate query (i.e. traversal path).
@@ -79,6 +81,28 @@ func (oeq *OutgoingEmailQuery) QueryCandidateEdge() *CandidateQuery {
 			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, selector),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.CandidateEdgeTable, outgoingemail.CandidateEdgeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(oeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEventEdge chains the current query on the "event_edge" edge.
+func (oeq *OutgoingEmailQuery) QueryEventEdge() *EmailEventQuery {
+	query := &EmailEventQuery{config: oeq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, selector),
+			sqlgraph.To(emailevent.Table, emailevent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.EventEdgeTable, outgoingemail.EventEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(oeq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,6 +292,7 @@ func (oeq *OutgoingEmailQuery) Clone() *OutgoingEmailQuery {
 		order:             append([]OrderFunc{}, oeq.order...),
 		predicates:        append([]predicate.OutgoingEmail{}, oeq.predicates...),
 		withCandidateEdge: oeq.withCandidateEdge.Clone(),
+		withEventEdge:     oeq.withEventEdge.Clone(),
 		// clone intermediate query.
 		sql:    oeq.sql.Clone(),
 		path:   oeq.path,
@@ -283,6 +308,17 @@ func (oeq *OutgoingEmailQuery) WithCandidateEdge(opts ...func(*CandidateQuery)) 
 		opt(query)
 	}
 	oeq.withCandidateEdge = query
+	return oeq
+}
+
+// WithEventEdge tells the query-builder to eager-load the nodes that are connected to
+// the "event_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (oeq *OutgoingEmailQuery) WithEventEdge(opts ...func(*EmailEventQuery)) *OutgoingEmailQuery {
+	query := &EmailEventQuery{config: oeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	oeq.withEventEdge = query
 	return oeq
 }
 
@@ -359,8 +395,9 @@ func (oeq *OutgoingEmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*OutgoingEmail{}
 		_spec       = oeq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			oeq.withCandidateEdge != nil,
+			oeq.withEventEdge != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -387,6 +424,12 @@ func (oeq *OutgoingEmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := oeq.withCandidateEdge; query != nil {
 		if err := oeq.loadCandidateEdge(ctx, query, nodes, nil,
 			func(n *OutgoingEmail, e *Candidate) { n.Edges.CandidateEdge = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := oeq.withEventEdge; query != nil {
+		if err := oeq.loadEventEdge(ctx, query, nodes, nil,
+			func(n *OutgoingEmail, e *EmailEvent) { n.Edges.EventEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -417,6 +460,32 @@ func (oeq *OutgoingEmailQuery) loadCandidateEdge(ctx context.Context, query *Can
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "candidate_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (oeq *OutgoingEmailQuery) loadEventEdge(ctx context.Context, query *EmailEventQuery, nodes []*OutgoingEmail, init func(*OutgoingEmail), assign func(*OutgoingEmail, *EmailEvent)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OutgoingEmail)
+	for i := range nodes {
+		fk := nodes[i].EventID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(emailevent.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/emailevent"
 	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 
@@ -185,6 +186,12 @@ func (oeu *OutgoingEmailUpdate) SetNillableStatus(o *outgoingemail.Status) *Outg
 	return oeu
 }
 
+// SetEventID sets the "event_id" field.
+func (oeu *OutgoingEmailUpdate) SetEventID(u uuid.UUID) *OutgoingEmailUpdate {
+	oeu.mutation.SetEventID(u)
+	return oeu
+}
+
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
 func (oeu *OutgoingEmailUpdate) SetCandidateEdgeID(id uuid.UUID) *OutgoingEmailUpdate {
 	oeu.mutation.SetCandidateEdgeID(id)
@@ -204,6 +211,17 @@ func (oeu *OutgoingEmailUpdate) SetCandidateEdge(c *Candidate) *OutgoingEmailUpd
 	return oeu.SetCandidateEdgeID(c.ID)
 }
 
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (oeu *OutgoingEmailUpdate) SetEventEdgeID(id uuid.UUID) *OutgoingEmailUpdate {
+	oeu.mutation.SetEventEdgeID(id)
+	return oeu
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (oeu *OutgoingEmailUpdate) SetEventEdge(e *EmailEvent) *OutgoingEmailUpdate {
+	return oeu.SetEventEdgeID(e.ID)
+}
+
 // Mutation returns the OutgoingEmailMutation object of the builder.
 func (oeu *OutgoingEmailUpdate) Mutation() *OutgoingEmailMutation {
 	return oeu.mutation
@@ -212,6 +230,12 @@ func (oeu *OutgoingEmailUpdate) Mutation() *OutgoingEmailMutation {
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (oeu *OutgoingEmailUpdate) ClearCandidateEdge() *OutgoingEmailUpdate {
 	oeu.mutation.ClearCandidateEdge()
+	return oeu
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (oeu *OutgoingEmailUpdate) ClearEventEdge() *OutgoingEmailUpdate {
+	oeu.mutation.ClearEventEdge()
 	return oeu
 }
 
@@ -296,6 +320,9 @@ func (oeu *OutgoingEmailUpdate) check() error {
 		if err := outgoingemail.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
 		}
+	}
+	if _, ok := oeu.mutation.EventEdgeID(); oeu.mutation.EventEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "OutgoingEmail.event_edge"`)
 	}
 	return nil
 }
@@ -402,6 +429,41 @@ func (oeu *OutgoingEmailUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if oeu.mutation.EventEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.EventEdgeTable,
+			Columns: []string{outgoingemail.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := oeu.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.EventEdgeTable,
+			Columns: []string{outgoingemail.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
 				},
 			},
 		}
@@ -583,6 +645,12 @@ func (oeuo *OutgoingEmailUpdateOne) SetNillableStatus(o *outgoingemail.Status) *
 	return oeuo
 }
 
+// SetEventID sets the "event_id" field.
+func (oeuo *OutgoingEmailUpdateOne) SetEventID(u uuid.UUID) *OutgoingEmailUpdateOne {
+	oeuo.mutation.SetEventID(u)
+	return oeuo
+}
+
 // SetCandidateEdgeID sets the "candidate_edge" edge to the Candidate entity by ID.
 func (oeuo *OutgoingEmailUpdateOne) SetCandidateEdgeID(id uuid.UUID) *OutgoingEmailUpdateOne {
 	oeuo.mutation.SetCandidateEdgeID(id)
@@ -602,6 +670,17 @@ func (oeuo *OutgoingEmailUpdateOne) SetCandidateEdge(c *Candidate) *OutgoingEmai
 	return oeuo.SetCandidateEdgeID(c.ID)
 }
 
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (oeuo *OutgoingEmailUpdateOne) SetEventEdgeID(id uuid.UUID) *OutgoingEmailUpdateOne {
+	oeuo.mutation.SetEventEdgeID(id)
+	return oeuo
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (oeuo *OutgoingEmailUpdateOne) SetEventEdge(e *EmailEvent) *OutgoingEmailUpdateOne {
+	return oeuo.SetEventEdgeID(e.ID)
+}
+
 // Mutation returns the OutgoingEmailMutation object of the builder.
 func (oeuo *OutgoingEmailUpdateOne) Mutation() *OutgoingEmailMutation {
 	return oeuo.mutation
@@ -610,6 +689,12 @@ func (oeuo *OutgoingEmailUpdateOne) Mutation() *OutgoingEmailMutation {
 // ClearCandidateEdge clears the "candidate_edge" edge to the Candidate entity.
 func (oeuo *OutgoingEmailUpdateOne) ClearCandidateEdge() *OutgoingEmailUpdateOne {
 	oeuo.mutation.ClearCandidateEdge()
+	return oeuo
+}
+
+// ClearEventEdge clears the "event_edge" edge to the EmailEvent entity.
+func (oeuo *OutgoingEmailUpdateOne) ClearEventEdge() *OutgoingEmailUpdateOne {
+	oeuo.mutation.ClearEventEdge()
 	return oeuo
 }
 
@@ -707,6 +792,9 @@ func (oeuo *OutgoingEmailUpdateOne) check() error {
 		if err := outgoingemail.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
 		}
+	}
+	if _, ok := oeuo.mutation.EventEdgeID(); oeuo.mutation.EventEdgeCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "OutgoingEmail.event_edge"`)
 	}
 	return nil
 }
@@ -830,6 +918,41 @@ func (oeuo *OutgoingEmailUpdateOne) sqlSave(ctx context.Context) (_node *Outgoin
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: candidate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if oeuo.mutation.EventEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.EventEdgeTable,
+			Columns: []string{outgoingemail.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := oeuo.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.EventEdgeTable,
+			Columns: []string{outgoingemail.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
 				},
 			},
 		}

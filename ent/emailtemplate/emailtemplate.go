@@ -36,8 +36,12 @@ const (
 	FieldSignature = "signature"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldEventID holds the string denoting the event_id field in the database.
+	FieldEventID = "event_id"
 	// EdgeRoleEdges holds the string denoting the role_edges edge name in mutations.
 	EdgeRoleEdges = "role_edges"
+	// EdgeEventEdge holds the string denoting the event_edge edge name in mutations.
+	EdgeEventEdge = "event_edge"
 	// EdgeRoleEmailTemplates holds the string denoting the role_email_templates edge name in mutations.
 	EdgeRoleEmailTemplates = "role_email_templates"
 	// Table holds the table name of the emailtemplate in the database.
@@ -47,6 +51,13 @@ const (
 	// RoleEdgesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RoleEdgesInverseTable = "roles"
+	// EventEdgeTable is the table that holds the event_edge relation/edge.
+	EventEdgeTable = "email_templates"
+	// EventEdgeInverseTable is the table name for the EmailEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "emailevent" package.
+	EventEdgeInverseTable = "email_events"
+	// EventEdgeColumn is the table column denoting the event_edge relation/edge.
+	EventEdgeColumn = "event_id"
 	// RoleEmailTemplatesTable is the table that holds the role_email_templates relation/edge.
 	RoleEmailTemplatesTable = "email_role_attributes"
 	// RoleEmailTemplatesInverseTable is the table name for the EmailRoleAttribute entity.
@@ -70,6 +81,7 @@ var Columns = []string{
 	FieldContent,
 	FieldSignature,
 	FieldStatus,
+	FieldEventID,
 }
 
 var (

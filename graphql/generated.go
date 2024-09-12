@@ -1419,7 +1419,7 @@ type EmailEventResolver interface {
 }
 type EmailTemplateResolver interface {
 	ID(ctx context.Context, obj *ent.EmailTemplate) (string, error)
-	Event(ctx context.Context, obj *ent.EmailTemplate) (ent.EmailTemplateEvent, error)
+	Event(ctx context.Context, obj *ent.EmailTemplate) (*ent.EmailEvent, error)
 
 	SendTo(ctx context.Context, obj *ent.EmailTemplate) ([]ent.EmailTemplateSendTo, error)
 	Status(ctx context.Context, obj *ent.EmailTemplate) (ent.EmailTemplateStatus, error)
@@ -1546,7 +1546,7 @@ type OutgoingEmailResolver interface {
 
 	RecipientType(ctx context.Context, obj *ent.OutgoingEmail) (ent.OutgoingEmailRecipientType, error)
 	Status(ctx context.Context, obj *ent.OutgoingEmail) (ent.OutgoingEmailStatus, error)
-	Event(ctx context.Context, obj *ent.OutgoingEmail) (ent.EmailTemplateEvent, error)
+	Event(ctx context.Context, obj *ent.OutgoingEmail) (*ent.EmailEvent, error)
 }
 type PermissionResolver interface {
 	ID(ctx context.Context, obj *ent.Permission) (string, error)
@@ -8732,6 +8732,7 @@ enum EmailTemplateSendTo {
 enum EmailTemplateApplicationSendToEnum {
   job_request
   job_rec_in_charge
+  cd_job_rec_in_charge
   hiring_team_manager
   hiring_approver
   hiring_team_member
@@ -8739,6 +8740,17 @@ enum EmailTemplateApplicationSendToEnum {
   rec_member
   role
   candidate
+}
+
+enum EmailTemplateJobRequestSendToEnum {
+  job_request
+  job_rec_in_charge
+  hiring_team_manager
+  hiring_approver
+  hiring_team_member
+  rec_leader
+  rec_member
+  role
 }
 
 input EmailTemplateKeywordFilter {
@@ -8755,7 +8767,7 @@ enum EmailTemplateOrderField {
 }
 
 input EmailTemplateFilter {
-  event: [EmailTemplateEvent]
+  event_ids: [ID]
   status: EmailTemplateStatus
   send_to: [EmailTemplateSendTo]
 }
@@ -8765,7 +8777,7 @@ input EmailTemplateFreeWord {
 }
 
 input NewEmailTemplateInput {
-  event: EmailTemplateEvent!
+  event_id: ID!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]!
@@ -8777,7 +8789,7 @@ input NewEmailTemplateInput {
 }
 
 input UpdateEmailTemplateInput {
-  event: EmailTemplateEvent!
+  event_id: ID!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]!
@@ -8794,7 +8806,7 @@ input UpdateEmailTemplateStatusInput {
 
 type EmailTemplate {
   id: ID!
-  event: EmailTemplateEvent!
+  event: EmailEvent!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]
@@ -9375,7 +9387,7 @@ input OutgoingEmailFilter {
   status: [OutgoingEmailStatus!]
   from_date: Time
   to_date: Time
-  event: EmailTemplateEvent
+  event_id: ID
 }
 
 input OutgoingEmailOrder {
@@ -9391,7 +9403,7 @@ type OutgoingEmail {
   signature: String!
   recipient_type: OutgoingEmailRecipientType!
   status: OutgoingEmailStatus!
-  event: EmailTemplateEvent!
+  event: EmailEvent!
   created_at: Time!
   updated_at: Time
 }
@@ -27211,9 +27223,9 @@ func (ec *executionContext) _EmailTemplate_event(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(ent.EmailTemplateEvent)
+	res := resTmp.(*ent.EmailEvent)
 	fc.Result = res
-	return ec.marshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, field.Selections, res)
+	return ec.marshalNEmailEvent2ᚖtrecᚋentᚐEmailEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EmailTemplate_event(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -27223,7 +27235,13 @@ func (ec *executionContext) fieldContext_EmailTemplate_event(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type EmailTemplateEvent does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EmailEvent_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EmailEvent_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailEvent", field.Name)
 		},
 	}
 	return fc, nil
@@ -38097,9 +38115,9 @@ func (ec *executionContext) _OutgoingEmail_event(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(ent.EmailTemplateEvent)
+	res := resTmp.(*ent.EmailEvent)
 	fc.Result = res
-	return ec.marshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, field.Selections, res)
+	return ec.marshalNEmailEvent2ᚖtrecᚋentᚐEmailEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OutgoingEmail_event(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -38109,7 +38127,13 @@ func (ec *executionContext) fieldContext_OutgoingEmail_event(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type EmailTemplateEvent does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EmailEvent_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EmailEvent_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailEvent", field.Name)
 		},
 	}
 	return fc, nil
@@ -54913,18 +54937,18 @@ func (ec *executionContext) unmarshalInputEmailTemplateFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"event", "status", "send_to"}
+	fieldsInOrder := [...]string{"event_ids", "status", "send_to"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "event":
+		case "event_ids":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
-			it.Event, err = ec.unmarshalOEmailTemplateEvent2ᚕᚖtrecᚋentᚐEmailTemplateEvent(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event_ids"))
+			it.EventIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56237,18 +56261,18 @@ func (ec *executionContext) unmarshalInputNewEmailTemplateInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"event", "subject", "content", "send_to", "roleIds", "signature", "cc", "bcc"}
+	fieldsInOrder := [...]string{"event_id", "subject", "content", "send_to", "roleIds", "signature", "cc", "bcc"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "event":
+		case "event_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
-			it.Event, err = ec.unmarshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event_id"))
+			it.EventID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -56853,7 +56877,7 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status", "from_date", "to_date", "event"}
+	fieldsInOrder := [...]string{"recipient_type", "candidate_id", "status", "from_date", "to_date", "event_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -56900,11 +56924,11 @@ func (ec *executionContext) unmarshalInputOutgoingEmailFilter(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
-		case "event":
+		case "event_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
-			it.Event, err = ec.unmarshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event_id"))
+			it.EventID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -58137,18 +58161,18 @@ func (ec *executionContext) unmarshalInputUpdateEmailTemplateInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"event", "subject", "content", "send_to", "roleIds", "signature", "cc", "bcc"}
+	fieldsInOrder := [...]string{"event_id", "subject", "content", "send_to", "roleIds", "signature", "cc", "bcc"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "event":
+		case "event_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
-			it.Event, err = ec.unmarshalNEmailTemplateEvent2trecᚋentᚐEmailTemplateEvent(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event_id"))
+			it.EventID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -71924,6 +71948,10 @@ func (ec *executionContext) marshalNCursor2trecᚋentᚐCursor(ctx context.Conte
 	return v
 }
 
+func (ec *executionContext) marshalNEmailEvent2trecᚋentᚐEmailEvent(ctx context.Context, sel ast.SelectionSet, v ent.EmailEvent) graphql.Marshaler {
+	return ec._EmailEvent(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNEmailEvent2ᚖtrecᚋentᚐEmailEvent(ctx context.Context, sel ast.SelectionSet, v *ent.EmailEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -76744,83 +76772,6 @@ func (ec *executionContext) marshalOEmailTemplate2ᚖtrecᚋentᚐEmailTemplate(
 		return graphql.Null
 	}
 	return ec._EmailTemplate(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOEmailTemplateEvent2ᚕᚖtrecᚋentᚐEmailTemplateEvent(ctx context.Context, v interface{}) ([]*ent.EmailTemplateEvent, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*ent.EmailTemplateEvent, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOEmailTemplateEvent2ᚕᚖtrecᚋentᚐEmailTemplateEvent(ctx context.Context, sel ast.SelectionSet, v []*ent.EmailTemplateEvent) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx context.Context, v interface{}) (*ent.EmailTemplateEvent, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(ent.EmailTemplateEvent)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOEmailTemplateEvent2ᚖtrecᚋentᚐEmailTemplateEvent(ctx context.Context, sel ast.SelectionSet, v *ent.EmailTemplateEvent) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOEmailTemplateFilter2ᚖtrecᚋentᚐEmailTemplateFilter(ctx context.Context, v interface{}) (*ent.EmailTemplateFilter, error) {

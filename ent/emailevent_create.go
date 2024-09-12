@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/emailevent"
+	"trec/ent/emailtemplate"
+	"trec/ent/outgoingemail"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -71,6 +73,36 @@ func (eec *EmailEventCreate) SetNillableUpdatedAt(t *time.Time) *EmailEventCreat
 func (eec *EmailEventCreate) SetID(u uuid.UUID) *EmailEventCreate {
 	eec.mutation.SetID(u)
 	return eec
+}
+
+// AddTemplateEdgeIDs adds the "template_edges" edge to the EmailTemplate entity by IDs.
+func (eec *EmailEventCreate) AddTemplateEdgeIDs(ids ...uuid.UUID) *EmailEventCreate {
+	eec.mutation.AddTemplateEdgeIDs(ids...)
+	return eec
+}
+
+// AddTemplateEdges adds the "template_edges" edges to the EmailTemplate entity.
+func (eec *EmailEventCreate) AddTemplateEdges(e ...*EmailTemplate) *EmailEventCreate {
+	ids := make([]uuid.UUID, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return eec.AddTemplateEdgeIDs(ids...)
+}
+
+// AddOutgoingEmailEdgeIDs adds the "outgoing_email_edges" edge to the OutgoingEmail entity by IDs.
+func (eec *EmailEventCreate) AddOutgoingEmailEdgeIDs(ids ...uuid.UUID) *EmailEventCreate {
+	eec.mutation.AddOutgoingEmailEdgeIDs(ids...)
+	return eec
+}
+
+// AddOutgoingEmailEdges adds the "outgoing_email_edges" edges to the OutgoingEmail entity.
+func (eec *EmailEventCreate) AddOutgoingEmailEdges(o ...*OutgoingEmail) *EmailEventCreate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return eec.AddOutgoingEmailEdgeIDs(ids...)
 }
 
 // Mutation returns the EmailEventMutation object of the builder.
@@ -235,6 +267,44 @@ func (eec *EmailEventCreate) createSpec() (*EmailEvent, *sqlgraph.CreateSpec) {
 	if value, ok := eec.mutation.UpdatedAt(); ok {
 		_spec.SetField(emailevent.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := eec.mutation.TemplateEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.TemplateEdgesTable,
+			Columns: []string{emailevent.TemplateEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailtemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := eec.mutation.OutgoingEmailEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   emailevent.OutgoingEmailEdgesTable,
+			Columns: []string{emailevent.OutgoingEmailEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: outgoingemail.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

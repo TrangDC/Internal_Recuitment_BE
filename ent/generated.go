@@ -441,9 +441,9 @@ type EmailEventSelectionResponseGetAll struct {
 }
 
 type EmailTemplateFilter struct {
-	Event  []*EmailTemplateEvent  `json:"event"`
-	Status *EmailTemplateStatus   `json:"status"`
-	SendTo []*EmailTemplateSendTo `json:"send_to"`
+	EventIds []*string              `json:"event_ids"`
+	Status   *EmailTemplateStatus   `json:"status"`
+	SendTo   []*EmailTemplateSendTo `json:"send_to"`
 }
 
 type EmailTemplateFreeWord struct {
@@ -736,7 +736,7 @@ type NewCandidateNoteInput struct {
 }
 
 type NewEmailTemplateInput struct {
-	Event     EmailTemplateEvent    `json:"event"`
+	EventID   string                `json:"event_id"`
 	Subject   string                `json:"subject"`
 	Content   string                `json:"content"`
 	SendTo    []EmailTemplateSendTo `json:"send_to"`
@@ -823,7 +823,7 @@ type OutgoingEmailFilter struct {
 	Status        []OutgoingEmailStatus        `json:"status"`
 	FromDate      *time.Time                   `json:"from_date"`
 	ToDate        *time.Time                   `json:"to_date"`
-	Event         *EmailTemplateEvent          `json:"event"`
+	EventID       *string                      `json:"event_id"`
 }
 
 type OutgoingEmailFreeWord struct {
@@ -1222,7 +1222,7 @@ type UpdateCandidateNoteInput struct {
 }
 
 type UpdateEmailTemplateInput struct {
-	Event     EmailTemplateEvent    `json:"event"`
+	EventID   string                `json:"event_id"`
 	Subject   string                `json:"subject"`
 	Content   string                `json:"content"`
 	SendTo    []EmailTemplateSendTo `json:"send_to"`
@@ -2495,6 +2495,7 @@ type EmailTemplateApplicationSendToEnum string
 const (
 	EmailTemplateApplicationSendToEnumJobRequest        EmailTemplateApplicationSendToEnum = "job_request"
 	EmailTemplateApplicationSendToEnumJobRecInCharge    EmailTemplateApplicationSendToEnum = "job_rec_in_charge"
+	EmailTemplateApplicationSendToEnumCdJobRecInCharge  EmailTemplateApplicationSendToEnum = "cd_job_rec_in_charge"
 	EmailTemplateApplicationSendToEnumHiringTeamManager EmailTemplateApplicationSendToEnum = "hiring_team_manager"
 	EmailTemplateApplicationSendToEnumHiringApprover    EmailTemplateApplicationSendToEnum = "hiring_approver"
 	EmailTemplateApplicationSendToEnumHiringTeamMember  EmailTemplateApplicationSendToEnum = "hiring_team_member"
@@ -2507,6 +2508,7 @@ const (
 var AllEmailTemplateApplicationSendToEnum = []EmailTemplateApplicationSendToEnum{
 	EmailTemplateApplicationSendToEnumJobRequest,
 	EmailTemplateApplicationSendToEnumJobRecInCharge,
+	EmailTemplateApplicationSendToEnumCdJobRecInCharge,
 	EmailTemplateApplicationSendToEnumHiringTeamManager,
 	EmailTemplateApplicationSendToEnumHiringApprover,
 	EmailTemplateApplicationSendToEnumHiringTeamMember,
@@ -2518,7 +2520,7 @@ var AllEmailTemplateApplicationSendToEnum = []EmailTemplateApplicationSendToEnum
 
 func (e EmailTemplateApplicationSendToEnum) IsValid() bool {
 	switch e {
-	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumJobRecInCharge, EmailTemplateApplicationSendToEnumHiringTeamManager, EmailTemplateApplicationSendToEnumHiringApprover, EmailTemplateApplicationSendToEnumHiringTeamMember, EmailTemplateApplicationSendToEnumRecLeader, EmailTemplateApplicationSendToEnumRecMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
+	case EmailTemplateApplicationSendToEnumJobRequest, EmailTemplateApplicationSendToEnumJobRecInCharge, EmailTemplateApplicationSendToEnumCdJobRecInCharge, EmailTemplateApplicationSendToEnumHiringTeamManager, EmailTemplateApplicationSendToEnumHiringApprover, EmailTemplateApplicationSendToEnumHiringTeamMember, EmailTemplateApplicationSendToEnumRecLeader, EmailTemplateApplicationSendToEnumRecMember, EmailTemplateApplicationSendToEnumRole, EmailTemplateApplicationSendToEnumCandidate:
 		return true
 	}
 	return false
@@ -2634,6 +2636,59 @@ func (e *EmailTemplateInterviewEventEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EmailTemplateInterviewEventEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EmailTemplateJobRequestSendToEnum string
+
+const (
+	EmailTemplateJobRequestSendToEnumJobRequest        EmailTemplateJobRequestSendToEnum = "job_request"
+	EmailTemplateJobRequestSendToEnumJobRecInCharge    EmailTemplateJobRequestSendToEnum = "job_rec_in_charge"
+	EmailTemplateJobRequestSendToEnumHiringTeamManager EmailTemplateJobRequestSendToEnum = "hiring_team_manager"
+	EmailTemplateJobRequestSendToEnumHiringApprover    EmailTemplateJobRequestSendToEnum = "hiring_approver"
+	EmailTemplateJobRequestSendToEnumHiringTeamMember  EmailTemplateJobRequestSendToEnum = "hiring_team_member"
+	EmailTemplateJobRequestSendToEnumRecLeader         EmailTemplateJobRequestSendToEnum = "rec_leader"
+	EmailTemplateJobRequestSendToEnumRecMember         EmailTemplateJobRequestSendToEnum = "rec_member"
+	EmailTemplateJobRequestSendToEnumRole              EmailTemplateJobRequestSendToEnum = "role"
+)
+
+var AllEmailTemplateJobRequestSendToEnum = []EmailTemplateJobRequestSendToEnum{
+	EmailTemplateJobRequestSendToEnumJobRequest,
+	EmailTemplateJobRequestSendToEnumJobRecInCharge,
+	EmailTemplateJobRequestSendToEnumHiringTeamManager,
+	EmailTemplateJobRequestSendToEnumHiringApprover,
+	EmailTemplateJobRequestSendToEnumHiringTeamMember,
+	EmailTemplateJobRequestSendToEnumRecLeader,
+	EmailTemplateJobRequestSendToEnumRecMember,
+	EmailTemplateJobRequestSendToEnumRole,
+}
+
+func (e EmailTemplateJobRequestSendToEnum) IsValid() bool {
+	switch e {
+	case EmailTemplateJobRequestSendToEnumJobRequest, EmailTemplateJobRequestSendToEnumJobRecInCharge, EmailTemplateJobRequestSendToEnumHiringTeamManager, EmailTemplateJobRequestSendToEnumHiringApprover, EmailTemplateJobRequestSendToEnumHiringTeamMember, EmailTemplateJobRequestSendToEnumRecLeader, EmailTemplateJobRequestSendToEnumRecMember, EmailTemplateJobRequestSendToEnumRole:
+		return true
+	}
+	return false
+}
+
+func (e EmailTemplateJobRequestSendToEnum) String() string {
+	return string(e)
+}
+
+func (e *EmailTemplateJobRequestSendToEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailTemplateJobRequestSendToEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailTemplateJobRequestSendToEnum", str)
+	}
+	return nil
+}
+
+func (e EmailTemplateJobRequestSendToEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

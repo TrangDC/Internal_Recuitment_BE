@@ -7,6 +7,7 @@ import (
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -412,6 +413,62 @@ func UpdatedAtIsNil() predicate.EmailEvent {
 func UpdatedAtNotNil() predicate.EmailEvent {
 	return predicate.EmailEvent(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldUpdatedAt)))
+	})
+}
+
+// HasTemplateEdges applies the HasEdge predicate on the "template_edges" edge.
+func HasTemplateEdges() predicate.EmailEvent {
+	return predicate.EmailEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TemplateEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TemplateEdgesTable, TemplateEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTemplateEdgesWith applies the HasEdge predicate on the "template_edges" edge with a given conditions (other predicates).
+func HasTemplateEdgesWith(preds ...predicate.EmailTemplate) predicate.EmailEvent {
+	return predicate.EmailEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TemplateEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TemplateEdgesTable, TemplateEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOutgoingEmailEdges applies the HasEdge predicate on the "outgoing_email_edges" edge.
+func HasOutgoingEmailEdges() predicate.EmailEvent {
+	return predicate.EmailEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OutgoingEmailEdgesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OutgoingEmailEdgesTable, OutgoingEmailEdgesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOutgoingEmailEdgesWith applies the HasEdge predicate on the "outgoing_email_edges" edge with a given conditions (other predicates).
+func HasOutgoingEmailEdgesWith(preds ...predicate.OutgoingEmail) predicate.EmailEvent {
+	return predicate.EmailEvent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OutgoingEmailEdgesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OutgoingEmailEdgesTable, OutgoingEmailEdgesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

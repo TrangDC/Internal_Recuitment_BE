@@ -8,6 +8,7 @@ import (
 	"time"
 	"trec/ent"
 	"trec/ent/candidatejob"
+	"trec/ent/emailevent"
 	"trec/ent/emailtemplate"
 	"trec/ent/role"
 	"trec/ent/user"
@@ -34,7 +35,7 @@ type EmailTemplateRepository interface {
 
 	// common function
 	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
-	ValidSentToAction(event ent.EmailTemplateEvent, sentTo []ent.EmailTemplateSendTo) error
+	ValidSentToAction(event *ent.EmailEvent, sentTo []ent.EmailTemplateSendTo) error
 	ValidAndGetEmailTemplates(ctx context.Context, oldRecord, record *ent.CandidateJob) ([]*ent.EmailTemplate, error)
 }
 
@@ -114,14 +115,14 @@ func (rps *emailtemplateRepoImpl) CreateEmailTemplate(ctx context.Context, input
 		return s
 	})
 	create := rps.BuildCreate().
-		SetEvent(emailtemplate.Event(input.Event)).
 		SetSendTo(sendTo).
 		SetSubject(input.Subject).
 		SetContent(input.Content).
 		SetSignature(input.Signature).
 		AddRoleEdgeIDs(roleIds...).
 		SetBcc(bcc).
-		SetCc(cc)
+		SetCc(cc).
+		SetEventID(uuid.MustParse(input.EventID))
 	return create.Save(ctx)
 }
 
@@ -133,14 +134,14 @@ func (rps *emailtemplateRepoImpl) UpdateEmailTemplate(ctx context.Context, recor
 		return s
 	})
 	update := rps.BuildUpdateOne(ctx, record).
-		SetEvent(emailtemplate.Event(input.Event)).
 		SetSendTo(sendTo).
 		SetSubject(input.Subject).
 		SetContent(input.Content).
 		SetSignature(input.Signature).
 		AddRoleEdgeIDs(newRoleIds...).RemoveRoleEdgeIDs(removeRoleIds...).
 		SetBcc(bcc).
-		SetCc(cc)
+		SetCc(cc).
+		SetEventID(uuid.MustParse(input.EventID))
 	return rps.BuildSaveUpdateOne(ctx, update)
 }
 
@@ -185,13 +186,22 @@ func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, even
 	return nil
 }
 
-func (rps emailtemplateRepoImpl) ValidSentToAction(event ent.EmailTemplateEvent, sentTo []ent.EmailTemplateSendTo) error {
-	if ent.EmailTemplateApplicationEventEnum.IsValid(ent.EmailTemplateApplicationEventEnum(event.String())) {
-		if len(lo.Filter(sentTo, func(s ent.EmailTemplateSendTo, index int) bool {
-			return ent.EmailTemplateApplicationSendToEnum.IsValid(ent.EmailTemplateApplicationSendToEnum(s.String()))
-		})) == 0 {
-			return fmt.Errorf("model.email_template.validation.invalid_sent_to")
-		}
+func (rps emailtemplateRepoImpl) ValidSentToAction(event *ent.EmailEvent, sentTo []ent.EmailTemplateSendTo) error {
+	isValid := false
+	switch event.Module {
+	case emailevent.ModuleJobRequest:
+		isValid = lo.EveryBy(sentTo, func(item ent.EmailTemplateSendTo) bool {
+			return ent.EmailTemplateJobRequestSendToEnum.IsValid(ent.EmailTemplateJobRequestSendToEnum(item.String()))
+		})
+	case emailevent.ModuleApplication:
+		isValid = lo.EveryBy(sentTo, func(item ent.EmailTemplateSendTo) bool {
+			return ent.EmailTemplateApplicationSendToEnum.IsValid(ent.EmailTemplateApplicationSendToEnum(item.String()))
+		})
+	default:
+		isValid = true
+	}
+	if !isValid {
+		return fmt.Errorf("model.email_template.validation.invalid_sent_to")
 	}
 	return nil
 }

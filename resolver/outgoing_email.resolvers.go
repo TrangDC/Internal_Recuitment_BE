@@ -25,8 +25,8 @@ func (r *outgoingEmailResolver) Status(ctx context.Context, obj *ent.OutgoingEma
 }
 
 // Event is the resolver for the event field.
-func (r *outgoingEmailResolver) Event(ctx context.Context, obj *ent.OutgoingEmail) (ent.EmailTemplateEvent, error) {
-	return ent.EmailTemplateEvent(obj.Event), nil
+func (r *outgoingEmailResolver) Event(ctx context.Context, obj *ent.OutgoingEmail) (*ent.EmailEvent, error) {
+	return obj.Edges.EventEdgeOrErr()
 }
 
 // OutgoingEmail returns graphql1.OutgoingEmailResolver implementation.
