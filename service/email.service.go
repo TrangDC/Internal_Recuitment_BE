@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 	"trec/config"
 	"trec/dto"
 	"trec/ent"
+	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/outgoingemail"
 	"trec/internal/servicebus"
 	"trec/models"
 	"trec/repository"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -45,13 +49,13 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 	groupModule models.GroupModule) []models.MessageInput {
 	var messages []models.MessageInput
 	sendTos, filteredUsers := svc.getSentTo(users, template, groupModule)
-	keywords := svc.mappingKeyword(groupModule)
 	sendTos = lo.Uniq(sendTos)
 	for _, sentTo := range sendTos {
 		var user *ent.User
 		user, _ = lo.Find(filteredUsers, func(u *ent.User) bool {
 			return u.ID == sentTo.ID
 		})
+		keywords := svc.mappingKeyword(groupModule, user.ID)
 		subject := strings.ReplaceAll(template.Subject, "{{ gl:receiver_name }}", user.Name)
 		content := strings.ReplaceAll(template.Content, "{{ gl:receiver_name }}", user.Name)
 		signature := strings.ReplaceAll(template.Signature, "{{ gl:receiver_name }}", user.Name)
@@ -188,8 +192,16 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 	return lo.Uniq(sendTos), users
 }
 
-func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[string]string {
+func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule, userID uuid.UUID) map[string]string {
 	var keywords = models.AllEmailTPKeyword
+	if groupModule.RecTeam != nil {
+		keywords["{{ rec:name }}"] = groupModule.RecTeam.Name
+		keywords["{{ rec:leader }}"] = groupModule.RecTeam.Edges.RecLeaderEdge.Name
+		keywords["{{ lk:rec_team }}"] = fmt.Sprintf(
+			"%s/rec-dashboard/team-detail/%s",
+			svc.configs.App.AppUrl, groupModule.RecTeam.ID,
+		)
+	}
 	if groupModule.HiringTeam != nil {
 		managerNames := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) string {
 			return entity.Name
@@ -197,13 +209,22 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ hrtm:name }}"] = groupModule.HiringTeam.Name
 		keywords["{{ hrtm:manager_name }}"] = strings.Join(managerNames, ", ")
 		keywords["{{ lk:hiring_team }}"] = fmt.Sprintf("%s/dashboard/team-detail/%s", svc.configs.App.AppUrl, groupModule.HiringTeam.ID)
+		keywords["{{ hrtm:approvers }}"] = strings.Join(
+			lo.Map(groupModule.HiringTeam.Edges.ApproversUsers, func(entity *ent.User, _ int) string { return entity.Name }),
+			", ",
+		)
+	}
+	if groupModule.JobPosition != nil {
+		keywords["{{ jbpos:name }}"] = groupModule.JobPosition.Name
 	}
 	if groupModule.HiringJob != nil {
 		skillNames := lo.Map(groupModule.HiringJob.Edges.HiringJobSkillEdges, func(entity *ent.EntitySkill, index int) string {
 			return entity.Edges.SkillEdge.Name
 		})
 		keywords["{{ hrjb:name }}"] = groupModule.HiringJob.Name
+		keywords["{{ hrjb:rec_in_charge }}"] = groupModule.HiringJob.Edges.RecInChargeEdge.Name
 		keywords["{{ hrjb:skill_name }}"] = strings.Join(skillNames, ", ")
+		keywords["{{ hrjb:level }}"] = groupModule.HiringJob.Level.String()
 		keywords["{{ hrjb:location }}"] = svc.dtoRegistry.HiringJob().MappingLocation(groupModule.HiringJob.Location) // enum
 		keywords["{{ hrjb:requester }}"] = groupModule.HiringJob.Edges.OwnerEdge.Name
 		keywords["{{ hrjb:staff_required }}"] = fmt.Sprint(groupModule.HiringJob.Amount)
@@ -211,7 +232,42 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ hrjb:priority }}"] = svc.dtoRegistry.HiringJob().MappingPriority(groupModule.HiringJob.Priority) // enum
 		keywords["{{ hrjb:salary }}"] = svc.dtoRegistry.HiringJob().MappingSalary(groupModule.HiringJob)              // string by type of salary_type
 		keywords["{{ hrjb:description }}"] = groupModule.HiringJob.Description
-		keywords["{{ lk:job }}"] = fmt.Sprintf("%s/dashboard/job-detail/%s", svc.configs.App.AppUrl, groupModule.HiringJob.ID)
+		linkFmt := "%s/dashboard/job-detail/%s"
+		if groupModule.HiringJob.Status != hiringjob.StatusPendingApprovals {
+			linkFmt = "%s/dashboard/job-overview/%s"
+		}
+		keywords["{{ lk:job }}"] = fmt.Sprintf(linkFmt, svc.configs.App.AppUrl, groupModule.HiringJob.ID)
+		keywords["{{ hrjb:resolution_time }}"] = func(openedAt, closedAt time.Time) string {
+			// TODO: Handle stacked resolution time when reopen
+			if openedAt.IsZero() {
+				return ""
+			}
+			if closedAt.IsZero() {
+				return time.Now().UTC().Sub(openedAt).String()
+			}
+			return closedAt.Sub(openedAt).String()
+		}(groupModule.HiringJob.OpenedAt, groupModule.HiringJob.ClosedAt)
+		hiringJobAuditTrail, exists := lo.Find(groupModule.AuditTrails, func(item *ent.AuditTrail) bool {
+			return item.RecordId == groupModule.HiringJob.ID
+		})
+		if !exists {
+			keywords["{{ hrjb:audit_trail }}"] = "N/A"
+		}
+		var err error
+		keywords["{{ hrjb:audit_trail }}"], err = svc.dtoRegistry.EmailTemplate().FormatAuditTrail4Email(hiringJobAuditTrail)
+		if err != nil {
+			svc.logger.Error(err.Error())
+		}
+		keywords["{{lk:approve}}"] = fmt.Sprintf(
+			"%s/dashboard/job-detail/%s?approval_status=%s&confirm_modal=open",
+			svc.configs.App.AppUrl, groupModule.HiringJob.ID,
+			hiringjobstep.StatusAccepted.String(),
+		)
+		keywords["{{lk:reject}}"] = fmt.Sprintf(
+			"%s/dashboard/job-detail/%s?approval_status=%s&confirm_modal=open",
+			svc.configs.App.AppUrl, groupModule.HiringJob.ID,
+			hiringjobstep.StatusRejected.String(),
+		)
 	}
 	if groupModule.Candidate != nil {
 		var referenceUserName = ""
@@ -232,6 +288,7 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ cd:name }}"] = groupModule.Candidate.Name
 		keywords["{{ cd:email }}"] = groupModule.Candidate.Email
 		keywords["{{ cd:phone }}"] = groupModule.Candidate.Phone
+		keywords["{{ cd:address }}"] = groupModule.Candidate.Address
 		keywords["{{ cd:recruiter }}"] = referenceUserName
 		keywords["{{ cd:source }}"] = source // enum
 		keywords["{{ cd:skill_name }}"] = strings.Join(skillNames, ", ")
@@ -241,6 +298,7 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ cdjb:status }}"] = svc.dtoRegistry.CandidateJob().MappingStatus(groupModule.CandidateJob.Status) // enum
 		keywords["{{ cdjb:applied_date }}"] = groupModule.CandidateJob.CreatedAt.Format("02-01-2006")
 		keywords["{{ lk:candidate_job_application }}"] = fmt.Sprintf("%s/dashboard/job-application-detail/%s", svc.configs.App.AppUrl, groupModule.CandidateJob.ID)
+		keywords["{{ cdjb:rec_in_charge }}"] = groupModule.CandidateJob.Edges.RecInChargeEdge.Name
 	}
 	if groupModule.Interview != nil {
 		interviewers := lo.Map(groupModule.Interview.Edges.InterviewerEdges, func(entity *ent.User, index int) string {
@@ -250,6 +308,7 @@ func (svc *emailSvcImpl) mappingKeyword(groupModule models.GroupModule) map[stri
 		keywords["{{ intv:interviewer_name }}"] = strings.Join(interviewers, ", ")
 		keywords["{{ lk:interview }}"] = fmt.Sprintf("%s/dashboard/calendars?interview_id=%s&is_open_detail=true", svc.configs.App.AppUrl, groupModule.Interview.ID) // connect with FE
 		keywords["{{ intv:location }}"] = svc.dtoRegistry.CandidateInterview().MappingLocation(groupModule.Interview.Location)                                       // enum
+		keywords["{{ intv:meeting_link }}"] = groupModule.Interview.MeetingLink
 	}
 	return keywords
 }

@@ -8,7 +8,9 @@ import (
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/emailevent"
 	"trec/ent/emailtemplate"
+	"trec/ent/schema"
 	"trec/internal/util"
 	"trec/models"
 	"trec/repository"
@@ -29,6 +31,7 @@ type EmailTemplateService interface {
 	GetEmailTemplates(ctx context.Context, pagination *ent.PaginationInput, freeWord *ent.EmailTemplateFreeWord,
 		filter *ent.EmailTemplateFilter, orderBy ent.EmailTemplateOrder) (*ent.EmailTemplateResponseGetAll, error)
 	GetAllEmailTemplateKeyword(filter ent.EmailTemplateKeywordFilter) (*ent.GetEmailTemplateKeywordResponse, error)
+	SelectionEmailTemplateSendTos(ctx context.Context, emailEventID uuid.UUID) (*ent.EmailTpSendToSelectionResponseGetAll, error)
 }
 
 type emailtemplateSvcImpl struct {
@@ -50,16 +53,15 @@ func NewEmailTemplateService(repoRegistry repository.Repository, dtoRegistry dto
 func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input ent.NewEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
 	var result *ent.EmailTemplate
 	var roleIds []uuid.UUID
-	var err error
 	var record *ent.EmailTemplate
-	// err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
-	// if err != nil {
-	// 	return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	// }
 	event, err := svc.repoRegistry.EmailEvent().GetEmailEvent(ctx, uuid.MustParse(input.EventID))
 	if err != nil {
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, event.Module)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
 	err = svc.repoRegistry.EmailTemplate().ValidSentToAction(event, input.SendTo)
 	if err != nil {
@@ -105,10 +107,15 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 func (svc *emailtemplateSvcImpl) UpdateEmailTemplate(ctx context.Context, emailTpId uuid.UUID, input ent.UpdateEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
 	var roleIds []uuid.UUID
 	var result *ent.EmailTemplate
-	// err := svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
-	// if err != nil {
-	// 	return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	// }
+	event, err := svc.repoRegistry.EmailEvent().GetEmailEvent(ctx, uuid.MustParse(input.EventID))
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, event.Module)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
 	record, err := svc.repoRegistry.EmailTemplate().GetEmailTemplate(ctx, emailTpId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -279,6 +286,31 @@ func (svc *emailtemplateSvcImpl) GetAllEmailTemplateKeyword(filter ent.EmailTemp
 	return &ent.GetEmailTemplateKeywordResponse{
 		Data: result,
 	}, nil
+}
+
+func (svc *emailtemplateSvcImpl) SelectionEmailTemplateSendTos(ctx context.Context, emailEventID uuid.UUID) (*ent.EmailTpSendToSelectionResponseGetAll, error) {
+	event, err := svc.repoRegistry.EmailEvent().GetEmailEvent(ctx, emailEventID)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
+	}
+	allSendTos := lo.Map(schema.EmailSendTos, func(sendToStr string, _ int) ent.EmailTemplateSendTo {
+		return ent.EmailTemplateSendTo(sendToStr)
+	})
+	result := &ent.EmailTpSendToSelectionResponseGetAll{}
+	switch event.Module {
+	case emailevent.ModuleJobRequest:
+		result.Edges = lo.Filter(allSendTos, func(item ent.EmailTemplateSendTo, _ int) bool {
+			return ent.EmailTemplateJobRequestSendToEnum.IsValid(ent.EmailTemplateJobRequestSendToEnum(item))
+		})
+	case emailevent.ModuleApplication:
+		result.Edges = lo.Filter(allSendTos, func(item ent.EmailTemplateSendTo, _ int) bool {
+			return ent.EmailTemplateApplicationSendToEnum.IsValid(ent.EmailTemplateApplicationSendToEnum(item))
+		})
+	case emailevent.ModuleInterview:
+		result.Edges = allSendTos
+	}
+	return result, nil
 }
 
 // common function

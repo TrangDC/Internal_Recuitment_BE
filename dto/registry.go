@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"trec/models"
 
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
@@ -56,29 +57,6 @@ type dtoImpl struct {
 	candidateNoteDto        CandidateNoteDto
 }
 
-// NewDto creates a new Dto.
-func NewDto() Dto {
-	return &dtoImpl{
-		azureDto:                NewAzureDto(),
-		candidateDto:            NewCandidateDto(),
-		candidateJobDto:         NewCandidateJobDto(),
-		candidateInterviewDto:   NewCandidateInterviewDto(),
-		candidateJobFeedbackDto: NewCandidateJobFeedbackDto(),
-		jobPositionDto:          NewJobPositionDto(),
-		hiringJobDto:            NewHiringJobDto(),
-		skillDto:                NewSkillDto(),
-		entitySkillDto:          NewEntitySkillDto(),
-		skillTypeDto:            NewSkillTypeDto(),
-		hiringTeamDto:           NewHiringTeamDto(),
-		userDto:                 NewUserDto(),
-		roleDto:                 NewRoleDto(),
-		emailTemplateDto:        NewEmailTemplateDto(),
-		recTeamDto:              NewRecTeamDto(),
-		candidateHistoryCallDto: NewCandidateHistoryCallDto(),
-		candidateNoteDto:        NewCandidateNoteDto(),
-	}
-}
-
 const (
 	CandidateI18n            = "model.candidates.model_name"
 	CandidateJobI18n         = "model.candidate_jobs.model_name"
@@ -102,6 +80,34 @@ const (
 	CandidateCertificateI18n = "model.candidate_certificates.model_name"
 	HiringJobStepI18n        = "model.hiring_job_steps.model_name"
 )
+
+var fieldI18n = map[string]map[string]models.I18nFormat{
+	HiringJobI18n:     hiringJobFieldI18n,
+	HiringJobStepI18n: hiringJobStepFieldI18n,
+}
+
+// NewDto creates a new Dto.
+func NewDto() Dto {
+	return &dtoImpl{
+		azureDto:                NewAzureDto(),
+		candidateDto:            NewCandidateDto(),
+		candidateJobDto:         NewCandidateJobDto(),
+		candidateInterviewDto:   NewCandidateInterviewDto(),
+		candidateJobFeedbackDto: NewCandidateJobFeedbackDto(),
+		jobPositionDto:          NewJobPositionDto(),
+		hiringJobDto:            NewHiringJobDto(),
+		skillDto:                NewSkillDto(),
+		entitySkillDto:          NewEntitySkillDto(),
+		skillTypeDto:            NewSkillTypeDto(),
+		hiringTeamDto:           NewHiringTeamDto(),
+		userDto:                 NewUserDto(),
+		roleDto:                 NewRoleDto(),
+		emailTemplateDto:        NewEmailTemplateDto(),
+		recTeamDto:              NewRecTeamDto(),
+		candidateHistoryCallDto: NewCandidateHistoryCallDto(),
+		candidateNoteDto:        NewCandidateNoteDto(),
+	}
+}
 
 func (i dtoImpl) Azure() AzureDto {
 	return i.azureDto
@@ -260,4 +266,16 @@ func FindCUDArray(arr1, arr2 []interface{}) (creIds, updIds, delIds []uuid.UUID)
 	delIds, credIds := lo.Difference(arr1Ids, arr2Ids)
 	updIds = lo.Intersect(arr1Ids, arr2Ids)
 	return credIds, updIds, delIds
+}
+
+func formatFromInterface(value interface{}, userLocation string) string {
+	switch v := value.(type) {
+	case time.Time:
+		result, _ := ConvertTimeZone(value.(time.Time), userLocation)
+		return result.Format(time.DateTime)
+	case int:
+		return strconv.Itoa(v)
+	default: // string
+		return value.(string)
+	}
 }

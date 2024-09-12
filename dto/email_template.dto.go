@@ -2,7 +2,9 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"time"
 	"trec/ent"
 	"trec/ent/emailtemplate"
 	"trec/models"
@@ -14,6 +16,7 @@ type EmailTemplateDto interface {
 	AuditTrailCreate(record *ent.EmailTemplate) (string, error)
 	AuditTrailDelete(record *ent.EmailTemplate) (string, error)
 	AuditTrailUpdate(oldRecord *ent.EmailTemplate, newRecord *ent.EmailTemplate) (string, error)
+	FormatAuditTrail4Email(record *ent.AuditTrail) (string, error)
 }
 
 type emailTemplateDtoImpl struct {
@@ -85,6 +88,35 @@ func (d emailTemplateDtoImpl) AuditTrailUpdate(oldRecord *ent.EmailTemplate, new
 	result.Update = append(result.Update, entity...)
 	jsonObj, err := json.Marshal(result)
 	return string(jsonObj), err
+}
+
+func (dto *emailTemplateDtoImpl) FormatAuditTrail4Email(record *ent.AuditTrail) (string, error) {
+	tp := "<p><b>%s %s</b><br>Reason: %s<br>Created by: %s<br>"
+	createdAt, _ := ConvertTimeZone(record.CreatedAt, record.Edges.UserEdge.Location)
+	result := fmt.Sprintf(
+		tp,
+		lo.Capitalize(record.ActionType.String()),
+		createdAt.Format(time.DateTime),
+		record.Note,
+		record.Edges.UserEdge.Name,
+	)
+	var recordChanges models.AuditTrailData
+	err := json.Unmarshal([]byte(record.RecordChanges), &recordChanges)
+	if err != nil {
+		return result, err
+	}
+	result = dto.formatRecordChanges(recordChanges, record.Edges.UserEdge.Location, result)
+	if len(recordChanges.SubModule) > 0 {
+		for _, subModule := range recordChanges.SubModule {
+			var recordChanges models.AuditTrailData
+			err := json.Unmarshal(subModule.([]byte), &recordChanges)
+			if err != nil {
+				return result, err
+			}
+			result = dto.formatRecordChanges(recordChanges, record.Edges.UserEdge.Location, result)
+		}
+	}
+	return result + "</p>", nil
 }
 
 func (d emailTemplateDtoImpl) recordAudit(record *ent.EmailTemplate) []interface{} {
@@ -225,4 +257,39 @@ func (d emailTemplateDtoImpl) formatFieldI18n(input string) string {
 		return "model.email_templates.status"
 	}
 	return ""
+}
+
+func (d *emailTemplateDtoImpl) formatRecordChanges(recordChanges models.AuditTrailData, userLocation, result string) string {
+	result += "<ins>" + recordChanges.Module + "</ins><br>"
+	if len(recordChanges.Create) > 0 {
+		result += "<mark>Create</mark><br>"
+		for _, v := range recordChanges.Create {
+			var data models.AuditTrailCreateDelete
+			_ = json.Unmarshal(v.([]byte), &data)
+			field, _ := lo.FindKeyBy(fieldI18n[recordChanges.Module], func(key string, value models.I18nFormat) bool {
+				return value.AuditTrail == data.Field
+			})
+			result += "<b>" + fieldI18n[recordChanges.Module][field].Email + ": " + formatFromInterface(data.Value, userLocation) + "</b></br>"
+		}
+	}
+	if len(recordChanges.Update) > 0 {
+		result += "<mark>Update</mark><br>"
+		for _, v := range recordChanges.Update {
+			var data models.AuditTrailUpdate
+			_ = json.Unmarshal(v.([]byte), &data)
+			field, _ := lo.FindKeyBy(fieldI18n[recordChanges.Module], func(key string, value models.I18nFormat) bool {
+				return value.AuditTrail == data.Field
+			})
+			result += fmt.Sprintf(
+				"<b>%s:</b> <span style=\"color:gray;\">%s</span> &rarr; %s<br>",
+				fieldI18n[recordChanges.Module][field].Email,
+				formatFromInterface(data.Value.OldValue, userLocation),
+				formatFromInterface(data.Value.NewValue, userLocation),
+			)
+		}
+	}
+	if len(recordChanges.Delete) > 0 {
+		result += "<mark>Delete</mark><br>"
+	}
+	return result
 }

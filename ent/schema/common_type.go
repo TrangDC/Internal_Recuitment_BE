@@ -1,6 +1,6 @@
 package schema
 
-var emailSendTos = []string{
+var EmailSendTos = []string{
 	"interviewer",
 	"job_request", "job_rec_in_charge",
 	"cd_job_rec_in_charge",

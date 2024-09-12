@@ -147,3 +147,7 @@ type EmailTemplateKeyword {
 type GetEmailTemplateKeywordResponse {
   data: EmailTemplateKeyword!
 }
+
+type EmailTpSendToSelectionResponseGetAll {
+  edges: [EmailTemplateSendTo!]!
+}

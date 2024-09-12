@@ -34,7 +34,7 @@ type EmailTemplateRepository interface {
 	GetEmailTpInterviewEvent(ctx context.Context, event emailtemplate.Event) ([]*ent.EmailTemplate, error)
 
 	// common function
-	ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error
+	ValidKeywordInput(subject, content string, eventModule emailevent.Module) error
 	ValidSentToAction(event *ent.EmailEvent, sentTo []ent.EmailTemplateSendTo) error
 	ValidAndGetEmailTemplates(ctx context.Context, oldRecord, record *ent.CandidateJob) ([]*ent.EmailTemplate, error)
 }
@@ -167,11 +167,15 @@ func (rps *emailtemplateRepoImpl) GetEmailTpInterviewEvent(ctx context.Context, 
 }
 
 // common function
-func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, event ent.EmailTemplateEvent) error {
+func (rps emailtemplateRepoImpl) ValidKeywordInput(subject, content string, eventModule emailevent.Module) error {
 	var err error
-	validSubjectKeyword := models.EmailTpApplicationSubjectKeyword
-	validContentKeyword := models.EmailTpApplicationContentKeyword
-	if !ent.EmailTemplateApplicationEventEnum.IsValid(ent.EmailTemplateApplicationEventEnum(event.String())) {
+	validSubjectKeyword := models.EmailTpJobRequestSubjectKeyword
+	validContentKeyword := models.EmailTpJobRequestContentKeyword
+	switch eventModule {
+	case emailevent.ModuleApplication:
+		validSubjectKeyword = models.EmailTpApplicationSubjectKeyword
+		validContentKeyword = models.EmailTpApplicationContentKeyword
+	case emailevent.ModuleInterview:
 		validSubjectKeyword = models.EmailTpInterviewSubjectKeyword
 		validContentKeyword = models.EmailTpInterviewContentKeyword
 	}

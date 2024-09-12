@@ -2,12 +2,13 @@ package rest
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"trec/internal/util"
 	"trec/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // AuthController is the interface for all auth controllers.

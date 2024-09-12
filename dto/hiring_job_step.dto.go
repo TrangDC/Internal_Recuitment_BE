@@ -17,6 +17,17 @@ type HiringJobStepDto interface {
 type hiringJobStepDtoImpl struct {
 }
 
+var hiringJobStepFieldI18n = map[string]models.I18nFormat{
+	"Status": {
+		AuditTrail: "model.hiring_job_steps.status",
+		Email:      "Status",
+	},
+	"UserID": {
+		AuditTrail: "model.hiring_job_steps.user",
+		Email:      "Approver",
+	},
+}
+
 func NewHiringJobStepDto() HiringJobStepDto {
 	return &hiringJobStepDtoImpl{}
 }
@@ -157,11 +168,8 @@ func (d hiringJobStepDtoImpl) recordAuditUpdated(updIds []uuid.UUID, oldRecords 
 
 // common
 func (d hiringJobStepDtoImpl) formatFieldI18n(input string) string {
-	switch input {
-	case "Status":
-		return "model.hiring_job_steps.status"
-	case "UserID":
-		return "model.hiring_job_steps.user"
+	if v, ok := hiringJobStepFieldI18n[input]; ok {
+		return v.AuditTrail
 	}
 	return ""
 }

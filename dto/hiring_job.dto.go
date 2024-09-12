@@ -26,6 +26,77 @@ type hiringJobDtoImpl struct {
 	hiringJobStepDto HiringJobStepDto
 }
 
+var hiringJobFieldI18n = map[string]models.I18nFormat{
+	"Name": {
+		AuditTrail: "model.hiring_jobs.name",
+		Email:      "Name",
+	},
+	"Description": {
+		AuditTrail: "model.hiring_jobs.description",
+		Email:      "Job description",
+	},
+	"Amount": {
+		AuditTrail: "model.hiring_jobs.amount",
+		Email:      "Staff required",
+	},
+	"Location": {
+		AuditTrail: "model.hiring_jobs.location",
+		Email:      "Location",
+	},
+	"SalaryType": {
+		AuditTrail: "model.hiring_jobs.salary_type",
+		Email:      "Salary",
+	},
+	"SalaryFrom": {
+		AuditTrail: "model.hiring_jobs.salary_from",
+		Email:      "From",
+	},
+	"SalaryTo": {
+		AuditTrail: "model.hiring_jobs.salary_to",
+		Email:      "To",
+	},
+	"Currency": {
+		AuditTrail: "model.hiring_jobs.currency",
+		Email:      "Unit",
+	},
+	"HiringTeamID": {
+		AuditTrail: "model.hiring_jobs.hiring_team",
+		Email:      "Hiring team",
+	},
+	"CreatedBy": {
+		AuditTrail: "model.hiring_jobs.created_by",
+		Email:      "Requester",
+	},
+	"Status": {
+		AuditTrail: "model.hiring_jobs.status",
+		Email:      "Status",
+	},
+	"Priority": {
+		AuditTrail: "model.hiring_jobs.priority",
+		Email:      "Priority",
+	},
+	"JobPositionID": {
+		AuditTrail: "model.hiring_jobs.job_position",
+		Email:      "Job position",
+	},
+	"RecInChargeID": {
+		AuditTrail: "model.hiring_jobs.rec_in_charge",
+		Email:      "REC in charge",
+	},
+	"Level": {
+		AuditTrail: "model.hiring_jobs.level",
+		Email:      "Staff level",
+	},
+	"RecTeamID": {
+		AuditTrail: "model.hiring_jobs.rec_team",
+		Email:      "REC team",
+	},
+	"Note": {
+		AuditTrail: "model.hiring_jobs.note",
+		Email:      "Note",
+	},
+}
+
 func NewHiringJobDto() HiringJobDto {
 	return &hiringJobDtoImpl{
 		hiringJobStepDto: NewHiringJobStepDto(),
@@ -239,41 +310,8 @@ func (d hiringJobDtoImpl) skillAuditTrailUpdate(oldRecord *ent.HiringJob, newRec
 }
 
 func (d hiringJobDtoImpl) formatFieldI18n(input string) string {
-	switch input {
-	case "Name":
-		return "model.hiring_jobs.name"
-	case "Description":
-		return "model.hiring_jobs.description"
-	case "Amount":
-		return "model.hiring_jobs.amount"
-	case "Location":
-		return "model.hiring_jobs.location"
-	case "SalaryType":
-		return "model.hiring_jobs.salary_type"
-	case "SalaryFrom":
-		return "model.hiring_jobs.salary_from"
-	case "SalaryTo":
-		return "model.hiring_jobs.salary_to"
-	case "Currency":
-		return "model.hiring_jobs.currency"
-	case "HiringTeamID":
-		return "model.hiring_jobs.hiring_team"
-	case "CreatedBy":
-		return "model.hiring_jobs.created_by"
-	case "Status":
-		return "model.hiring_jobs.status"
-	case "Priority":
-		return "model.hiring_jobs.priority"
-	case "JobPositionID":
-		return "model.hiring_jobs.job_position"
-	case "RecInChargeID":
-		return "model.hiring_jobs.rec_in_charge"
-	case "Level":
-		return "model.hiring_jobs.level"
-	case "RecTeamID":
-		return "model.hiring_jobs.rec_team"
-	case "Note":
-		return "model.hiring_jobs.note"
+	if v, ok := hiringJobFieldI18n[input]; ok {
+		return v.AuditTrail
 	}
 	return ""
 }

@@ -216,6 +216,11 @@ func (r *queryResolver) SelectionEmailEvents(ctx context.Context) (*ent.EmailEve
 	return r.serviceRegistry.EmailEvent().Selections(ctx)
 }
 
+// SelectionEmailTemplateSendTos is the resolver for the SelectionEmailTemplateSendTos field.
+func (r *queryResolver) SelectionEmailTemplateSendTos(ctx context.Context, emailEventID string) (*ent.EmailTpSendToSelectionResponseGetAll, error) {
+	return r.serviceRegistry.EmailTemplate().SelectionEmailTemplateSendTos(ctx, uuid.MustParse(emailEventID))
+}
+
 // GetRole is the resolver for the GetRole field.
 func (r *queryResolver) GetRole(ctx context.Context, id string) (*ent.RoleResponse, error) {
 	return r.serviceRegistry.Role().GetRole(ctx, uuid.MustParse(id))
