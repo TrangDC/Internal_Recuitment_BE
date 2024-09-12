@@ -1,0 +1,12 @@
+type EmailEvent {
+  id: ID!
+  name: String!
+}
+
+type EmailEventSelectionResponseGetAll {
+  edges: [EmailEventSelectionEdge!]!
+}
+
+type EmailEventSelectionEdge {
+  node: EmailEvent!
+}

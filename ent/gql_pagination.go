@@ -24,6 +24,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/candidatenote"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -4569,6 +4570,237 @@ func (cn *CandidateNote) ToEdge(order *CandidateNoteOrder) *CandidateNoteEdge {
 	return &CandidateNoteEdge{
 		Node:   cn,
 		Cursor: order.Field.toCursor(cn),
+	}
+}
+
+// EmailEventEdge is the edge representation of EmailEvent.
+type EmailEventEdge struct {
+	Node   *EmailEvent `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// EmailEventConnection is the connection containing edges to EmailEvent.
+type EmailEventConnection struct {
+	Edges      []*EmailEventEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *EmailEventConnection) build(nodes []*EmailEvent, pager *emaileventPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *EmailEvent
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *EmailEvent {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *EmailEvent {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*EmailEventEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &EmailEventEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// EmailEventPaginateOption enables pagination customization.
+type EmailEventPaginateOption func(*emaileventPager) error
+
+// WithEmailEventOrder configures pagination ordering.
+func WithEmailEventOrder(order *EmailEventOrder) EmailEventPaginateOption {
+	if order == nil {
+		order = DefaultEmailEventOrder
+	}
+	o := *order
+	return func(pager *emaileventPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultEmailEventOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithEmailEventFilter configures pagination filter.
+func WithEmailEventFilter(filter func(*EmailEventQuery) (*EmailEventQuery, error)) EmailEventPaginateOption {
+	return func(pager *emaileventPager) error {
+		if filter == nil {
+			return errors.New("EmailEventQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type emaileventPager struct {
+	order  *EmailEventOrder
+	filter func(*EmailEventQuery) (*EmailEventQuery, error)
+}
+
+func newEmailEventPager(opts []EmailEventPaginateOption) (*emaileventPager, error) {
+	pager := &emaileventPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultEmailEventOrder
+	}
+	return pager, nil
+}
+
+func (p *emaileventPager) applyFilter(query *EmailEventQuery) (*EmailEventQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *emaileventPager) toCursor(ee *EmailEvent) Cursor {
+	return p.order.Field.toCursor(ee)
+}
+
+func (p *emaileventPager) applyCursors(query *EmailEventQuery, after, before *Cursor) *EmailEventQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultEmailEventOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *emaileventPager) applyOrder(query *EmailEventQuery, reverse bool) *EmailEventQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultEmailEventOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultEmailEventOrder.Field.field))
+	}
+	return query
+}
+
+func (p *emaileventPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultEmailEventOrder.Field {
+			b.Comma().Ident(DefaultEmailEventOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to EmailEvent.
+func (ee *EmailEventQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...EmailEventPaginateOption,
+) (*EmailEventConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newEmailEventPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ee, err = pager.applyFilter(ee); err != nil {
+		return nil, err
+	}
+	conn := &EmailEventConnection{Edges: []*EmailEventEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ee.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ee = pager.applyCursors(ee, after, before)
+	ee = pager.applyOrder(ee, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ee.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ee.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ee.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// EmailEventOrderField defines the ordering field of EmailEvent.
+type EmailEventOrderField struct {
+	field    string
+	toCursor func(*EmailEvent) Cursor
+}
+
+// EmailEventOrder defines the ordering of EmailEvent.
+type EmailEventOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *EmailEventOrderField `json:"field"`
+}
+
+// DefaultEmailEventOrder is the default ordering of EmailEvent.
+var DefaultEmailEventOrder = &EmailEventOrder{
+	Direction: OrderDirectionAsc,
+	Field: &EmailEventOrderField{
+		field: emailevent.FieldID,
+		toCursor: func(ee *EmailEvent) Cursor {
+			return Cursor{ID: ee.ID}
+		},
+	},
+}
+
+// ToEdge converts EmailEvent into EmailEventEdge.
+func (ee *EmailEvent) ToEdge(order *EmailEventOrder) *EmailEventEdge {
+	if order == nil {
+		order = DefaultEmailEventOrder
+	}
+	return &EmailEventEdge{
+		Node:   ee,
+		Cursor: order.Field.toCursor(ee),
 	}
 }
 

@@ -48,6 +48,9 @@ type CandidateJobStep func(*sql.Selector)
 // CandidateNote is the predicate function for candidatenote builders.
 type CandidateNote func(*sql.Selector)
 
+// EmailEvent is the predicate function for emailevent builders.
+type EmailEvent func(*sql.Selector)
+
 // EmailRoleAttribute is the predicate function for emailroleattribute builders.
 type EmailRoleAttribute func(*sql.Selector)
 

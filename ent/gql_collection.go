@@ -1552,6 +1552,49 @@ func newCandidateNotePaginateArgs(rv map[string]interface{}) *candidatenotePagin
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ee *EmailEventQuery) CollectFields(ctx context.Context, satisfies ...string) (*EmailEventQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ee, nil
+	}
+	if err := ee.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ee, nil
+}
+
+func (ee *EmailEventQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type emaileventPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []EmailEventPaginateOption
+}
+
+func newEmailEventPaginateArgs(rv map[string]interface{}) *emaileventPaginateArgs {
+	args := &emaileventPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (era *EmailRoleAttributeQuery) CollectFields(ctx context.Context, satisfies ...string) (*EmailRoleAttributeQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {

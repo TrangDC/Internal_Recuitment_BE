@@ -24,6 +24,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/candidatenote"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -83,6 +84,8 @@ type Client struct {
 	CandidateJobStep *CandidateJobStepClient
 	// CandidateNote is the client for interacting with the CandidateNote builders.
 	CandidateNote *CandidateNoteClient
+	// EmailEvent is the client for interacting with the EmailEvent builders.
+	EmailEvent *EmailEventClient
 	// EmailRoleAttribute is the client for interacting with the EmailRoleAttribute builders.
 	EmailRoleAttribute *EmailRoleAttributeClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
@@ -148,6 +151,7 @@ func (c *Client) init() {
 	c.CandidateJobFeedback = NewCandidateJobFeedbackClient(c.config)
 	c.CandidateJobStep = NewCandidateJobStepClient(c.config)
 	c.CandidateNote = NewCandidateNoteClient(c.config)
+	c.EmailEvent = NewEmailEventClient(c.config)
 	c.EmailRoleAttribute = NewEmailRoleAttributeClient(c.config)
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.EntityPermission = NewEntityPermissionClient(c.config)
@@ -214,6 +218,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		CandidateNote:        NewCandidateNoteClient(cfg),
+		EmailEvent:           NewEmailEventClient(cfg),
 		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
 		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
@@ -266,6 +271,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CandidateJobFeedback: NewCandidateJobFeedbackClient(cfg),
 		CandidateJobStep:     NewCandidateJobStepClient(cfg),
 		CandidateNote:        NewCandidateNoteClient(cfg),
+		EmailEvent:           NewEmailEventClient(cfg),
 		EmailRoleAttribute:   NewEmailRoleAttributeClient(cfg),
 		EmailTemplate:        NewEmailTemplateClient(cfg),
 		EntityPermission:     NewEntityPermissionClient(cfg),
@@ -327,6 +333,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CandidateJobFeedback.Use(hooks...)
 	c.CandidateJobStep.Use(hooks...)
 	c.CandidateNote.Use(hooks...)
+	c.EmailEvent.Use(hooks...)
 	c.EmailRoleAttribute.Use(hooks...)
 	c.EmailTemplate.Use(hooks...)
 	c.EntityPermission.Use(hooks...)
@@ -2454,6 +2461,96 @@ func (c *CandidateNoteClient) QueryAttachmentEdges(cn *CandidateNote) *Attachmen
 // Hooks returns the client hooks.
 func (c *CandidateNoteClient) Hooks() []Hook {
 	return c.hooks.CandidateNote
+}
+
+// EmailEventClient is a client for the EmailEvent schema.
+type EmailEventClient struct {
+	config
+}
+
+// NewEmailEventClient returns a client for the EmailEvent from the given config.
+func NewEmailEventClient(c config) *EmailEventClient {
+	return &EmailEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `emailevent.Hooks(f(g(h())))`.
+func (c *EmailEventClient) Use(hooks ...Hook) {
+	c.hooks.EmailEvent = append(c.hooks.EmailEvent, hooks...)
+}
+
+// Create returns a builder for creating a EmailEvent entity.
+func (c *EmailEventClient) Create() *EmailEventCreate {
+	mutation := newEmailEventMutation(c.config, OpCreate)
+	return &EmailEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmailEvent entities.
+func (c *EmailEventClient) CreateBulk(builders ...*EmailEventCreate) *EmailEventCreateBulk {
+	return &EmailEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmailEvent.
+func (c *EmailEventClient) Update() *EmailEventUpdate {
+	mutation := newEmailEventMutation(c.config, OpUpdate)
+	return &EmailEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmailEventClient) UpdateOne(ee *EmailEvent) *EmailEventUpdateOne {
+	mutation := newEmailEventMutation(c.config, OpUpdateOne, withEmailEvent(ee))
+	return &EmailEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmailEventClient) UpdateOneID(id uuid.UUID) *EmailEventUpdateOne {
+	mutation := newEmailEventMutation(c.config, OpUpdateOne, withEmailEventID(id))
+	return &EmailEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmailEvent.
+func (c *EmailEventClient) Delete() *EmailEventDelete {
+	mutation := newEmailEventMutation(c.config, OpDelete)
+	return &EmailEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmailEventClient) DeleteOne(ee *EmailEvent) *EmailEventDeleteOne {
+	return c.DeleteOneID(ee.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmailEventClient) DeleteOneID(id uuid.UUID) *EmailEventDeleteOne {
+	builder := c.Delete().Where(emailevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmailEventDeleteOne{builder}
+}
+
+// Query returns a query builder for EmailEvent.
+func (c *EmailEventClient) Query() *EmailEventQuery {
+	return &EmailEventQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a EmailEvent entity by its id.
+func (c *EmailEventClient) Get(ctx context.Context, id uuid.UUID) (*EmailEvent, error) {
+	return c.Query().Where(emailevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmailEventClient) GetX(ctx context.Context, id uuid.UUID) *EmailEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *EmailEventClient) Hooks() []Hook {
+	return c.hooks.EmailEvent
 }
 
 // EmailRoleAttributeClient is a client for the EmailRoleAttribute schema.

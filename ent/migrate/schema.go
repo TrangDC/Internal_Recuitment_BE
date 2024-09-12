@@ -499,6 +499,21 @@ var (
 			},
 		},
 	}
+	// EmailEventsColumns holds the columns for the "email_events" table.
+	EmailEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"interview", "application", "job_request"}},
+		{Name: "action", Type: field.TypeEnum, Enums: []string{"create", "update", "cancel", "cd_applied", "cd_interviewing", "cd_offering", "cd_failed_cv", "cd_failed_interview", "cd_offer_lost", "cd_hired", "close", "open", "reopen", "need_approval"}},
+		{Name: "name", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// EmailEventsTable holds the schema information for the "email_events" table.
+	EmailEventsTable = &schema.Table{
+		Name:       "email_events",
+		Columns:    EmailEventsColumns,
+		PrimaryKey: []*schema.Column{EmailEventsColumns[0]},
+	}
 	// EmailRoleAttributesColumns holds the columns for the "email_role_attributes" table.
 	EmailRoleAttributesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -1088,6 +1103,7 @@ var (
 		CandidateJobFeedbacksTable,
 		CandidateJobStepsTable,
 		CandidateNotesTable,
+		EmailEventsTable,
 		EmailRoleAttributesTable,
 		EmailTemplatesTable,
 		EntityPermissionsTable,

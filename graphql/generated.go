@@ -50,6 +50,7 @@ type ResolverRoot interface {
 	CandidateJobFeedback() CandidateJobFeedbackResolver
 	CandidateJobStep() CandidateJobStepResolver
 	CandidateNote() CandidateNoteResolver
+	EmailEvent() EmailEventResolver
 	EmailTemplate() EmailTemplateResolver
 	EntityPermission() EntityPermissionResolver
 	HiringJob() HiringJobResolver
@@ -500,6 +501,19 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	EmailEvent struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	EmailEventSelectionEdge struct {
+		Node func(childComplexity int) int
+	}
+
+	EmailEventSelectionResponseGetAll struct {
+		Edges func(childComplexity int) int
+	}
+
 	EmailTemplate struct {
 		Bcc       func(childComplexity int) int
 		Cc        func(childComplexity int) int
@@ -934,6 +948,7 @@ type ComplexityRoot struct {
 		ReportHiredApplication                        func(childComplexity int, filter ent.ReportFilter) int
 		ReportProcessingApplication                   func(childComplexity int, filter ent.ReportFilter) int
 		SelectionCandidates                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
+		SelectionEmailEvents                          func(childComplexity int) int
 		SelectionHiringJobs                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
 		SelectionHiringTeams                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		SelectionJobPositions                         func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
@@ -1399,6 +1414,9 @@ type CandidateNoteResolver interface {
 	Attachments(ctx context.Context, obj *ent.CandidateNote) ([]*ent.Attachment, error)
 	Edited(ctx context.Context, obj *ent.CandidateNote) (bool, error)
 }
+type EmailEventResolver interface {
+	ID(ctx context.Context, obj *ent.EmailEvent) (string, error)
+}
 type EmailTemplateResolver interface {
 	ID(ctx context.Context, obj *ent.EmailTemplate) (string, error)
 	Event(ctx context.Context, obj *ent.EmailTemplate) (ent.EmailTemplateEvent, error)
@@ -1580,6 +1598,7 @@ type QueryResolver interface {
 	SelectionSkills(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillFilter, freeWord *ent.SkillFreeWord, orderBy *ent.SkillOrder) (*ent.SkillSelectionResponseGetAll, error)
 	SelectionSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeSelectionResponseGetAll, error)
 	SelectionRole(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleSelectionResponseGetAll, error)
+	SelectionEmailEvents(ctx context.Context) (*ent.EmailEventSelectionResponseGetAll, error)
 	GetRole(ctx context.Context, id string) (*ent.RoleResponse, error)
 	GetAllRoles(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleResponseGetAll, error)
 	GetEmailTemplate(ctx context.Context, id string) (*ent.EmailTemplateResponse, error)
@@ -3494,6 +3513,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CandidateSelectionResponseGetAll.Pagination(childComplexity), true
+
+	case "EmailEvent.id":
+		if e.complexity.EmailEvent.ID == nil {
+			break
+		}
+
+		return e.complexity.EmailEvent.ID(childComplexity), true
+
+	case "EmailEvent.name":
+		if e.complexity.EmailEvent.Name == nil {
+			break
+		}
+
+		return e.complexity.EmailEvent.Name(childComplexity), true
+
+	case "EmailEventSelectionEdge.node":
+		if e.complexity.EmailEventSelectionEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.EmailEventSelectionEdge.Node(childComplexity), true
+
+	case "EmailEventSelectionResponseGetAll.edges":
+		if e.complexity.EmailEventSelectionResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.EmailEventSelectionResponseGetAll.Edges(childComplexity), true
 
 	case "EmailTemplate.bcc":
 		if e.complexity.EmailTemplate.Bcc == nil {
@@ -6079,6 +6126,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SelectionCandidates(childComplexity, args["pagination"].(*ent.PaginationInput), args["filter"].(*ent.CandidateFilter), args["freeWord"].(*ent.CandidateFreeWord), args["orderBy"].(*ent.CandidateOrder)), true
 
+	case "Query.SelectionEmailEvents":
+		if e.complexity.Query.SelectionEmailEvents == nil {
+			break
+		}
+
+		return e.complexity.Query.SelectionEmailEvents(childComplexity), true
+
 	case "Query.SelectionHiringJobs":
 		if e.complexity.Query.SelectionHiringJobs == nil {
 			break
@@ -8629,6 +8683,18 @@ enum EmailTemplateEvent {
   cancel_interview
 }
 `, BuiltIn: false},
+	{Name: "../schema/email_event.graphql", Input: `type EmailEvent {
+  id: ID!
+  name: String!
+}
+
+type EmailEventSelectionResponseGetAll {
+  edges: [EmailEventSelectionEdge!]!
+}
+
+type EmailEventSelectionEdge {
+  node: EmailEvent!
+}`, BuiltIn: false},
 	{Name: "../schema/email_template.graphql", Input: `enum EmailTemplateApplicationEventEnum {
   candidate_applied_to_kiv
   candidate_interviewing_to_kiv
@@ -9431,7 +9497,7 @@ enum PermissionGroupType {
   SelectionSkills(pagination: PaginationInput, filter: SkillFilter, freeWord: SkillFreeWord, orderBy: SkillOrder): SkillSelectionResponseGetAll!
   SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
   SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
-
+  SelectionEmailEvents: EmailEventSelectionResponseGetAll!
   # Role
   GetRole(id: ID!): RoleResponse!
   GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
@@ -26872,6 +26938,192 @@ func (ec *executionContext) fieldContext_CandidateSelectionResponseGetAll_pagina
 	return fc, nil
 }
 
+func (ec *executionContext) _EmailEvent_id(ctx context.Context, field graphql.CollectedField, obj *ent.EmailEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailEvent_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EmailEvent().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailEvent_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailEvent",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EmailEvent_name(ctx context.Context, field graphql.CollectedField, obj *ent.EmailEvent) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailEvent_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailEvent_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EmailEventSelectionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EmailEventSelectionEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailEventSelectionEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EmailEvent)
+	fc.Result = res
+	return ec.marshalNEmailEvent2ᚖtrecᚋentᚐEmailEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailEventSelectionEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailEventSelectionEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EmailEvent_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EmailEvent_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailEvent", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EmailEventSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EmailEventSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailEventSelectionResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.EmailEventSelectionEdge)
+	fc.Result = res
+	return ec.marshalNEmailEventSelectionEdge2ᚕᚖtrecᚋentᚐEmailEventSelectionEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailEventSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailEventSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_EmailEventSelectionEdge_node(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailEventSelectionEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EmailTemplate_id(ctx context.Context, field graphql.CollectedField, obj *ent.EmailTemplate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EmailTemplate_id(ctx, field)
 	if err != nil {
@@ -41608,6 +41860,54 @@ func (ec *executionContext) fieldContext_Query_SelectionRole(ctx context.Context
 	if fc.Args, err = ec.field_Query_SelectionRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_SelectionEmailEvents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_SelectionEmailEvents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SelectionEmailEvents(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EmailEventSelectionResponseGetAll)
+	fc.Result = res
+	return ec.marshalNEmailEventSelectionResponseGetAll2ᚖtrecᚋentᚐEmailEventSelectionResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_SelectionEmailEvents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_EmailEventSelectionResponseGetAll_edges(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailEventSelectionResponseGetAll", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -62433,6 +62733,110 @@ func (ec *executionContext) _CandidateSelectionResponseGetAll(ctx context.Contex
 	return out
 }
 
+var emailEventImplementors = []string{"EmailEvent"}
+
+func (ec *executionContext) _EmailEvent(ctx context.Context, sel ast.SelectionSet, obj *ent.EmailEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, emailEventImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EmailEvent")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EmailEvent_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "name":
+
+			out.Values[i] = ec._EmailEvent_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var emailEventSelectionEdgeImplementors = []string{"EmailEventSelectionEdge"}
+
+func (ec *executionContext) _EmailEventSelectionEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EmailEventSelectionEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, emailEventSelectionEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EmailEventSelectionEdge")
+		case "node":
+
+			out.Values[i] = ec._EmailEventSelectionEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var emailEventSelectionResponseGetAllImplementors = []string{"EmailEventSelectionResponseGetAll"}
+
+func (ec *executionContext) _EmailEventSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.EmailEventSelectionResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, emailEventSelectionResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EmailEventSelectionResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._EmailEventSelectionResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var emailTemplateImplementors = []string{"EmailTemplate"}
 
 func (ec *executionContext) _EmailTemplate(ctx context.Context, sel ast.SelectionSet, obj *ent.EmailTemplate) graphql.Marshaler {
@@ -66654,6 +67058,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_SelectionRole(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "SelectionEmailEvents":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_SelectionEmailEvents(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -71462,6 +71889,84 @@ func (ec *executionContext) unmarshalNCursor2trecᚋentᚐCursor(ctx context.Con
 
 func (ec *executionContext) marshalNCursor2trecᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNEmailEvent2ᚖtrecᚋentᚐEmailEvent(ctx context.Context, sel ast.SelectionSet, v *ent.EmailEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EmailEvent(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEmailEventSelectionEdge2ᚕᚖtrecᚋentᚐEmailEventSelectionEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EmailEventSelectionEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEmailEventSelectionEdge2ᚖtrecᚋentᚐEmailEventSelectionEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNEmailEventSelectionEdge2ᚖtrecᚋentᚐEmailEventSelectionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EmailEventSelectionEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EmailEventSelectionEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEmailEventSelectionResponseGetAll2trecᚋentᚐEmailEventSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.EmailEventSelectionResponseGetAll) graphql.Marshaler {
+	return ec._EmailEventSelectionResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEmailEventSelectionResponseGetAll2ᚖtrecᚋentᚐEmailEventSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.EmailEventSelectionResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EmailEventSelectionResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEmailTemplate2ᚖtrecᚋentᚐEmailTemplate(ctx context.Context, sel ast.SelectionSet, v *ent.EmailTemplate) graphql.Marshaler {

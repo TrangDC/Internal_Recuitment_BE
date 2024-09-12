@@ -43,6 +43,7 @@ type Service interface {
 	CandidateNote() CandidateNoteService
 	HiringJobStep() HiringJobStepService
 	CandidateActivity() CandidateActivityService
+	EmailEvent() EmailEventService
 }
 
 // serviceImpl is the implementation of Service.
@@ -75,6 +76,7 @@ type serviceImpl struct {
 	candidateNoteService        CandidateNoteService
 	hiringJobStepService        HiringJobStepService
 	candidateActivity           CandidateActivityService
+	emailEventService           EmailEventService
 }
 
 // NewService creates a new Service.
@@ -111,6 +113,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		candidateNoteService:        NewCandidateNoteService(repoRegistry, dtoRegistry, logger),
 		hiringJobStepService:        NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
 		candidateActivity:           NewCandidateActivityService(repoRegistry, logger),
+		emailEventService:           NewEmailEventService(repoRegistry, logger),
 	}
 }
 
@@ -238,4 +241,8 @@ func (i serviceImpl) HiringJobStep() HiringJobStepService {
 
 func (i serviceImpl) CandidateActivity() CandidateActivityService {
 	return i.candidateActivity
+}
+
+func (i serviceImpl) EmailEvent() EmailEventService {
+	return i.emailEventService
 }
