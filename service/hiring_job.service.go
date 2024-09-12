@@ -68,7 +68,7 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
-	if !svc.validPermissionCreate(payload, hiringTeam) {
+	if !svc.validPermissionCreate(payload, hiringTeam, uuid.MustParse(input.CreatedBy)) {
 		return nil, util.WrapGQLError(ctx, "Permission Denied", http.StatusForbidden, util.ErrorFlagPermissionDenied)
 	}
 	errString, err := svc.repoRegistry.HiringJob().ValidName(ctx, uuid.Nil, input.Name, input.HiringTeamID)
@@ -681,11 +681,12 @@ func (svc hiringJobSvcImpl) validPermissionGet(payload *middleware.Payload, quer
 	))
 }
 
-func (svc hiringJobSvcImpl) validPermissionCreate(payload *middleware.Payload, hiringTeam *ent.HiringTeam) bool {
+func (svc hiringJobSvcImpl) validPermissionCreate(payload *middleware.Payload, hiringTeam *ent.HiringTeam, createdBy uuid.UUID) bool {
 	if payload.ForAll {
 		return true
 	}
-	return lo.ContainsBy(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User) bool { return item.ID == payload.UserID })
+	userInHiringTeam := lo.ContainsBy(hiringTeam.Edges.HiringMemberEdges, func(item *ent.User) bool { return item.ID == payload.UserID })
+	return payload.UserID == createdBy || (payload.ForTeam && userInHiringTeam)
 }
 
 func (svc hiringJobSvcImpl) validPermissionUpdateStatus(payload *middleware.Payload, currentUser, jobCreator *ent.User, recInChargeID, jobHiringTeamID, jobRecTeamID uuid.UUID) bool {

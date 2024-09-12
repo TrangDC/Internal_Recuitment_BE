@@ -8985,6 +8985,7 @@ input UpdateHiringJobInput {
   salary_to: Int!
   currency: CurrencyEnum!
   hiring_team_id: ID!
+  created_by: ID!
   rec_team_id: ID!
   rec_in_charge_id: ID!
   priority: Int!
@@ -58273,7 +58274,7 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "rec_team_id", "rec_in_charge_id", "priority", "entity_skill_records", "job_position_id", "level", "note"}
+	fieldsInOrder := [...]string{"name", "description", "amount", "location", "salary_type", "salary_from", "salary_to", "currency", "hiring_team_id", "created_by", "rec_team_id", "rec_in_charge_id", "priority", "entity_skill_records", "job_position_id", "level", "note"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -58349,6 +58350,14 @@ func (ec *executionContext) unmarshalInputUpdateHiringJobInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hiring_team_id"))
 			it.HiringTeamID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "created_by":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
+			it.CreatedBy, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
