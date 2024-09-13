@@ -23,19 +23,6 @@ type ApplicationReportFailReason struct {
 	Others                   int `json:"others"`
 }
 
-type ApplicationReportProcessing struct {
-	InviteToInterview int `json:"invite_to_interview"`
-	Interviewing      int `json:"interviewing"`
-	Done              int `json:"done"`
-	Cancelled         int `json:"cancelled"`
-}
-
-type ApplicationReportTable struct {
-	Processing  *ApplicationReportProcessing `json:"processing"`
-	Kiv         *ApplicationReportFailReason `json:"kiv"`
-	OfferedLost *ApplicationReportFailReason `json:"offered_lost"`
-}
-
 type AttachmentInput struct {
 	ID       string           `json:"id"`
 	Folder   AttachmentFolder `json:"folder"`
@@ -129,12 +116,13 @@ type CandidateCertificateInput struct {
 }
 
 type CandidateConversionRateReport struct {
-	ID             string `json:"id"`
-	HiringTeamName string `json:"hiring_team_name"`
-	Applied        int    `json:"applied"`
-	Interviewing   int    `json:"interviewing"`
-	Offering       int    `json:"offering"`
-	Hired          int    `json:"hired"`
+	ID              string `json:"id"`
+	HiringTeamName  string `json:"hiring_team_name"`
+	JobPositionName string `json:"job_position_name"`
+	Applied         int    `json:"applied"`
+	Interviewing    int    `json:"interviewing"`
+	Offering        int    `json:"offering"`
+	Hired           int    `json:"hired"`
 }
 
 type CandidateConversionRateReportEdge struct {
@@ -919,24 +907,21 @@ type RecruitmentReportResponse struct {
 }
 
 type ReportApplication struct {
-	FromDate     time.Time `json:"from_date"`
-	ToDate       time.Time `json:"to_date"`
-	Applied      int       `json:"applied"`
-	Interviewing int       `json:"interviewing"`
-	Offering     int       `json:"offering"`
-	Hired        int       `json:"hired"`
-	Kiv          int       `json:"kiv"`
-	OfferLost    int       `json:"offer_lost"`
-	ExStaff      int       `json:"ex_staff"`
+	FromDate        time.Time `json:"from_date"`
+	ToDate          time.Time `json:"to_date"`
+	Applied         int       `json:"applied"`
+	Interviewing    int       `json:"interviewing"`
+	Offering        int       `json:"offering"`
+	Hired           int       `json:"hired"`
+	FailedCv        int       `json:"failed_cv"`
+	FailedInterview int       `json:"failed_interview"`
+	OfferLost       int       `json:"offer_lost"`
+	ExStaff         int       `json:"ex_staff"`
 }
 
 type ReportApplicationEdge struct {
 	Node   []*ReportApplication `json:"node"`
 	Cursor Cursor               `json:"cursor"`
-}
-
-type ReportApplicationReportTableResponse struct {
-	Data *ApplicationReportTable `json:"data"`
 }
 
 type ReportApplicationResponse struct {
@@ -972,10 +957,40 @@ type ReportCandidateLCCResponse struct {
 	Data *ReportCandidateLcc `json:"data"`
 }
 
+type ReportFailedApplication struct {
+	FailedCv        *ApplicationReportFailReason `json:"failed_cv"`
+	FailedInterview *ApplicationReportFailReason `json:"failed_interview"`
+	OfferLost       *ApplicationReportFailReason `json:"offer_lost"`
+}
+
+type ReportFailedApplicationResponse struct {
+	Data *ReportFailedApplication `json:"data"`
+}
+
 type ReportFilter struct {
+	HiringTeamID *string            `json:"hiring_team_id"`
 	FilterPeriod ReportFilterPeriod `json:"filter_period"`
 	FromDate     time.Time          `json:"from_date"`
 	ToDate       time.Time          `json:"to_date"`
+}
+
+type ReportHiredApplication struct {
+	JobPositionName string `json:"job_position_name"`
+	Intern          int    `json:"intern"`
+	Fresher         int    `json:"fresher"`
+	Junior          int    `json:"junior"`
+	Middle          int    `json:"middle"`
+	Senior          int    `json:"senior"`
+	Manager         int    `json:"manager"`
+	Director        int    `json:"director"`
+}
+
+type ReportHiredApplicationEdge struct {
+	Node *ReportHiredApplication `json:"node"`
+}
+
+type ReportHiredApplicationResponse struct {
+	Edges []*ReportHiredApplicationEdge `json:"edges"`
 }
 
 type ReportNumberByType struct {
@@ -986,6 +1001,21 @@ type ReportNumberByType struct {
 type ReportOrderBy struct {
 	Direction OrderDirection     `json:"direction"`
 	Field     ReportOrderByField `json:"field"`
+}
+
+type ReportProcessingApplication struct {
+	FromDate        time.Time `json:"from_date"`
+	ToDate          time.Time `json:"to_date"`
+	ActualInterview int       `json:"actual_interview"`
+	Cancel          int       `json:"cancel"`
+}
+
+type ReportProcessingApplicationEdge struct {
+	Node *ReportProcessingApplication `json:"node"`
+}
+
+type ReportProcessingApplicationResponse struct {
+	Edges []*ReportProcessingApplicationEdge `json:"edges"`
 }
 
 type ReportRecruitment struct {
@@ -3372,18 +3402,22 @@ func (e ReportFilterPeriod) MarshalGQL(w io.Writer) {
 type ReportOrderByField string
 
 const (
-	ReportOrderByFieldHiringTeamName      ReportOrderByField = "hiring_team_name"
-	ReportOrderByFieldHiringTeamCreatedAt ReportOrderByField = "hiring_team_created_at"
+	ReportOrderByFieldHiringTeamName       ReportOrderByField = "hiring_team_name"
+	ReportOrderByFieldHiringTeamCreatedAt  ReportOrderByField = "hiring_team_created_at"
+	ReportOrderByFieldJobPositionName      ReportOrderByField = "job_position_name"
+	ReportOrderByFieldJobPositionCreatedAt ReportOrderByField = "job_position_created_at"
 )
 
 var AllReportOrderByField = []ReportOrderByField{
 	ReportOrderByFieldHiringTeamName,
 	ReportOrderByFieldHiringTeamCreatedAt,
+	ReportOrderByFieldJobPositionName,
+	ReportOrderByFieldJobPositionCreatedAt,
 }
 
 func (e ReportOrderByField) IsValid() bool {
 	switch e {
-	case ReportOrderByFieldHiringTeamName, ReportOrderByFieldHiringTeamCreatedAt:
+	case ReportOrderByFieldHiringTeamName, ReportOrderByFieldHiringTeamCreatedAt, ReportOrderByFieldJobPositionName, ReportOrderByFieldJobPositionCreatedAt:
 		return true
 	}
 	return false

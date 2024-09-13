@@ -20,6 +20,7 @@ type JobPositionRepository interface {
 
 	// query
 	GetJobPosition(ctx context.Context, id uuid.UUID) (*ent.JobPosition, error)
+	BuildBaseQuery() *ent.JobPositionQuery
 	BuildQuery() *ent.JobPositionQuery
 	BuildCount(ctx context.Context, query *ent.JobPositionQuery) (int, error)
 	BuildList(ctx context.Context, query *ent.JobPositionQuery) ([]*ent.JobPosition, error)
@@ -41,6 +42,10 @@ func NewJobPositionRepository(client *ent.Client) JobPositionRepository {
 // base function
 func (rps *jobPositionRepoImpl) BuildCreate() *ent.JobPositionCreate {
 	return rps.client.JobPosition.Create().SetUpdatedAt(time.Now().UTC()).SetCreatedAt(time.Now().UTC())
+}
+
+func (rps *jobPositionRepoImpl) BuildBaseQuery() *ent.JobPositionQuery {
+	return rps.client.JobPosition.Query().Where(jobposition.DeletedAtIsNil())
 }
 
 func (rps *jobPositionRepoImpl) BuildQuery() *ent.JobPositionQuery {

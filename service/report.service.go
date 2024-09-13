@@ -3,27 +3,36 @@ package service
 import (
 	"context"
 	"net/http"
+	"time"
 	"trec/ent"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/candidatejobstep"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
+	"trec/ent/jobposition"
+	"trec/ent/predicate"
 	"trec/internal/util"
 	"trec/repository"
 
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
 type ReportService interface {
+	// Candidate report
 	ReportCandidateLCC(ctx context.Context) (*ent.ReportCandidateLCCResponse, error)
 	ReportCandidateColumnChart(ctx context.Context, filter ent.ReportFilter) (*ent.ReportCandidateColumnChartResponse, error)
+	// Application report
 	ReportApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationResponse, error)
-	ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error)
+	ReportProcessingApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportProcessingApplicationResponse, error)
+	ReportFailedApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportFailedApplicationResponse, error)
+	ReportHiredApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportHiredApplicationResponse, error)
+	// Candidate conversion rate report
 	ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error)
-	ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
+	ReportCdConvRateByHiringTeam(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
+	ReportCdConvRateByJobPosition(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error)
 }
 
 type reportSvcImpl struct {
@@ -39,7 +48,7 @@ func NewReportService(repoRegistry repository.Repository, logger *zap.Logger) Re
 }
 
 func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context) (*ent.ReportCandidateConversionRateChartResponse, error) {
-	result, err := svc.repoRegistry.Report().CandidateJobConversion(ctx, nil, uuid.Nil, "")
+	result, err := svc.repoRegistry.Report().CandidateJobConversion(ctx, uuid.Nil, uuid.Nil)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
@@ -48,7 +57,7 @@ func (svc reportSvcImpl) ReportCandidateConversionRateChart(ctx context.Context)
 		Data: result}, nil
 }
 
-func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
+func (svc reportSvcImpl) ReportCdConvRateByHiringTeam(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
 	var (
 		page    int
 		perPage int
@@ -61,10 +70,6 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 					cjQ.Where(candidatejob.DeletedAtIsNil())
 				})
 		})
-	if pagination != nil {
-		page = *pagination.Page
-		perPage = *pagination.PerPage
-	}
 	count, err := svc.repoRegistry.HiringTeam().BuildCount(ctx, query)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -82,6 +87,10 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		}
 	}
 	query = query.Order(orderFunc)
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+	}
 	if perPage != 0 && page != 0 {
 		query = query.Limit(perPage).Offset((page - 1) * perPage)
 	}
@@ -91,31 +100,13 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	for _, team := range hiringTeams {
-		result := &ent.CandidateConversionRateReport{
-			ID:             team.ID.String(),
-			HiringTeamName: team.Name,
-			Applied:        0,
-			Interviewing:   0,
-			Offering:       0,
-			Hired:          0,
+		result, err := svc.repoRegistry.Report().CandidateJobConversion(ctx, team.ID, uuid.Nil)
+		if err != nil {
+			svc.logger.Error(err.Error(), zap.Error(err))
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 		}
-		if len(team.Edges.HiringTeamJobEdges) > 0 {
-			candidateJobIds := lo.Flatten(lo.Map(lo.Map(team.Edges.HiringTeamJobEdges, func(hrj *ent.HiringJob, _ int) *ent.HiringJob {
-				return hrj
-			}), func(hrj *ent.HiringJob, _ int) []uuid.UUID {
-				return lo.Map(hrj.Edges.CandidateJobEdges, func(cj *ent.CandidateJob, _ int) uuid.UUID {
-					return cj.ID
-				})
-			}))
-			result, err = svc.repoRegistry.Report().CandidateJobConversion(ctx, candidateJobIds, team.ID, team.Name)
-			if err != nil {
-				svc.logger.Error(err.Error(), zap.Error(err))
-				return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
-			}
-		}
-		results = append(results, &ent.CandidateConversionRateReportEdge{
-			Node: result,
-		})
+		result.HiringTeamName = team.Name
+		results = append(results, &ent.CandidateConversionRateReportEdge{Node: result})
 	}
 	return &ent.ReportCandidateConversionRateTableResponse{
 		Edges: results,
@@ -126,22 +117,61 @@ func (svc reportSvcImpl) ReportCandidateConversionRateTable(ctx context.Context,
 		}}, nil
 }
 
-func (svc reportSvcImpl) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
-	processingResult, err := svc.getApplicationProcessing(ctx, filter)
+func (svc *reportSvcImpl) ReportCdConvRateByJobPosition(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
+	results := make([]*ent.CandidateConversionRateReportEdge, 0)
+	query := svc.repoRegistry.JobPosition().BuildBaseQuery().
+		WithHiringJobPositionEdges(func(query *ent.HiringJobQuery) {
+			query.Where(hiringjob.DeletedAtIsNil()).
+				WithCandidateJobEdges(func(query *ent.CandidateJobQuery) {
+					query.Where(candidatejob.DeletedAtIsNil())
+				})
+		})
+	count, err := svc.repoRegistry.JobPosition().BuildCount(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	failOfferLostResult, err := svc.repoRegistry.Report().GetApplicationFail(ctx, filter, candidatejob.StatusOfferLost)
+	orderFunc := ent.Desc(jobposition.FieldCreatedAt)
+	if orderBy != nil {
+		orderField := jobposition.FieldCreatedAt
+		if orderBy.Field == ent.ReportOrderByFieldJobPositionName {
+			orderField = jobposition.FieldName
+		}
+		orderFunc = ent.Desc(orderField)
+		if orderBy.Direction == ent.OrderDirectionAsc {
+			orderFunc = ent.Asc(orderField)
+		}
+	}
+	query = query.Order(orderFunc)
+	page, perPage := 0, 0
+	if pagination != nil {
+		page = *pagination.Page
+		perPage = *pagination.PerPage
+	}
+	if perPage > 0 && page > 0 {
+		query = query.Limit(perPage).Offset((page - 1) * perPage)
+	}
+	jobPositions, err := svc.repoRegistry.JobPosition().BuildList(ctx, query)
 	if err != nil {
-		svc.logger.Error(err.Error(), zap.Error(err))
+		svc.logger.Error(err.Error())
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	return &ent.ReportApplicationReportTableResponse{
-		Data: &ent.ApplicationReportTable{
-			Processing:  &processingResult,
-			Kiv:         &ent.ApplicationReportFailReason{},
-			OfferedLost: &failOfferLostResult,
+
+	for _, position := range jobPositions {
+		result, err := svc.repoRegistry.Report().CandidateJobConversion(ctx, uuid.Nil, position.ID)
+		if err != nil {
+			svc.logger.Error(err.Error())
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+		result.JobPositionName = position.Name
+		results = append(results, &ent.CandidateConversionRateReportEdge{Node: result})
+	}
+	return &ent.ReportCandidateConversionRateTableResponse{
+		Edges: results,
+		Pagination: &ent.Pagination{
+			Page:    page,
+			PerPage: perPage,
+			Total:   count,
 		}}, nil
 }
 
@@ -246,7 +276,7 @@ func (svc reportSvcImpl) ReportApplication(ctx context.Context, filter ent.Repor
 		if filterFormDate.Gt(toDate) {
 			break
 		}
-		entity, err := svc.repoRegistry.Report().ReportApplication(ctx, filterFormDate, filterEndDate)
+		entity, err := svc.repoRegistry.Report().ReportApplication(ctx, filterFormDate, filterEndDate, filter.HiringTeamID)
 		if err != nil {
 			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 		}
@@ -257,16 +287,140 @@ func (svc reportSvcImpl) ReportApplication(ctx context.Context, filter ent.Repor
 	}, nil
 }
 
-// common
-func (svc reportSvcImpl) getApplicationProcessing(ctx context.Context, filter ent.ReportFilter) (ent.ApplicationReportProcessing, error) {
-	result := ent.ApplicationReportProcessing{}
-	processingCandidateJobIDs, err := svc.repoRegistry.CandidateJob().BuildIDList(
+func (svc *reportSvcImpl) ReportProcessingApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportProcessingApplicationResponse, error) {
+	result := make([]*ent.ReportProcessingApplicationEdge, 0)
+	fromDate, toDate, err := svc.repoRegistry.Report().ValidTimeSelect(filter)
+	if err != nil {
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	}
+	for i := 0; i < 12; i++ {
+		filterFormDate := fromDate
+		filterEndDate := fromDate
+		switch filter.FilterPeriod {
+		case ent.ReportFilterPeriodWeek:
+			filterFormDate = fromDate.AddWeeks(i)
+			filterEndDate = filterFormDate.EndOfWeek()
+		case ent.ReportFilterPeriodMonth:
+			filterFormDate = fromDate.AddMonths(i)
+			filterEndDate = filterFormDate.EndOfMonth()
+		case ent.ReportFilterPeriodQuarter:
+			filterFormDate = fromDate.AddQuarters(i)
+			filterEndDate = filterFormDate.EndOfQuarter()
+		case ent.ReportFilterPeriodYear:
+			filterFormDate = fromDate.AddYears(i)
+			filterEndDate = filterFormDate.EndOfYear()
+		}
+		if filterFormDate.Gt(toDate) {
+			break
+		}
+		entity, err := svc.getApplicationProcessing(ctx, filterFormDate, filterEndDate, filter.HiringTeamID)
+		if err != nil {
+			return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+		}
+		result = append(result, &ent.ReportProcessingApplicationEdge{Node: entity})
+	}
+	return &ent.ReportProcessingApplicationResponse{Edges: result}, nil
+}
+
+func (svc *reportSvcImpl) ReportFailedApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportFailedApplicationResponse, error) {
+	result := &ent.ReportFailedApplicationResponse{
+		Data: &ent.ReportFailedApplication{
+			FailedCv:        &ent.ApplicationReportFailReason{},
+			FailedInterview: &ent.ApplicationReportFailReason{},
+			OfferLost:       &ent.ApplicationReportFailReason{},
+		},
+	}
+	var err error
+	result.Data.FailedCv, err = svc.repoRegistry.Report().GetApplicationFail(ctx, filter, candidatejob.StatusFailedCv)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result.Data.FailedInterview, err = svc.repoRegistry.Report().GetApplicationFail(ctx, filter, candidatejob.StatusFailedInterview)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	result.Data.OfferLost, err = svc.repoRegistry.Report().GetApplicationFail(ctx, filter, candidatejob.StatusOfferLost)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	return result, nil
+}
+
+func (svc *reportSvcImpl) ReportHiredApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportHiredApplicationResponse, error) {
+	jobPositions, err := svc.repoRegistry.JobPosition().BuildList(
 		ctx,
-		svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(
-			candidatejob.StatusIn(candidatejob.StatusApplied, candidatejob.StatusInterviewing),
-			candidatejob.CreatedAtGTE(filter.FromDate), candidatejob.CreatedAtLTE(filter.ToDate),
-		),
+		svc.repoRegistry.JobPosition().BuildBaseQuery().
+			WithHiringJobPositionEdges(func(query *ent.HiringJobQuery) {
+				query.Where(hiringjob.DeletedAtIsNil())
+				if filter.HiringTeamID != nil {
+					query.Where(hiringjob.HiringTeamID(uuid.MustParse(*filter.HiringTeamID)))
+				}
+				query.WithCandidateJobEdges(func(query *ent.CandidateJobQuery) {
+					query.Where(
+						candidatejob.DeletedAtIsNil(), candidatejob.StatusIn(candidatejob.StatusHired, candidatejob.StatusExStaff),
+						candidatejob.HasCandidateJobStepWith(
+							candidatejobstep.CandidateJobStatusEQ(candidatejobstep.CandidateJobStatusHired),
+							candidatejobstep.CreatedAtGTE(filter.FromDate), candidatejobstep.CreatedAtLTE(filter.ToDate),
+						),
+					)
+				})
+			}).
+			Order(ent.Asc(jobposition.FieldName)),
 	)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
+	}
+	edges := make([]*ent.ReportHiredApplicationEdge, 0)
+	for _, pos := range jobPositions {
+		node := &ent.ReportHiredApplication{
+			JobPositionName: pos.Name,
+		}
+		for _, job := range pos.Edges.HiringJobPositionEdges {
+			switch job.Level {
+			case hiringjob.LevelIntern:
+				node.Intern += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelFresher:
+				node.Fresher += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelJunior:
+				node.Junior += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelMiddle:
+				node.Middle += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelSenior:
+				node.Senior += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelManager:
+				node.Manager += len(job.Edges.CandidateJobEdges)
+			case hiringjob.LevelDirector:
+				node.Director += len(job.Edges.CandidateJobEdges)
+			}
+		}
+		edges = append(edges, &ent.ReportHiredApplicationEdge{Node: node})
+	}
+	return &ent.ReportHiredApplicationResponse{Edges: edges}, nil
+}
+
+// common
+func (svc reportSvcImpl) getApplicationProcessing(ctx context.Context, fromDate, toDate carbon.Carbon, hiringTeamIDStr *string) (*ent.ReportProcessingApplication, error) {
+	utc, _ := time.LoadLocation(carbon.UTC)
+	stdFromDate := fromDate.SetLocation(utc).StdTime()
+	stdToDate := toDate.SetLocation(utc).StdTime()
+	result := &ent.ReportProcessingApplication{
+		FromDate:        stdFromDate,
+		ToDate:          stdToDate,
+		ActualInterview: 0,
+		Cancel:          0,
+	}
+	predicates := []predicate.CandidateJob{
+		candidatejob.StatusEQ(candidatejob.StatusInterviewing),
+		candidatejob.CreatedAtGTE(stdFromDate), candidatejob.CreatedAtLTE(stdToDate),
+	}
+	if hiringTeamIDStr != nil {
+		predicates = append(predicates, candidatejob.HasHiringJobEdgeWith(hiringjob.HiringTeamID(uuid.MustParse(*hiringTeamIDStr))))
+	}
+	processingCandidateJobIDs, err := svc.repoRegistry.CandidateJob().BuildIDList(ctx, svc.repoRegistry.CandidateJob().BuildBaseQuery().Where(predicates...))
 	if err != nil {
 		return result, err
 	}
@@ -276,14 +430,10 @@ func (svc reportSvcImpl) getApplicationProcessing(ctx context.Context, filter en
 	}
 	for _, count := range statusCount {
 		switch count.Status {
-		case candidateinterview.StatusInvitedToInterview:
-			result.InviteToInterview = count.Count
-		case candidateinterview.StatusInterviewing:
-			result.Interviewing = count.Count
-		case candidateinterview.StatusDone:
-			result.Done = count.Count
+		case candidateinterview.StatusInvitedToInterview, candidateinterview.StatusInterviewing, candidateinterview.StatusDone:
+			result.ActualInterview += count.Count
 		case candidateinterview.StatusCancelled:
-			result.Cancelled = count.Count
+			result.Cancel += count.Count
 		}
 	}
 	return result, nil

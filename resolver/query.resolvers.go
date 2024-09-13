@@ -266,9 +266,19 @@ func (r *queryResolver) ReportApplication(ctx context.Context, filter ent.Report
 	return r.serviceRegistry.Report().ReportApplication(ctx, filter)
 }
 
-// ReportApplicationReportTable is the resolver for the ReportApplicationReportTable field.
-func (r *queryResolver) ReportApplicationReportTable(ctx context.Context, filter ent.ReportFilter) (*ent.ReportApplicationReportTableResponse, error) {
-	return r.serviceRegistry.Report().ReportApplicationReportTable(ctx, filter)
+// ReportProcessingApplication is the resolver for the ReportProcessingApplication field.
+func (r *queryResolver) ReportProcessingApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportProcessingApplicationResponse, error) {
+	return r.serviceRegistry.Report().ReportProcessingApplication(ctx, filter)
+}
+
+// ReportFailedApplication is the resolver for the ReportFailedApplication field.
+func (r *queryResolver) ReportFailedApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportFailedApplicationResponse, error) {
+	return r.serviceRegistry.Report().ReportFailedApplication(ctx, filter)
+}
+
+// ReportHiredApplication is the resolver for the ReportHiredApplication field.
+func (r *queryResolver) ReportHiredApplication(ctx context.Context, filter ent.ReportFilter) (*ent.ReportHiredApplicationResponse, error) {
+	return r.serviceRegistry.Report().ReportHiredApplication(ctx, filter)
 }
 
 // ReportCandidateConversionRateChart is the resolver for the ReportCandidateConversionRateChart field.
@@ -276,9 +286,14 @@ func (r *queryResolver) ReportCandidateConversionRateChart(ctx context.Context) 
 	return r.serviceRegistry.Report().ReportCandidateConversionRateChart(ctx)
 }
 
-// ReportCandidateConversionRateTable is the resolver for the ReportCandidateConversionRateTable field.
-func (r *queryResolver) ReportCandidateConversionRateTable(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
-	return r.serviceRegistry.Report().ReportCandidateConversionRateTable(ctx, pagination, orderBy)
+// ReportCandidateConversionRateByHiringTeam is the resolver for the ReportCandidateConversionRateByHiringTeam field.
+func (r *queryResolver) ReportCandidateConversionRateByHiringTeam(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
+	return r.serviceRegistry.Report().ReportCdConvRateByHiringTeam(ctx, pagination, orderBy)
+}
+
+// ReportCandidateConversionRateByJobPosition is the resolver for the ReportCandidateConversionRateByJobPosition field.
+func (r *queryResolver) ReportCandidateConversionRateByJobPosition(ctx context.Context, pagination *ent.PaginationInput, orderBy *ent.ReportOrderBy) (*ent.ReportCandidateConversionRateTableResponse, error) {
+	return r.serviceRegistry.Report().ReportCdConvRateByJobPosition(ctx, pagination, orderBy)
 }
 
 // GetCandidateNote is the resolver for the GetCandidateNote field.

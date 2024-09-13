@@ -88,9 +88,12 @@ type Query {
   ReportCandidateLCC: ReportCandidateLCCResponse!
   ReportCandidateColumnChart(filter: ReportFilter!): ReportCandidateColumnChartResponse!
   ReportApplication(filter: ReportFilter!): ReportApplicationResponse!
-  ReportApplicationReportTable(filter: ReportFilter!): ReportApplicationReportTableResponse!
+  ReportProcessingApplication(filter: ReportFilter!): ReportProcessingApplicationResponse!
+  ReportFailedApplication(filter: ReportFilter!): ReportFailedApplicationResponse!
+  ReportHiredApplication(filter: ReportFilter!): ReportHiredApplicationResponse!
   ReportCandidateConversionRateChart: ReportCandidateConversionRateChartResponse!
-  ReportCandidateConversionRateTable(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
+  ReportCandidateConversionRateByHiringTeam(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
+  ReportCandidateConversionRateByJobPosition(pagination: PaginationInput, orderBy: ReportOrderBy): ReportCandidateConversionRateTableResponse!
 
   # CandidateNote
   GetCandidateNote(id: ID!): CandidateNoteResponse!
