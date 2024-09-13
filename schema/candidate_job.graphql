@@ -146,9 +146,11 @@ input NewCandidateJobInput {
   failed_reason: [CandidateJobFailedReason!]
 }
 
-input UpdateCandidateAttachment {
+input UpdateCandidateJobInput {
   attachments: [NewAttachmentInput!]
   rec_in_charge_id: ID!
+  onboard_date: Time
+  offer_expiration_date: Time
 }
 
 input UpdateCandidateJobStatus {

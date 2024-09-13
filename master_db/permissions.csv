@@ -26,7 +26,7 @@ e0dc4732-4e1a-4899-899f-39800149186c,model.permissions.candidate_activities.edit
 41340b94-1cc6-4ec8-85d7-d5cc3b83b1c0,model.permissions.candidate_activities.delete,71a434e3-75c4-498f-8728-64b010a23c72,TRUE,TRUE,TRUE,"DeleteCandidateHistoryCall,DeleteCandidateNote",b588c018-6222-406c-bb3a-2623fdc99b16,25
 aad46705-ef69-45ba-a5ed-918e88bc3344,model.permissions.candidate_jobs.view,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,"GetCandidateJob,GetAllCandidateJobs,GetCandidateJobGroupByStatus,GetCandidateJobGroupByInterview",b588c018-6222-406c-bb3a-2623fdc99b16,26
 d7eb4464-92d4-4d34-bd6a-1b1a8ed8f08b,model.permissions.candidate_jobs.apply,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,CreateCandidateJob,aad46705-ef69-45ba-a5ed-918e88bc3344,27
-060e6b36-b378-4e5b-836e-8e26b7a32263,model.permissions.candidate_jobs.edit,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,UpdateCandidateJobAttachment,aad46705-ef69-45ba-a5ed-918e88bc3344,28
+060e6b36-b378-4e5b-836e-8e26b7a32263,model.permissions.candidate_jobs.edit,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,UpdateCandidateJob,aad46705-ef69-45ba-a5ed-918e88bc3344,28
 4bb9a158-0d24-4464-8688-8fcc185566cc,model.permissions.candidate_jobs.change_status,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,UpdateCandidateJobStatus,aad46705-ef69-45ba-a5ed-918e88bc3344,29
 8ee9d1fa-586a-4917-9508-7eddf1f96f56,model.permissions.candidate_jobs.delete,b9893d47-819f-4bdf-9cb1-dce3664bd960,FALSE,TRUE,TRUE,DeleteCandidateJob,aad46705-ef69-45ba-a5ed-918e88bc3344,30
 3f7b3785-c3a5-49e3-b947-69bdd8867586,model.permissions.candidate_job_feedbacks.view,405800a2-88c6-41b8-9814-e4e4968d2059,TRUE,TRUE,TRUE,"GetCandidateJobFeedback,GetAllCandidateJobFeedbacks",aad46705-ef69-45ba-a5ed-918e88bc3344,31

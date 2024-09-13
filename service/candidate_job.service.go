@@ -37,7 +37,7 @@ type CandidateJobService interface {
 	CreateCandidateJob(ctx context.Context, input *ent.NewCandidateJobInput, note string) (*ent.CandidateJobResponse, error)
 	UpdateCandidateJobStatus(ctx context.Context, input ent.UpdateCandidateJobStatus, id uuid.UUID, note string) error
 	DeleteCandidateJob(ctx context.Context, id uuid.UUID, note string) error
-	UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
+	UpdateCandidateJob(ctx context.Context, input ent.UpdateCandidateJobInput, id uuid.UUID, note string) (*ent.CandidateJobResponse, error)
 
 	// query
 	GetCandidateJob(ctx context.Context, id uuid.UUID) (*ent.CandidateJobResponse, error)
@@ -246,7 +246,7 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobStatus(ctx context.Context, in
 	return nil
 }
 
-func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context, input ent.UpdateCandidateAttachment, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
+func (svc *candidateJobSvcImpl) UpdateCandidateJob(ctx context.Context, input ent.UpdateCandidateJobInput, id uuid.UUID, note string) (*ent.CandidateJobResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	candidateJob, err := svc.repoRegistry.CandidateJob().GetCandidateJob(ctx, id)
 	if err != nil {
@@ -281,8 +281,14 @@ func (svc *candidateJobSvcImpl) UpdateCandidateJobAttachment(ctx context.Context
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	if candidateJob.Status == candidatejob.StatusOffering {
+		errString := svc.repoRegistry.CandidateJob().ValidOfferingInput(input.OnboardDate, input.OfferExpirationDate)
+		if errString != nil {
+			return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		}
+	}
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
-		_, err = repoRegistry.CandidateJob().UpdateCandidateJobRecInCharge(ctx, candidateJob, uuid.MustParse(input.RecInChargeID))
+		_, err = repoRegistry.CandidateJob().UpdateCandidateJob(ctx, candidateJob, input)
 		if err != nil {
 			return err
 		}
