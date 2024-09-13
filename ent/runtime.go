@@ -18,6 +18,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/candidatenote"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -338,6 +339,12 @@ func init() {
 	candidatenoteDescDescription := candidatenoteFields[3].Descriptor()
 	// candidatenote.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	candidatenote.DescriptionValidator = candidatenoteDescDescription.Validators[0].(func(string) error)
+	emaileventFields := schema.EmailEvent{}.Fields()
+	_ = emaileventFields
+	// emaileventDescCreatedAt is the schema descriptor for created_at field.
+	emaileventDescCreatedAt := emaileventFields[4].Descriptor()
+	// emailevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	emailevent.DefaultCreatedAt = emaileventDescCreatedAt.Default.(func() time.Time)
 	emailroleattributeMixin := schema.EmailRoleAttribute{}.Mixin()
 	emailroleattributeMixinFields0 := emailroleattributeMixin[0].Fields()
 	_ = emailroleattributeMixinFields0

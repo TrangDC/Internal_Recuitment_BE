@@ -432,6 +432,14 @@ type CandidateSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
+type EmailEventSelectionEdge struct {
+	Node *EmailEvent `json:"node"`
+}
+
+type EmailEventSelectionResponseGetAll struct {
+	Edges []*EmailEventSelectionEdge `json:"edges"`
+}
+
 type EmailTemplateFilter struct {
 	Event  []*EmailTemplateEvent  `json:"event"`
 	Status *EmailTemplateStatus   `json:"status"`

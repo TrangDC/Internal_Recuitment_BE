@@ -42,6 +42,7 @@ type hooks struct {
 	CandidateJobFeedback []ent.Hook
 	CandidateJobStep     []ent.Hook
 	CandidateNote        []ent.Hook
+	EmailEvent           []ent.Hook
 	EmailRoleAttribute   []ent.Hook
 	EmailTemplate        []ent.Hook
 	EntityPermission     []ent.Hook

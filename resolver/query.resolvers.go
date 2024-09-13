@@ -211,6 +211,11 @@ func (r *queryResolver) SelectionRole(ctx context.Context, pagination *ent.Pagin
 	return r.serviceRegistry.Role().Selections(ctx, pagination, freeWord, filter, orderBy)
 }
 
+// SelectionEmailEvents is the resolver for the SelectionEmailEvents field.
+func (r *queryResolver) SelectionEmailEvents(ctx context.Context) (*ent.EmailEventSelectionResponseGetAll, error) {
+	return r.serviceRegistry.EmailEvent().Selections(ctx)
+}
+
 // GetRole is the resolver for the GetRole field.
 func (r *queryResolver) GetRole(ctx context.Context, id string) (*ent.RoleResponse, error) {
 	return r.serviceRegistry.Role().GetRole(ctx, uuid.MustParse(id))

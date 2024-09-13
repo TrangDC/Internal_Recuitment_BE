@@ -42,6 +42,8 @@ type Tx struct {
 	CandidateJobStep *CandidateJobStepClient
 	// CandidateNote is the client for interacting with the CandidateNote builders.
 	CandidateNote *CandidateNoteClient
+	// EmailEvent is the client for interacting with the EmailEvent builders.
+	EmailEvent *EmailEventClient
 	// EmailRoleAttribute is the client for interacting with the EmailRoleAttribute builders.
 	EmailRoleAttribute *EmailRoleAttributeClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
@@ -225,6 +227,7 @@ func (tx *Tx) init() {
 	tx.CandidateJobFeedback = NewCandidateJobFeedbackClient(tx.config)
 	tx.CandidateJobStep = NewCandidateJobStepClient(tx.config)
 	tx.CandidateNote = NewCandidateNoteClient(tx.config)
+	tx.EmailEvent = NewEmailEventClient(tx.config)
 	tx.EmailRoleAttribute = NewEmailRoleAttributeClient(tx.config)
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.EntityPermission = NewEntityPermissionClient(tx.config)

@@ -190,6 +190,19 @@ func (f CandidateNoteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
+// The EmailEventFunc type is an adapter to allow the use of ordinary
+// function as EmailEvent mutator.
+type EmailEventFunc func(context.Context, *ent.EmailEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EmailEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.EmailEventMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailEventMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The EmailRoleAttributeFunc type is an adapter to allow the use of ordinary
 // function as EmailRoleAttribute mutator.
 type EmailRoleAttributeFunc func(context.Context, *ent.EmailRoleAttributeMutation) (ent.Value, error)

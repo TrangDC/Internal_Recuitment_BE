@@ -20,6 +20,7 @@ import (
 	"trec/ent/candidatejobfeedback"
 	"trec/ent/candidatejobstep"
 	"trec/ent/candidatenote"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/entitypermission"
@@ -1841,6 +1842,57 @@ func (cn *CandidateNote) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (ee *EmailEvent) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ee.ID,
+		Type:   "EmailEvent",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ee.Module); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "emailevent.Module",
+		Name:  "module",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ee.Action); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "emailevent.Action",
+		Name:  "action",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ee.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ee.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ee.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -4254,6 +4306,18 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			return nil, err
 		}
 		return n, nil
+	case emailevent.Table:
+		query := c.EmailEvent.Query().
+			Where(emailevent.ID(id))
+		query, err := query.CollectFields(ctx, "EmailEvent")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case emailroleattribute.Table:
 		query := c.EmailRoleAttribute.Query().
 			Where(emailroleattribute.ID(id))
@@ -4767,6 +4831,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.CandidateNote.Query().
 			Where(candidatenote.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "CandidateNote")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case emailevent.Table:
+		query := c.EmailEvent.Query().
+			Where(emailevent.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "EmailEvent")
 		if err != nil {
 			return nil, err
 		}
