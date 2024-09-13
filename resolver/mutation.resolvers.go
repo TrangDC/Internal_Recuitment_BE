@@ -170,13 +170,12 @@ func (r *mutationResolver) CreateCandidateJob(ctx context.Context, input ent.New
 	return r.serviceRegistry.CandidateJob().CreateCandidateJob(ctx, &input, inputNote)
 }
 
-// UpdateCandidateJobAttachment is the resolver for the UpdateCandidateJobAttachment field.
-func (r *mutationResolver) UpdateCandidateJobAttachment(ctx context.Context, id string, input ent.UpdateCandidateAttachment, note *string) (*ent.CandidateJobResponse, error) {
-	var inputNote string
+// UpdateCandidateJob is the resolver for the UpdateCandidateJob field.
+func (r *mutationResolver) UpdateCandidateJob(ctx context.Context, id string, input ent.UpdateCandidateJobInput, note *string) (*ent.CandidateJobResponse, error) {
 	if note != nil {
-		inputNote = *note
+		return r.serviceRegistry.CandidateJob().UpdateCandidateJob(ctx, input, uuid.MustParse(id), *note)
 	}
-	return r.serviceRegistry.CandidateJob().UpdateCandidateJobAttachment(ctx, input, uuid.MustParse(id), inputNote)
+	return r.serviceRegistry.CandidateJob().UpdateCandidateJob(ctx, input, uuid.MustParse(id), "")
 }
 
 // DeleteCandidateJob is the resolver for the DeleteCandidateJob field.

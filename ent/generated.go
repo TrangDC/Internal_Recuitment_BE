@@ -1139,11 +1139,6 @@ type SkillTypeSelectionResponseGetAll struct {
 	Pagination *Pagination               `json:"pagination"`
 }
 
-type UpdateCandidateAttachment struct {
-	Attachments   []*NewAttachmentInput `json:"attachments"`
-	RecInChargeID string                `json:"rec_in_charge_id"`
-}
-
 type UpdateCandidateHistoryCallInput struct {
 	Name        string                       `json:"name"`
 	ContactTo   string                       `json:"contact_to"`
@@ -1203,6 +1198,13 @@ type UpdateCandidateInterviewStatusInput struct {
 type UpdateCandidateJobFeedbackInput struct {
 	Feedback    string                `json:"feedback"`
 	Attachments []*NewAttachmentInput `json:"attachments"`
+}
+
+type UpdateCandidateJobInput struct {
+	Attachments         []*NewAttachmentInput `json:"attachments"`
+	RecInChargeID       string                `json:"rec_in_charge_id"`
+	OnboardDate         *time.Time            `json:"onboard_date"`
+	OfferExpirationDate *time.Time            `json:"offer_expiration_date"`
 }
 
 type UpdateCandidateJobStatus struct {
