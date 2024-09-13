@@ -151,10 +151,13 @@ func (rps candidateJobRepoImpl) CreateCandidateJob(ctx context.Context, input *e
 		SetCreatedBy(createdById).
 		SetRecInChargeID(uuid.MustParse(input.RecInChargeID))
 	if input.Status == ent.CandidateJobStatusOpenOffering {
-		create.
-			SetOnboardDate(*input.OnboardDate).
-			SetOfferExpirationDate(*input.OfferExpirationDate).
-			SetLevel(candidatejob.Level(*input.Level))
+		if input.OnboardDate != nil {
+			create.SetOnboardDate(*input.OnboardDate)
+		}
+		if input.OfferExpirationDate != nil {
+			create.SetOfferExpirationDate(*input.OfferExpirationDate)
+		}
+		create.SetLevel(candidatejob.Level(*input.Level))
 	}
 	_, err := rps.client.Candidate.Update().Where(candidate.IDEQ(uuid.MustParse(input.CandidateID))).SetUpdatedAt(time.Now().UTC()).SetLastApplyDate(time.Now().UTC()).Save(ctx)
 	if err != nil {
