@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 	"trec/ent"
+	"trec/ent/hiringjob"
+	"trec/ent/hiringjobstep"
 	"trec/ent/recteam"
 	"trec/ent/user"
 
@@ -62,6 +64,12 @@ func (rps *recTeamRepoImpl) BuildQuery() *ent.RecTeamQuery {
 		}).
 		WithRecMemberEdges(func(query *ent.UserQuery) {
 			query.Where(user.DeletedAtIsNil())
+		}).
+		WithRecTeamJobEdges(func(query *ent.HiringJobQuery) {
+			query.Where(hiringjob.DeletedAtIsNil(), hiringjob.StatusEQ(hiringjob.StatusPendingApprovals)).
+				WithApprovalSteps(func(query *ent.HiringJobStepQuery) {
+					query.WithApprovalUser().Order(ent.Asc(hiringjobstep.FieldOrderID))
+				})
 		})
 }
 

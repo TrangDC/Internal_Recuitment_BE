@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
+	"trec/ent/hiringjobstep"
 	"trec/ent/hiringteam"
 	"trec/ent/user"
 	"trec/internal/util"
@@ -37,6 +39,7 @@ type HiringTeamService interface {
 type hiringTeamSvcImpl struct {
 	userSvcImpl               UserService
 	hiringTeamApproverSvcImpl HiringTeamApproverService
+	hiringJobStepSvcImpl      HiringJobStepService
 	repoRegistry              repository.Repository
 	dtoRegistry               dto.Dto
 	logger                    *zap.Logger
@@ -46,6 +49,7 @@ func NewHiringTeamService(repoRegistry repository.Repository, dtoRegistry dto.Dt
 	return &hiringTeamSvcImpl{
 		userSvcImpl:               NewUserService(repoRegistry, dtoRegistry, logger),
 		hiringTeamApproverSvcImpl: NewHiringTeamApproverService(repoRegistry, logger),
+		hiringJobStepSvcImpl:      NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
 		repoRegistry:              repoRegistry,
 		dtoRegistry:               dtoRegistry,
 		logger:                    logger,
@@ -124,6 +128,13 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 	if errString != nil {
 		return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
+	approverChange := svc.validApproverChange(record.Edges.HiringTeamApprovers, input.Approvers)
+	if approverChange {
+		errString = svc.validPendingJobs(record.Edges.HiringTeamJobEdges)
+		if errString != nil {
+			return nil, util.WrapGQLError(ctx, errString.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		}
+	}
 	newMemberIds, removeMemberIds := svc.updateMembers(record, memberIds)
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		result, err = repoRegistry.HiringTeam().UpdateHiringTeam(ctx, record, input, newMemberIds, removeMemberIds)
@@ -134,7 +145,18 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 		if err != nil {
 			return err
 		}
-		return svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, repoRegistry, input.Approvers, hiringTeamID, record.Edges.HiringTeamApprovers)
+		err = svc.hiringTeamApproverSvcImpl.HiringTeamApproverMutation(ctx, repoRegistry, input.Approvers, hiringTeamID, record.Edges.HiringTeamApprovers)
+		result, _ = svc.repoRegistry.HiringTeam().GetHiringTeam(ctx, hiringTeamID)
+		if approverChange && len(record.Edges.HiringTeamJobEdges) > 0 {
+			for _, hiringJob := range result.Edges.HiringTeamJobEdges {
+				err = repoRegistry.HiringJobStep().DeleteHiringJobStep(ctx, hiringJob.ID)
+				if err != nil {
+					return err
+				}
+				err = svc.hiringJobStepSvcImpl.CreateBulkHiringJobSteps(ctx, repoRegistry, hiringJob)
+			}
+		}
+		return err
 	})
 	if err != nil {
 		svc.logger.Error(err.Error())
@@ -148,6 +170,18 @@ func (svc *hiringTeamSvcImpl) UpdateHiringTeam(ctx context.Context, hiringTeamID
 	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringTeamID, audittrail.ModuleHiringTeams, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
+	}
+	if len(record.Edges.HiringTeamJobEdges) > 0 {
+		for i := 0; i < len(record.Edges.HiringTeamJobEdges); i++ {
+			jsonString, err := svc.dtoRegistry.HiringJob().AuditTrailUpdate(record.Edges.HiringTeamJobEdges[i], result.Edges.HiringTeamJobEdges[i])
+			if err != nil {
+				svc.logger.Error(err.Error())
+			}
+			err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.HiringTeamJobEdges[i].ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+			if err != nil {
+				svc.logger.Error(err.Error())
+			}
+		}
 	}
 	return &ent.HiringTeamResponse{
 		Data: result,
@@ -472,6 +506,31 @@ func (svc *hiringTeamSvcImpl) validPermissionGet(payload *middleware.Payload, qu
 	if payload.ForTeam {
 		query.Where(hiringteam.HasHiringMemberEdgesWith(user.IDEQ(payload.UserID)))
 	}
+}
+
+func (svc *hiringTeamSvcImpl) validApproverChange(approvers []*ent.HiringTeamApprover, newApprovers []*ent.HiringTeamApproverInput) bool {
+	if len(approvers) != len(newApprovers) {
+		return true
+	}
+	for i, v := range approvers {
+		newID := uuid.MustParse(newApprovers[i].UserID)
+		if v.UserID != newID {
+			return true
+		}
+	}
+	return false
+}
+
+func (svc *hiringTeamSvcImpl) validPendingJobs(pendingJobs []*ent.HiringJob) error {
+	for _, item := range pendingJobs {
+		approvalSteps := lo.Filter(item.Edges.ApprovalSteps, func(item *ent.HiringJobStep, index int) bool {
+			return item.Status == hiringjobstep.StatusAccepted
+		})
+		if len(approvalSteps) > 0 {
+			return fmt.Errorf("model.hiring_teams.validation.invalid_update_approvers")
+		}
+	}
+	return nil
 }
 
 // Path: service/hiring_team.service.go
