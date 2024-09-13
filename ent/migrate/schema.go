@@ -865,7 +865,7 @@ var (
 		{Name: "subject", Type: field.TypeString, Size: 2147483647},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "signature", Type: field.TypeString, Size: 2147483647},
-		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "hiring_team_manager", "hiring_team_member", "role", "candidate"}},
+		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "job_rec_in_charge", "cd_job_rec_in_charge", "hiring_team_manager", "hiring_approver", "hiring_team_member", "rec_leader", "rec_member", "role", "candidate"}},
 		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
 		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},

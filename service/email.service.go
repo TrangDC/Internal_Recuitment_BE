@@ -125,6 +125,16 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 				ID:            requestId,
 				RecipientType: outgoingemail.RecipientTypeJobRequest,
 			})
+		case ent.EmailTemplateSendToJobRecInCharge:
+			sendTos = append(sendTos, models.SentTo{
+				ID:            groupModule.HiringJob.RecInChargeID,
+				RecipientType: outgoingemail.RecipientTypeJobRecInCharge,
+			})
+		case ent.EmailTemplateSendToCdJobRecInCharge:
+			sendTos = append(sendTos, models.SentTo{
+				ID:            groupModule.CandidateJob.RecInChargeID,
+				RecipientType: outgoingemail.RecipientTypeCdJobRecInCharge,
+			})
 		case ent.EmailTemplateSendToHiringTeamManager:
 			managerSentTos := lo.Map(groupModule.HiringTeam.Edges.UserEdges, func(entity *ent.User, index int) models.SentTo {
 				return models.SentTo{
@@ -133,6 +143,14 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 				}
 			})
 			sendTos = append(sendTos, managerSentTos...)
+		case ent.EmailTemplateSendToHiringApprover:
+			approverSentTos := lo.Map(groupModule.HiringTeam.Edges.ApproversUsers, func(entity *ent.User, _ int) models.SentTo {
+				return models.SentTo{
+					ID:            entity.ID,
+					RecipientType: outgoingemail.RecipientTypeHiringApprover,
+				}
+			})
+			sendTos = append(sendTos, approverSentTos...)
 		case ent.EmailTemplateSendToHiringTeamMember:
 			memberSentTos := lo.Map(groupModule.HiringTeam.Edges.HiringMemberEdges, func(entity *ent.User, index int) models.SentTo {
 				return models.SentTo{
@@ -141,6 +159,19 @@ func (svc *emailSvcImpl) getSentTo(users []*ent.User, record *ent.EmailTemplate,
 				}
 			})
 			sendTos = append(sendTos, memberSentTos...)
+		case ent.EmailTemplateSendToRecLeader:
+			sendTos = append(sendTos, models.SentTo{
+				ID:            groupModule.RecTeam.LeaderID,
+				RecipientType: outgoingemail.RecipientTypeRecLeader,
+			})
+		case ent.EmailTemplateSendToRecMember:
+			recMemberSentTos := lo.Map(groupModule.RecTeam.Edges.RecMemberEdges, func(entity *ent.User, _ int) models.SentTo {
+				return models.SentTo{
+					ID:            entity.ID,
+					RecipientType: outgoingemail.RecipientTypeRecMember,
+				}
+			})
+			sendTos = append(sendTos, recMemberSentTos...)
 		case ent.EmailTemplateSendToCandidate:
 			sendTos = append(sendTos, models.SentTo{
 				ID:            groupModule.Candidate.ID,
