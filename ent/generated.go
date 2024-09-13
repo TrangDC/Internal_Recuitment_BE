@@ -320,19 +320,8 @@ type CandidateJobFreeWord struct {
 	CandidateEmail *string `json:"candidate_email"`
 }
 
-type CandidateJobGroupByInterview struct {
-	Hired           *CandidateJobGroupInterviewFeedback `json:"hired"`
-	FailedCv        *CandidateJobGroupInterviewFeedback `json:"failed_cv"`
-	FailedInterview *CandidateJobGroupInterviewFeedback `json:"failed_interview"`
-	OfferLost       *CandidateJobGroupInterviewFeedback `json:"offer_lost"`
-	ExStaff         *CandidateJobGroupInterviewFeedback `json:"ex_staff"`
-	Applied         *CandidateJobGroupInterviewFeedback `json:"applied"`
-	Interviewing    *CandidateJobGroupInterviewFeedback `json:"interviewing"`
-	Offering        *CandidateJobGroupInterviewFeedback `json:"offering"`
-}
-
 type CandidateJobGroupByInterviewResponse struct {
-	Data *CandidateJobGroupByInterview `json:"data"`
+	Data *CandidateJobInterviewFeedback `json:"data"`
 }
 
 type CandidateJobGroupByStatus struct {
@@ -372,7 +361,7 @@ type CandidateJobGroupByStatusResponse struct {
 	Pagination *Pagination                `json:"pagination"`
 }
 
-type CandidateJobGroupInterviewFeedback struct {
+type CandidateJobInterviewFeedback struct {
 	Interview []*CandidateInterview   `json:"interview"`
 	Feedback  []*CandidateJobFeedback `json:"feedback"`
 }

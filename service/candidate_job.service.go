@@ -584,7 +584,7 @@ func (svc candidateJobSvcImpl) GetCandidateJobGroupByStatus(ctx context.Context,
 
 func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Context, id uuid.UUID) (*ent.CandidateJobGroupByInterviewResponse, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
-	var edges *ent.CandidateJobGroupByInterview
+	var edge *ent.CandidateJobInterviewFeedback
 	query := svc.repoRegistry.CandidateJob().BuildQuery().Where(candidatejob.IDEQ(id)).
 		WithCandidateJobInterview(func(query *ent.CandidateInterviewQuery) {
 			query.Where(candidateinterview.DeletedAtIsNil()).
@@ -605,74 +605,12 @@ func (svc *candidateJobSvcImpl) GetCandidateJobGroupByInterview(ctx context.Cont
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	edges = &ent.CandidateJobGroupByInterview{
-		Applied: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusApplied
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusApplied
-			}),
-		},
-		Interviewing: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusInterviewing
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusInterviewing
-			}),
-		},
-		Offering: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusOffering
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOffering
-			}),
-		},
-		Hired: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusHired
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusHired
-			}),
-		},
-		OfferLost: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusOfferLost
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusOfferLost
-			}),
-		},
-		FailedCv: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusFailedCv
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusFailedCv
-			}),
-		},
-		FailedInterview: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusFailedInterview
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusFailedInterview
-			}),
-		},
-		ExStaff: &ent.CandidateJobGroupInterviewFeedback{
-			Interview: lo.Filter(candidateJob.Edges.CandidateJobInterview, func(candidateInterview *ent.CandidateInterview, index int) bool {
-				return candidateInterview.CandidateJobStatus == candidateinterview.CandidateJobStatusExStaff
-			}),
-			Feedback: lo.Filter(candidateJob.Edges.CandidateJobFeedback, func(candidateJobFeedback *ent.CandidateJobFeedback, index int) bool {
-				return candidateJobFeedback.CandidateJobStatus == candidatejobfeedback.CandidateJobStatusExStaff
-			}),
-		},
+	edge = &ent.CandidateJobInterviewFeedback{
+		Interview: candidateJob.Edges.CandidateJobInterview,
+		Feedback:  candidateJob.Edges.CandidateJobFeedback,
 	}
 	result := &ent.CandidateJobGroupByInterviewResponse{
-		Data: edges,
+		Data: edge,
 	}
 	return result, nil
 }
