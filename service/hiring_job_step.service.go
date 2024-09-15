@@ -195,7 +195,7 @@ func (svc *hiringJobStepImpl) UpdateHiringJobStepStatus(ctx context.Context, hir
 	if err != nil {
 		svc.logger.Error(err.Error(), jobIDZapField)
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringJob.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, hiringJob.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), jobIDZapField)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 type AuditTrailRepository interface {
-	AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error
+	AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) (*ent.AuditTrail, error)
 	BulkAuditTrailMutation(ctx context.Context, recordId []uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error
 	CreateBulkCandidateInterviewAt(ctx context.Context, records []models.CandidateInterviewAuditTrail, note string) error
 	CreateBulkUserTeamAt(ctx context.Context, record []models.UserTeamAuditTrail, note string) error
@@ -80,16 +80,15 @@ func (rps *auditTrailRepoImpl) GetAuditTrail(ctx context.Context, auditTrailId u
 }
 
 // common function
-func (rps *auditTrailRepoImpl) AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error {
+func (rps *auditTrailRepoImpl) AuditTrailMutation(ctx context.Context, recordId uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) (*ent.AuditTrail, error) {
 	payload := ctx.Value(middleware.Payload{}).(*middleware.Payload)
 	createdById := payload.UserID
-	_, err := rps.BuildCreate().SetRecordId(recordId).
+	return rps.BuildCreate().SetRecordId(recordId).
 		SetModule(module).
 		SetActionType(mutationType).
 		SetRecordChanges(recordChange).
 		SetCreatedBy(createdById).
 		SetNote(note).Save(ctx)
-	return err
 }
 
 func (rps *auditTrailRepoImpl) BulkAuditTrailMutation(ctx context.Context, recordIds []uuid.UUID, module audittrail.Module, recordChange string, mutationType audittrail.ActionType, note string) error {

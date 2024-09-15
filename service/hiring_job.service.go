@@ -3,12 +3,16 @@ package service
 import (
 	"context"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
+	"trec/config"
 	"trec/dto"
 	"trec/ent"
 	"trec/ent/audittrail"
 	"trec/ent/candidatejob"
+	"trec/ent/emailevent"
+	"trec/ent/emailtemplate"
 	"trec/ent/entityskill"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringjobstep"
@@ -17,8 +21,10 @@ import (
 	"trec/ent/skill"
 	"trec/ent/skilltype"
 	"trec/ent/user"
+	"trec/internal/servicebus"
 	"trec/internal/util"
 	"trec/middleware"
+	"trec/models"
 	"trec/repository"
 
 	"github.com/google/uuid"
@@ -45,18 +51,22 @@ type HiringJobService interface {
 	GroupSkillType(input []*ent.EntitySkill) []*ent.EntitySkillType
 }
 type hiringJobSvcImpl struct {
-	repoRegistry     repository.Repository
-	dtoRegistry      dto.Dto
-	logger           *zap.Logger
-	hiringJobStepSvc HiringJobStepService
+	emailSvcImpl         EmailService
+	outgoingEmailSvcImpl OutgoingEmailService
+	repoRegistry         repository.Repository
+	dtoRegistry          dto.Dto
+	logger               *zap.Logger
+	hiringJobStepSvc     HiringJobStepService
 }
 
-func NewHiringJobService(repoRegistry repository.Repository, dtoRegistry dto.Dto, logger *zap.Logger) HiringJobService {
+func NewHiringJobService(repoRegistry repository.Repository, serviceBusClient servicebus.ServiceBus, dtoRegistry dto.Dto, logger *zap.Logger, configs *config.Configurations) HiringJobService {
 	return &hiringJobSvcImpl{
-		repoRegistry:     repoRegistry,
-		dtoRegistry:      dtoRegistry,
-		logger:           logger,
-		hiringJobStepSvc: NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
+		emailSvcImpl:         NewEmailService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
+		outgoingEmailSvcImpl: NewOutgoingEmailService(repoRegistry, logger),
+		repoRegistry:         repoRegistry,
+		dtoRegistry:          dtoRegistry,
+		logger:               logger,
+		hiringJobStepSvc:     NewHiringJobStepService(repoRegistry, dtoRegistry, logger),
 	}
 }
 
@@ -107,9 +117,14 @@ func (svc *hiringJobSvcImpl) CreateHiringJob(ctx context.Context, input *ent.New
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeCreate, note)
+	auditTrailRec, err := svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
+	}
+	err = svc.triggerEventSendEmail(ctx, record, nil, auditTrailRec)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -154,7 +169,7 @@ func (svc *hiringJobSvcImpl) DeleteHiringJob(ctx context.Context, id uuid.UUID, 
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
@@ -241,9 +256,14 @@ func (svc *hiringJobSvcImpl) UpdateHiringJob(ctx context.Context, input *ent.Upd
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	auditTrail, err := svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
+	}
+	err = svc.triggerEventSendEmail(ctx, record, result, auditTrail)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -283,9 +303,14 @@ func (svc *hiringJobSvcImpl) UpdateHiringJobStatus(ctx context.Context, status e
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+	auditTrail, err := svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
+	}
+	err = svc.triggerEventSendEmail(ctx, record, result, auditTrail)
+	if err != nil {
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	return &ent.HiringJobResponse{
 		Data: result,
@@ -489,6 +514,94 @@ func (svc *hiringJobSvcImpl) getHiringJobs(ctx context.Context, query *ent.Hirin
 	return hiringJobs, count, page, perPage, nil
 }
 
+// 3rd func
+func (svc *hiringJobSvcImpl) triggerEventSendEmail(ctx context.Context, oldRec, newRec *ent.HiringJob, auditTrail *ent.AuditTrail) error {
+	actions := make([]emailevent.Action, 0)
+	hiringTeam := oldRec.Edges.HiringTeamEdge
+	hiringJob := oldRec
+	jobPos := oldRec.Edges.JobPositionEdge
+	recTeam := oldRec.Edges.RecTeamEdge
+	switch newRec {
+	case nil:
+		actions = append(actions, emailevent.ActionCreate)
+		if oldRec.Status == hiringjob.StatusPendingApprovals {
+			actions = append(actions, emailevent.ActionNeedApproval)
+		}
+	default:
+		hiringJob = newRec
+		hiringTeam = newRec.Edges.HiringTeamEdge
+		jobPos = newRec.Edges.JobPositionEdge
+		recTeam = newRec.Edges.RecTeamEdge
+		switch newRec.Status {
+		case hiringjob.StatusClosed:
+			actions = append(actions, emailevent.ActionClose)
+		case hiringjob.StatusOpened:
+			switch oldRec.Status {
+			case hiringjob.StatusPendingApprovals:
+				actions = append(actions, emailevent.ActionOpen)
+			case hiringjob.StatusClosed:
+				actions = append(actions, emailevent.ActionReopen)
+			}
+		case hiringjob.StatusCancelled:
+			return nil
+		default:
+			actions = append(actions, emailevent.ActionUpdate)
+			// compare steps
+			if !reflect.DeepEqual(oldRec.Edges.ApprovalSteps, newRec.Edges.ApprovalSteps) {
+				actions = append(actions, emailevent.ActionNeedApproval)
+			}
+		}
+
+	}
+	emailTps, err := svc.repoRegistry.EmailTemplate().BuildList(
+		ctx,
+		svc.repoRegistry.EmailTemplate().BuildQuery().Where(
+			emailtemplate.HasEventEdgeWith(
+				emailevent.ModuleEQ(emailevent.ModuleJobRequest),
+				emailevent.ActionIn(actions...),
+			),
+		),
+	)
+	if err != nil {
+		return err
+	}
+	if len(emailTps) == 0 {
+		return nil
+	}
+	groupModule := models.GroupModule{
+		HiringTeam:  hiringTeam,
+		HiringJob:   hiringJob,
+		RecTeam:     recTeam,
+		JobPosition: jobPos,
+		AuditTrails: []*ent.AuditTrail{auditTrail},
+	}
+	users, err := svc.repoRegistry.User().BuildList(ctx, svc.repoRegistry.User().BuildBaseQuery())
+	if err != nil {
+		return err
+	}
+	messages := make([]models.MessageInput, 0)
+	for _, entity := range emailTps {
+		messages = append(messages, svc.emailSvcImpl.GenerateEmail(ctx, users, entity, groupModule)...)
+	}
+	results, err := svc.outgoingEmailSvcImpl.CreateBulkOutgoingEmail(ctx, messages, uuid.Nil)
+	if err != nil {
+		return err
+	}
+	outgoingEmails := lo.Map(results, func(entity *ent.OutgoingEmail, index int) models.MessageInput {
+		return models.MessageInput{
+			ID:        entity.ID,
+			To:        entity.To,
+			Cc:        entity.Cc,
+			Bcc:       entity.Bcc,
+			Subject:   entity.Subject,
+			Content:   entity.Content,
+			Signature: entity.Signature,
+		}
+	})
+	return svc.emailSvcImpl.SentEmail(ctx, outgoingEmails)
+}
+
+// common
 func (svc hiringJobSvcImpl) getListByNormalOrder(ctx context.Context, query *ent.HiringJobQuery, page int, perPage int, orderBy ent.HiringJobOrderBy) (int, []*ent.HiringJob, error) {
 	count, err := svc.repoRegistry.HiringJob().BuildCount(ctx, query)
 	if err != nil {

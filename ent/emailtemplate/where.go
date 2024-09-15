@@ -387,6 +387,20 @@ func EventNotIn(vs ...Event) predicate.EmailTemplate {
 	})
 }
 
+// EventIsNil applies the IsNil predicate on the "event" field.
+func EventIsNil() predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEvent)))
+	})
+}
+
+// EventNotNil applies the NotNil predicate on the "event" field.
+func EventNotNil() predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEvent)))
+	})
+}
+
 // SubjectEQ applies the EQ predicate on the "subject" field.
 func SubjectEQ(v string) predicate.EmailTemplate {
 	return predicate.EmailTemplate(func(s *sql.Selector) {

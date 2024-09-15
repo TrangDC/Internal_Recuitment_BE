@@ -72,6 +72,14 @@ func (etc *EmailTemplateCreate) SetEvent(e emailtemplate.Event) *EmailTemplateCr
 	return etc
 }
 
+// SetNillableEvent sets the "event" field if the given value is not nil.
+func (etc *EmailTemplateCreate) SetNillableEvent(e *emailtemplate.Event) *EmailTemplateCreate {
+	if e != nil {
+		etc.SetEvent(*e)
+	}
+	return etc
+}
+
 // SetSendTo sets the "send_to" field.
 func (etc *EmailTemplateCreate) SetSendTo(s []string) *EmailTemplateCreate {
 	etc.mutation.SetSendTo(s)
@@ -274,9 +282,6 @@ func (etc *EmailTemplateCreate) defaults() {
 func (etc *EmailTemplateCreate) check() error {
 	if _, ok := etc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EmailTemplate.created_at"`)}
-	}
-	if _, ok := etc.mutation.Event(); !ok {
-		return &ValidationError{Name: "event", err: errors.New(`ent: missing required field "EmailTemplate.event"`)}
 	}
 	if v, ok := etc.mutation.Event(); ok {
 		if err := emailtemplate.EventValidator(v); err != nil {

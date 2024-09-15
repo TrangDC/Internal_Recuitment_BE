@@ -27,7 +27,7 @@ func (OutgoingEmail) Fields() []ent.Field {
 		field.Enum("status").Values("pending", "sent", "failed").Default("pending"),
 		field.Enum("event").
 			Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview").
-			Immutable(),
+			Immutable().Optional(),
 		field.UUID("event_id", uuid.UUID{}),
 	}
 }

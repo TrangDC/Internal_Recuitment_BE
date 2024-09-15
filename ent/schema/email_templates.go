@@ -15,7 +15,7 @@ type EmailTemplate struct {
 // Fields of the EmailTemplate. NOTE : Part of the public API ( ultimately exposed to end job
 func (EmailTemplate) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("event").Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"),
+		field.Enum("event").Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview").Optional(),
 		field.JSON("send_to", EmailSendTos),
 		field.JSON("cc", []string{}),
 		field.JSON("bcc", []string{}),

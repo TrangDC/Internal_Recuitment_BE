@@ -21,8 +21,7 @@ import (
 )
 
 type EmailService interface {
-	GenerateEmail(ctx context.Context, users []*ent.User, record *ent.EmailTemplate,
-		groupModule models.GroupModule) []models.MessageInput
+	GenerateEmail(ctx context.Context, users []*ent.User, record *ent.EmailTemplate, groupModule models.GroupModule) []models.MessageInput
 	SentEmail(ctx context.Context, input []models.MessageInput) error
 }
 
@@ -45,8 +44,10 @@ func NewEmailService(repoRegistry repository.Repository, serviceBusClient servic
 	}
 }
 
-func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, template *ent.EmailTemplate,
-	groupModule models.GroupModule) []models.MessageInput {
+func (svc *emailSvcImpl) GenerateEmail(
+	ctx context.Context, users []*ent.User, template *ent.EmailTemplate,
+	groupModule models.GroupModule,
+) []models.MessageInput {
 	var messages []models.MessageInput
 	sendTos, filteredUsers := svc.getSentTo(users, template, groupModule)
 	sendTos = lo.Uniq(sendTos)
@@ -86,7 +87,7 @@ func (svc *emailSvcImpl) GenerateEmail(ctx context.Context, users []*ent.User, t
 			Content:       content,
 			Signature:     signature,
 			RecipientType: sentTo.RecipientType,
-			Event:         outgoingemail.Event(template.Event),
+			EventID:       template.EventID,
 		}
 		messages = append(messages, message)
 	}

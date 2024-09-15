@@ -13,6 +13,7 @@ import (
 	"trec/ent/candidate"
 	"trec/ent/candidateinterview"
 	"trec/ent/candidatejob"
+	"trec/ent/emailevent"
 	"trec/ent/emailtemplate"
 	"trec/ent/hiringjob"
 	"trec/ent/hiringteam"
@@ -123,7 +124,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	result, _ := svc.repoRegistry.CandidateInterview().GetCandidateInterview(ctx, candidateInterview.ID)
-	err = svc.triggerEventSendEmail(ctx, result, candidateJob, emailtemplate.EventCreatedInterview)
+	err = svc.triggerEventSendEmail(ctx, result, candidateJob, emailevent.ActionCreate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -137,7 +138,7 @@ func (svc *candidateInterviewSvcImpl) CreateCandidateInterview(ctx context.Conte
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -186,7 +187,7 @@ func (svc candidateInterviewSvcImpl) CreateCandidateInterview4Calendar(ctx conte
 		candidateJobEdge, _ := lo.Find(candidateJobs, func(candidateJob *ent.CandidateJob) bool {
 			return candidateJob.ID == candidateInterview.CandidateJobID
 		})
-		err = svc.triggerEventSendEmail(ctx, candidateInterview, candidateJobEdge, emailtemplate.EventUpdatingInterview)
+		err = svc.triggerEventSendEmail(ctx, candidateInterview, candidateJobEdge, emailevent.ActionCreate)
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}
@@ -273,7 +274,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
-	err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailtemplate.EventUpdatingInterview)
+	err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailevent.ActionUpdate)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -283,7 +284,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterview(ctx context.Contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -333,7 +334,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	if record.Status != candidateinterview.StatusCancelled && input.Status == ent.CandidateInterviewStatusEditableCancelled {
-		err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailtemplate.EventCancelInterview)
+		err = svc.triggerEventSendEmail(ctx, record, record.Edges.CandidateJobEdge, emailevent.ActionCancel)
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}
@@ -343,7 +344,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewStatus(ctx context.
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -416,7 +417,7 @@ func (svc candidateInterviewSvcImpl) UpdateCandidateInterviewSchedule(ctx contex
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil, nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, atJsonString, audittrail.ActionTypeUpdate, "")
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -482,7 +483,7 @@ func (svc *candidateInterviewSvcImpl) DeleteCandidateInterview(ctx context.Conte
 		svc.logger.Error(err.Error(), zap.Error(err))
 		return nil
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.Edges.CandidateJobEdge.CandidateID, audittrail.ModuleCandidates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -621,19 +622,31 @@ func (svc *candidateInterviewSvcImpl) GetAllCandidateInterview4Calendar(ctx cont
 }
 
 // third func
-func (svc candidateInterviewSvcImpl) triggerEventSendEmail(ctx context.Context, interviewRecord *ent.CandidateInterview,
-	candidateJob *ent.CandidateJob, event emailtemplate.Event) error {
-	var messages []models.MessageInput
-	var outgoingEmails []models.MessageInput
-	var results []*ent.OutgoingEmail
-	emailTemplates, err := svc.repoRegistry.EmailTemplate().GetEmailTpInterviewEvent(ctx, event)
+func (svc candidateInterviewSvcImpl) triggerEventSendEmail(
+	ctx context.Context,
+	cdInterview *ent.CandidateInterview, cdJob *ent.CandidateJob,
+	action emailevent.Action,
+) error {
+	var (
+		messages, outgoingEmails []models.MessageInput
+		results                  []*ent.OutgoingEmail
+	)
+	emailTemplates, err := svc.repoRegistry.EmailTemplate().BuildList(
+		ctx,
+		svc.repoRegistry.EmailTemplate().BuildQuery().Where(
+			emailtemplate.HasEventEdgeWith(
+				emailevent.ModuleEQ(emailevent.ModuleInterview),
+				emailevent.ActionEQ(action),
+			),
+		),
+	)
 	if err != nil {
 		return err
 	}
 	if len(emailTemplates) == 0 {
 		return nil
 	}
-	groupModule, err := svc.repoRegistry.CandidateInterview().GetDataForKeyword(ctx, interviewRecord, candidateJob)
+	groupModule, err := svc.repoRegistry.CandidateInterview().GetDataForKeyword(ctx, cdInterview, cdJob)
 	if err != nil {
 		return err
 	}
@@ -644,7 +657,7 @@ func (svc candidateInterviewSvcImpl) triggerEventSendEmail(ctx context.Context, 
 	for _, entity := range emailTemplates {
 		messages = append(messages, svc.emailSvc.GenerateEmail(ctx, users, entity, groupModule)...)
 	}
-	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages, candidateJob.CandidateID)
+	results, err = svc.outgoingEmailSvc.CreateBulkOutgoingEmail(ctx, messages, cdJob.CandidateID)
 	if err != nil {
 		return err
 	}
@@ -659,11 +672,7 @@ func (svc candidateInterviewSvcImpl) triggerEventSendEmail(ctx context.Context, 
 			Signature: entity.Signature,
 		}
 	})
-	err = svc.emailSvc.SentEmail(ctx, outgoingEmails)
-	if err != nil {
-		return err
-	}
-	return err
+	return svc.emailSvc.SentEmail(ctx, outgoingEmails)
 }
 
 func (svc candidateInterviewSvcImpl) scheduleUpdateStatus(ctx context.Context, record *ent.CandidateInterview) error {

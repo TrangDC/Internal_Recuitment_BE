@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"trec/ent"
 	"trec/ent/candidatejob"
+	"trec/ent/emailevent"
 	"trec/models"
 
 	"github.com/samber/lo"
@@ -20,7 +21,15 @@ type CandidateJobDto interface {
 	MappingStatus(input candidatejob.Status) string
 }
 
-type candidateJobDtoImpl struct {
+type candidateJobDtoImpl struct{}
+
+var CdJobEmailAction = map[candidatejob.Status]emailevent.Action{
+	candidatejob.StatusInterviewing:    emailevent.ActionCdInterviewing,
+	candidatejob.StatusOffering:        emailevent.ActionCdOffering,
+	candidatejob.StatusFailedCv:        emailevent.ActionCdFailedCv,
+	candidatejob.StatusFailedInterview: emailevent.ActionCdFailedInterview,
+	candidatejob.StatusOfferLost:       emailevent.ActionCdOfferLost,
+	candidatejob.StatusHired:           emailevent.ActionCdHired,
 }
 
 func NewCandidateJobDto() CandidateJobDto {

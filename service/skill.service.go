@@ -69,7 +69,7 @@ func (svc *skillSvcImpl) CreateSkill(ctx context.Context, input ent.NewSkillInpu
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -99,7 +99,7 @@ func (svc *skillSvcImpl) DeleteSkill(ctx context.Context, id uuid.UUID, note str
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -134,7 +134,7 @@ func (svc *skillSvcImpl) UpdateSkill(ctx context.Context, id uuid.UUID, input en
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleSkills, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
