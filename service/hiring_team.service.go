@@ -203,17 +203,18 @@ func (svc *hiringTeamSvcImpl) DeleteHiringTeam(ctx context.Context, hiringTeamID
 	err = svc.repoRegistry.DoInTx(ctx, func(ctx context.Context, repoRegistry repository.Repository) error {
 		_, err = repoRegistry.HiringTeam().DeleteHiringTeam(ctx, team, memberIds)
 		if err != nil {
+			svc.logger.Error(err.Error())
 			return err
 		}
 		err = repoRegistry.HiringTeam().DeleteRelationHiringTeam(ctx, hiringTeamID)
 		if err != nil {
+			svc.logger.Error(err.Error())
 			return err
 		}
 		err = svc.userSvcImpl.RemoveHiringTeam(ctx, memberIds, note)
 		return err
 	})
 	if err != nil {
-		svc.logger.Error(err.Error())
 		return util.WrapGQLError(ctx, err.Error(), http.StatusInternalServerError, util.ErrorFlagInternalError)
 	}
 	jsonString, err := svc.dtoRegistry.HiringTeam().AuditTrailDelete(team)

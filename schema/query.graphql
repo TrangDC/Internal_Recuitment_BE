@@ -67,6 +67,7 @@ type Query {
   SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
   SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
   SelectionEmailEvents: EmailEventSelectionResponseGetAll!
+  SelectionEmailTemplateSendTos(emailEventID: ID!): EmailTpSendToSelectionResponseGetAll!
   # Role
   GetRole(id: ID!): RoleResponse!
   GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!

@@ -473,6 +473,10 @@ type EmailTemplateResponseGetAll struct {
 	Pagination *Pagination          `json:"pagination"`
 }
 
+type EmailTpSendToSelectionResponseGetAll struct {
+	Edges []EmailTemplateSendTo `json:"edges"`
+}
+
 type EntitySkillRecord struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`

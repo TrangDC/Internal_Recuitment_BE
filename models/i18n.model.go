@@ -20,3 +20,7 @@ type I18n struct {
 	En I18nObject
 	Vi I18nObject
 }
+
+type I18nFormat struct {
+	AuditTrail, Email string
+}

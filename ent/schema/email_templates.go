@@ -16,7 +16,7 @@ type EmailTemplate struct {
 func (EmailTemplate) Fields() []ent.Field {
 	return []ent.Field{
 		field.Enum("event").Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"),
-		field.JSON("send_to", emailSendTos),
+		field.JSON("send_to", EmailSendTos),
 		field.JSON("cc", []string{}),
 		field.JSON("bcc", []string{}),
 		field.String("subject").MaxLen(256).NotEmpty(),

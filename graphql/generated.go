@@ -554,6 +554,10 @@ type ComplexityRoot struct {
 		Pagination func(childComplexity int) int
 	}
 
+	EmailTpSendToSelectionResponseGetAll struct {
+		Edges func(childComplexity int) int
+	}
+
 	EntityPermission struct {
 		ForAll     func(childComplexity int) int
 		ForOwner   func(childComplexity int) int
@@ -949,6 +953,7 @@ type ComplexityRoot struct {
 		ReportProcessingApplication                   func(childComplexity int, filter ent.ReportFilter) int
 		SelectionCandidates                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.CandidateFilter, freeWord *ent.CandidateFreeWord, orderBy *ent.CandidateOrder) int
 		SelectionEmailEvents                          func(childComplexity int) int
+		SelectionEmailTemplateSendTos                 func(childComplexity int, emailEventID string) int
 		SelectionHiringJobs                           func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringJobFilter, freeWord *ent.HiringJobFreeWord, orderBy ent.HiringJobOrderBy) int
 		SelectionHiringTeams                          func(childComplexity int, pagination *ent.PaginationInput, filter *ent.HiringTeamFilter, freeWord *ent.HiringTeamFreeWord, orderBy ent.HiringTeamOrderBy) int
 		SelectionJobPositions                         func(childComplexity int, pagination *ent.PaginationInput, filter *ent.JobPositionFilter, freeWord *ent.JobPositionFreeWord, orderBy *ent.JobPositionOrder) int
@@ -1599,6 +1604,7 @@ type QueryResolver interface {
 	SelectionSkillTypes(ctx context.Context, pagination *ent.PaginationInput, filter *ent.SkillTypeFilter, freeWord *ent.SkillTypeFreeWord, orderBy *ent.SkillTypeOrder) (*ent.SkillTypeSelectionResponseGetAll, error)
 	SelectionRole(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleSelectionResponseGetAll, error)
 	SelectionEmailEvents(ctx context.Context) (*ent.EmailEventSelectionResponseGetAll, error)
+	SelectionEmailTemplateSendTos(ctx context.Context, emailEventID string) (*ent.EmailTpSendToSelectionResponseGetAll, error)
 	GetRole(ctx context.Context, id string) (*ent.RoleResponse, error)
 	GetAllRoles(ctx context.Context, pagination *ent.PaginationInput, filter *ent.RoleFilter, freeWord *ent.RoleFreeWord, orderBy *ent.RoleOrder) (*ent.RoleResponseGetAll, error)
 	GetEmailTemplate(ctx context.Context, id string) (*ent.EmailTemplateResponse, error)
@@ -3716,6 +3722,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EmailTemplateResponseGetAll.Pagination(childComplexity), true
+
+	case "EmailTpSendToSelectionResponseGetAll.edges":
+		if e.complexity.EmailTpSendToSelectionResponseGetAll.Edges == nil {
+			break
+		}
+
+		return e.complexity.EmailTpSendToSelectionResponseGetAll.Edges(childComplexity), true
 
 	case "EntityPermission.for_all":
 		if e.complexity.EntityPermission.ForAll == nil {
@@ -6132,6 +6145,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SelectionEmailEvents(childComplexity), true
+
+	case "Query.SelectionEmailTemplateSendTos":
+		if e.complexity.Query.SelectionEmailTemplateSendTos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_SelectionEmailTemplateSendTos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SelectionEmailTemplateSendTos(childComplexity, args["emailEventID"].(string)), true
 
 	case "Query.SelectionHiringJobs":
 		if e.complexity.Query.SelectionHiringJobs == nil {
@@ -8847,6 +8872,10 @@ type EmailTemplateKeyword {
 type GetEmailTemplateKeywordResponse {
   data: EmailTemplateKeyword!
 }
+
+type EmailTpSendToSelectionResponseGetAll {
+  edges: [EmailTemplateSendTo!]!
+}
 `, BuiltIn: false},
 	{Name: "../schema/entity_permission.graphql", Input: `type EntityPermission {
   id: ID!
@@ -9528,6 +9557,7 @@ enum PermissionGroupType {
   SelectionSkillTypes(pagination: PaginationInput, filter: SkillTypeFilter, freeWord: SkillTypeFreeWord, orderBy: SkillTypeOrder): SkillTypeSelectionResponseGetAll!
   SelectionRole(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleSelectionResponseGetAll!
   SelectionEmailEvents: EmailEventSelectionResponseGetAll!
+  SelectionEmailTemplateSendTos(emailEventID: ID!): EmailTpSendToSelectionResponseGetAll!
   # Role
   GetRole(id: ID!): RoleResponse!
   GetAllRoles(pagination: PaginationInput, filter: RoleFilter, freeWord: RoleFreeWord, orderBy: RoleOrder): RoleResponseGetAll!
@@ -13157,6 +13187,21 @@ func (ec *executionContext) field_Query_SelectionCandidates_args(ctx context.Con
 		}
 	}
 	args["orderBy"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_SelectionEmailTemplateSendTos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["emailEventID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailEventID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["emailEventID"] = arg0
 	return args, nil
 }
 
@@ -28363,6 +28408,50 @@ func (ec *executionContext) fieldContext_EmailTemplateResponseGetAll_pagination(
 	return fc, nil
 }
 
+func (ec *executionContext) _EmailTpSendToSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EmailTpSendToSelectionResponseGetAll) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EmailTpSendToSelectionResponseGetAll_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]ent.EmailTemplateSendTo)
+	fc.Result = res
+	return ec.marshalNEmailTemplateSendTo2ᚕtrecᚋentᚐEmailTemplateSendToᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EmailTpSendToSelectionResponseGetAll_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EmailTpSendToSelectionResponseGetAll",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EmailTemplateSendTo does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EntityPermission_id(ctx context.Context, field graphql.CollectedField, obj *ent.EntityPermission) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EntityPermission_id(ctx, field)
 	if err != nil {
@@ -41950,6 +42039,65 @@ func (ec *executionContext) fieldContext_Query_SelectionEmailEvents(ctx context.
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EmailEventSelectionResponseGetAll", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_SelectionEmailTemplateSendTos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_SelectionEmailTemplateSendTos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SelectionEmailTemplateSendTos(rctx, fc.Args["emailEventID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EmailTpSendToSelectionResponseGetAll)
+	fc.Result = res
+	return ec.marshalNEmailTpSendToSelectionResponseGetAll2ᚖtrecᚋentᚐEmailTpSendToSelectionResponseGetAll(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_SelectionEmailTemplateSendTos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_EmailTpSendToSelectionResponseGetAll_edges(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EmailTpSendToSelectionResponseGetAll", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_SelectionEmailTemplateSendTos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -63227,6 +63375,34 @@ func (ec *executionContext) _EmailTemplateResponseGetAll(ctx context.Context, se
 	return out
 }
 
+var emailTpSendToSelectionResponseGetAllImplementors = []string{"EmailTpSendToSelectionResponseGetAll"}
+
+func (ec *executionContext) _EmailTpSendToSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, obj *ent.EmailTpSendToSelectionResponseGetAll) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, emailTpSendToSelectionResponseGetAllImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EmailTpSendToSelectionResponseGetAll")
+		case "edges":
+
+			out.Values[i] = ec._EmailTpSendToSelectionResponseGetAll_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var entityPermissionImplementors = []string{"EntityPermission"}
 
 func (ec *executionContext) _EntityPermission(ctx context.Context, sel ast.SelectionSet, obj *ent.EntityPermission) graphql.Marshaler {
@@ -67147,6 +67323,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_SelectionEmailEvents(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "SelectionEmailTemplateSendTos":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_SelectionEmailTemplateSendTos(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -72251,6 +72450,20 @@ func (ec *executionContext) unmarshalNEmailTemplateStatus2trecᚋentᚐEmailTemp
 
 func (ec *executionContext) marshalNEmailTemplateStatus2trecᚋentᚐEmailTemplateStatus(ctx context.Context, sel ast.SelectionSet, v ent.EmailTemplateStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNEmailTpSendToSelectionResponseGetAll2trecᚋentᚐEmailTpSendToSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v ent.EmailTpSendToSelectionResponseGetAll) graphql.Marshaler {
+	return ec._EmailTpSendToSelectionResponseGetAll(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEmailTpSendToSelectionResponseGetAll2ᚖtrecᚋentᚐEmailTpSendToSelectionResponseGetAll(ctx context.Context, sel ast.SelectionSet, v *ent.EmailTpSendToSelectionResponseGetAll) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EmailTpSendToSelectionResponseGetAll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEntityPermission2ᚕᚖtrecᚋentᚐEntityPermissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EntityPermission) graphql.Marshaler {
