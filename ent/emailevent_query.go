@@ -4,9 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"trec/ent/emailevent"
+	"trec/ent/emailtemplate"
+	"trec/ent/outgoingemail"
 	"trec/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,14 +21,18 @@ import (
 // EmailEventQuery is the builder for querying EmailEvent entities.
 type EmailEventQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.EmailEvent
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*EmailEvent) error
+	limit                       *int
+	offset                      *int
+	unique                      *bool
+	order                       []OrderFunc
+	fields                      []string
+	predicates                  []predicate.EmailEvent
+	withTemplateEdges           *EmailTemplateQuery
+	withOutgoingEmailEdges      *OutgoingEmailQuery
+	modifiers                   []func(*sql.Selector)
+	loadTotal                   []func(context.Context, []*EmailEvent) error
+	withNamedTemplateEdges      map[string]*EmailTemplateQuery
+	withNamedOutgoingEmailEdges map[string]*OutgoingEmailQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,6 +67,50 @@ func (eeq *EmailEventQuery) Unique(unique bool) *EmailEventQuery {
 func (eeq *EmailEventQuery) Order(o ...OrderFunc) *EmailEventQuery {
 	eeq.order = append(eeq.order, o...)
 	return eeq
+}
+
+// QueryTemplateEdges chains the current query on the "template_edges" edge.
+func (eeq *EmailEventQuery) QueryTemplateEdges() *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: eeq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailevent.Table, emailevent.FieldID, selector),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, emailevent.TemplateEdgesTable, emailevent.TemplateEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOutgoingEmailEdges chains the current query on the "outgoing_email_edges" edge.
+func (eeq *EmailEventQuery) QueryOutgoingEmailEdges() *OutgoingEmailQuery {
+	query := &OutgoingEmailQuery{config: eeq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eeq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eeq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailevent.Table, emailevent.FieldID, selector),
+			sqlgraph.To(outgoingemail.Table, outgoingemail.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, emailevent.OutgoingEmailEdgesTable, emailevent.OutgoingEmailEdgesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eeq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first EmailEvent entity from the query.
@@ -238,16 +289,40 @@ func (eeq *EmailEventQuery) Clone() *EmailEventQuery {
 		return nil
 	}
 	return &EmailEventQuery{
-		config:     eeq.config,
-		limit:      eeq.limit,
-		offset:     eeq.offset,
-		order:      append([]OrderFunc{}, eeq.order...),
-		predicates: append([]predicate.EmailEvent{}, eeq.predicates...),
+		config:                 eeq.config,
+		limit:                  eeq.limit,
+		offset:                 eeq.offset,
+		order:                  append([]OrderFunc{}, eeq.order...),
+		predicates:             append([]predicate.EmailEvent{}, eeq.predicates...),
+		withTemplateEdges:      eeq.withTemplateEdges.Clone(),
+		withOutgoingEmailEdges: eeq.withOutgoingEmailEdges.Clone(),
 		// clone intermediate query.
 		sql:    eeq.sql.Clone(),
 		path:   eeq.path,
 		unique: eeq.unique,
 	}
+}
+
+// WithTemplateEdges tells the query-builder to eager-load the nodes that are connected to
+// the "template_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (eeq *EmailEventQuery) WithTemplateEdges(opts ...func(*EmailTemplateQuery)) *EmailEventQuery {
+	query := &EmailTemplateQuery{config: eeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eeq.withTemplateEdges = query
+	return eeq
+}
+
+// WithOutgoingEmailEdges tells the query-builder to eager-load the nodes that are connected to
+// the "outgoing_email_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (eeq *EmailEventQuery) WithOutgoingEmailEdges(opts ...func(*OutgoingEmailQuery)) *EmailEventQuery {
+	query := &OutgoingEmailQuery{config: eeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eeq.withOutgoingEmailEdges = query
+	return eeq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -321,8 +396,12 @@ func (eeq *EmailEventQuery) prepareQuery(ctx context.Context) error {
 
 func (eeq *EmailEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*EmailEvent, error) {
 	var (
-		nodes = []*EmailEvent{}
-		_spec = eeq.querySpec()
+		nodes       = []*EmailEvent{}
+		_spec       = eeq.querySpec()
+		loadedTypes = [2]bool{
+			eeq.withTemplateEdges != nil,
+			eeq.withOutgoingEmailEdges != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*EmailEvent).scanValues(nil, columns)
@@ -330,6 +409,7 @@ func (eeq *EmailEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &EmailEvent{config: eeq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(eeq.modifiers) > 0 {
@@ -344,12 +424,97 @@ func (eeq *EmailEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := eeq.withTemplateEdges; query != nil {
+		if err := eeq.loadTemplateEdges(ctx, query, nodes,
+			func(n *EmailEvent) { n.Edges.TemplateEdges = []*EmailTemplate{} },
+			func(n *EmailEvent, e *EmailTemplate) { n.Edges.TemplateEdges = append(n.Edges.TemplateEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := eeq.withOutgoingEmailEdges; query != nil {
+		if err := eeq.loadOutgoingEmailEdges(ctx, query, nodes,
+			func(n *EmailEvent) { n.Edges.OutgoingEmailEdges = []*OutgoingEmail{} },
+			func(n *EmailEvent, e *OutgoingEmail) {
+				n.Edges.OutgoingEmailEdges = append(n.Edges.OutgoingEmailEdges, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range eeq.withNamedTemplateEdges {
+		if err := eeq.loadTemplateEdges(ctx, query, nodes,
+			func(n *EmailEvent) { n.appendNamedTemplateEdges(name) },
+			func(n *EmailEvent, e *EmailTemplate) { n.appendNamedTemplateEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range eeq.withNamedOutgoingEmailEdges {
+		if err := eeq.loadOutgoingEmailEdges(ctx, query, nodes,
+			func(n *EmailEvent) { n.appendNamedOutgoingEmailEdges(name) },
+			func(n *EmailEvent, e *OutgoingEmail) { n.appendNamedOutgoingEmailEdges(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range eeq.loadTotal {
 		if err := eeq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (eeq *EmailEventQuery) loadTemplateEdges(ctx context.Context, query *EmailTemplateQuery, nodes []*EmailEvent, init func(*EmailEvent), assign func(*EmailEvent, *EmailTemplate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*EmailEvent)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.InValues(emailevent.TemplateEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EventID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (eeq *EmailEventQuery) loadOutgoingEmailEdges(ctx context.Context, query *OutgoingEmailQuery, nodes []*EmailEvent, init func(*EmailEvent), assign func(*EmailEvent, *OutgoingEmail)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*EmailEvent)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.InValues(emailevent.OutgoingEmailEdgesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EventID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (eeq *EmailEventQuery) sqlCount(ctx context.Context) (int, error) {
@@ -453,6 +618,34 @@ func (eeq *EmailEventQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedTemplateEdges tells the query-builder to eager-load the nodes that are connected to the "template_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (eeq *EmailEventQuery) WithNamedTemplateEdges(name string, opts ...func(*EmailTemplateQuery)) *EmailEventQuery {
+	query := &EmailTemplateQuery{config: eeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if eeq.withNamedTemplateEdges == nil {
+		eeq.withNamedTemplateEdges = make(map[string]*EmailTemplateQuery)
+	}
+	eeq.withNamedTemplateEdges[name] = query
+	return eeq
+}
+
+// WithNamedOutgoingEmailEdges tells the query-builder to eager-load the nodes that are connected to the "outgoing_email_edges"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (eeq *EmailEventQuery) WithNamedOutgoingEmailEdges(name string, opts ...func(*OutgoingEmailQuery)) *EmailEventQuery {
+	query := &OutgoingEmailQuery{config: eeq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if eeq.withNamedOutgoingEmailEdges == nil {
+		eeq.withNamedOutgoingEmailEdges = make(map[string]*OutgoingEmailQuery)
+	}
+	eeq.withNamedOutgoingEmailEdges[name] = query
+	return eeq
 }
 
 // EmailEventGroupBy is the group-by builder for EmailEvent entities.

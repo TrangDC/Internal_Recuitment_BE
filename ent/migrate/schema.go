@@ -564,12 +564,21 @@ var (
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "signature", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
+		{Name: "event_id", Type: field.TypeUUID},
 	}
 	// EmailTemplatesTable holds the schema information for the "email_templates" table.
 	EmailTemplatesTable = &schema.Table{
 		Name:       "email_templates",
 		Columns:    EmailTemplatesColumns,
 		PrimaryKey: []*schema.Column{EmailTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "email_templates_email_events_template_edges",
+				Columns:    []*schema.Column{EmailTemplatesColumns[12]},
+				RefColumns: []*schema.Column{EmailEventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// EntityPermissionsColumns holds the columns for the "entity_permissions" table.
 	EntityPermissionsColumns = []*schema.Column{
@@ -870,6 +879,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
 		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "event_id", Type: field.TypeUUID},
 	}
 	// OutgoingEmailsTable holds the schema information for the "outgoing_emails" table.
 	OutgoingEmailsTable = &schema.Table{
@@ -882,6 +892,12 @@ var (
 				Columns:    []*schema.Column{OutgoingEmailsColumns[14]},
 				RefColumns: []*schema.Column{CandidatesColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "outgoing_emails_email_events_outgoing_email_edges",
+				Columns:    []*schema.Column{OutgoingEmailsColumns[15]},
+				RefColumns: []*schema.Column{EmailEventsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -1159,6 +1175,7 @@ func init() {
 	CandidateNotesTable.ForeignKeys[1].RefTable = UsersTable
 	EmailRoleAttributesTable.ForeignKeys[0].RefTable = EmailTemplatesTable
 	EmailRoleAttributesTable.ForeignKeys[1].RefTable = RolesTable
+	EmailTemplatesTable.ForeignKeys[0].RefTable = EmailEventsTable
 	EntityPermissionsTable.ForeignKeys[0].RefTable = PermissionsTable
 	EntityPermissionsTable.ForeignKeys[1].RefTable = RolesTable
 	EntityPermissionsTable.ForeignKeys[2].RefTable = UsersTable
@@ -1177,6 +1194,7 @@ func init() {
 	HiringTeamManagersTable.ForeignKeys[0].RefTable = UsersTable
 	HiringTeamManagersTable.ForeignKeys[1].RefTable = HiringTeamsTable
 	OutgoingEmailsTable.ForeignKeys[0].RefTable = CandidatesTable
+	OutgoingEmailsTable.ForeignKeys[1].RefTable = EmailEventsTable
 	PermissionsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	PermissionGroupsTable.ForeignKeys[0].RefTable = PermissionGroupsTable
 	RecTeamsTable.ForeignKeys[0].RefTable = UsersTable

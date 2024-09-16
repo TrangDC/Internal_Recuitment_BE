@@ -138,6 +138,13 @@ func EmailTemplateID(v uuid.UUID) predicate.OutgoingEmail {
 	})
 }
 
+// EventID applies equality check predicate on the "event_id" field. It's identical to EventIDEQ.
+func EventID(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEventID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
@@ -891,6 +898,42 @@ func EventNotIn(vs ...Event) predicate.OutgoingEmail {
 	})
 }
 
+// EventIDEQ applies the EQ predicate on the "event_id" field.
+func EventIDEQ(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEventID), v))
+	})
+}
+
+// EventIDNEQ applies the NEQ predicate on the "event_id" field.
+func EventIDNEQ(v uuid.UUID) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEventID), v))
+	})
+}
+
+// EventIDIn applies the In predicate on the "event_id" field.
+func EventIDIn(vs ...uuid.UUID) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldEventID), v...))
+	})
+}
+
+// EventIDNotIn applies the NotIn predicate on the "event_id" field.
+func EventIDNotIn(vs ...uuid.UUID) predicate.OutgoingEmail {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldEventID), v...))
+	})
+}
+
 // HasCandidateEdge applies the HasEdge predicate on the "candidate_edge" edge.
 func HasCandidateEdge() predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {
@@ -910,6 +953,34 @@ func HasCandidateEdgeWith(preds ...predicate.Candidate) predicate.OutgoingEmail 
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CandidateEdgeInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, CandidateEdgeTable, CandidateEdgeColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEventEdge applies the HasEdge predicate on the "event_edge" edge.
+func HasEventEdge() predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EventEdgeTable, EventEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEventEdgeWith applies the HasEdge predicate on the "event_edge" edge with a given conditions (other predicates).
+func HasEventEdgeWith(preds ...predicate.EmailEvent) predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EventEdgeTable, EventEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

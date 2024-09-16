@@ -139,7 +139,7 @@ func (svc *outgoingEmailSvcImpl) filter(ctx context.Context, outgoingEmailQuery 
 	if (input.FromDate != nil && input.ToDate != nil) && (!input.FromDate.IsZero() && !input.ToDate.IsZero()) {
 		outgoingEmailQuery.Where(outgoingemail.CreatedAtGTE(*input.FromDate), outgoingemail.CreatedAtLTE(*input.ToDate))
 	}
-	if input.Event != nil {
-		outgoingEmailQuery.Where(outgoingemail.EventEQ(outgoingemail.Event(*input.Event)))
+	if input.EventID != nil {
+		outgoingEmailQuery.Where(outgoingemail.EventID(uuid.MustParse(*input.EventID)))
 	}
 }

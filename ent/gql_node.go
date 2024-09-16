@@ -1851,7 +1851,7 @@ func (ee *EmailEvent) Node(ctx context.Context) (node *Node, err error) {
 		ID:     ee.ID,
 		Type:   "EmailEvent",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ee.Module); err != nil {
@@ -1893,6 +1893,26 @@ func (ee *EmailEvent) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "time.Time",
 		Name:  "updated_at",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "EmailTemplate",
+		Name: "template_edges",
+	}
+	err = ee.QueryTemplateEdges().
+		Select(emailtemplate.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "OutgoingEmail",
+		Name: "outgoing_email_edges",
+	}
+	err = ee.QueryOutgoingEmailEdges().
+		Select(outgoingemail.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
@@ -1972,8 +1992,8 @@ func (et *EmailTemplate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     et.ID,
 		Type:   "EmailTemplate",
-		Fields: make([]*Field, 11),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 12),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(et.CreatedAt); err != nil {
@@ -2064,6 +2084,14 @@ func (et *EmailTemplate) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "status",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(et.EventID); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "event_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Role",
 		Name: "role_edges",
@@ -2075,12 +2103,22 @@ func (et *EmailTemplate) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
+		Type: "EmailEvent",
+		Name: "event_edge",
+	}
+	err = et.QueryEventEdge().
+		Select(emailevent.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
 		Type: "EmailRoleAttribute",
 		Name: "role_email_templates",
 	}
 	err = et.QueryRoleEmailTemplates().
 		Select(emailroleattribute.FieldID).
-		Scan(ctx, &node.Edges[1].IDs)
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -2995,8 +3033,8 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     oe.ID,
 		Type:   "OutgoingEmail",
-		Fields: make([]*Field, 14),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 15),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(oe.CreatedAt); err != nil {
@@ -3111,6 +3149,14 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "event",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(oe.EventID); err != nil {
+		return nil, err
+	}
+	node.Fields[14] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "event_id",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Candidate",
 		Name: "candidate_edge",
@@ -3118,6 +3164,16 @@ func (oe *OutgoingEmail) Node(ctx context.Context) (node *Node, err error) {
 	err = oe.QueryCandidateEdge().
 		Select(candidate.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "EmailEvent",
+		Name: "event_edge",
+	}
+	err = oe.QueryEventEdge().
+		Select(emailevent.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

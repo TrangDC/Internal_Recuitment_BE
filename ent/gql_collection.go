@@ -1565,6 +1565,34 @@ func (ee *EmailEventQuery) CollectFields(ctx context.Context, satisfies ...strin
 
 func (ee *EmailEventQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "templateEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailTemplateQuery{config: ee.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ee.WithNamedTemplateEdges(alias, func(wq *EmailTemplateQuery) {
+				*wq = *query
+			})
+		case "outgoingEmailEdges":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &OutgoingEmailQuery{config: ee.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ee.WithNamedOutgoingEmailEdges(alias, func(wq *OutgoingEmailQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 
@@ -1711,6 +1739,16 @@ func (et *EmailTemplateQuery) collectField(ctx context.Context, op *graphql.Oper
 			et.WithNamedRoleEdges(alias, func(wq *RoleQuery) {
 				*wq = *query
 			})
+		case "eventEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailEventQuery{config: et.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			et.withEventEdge = query
 		case "roleEmailTemplates":
 			var (
 				alias = field.Alias
@@ -2656,6 +2694,16 @@ func (oe *OutgoingEmailQuery) collectField(ctx context.Context, op *graphql.Oper
 				return err
 			}
 			oe.withCandidateEdge = query
+		case "eventEdge":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &EmailEventQuery{config: oe.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			oe.withEventEdge = query
 		}
 	}
 	return nil

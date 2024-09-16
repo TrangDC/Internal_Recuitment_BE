@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"trec/ent/candidate"
+	"trec/ent/emailevent"
 	"trec/ent/outgoingemail"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -154,6 +155,12 @@ func (oec *OutgoingEmailCreate) SetEvent(o outgoingemail.Event) *OutgoingEmailCr
 	return oec
 }
 
+// SetEventID sets the "event_id" field.
+func (oec *OutgoingEmailCreate) SetEventID(u uuid.UUID) *OutgoingEmailCreate {
+	oec.mutation.SetEventID(u)
+	return oec
+}
+
 // SetID sets the "id" field.
 func (oec *OutgoingEmailCreate) SetID(u uuid.UUID) *OutgoingEmailCreate {
 	oec.mutation.SetID(u)
@@ -177,6 +184,17 @@ func (oec *OutgoingEmailCreate) SetNillableCandidateEdgeID(id *uuid.UUID) *Outgo
 // SetCandidateEdge sets the "candidate_edge" edge to the Candidate entity.
 func (oec *OutgoingEmailCreate) SetCandidateEdge(c *Candidate) *OutgoingEmailCreate {
 	return oec.SetCandidateEdgeID(c.ID)
+}
+
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (oec *OutgoingEmailCreate) SetEventEdgeID(id uuid.UUID) *OutgoingEmailCreate {
+	oec.mutation.SetEventEdgeID(id)
+	return oec
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (oec *OutgoingEmailCreate) SetEventEdge(e *EmailEvent) *OutgoingEmailCreate {
+	return oec.SetEventEdgeID(e.ID)
 }
 
 // Mutation returns the OutgoingEmailMutation object of the builder.
@@ -323,6 +341,12 @@ func (oec *OutgoingEmailCreate) check() error {
 			return &ValidationError{Name: "event", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.event": %w`, err)}
 		}
 	}
+	if _, ok := oec.mutation.EventID(); !ok {
+		return &ValidationError{Name: "event_id", err: errors.New(`ent: missing required field "OutgoingEmail.event_id"`)}
+	}
+	if _, ok := oec.mutation.EventEdgeID(); !ok {
+		return &ValidationError{Name: "event_edge", err: errors.New(`ent: missing required edge "OutgoingEmail.event_edge"`)}
+	}
 	return nil
 }
 
@@ -429,6 +453,26 @@ func (oec *OutgoingEmailCreate) createSpec() (*OutgoingEmail, *sqlgraph.CreateSp
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CandidateID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oec.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   outgoingemail.EventEdgeTable,
+			Columns: []string{outgoingemail.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EventID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

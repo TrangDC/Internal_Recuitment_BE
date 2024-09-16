@@ -27,6 +27,43 @@ type EmailEvent struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EmailEventQuery when eager-loading is set.
+	Edges EmailEventEdges `json:"edges"`
+}
+
+// EmailEventEdges holds the relations/edges for other nodes in the graph.
+type EmailEventEdges struct {
+	// TemplateEdges holds the value of the template_edges edge.
+	TemplateEdges []*EmailTemplate `json:"template_edges,omitempty"`
+	// OutgoingEmailEdges holds the value of the outgoing_email_edges edge.
+	OutgoingEmailEdges []*OutgoingEmail `json:"outgoing_email_edges,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedTemplateEdges      map[string][]*EmailTemplate
+	namedOutgoingEmailEdges map[string][]*OutgoingEmail
+}
+
+// TemplateEdgesOrErr returns the TemplateEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e EmailEventEdges) TemplateEdgesOrErr() ([]*EmailTemplate, error) {
+	if e.loadedTypes[0] {
+		return e.TemplateEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "template_edges"}
+}
+
+// OutgoingEmailEdgesOrErr returns the OutgoingEmailEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e EmailEventEdges) OutgoingEmailEdgesOrErr() ([]*OutgoingEmail, error) {
+	if e.loadedTypes[1] {
+		return e.OutgoingEmailEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "outgoing_email_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +133,16 @@ func (ee *EmailEvent) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryTemplateEdges queries the "template_edges" edge of the EmailEvent entity.
+func (ee *EmailEvent) QueryTemplateEdges() *EmailTemplateQuery {
+	return (&EmailEventClient{config: ee.config}).QueryTemplateEdges(ee)
+}
+
+// QueryOutgoingEmailEdges queries the "outgoing_email_edges" edge of the EmailEvent entity.
+func (ee *EmailEvent) QueryOutgoingEmailEdges() *OutgoingEmailQuery {
+	return (&EmailEventClient{config: ee.config}).QueryOutgoingEmailEdges(ee)
+}
+
 // Update returns a builder for updating this EmailEvent.
 // Note that you need to call EmailEvent.Unwrap() before calling this method if this EmailEvent
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -135,6 +182,54 @@ func (ee *EmailEvent) String() string {
 	builder.WriteString(ee.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedTemplateEdges returns the TemplateEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ee *EmailEvent) NamedTemplateEdges(name string) ([]*EmailTemplate, error) {
+	if ee.Edges.namedTemplateEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ee.Edges.namedTemplateEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ee *EmailEvent) appendNamedTemplateEdges(name string, edges ...*EmailTemplate) {
+	if ee.Edges.namedTemplateEdges == nil {
+		ee.Edges.namedTemplateEdges = make(map[string][]*EmailTemplate)
+	}
+	if len(edges) == 0 {
+		ee.Edges.namedTemplateEdges[name] = []*EmailTemplate{}
+	} else {
+		ee.Edges.namedTemplateEdges[name] = append(ee.Edges.namedTemplateEdges[name], edges...)
+	}
+}
+
+// NamedOutgoingEmailEdges returns the OutgoingEmailEdges named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ee *EmailEvent) NamedOutgoingEmailEdges(name string) ([]*OutgoingEmail, error) {
+	if ee.Edges.namedOutgoingEmailEdges == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ee.Edges.namedOutgoingEmailEdges[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ee *EmailEvent) appendNamedOutgoingEmailEdges(name string, edges ...*OutgoingEmail) {
+	if ee.Edges.namedOutgoingEmailEdges == nil {
+		ee.Edges.namedOutgoingEmailEdges = make(map[string][]*OutgoingEmail)
+	}
+	if len(edges) == 0 {
+		ee.Edges.namedOutgoingEmailEdges[name] = []*OutgoingEmail{}
+	} else {
+		ee.Edges.namedOutgoingEmailEdges[name] = append(ee.Edges.namedOutgoingEmailEdges[name], edges...)
+	}
 }
 
 // EmailEvents is a parsable slice of EmailEvent.

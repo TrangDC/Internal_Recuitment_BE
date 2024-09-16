@@ -32,6 +32,7 @@ enum EmailTemplateSendTo {
 enum EmailTemplateApplicationSendToEnum {
   job_request
   job_rec_in_charge
+  cd_job_rec_in_charge
   hiring_team_manager
   hiring_approver
   hiring_team_member
@@ -39,6 +40,17 @@ enum EmailTemplateApplicationSendToEnum {
   rec_member
   role
   candidate
+}
+
+enum EmailTemplateJobRequestSendToEnum {
+  job_request
+  job_rec_in_charge
+  hiring_team_manager
+  hiring_approver
+  hiring_team_member
+  rec_leader
+  rec_member
+  role
 }
 
 input EmailTemplateKeywordFilter {
@@ -55,7 +67,7 @@ enum EmailTemplateOrderField {
 }
 
 input EmailTemplateFilter {
-  event: [EmailTemplateEvent]
+  event_ids: [ID]
   status: EmailTemplateStatus
   send_to: [EmailTemplateSendTo]
 }
@@ -65,7 +77,7 @@ input EmailTemplateFreeWord {
 }
 
 input NewEmailTemplateInput {
-  event: EmailTemplateEvent!
+  event_id: ID!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]!
@@ -77,7 +89,7 @@ input NewEmailTemplateInput {
 }
 
 input UpdateEmailTemplateInput {
-  event: EmailTemplateEvent!
+  event_id: ID!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]!
@@ -94,7 +106,7 @@ input UpdateEmailTemplateStatusInput {
 
 type EmailTemplate {
   id: ID!
-  event: EmailTemplateEvent!
+  event: EmailEvent!
   subject: String!
   content: String!
   send_to: [EmailTemplateSendTo!]

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"trec/ent/emailevent"
 	"trec/ent/emailtemplate"
 
 	"entgo.io/ent/dialect/sql"
@@ -40,6 +41,8 @@ type EmailTemplate struct {
 	Signature string `json:"signature,omitempty"`
 	// Status holds the value of the "status" field.
 	Status emailtemplate.Status `json:"status,omitempty"`
+	// EventID holds the value of the "event_id" field.
+	EventID uuid.UUID `json:"event_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EmailTemplateQuery when eager-loading is set.
 	Edges EmailTemplateEdges `json:"edges"`
@@ -49,13 +52,15 @@ type EmailTemplate struct {
 type EmailTemplateEdges struct {
 	// RoleEdges holds the value of the role_edges edge.
 	RoleEdges []*Role `json:"role_edges,omitempty"`
+	// EventEdge holds the value of the event_edge edge.
+	EventEdge *EmailEvent `json:"event_edge,omitempty"`
 	// RoleEmailTemplates holds the value of the role_email_templates edge.
 	RoleEmailTemplates []*EmailRoleAttribute `json:"role_email_templates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
 	namedRoleEdges          map[string][]*Role
 	namedRoleEmailTemplates map[string][]*EmailRoleAttribute
@@ -70,10 +75,23 @@ func (e EmailTemplateEdges) RoleEdgesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "role_edges"}
 }
 
+// EventEdgeOrErr returns the EventEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EmailTemplateEdges) EventEdgeOrErr() (*EmailEvent, error) {
+	if e.loadedTypes[1] {
+		if e.EventEdge == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: emailevent.Label}
+		}
+		return e.EventEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "event_edge"}
+}
+
 // RoleEmailTemplatesOrErr returns the RoleEmailTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e EmailTemplateEdges) RoleEmailTemplatesOrErr() ([]*EmailRoleAttribute, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.RoleEmailTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "role_email_templates"}
@@ -90,7 +108,7 @@ func (*EmailTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case emailtemplate.FieldCreatedAt, emailtemplate.FieldUpdatedAt, emailtemplate.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case emailtemplate.FieldID:
+		case emailtemplate.FieldID, emailtemplate.FieldEventID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type EmailTemplate", columns[i])
@@ -185,6 +203,12 @@ func (et *EmailTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				et.Status = emailtemplate.Status(value.String)
 			}
+		case emailtemplate.FieldEventID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field event_id", values[i])
+			} else if value != nil {
+				et.EventID = *value
+			}
 		}
 	}
 	return nil
@@ -193,6 +217,11 @@ func (et *EmailTemplate) assignValues(columns []string, values []any) error {
 // QueryRoleEdges queries the "role_edges" edge of the EmailTemplate entity.
 func (et *EmailTemplate) QueryRoleEdges() *RoleQuery {
 	return (&EmailTemplateClient{config: et.config}).QueryRoleEdges(et)
+}
+
+// QueryEventEdge queries the "event_edge" edge of the EmailTemplate entity.
+func (et *EmailTemplate) QueryEventEdge() *EmailEventQuery {
+	return (&EmailTemplateClient{config: et.config}).QueryEventEdge(et)
 }
 
 // QueryRoleEmailTemplates queries the "role_email_templates" edge of the EmailTemplate entity.
@@ -255,6 +284,9 @@ func (et *EmailTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", et.Status))
+	builder.WriteString(", ")
+	builder.WriteString("event_id=")
+	builder.WriteString(fmt.Sprintf("%v", et.EventID))
 	builder.WriteByte(')')
 	return builder.String()
 }

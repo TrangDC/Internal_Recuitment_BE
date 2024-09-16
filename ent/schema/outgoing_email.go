@@ -28,6 +28,7 @@ func (OutgoingEmail) Fields() []ent.Field {
 		field.Enum("event").
 			Values("candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview").
 			Immutable(),
+		field.UUID("event_id", uuid.UUID{}),
 	}
 }
 
@@ -35,6 +36,7 @@ func (OutgoingEmail) Fields() []ent.Field {
 func (OutgoingEmail) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("candidate_edge", Candidate.Type).Ref("outgoing_email_edges").Unique().Field("candidate_id"),
+		edge.From("event_edge", EmailEvent.Type).Ref("outgoing_email_edges").Unique().Field("event_id").Required(),
 	}
 }
 

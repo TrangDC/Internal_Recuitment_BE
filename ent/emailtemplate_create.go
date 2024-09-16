@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/role"
@@ -129,6 +130,12 @@ func (etc *EmailTemplateCreate) SetNillableStatus(e *emailtemplate.Status) *Emai
 	return etc
 }
 
+// SetEventID sets the "event_id" field.
+func (etc *EmailTemplateCreate) SetEventID(u uuid.UUID) *EmailTemplateCreate {
+	etc.mutation.SetEventID(u)
+	return etc
+}
+
 // SetID sets the "id" field.
 func (etc *EmailTemplateCreate) SetID(u uuid.UUID) *EmailTemplateCreate {
 	etc.mutation.SetID(u)
@@ -148,6 +155,17 @@ func (etc *EmailTemplateCreate) AddRoleEdges(r ...*Role) *EmailTemplateCreate {
 		ids[i] = r[i].ID
 	}
 	return etc.AddRoleEdgeIDs(ids...)
+}
+
+// SetEventEdgeID sets the "event_edge" edge to the EmailEvent entity by ID.
+func (etc *EmailTemplateCreate) SetEventEdgeID(id uuid.UUID) *EmailTemplateCreate {
+	etc.mutation.SetEventEdgeID(id)
+	return etc
+}
+
+// SetEventEdge sets the "event_edge" edge to the EmailEvent entity.
+func (etc *EmailTemplateCreate) SetEventEdge(e *EmailEvent) *EmailTemplateCreate {
+	return etc.SetEventEdgeID(e.ID)
 }
 
 // AddRoleEmailTemplateIDs adds the "role_email_templates" edge to the EmailRoleAttribute entity by IDs.
@@ -298,6 +316,12 @@ func (etc *EmailTemplateCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "EmailTemplate.status": %w`, err)}
 		}
 	}
+	if _, ok := etc.mutation.EventID(); !ok {
+		return &ValidationError{Name: "event_id", err: errors.New(`ent: missing required field "EmailTemplate.event_id"`)}
+	}
+	if _, ok := etc.mutation.EventEdgeID(); !ok {
+		return &ValidationError{Name: "event_edge", err: errors.New(`ent: missing required edge "EmailTemplate.event_edge"`)}
+	}
 	return nil
 }
 
@@ -399,6 +423,26 @@ func (etc *EmailTemplateCreate) createSpec() (*EmailTemplate, *sqlgraph.CreateSp
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := etc.mutation.EventEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   emailtemplate.EventEdgeTable,
+			Columns: []string{emailtemplate.EventEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: emailevent.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EventID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.mutation.RoleEmailTemplatesIDs(); len(nodes) > 0 {

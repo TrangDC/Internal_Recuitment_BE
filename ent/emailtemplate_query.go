@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"trec/ent/emailevent"
 	"trec/ent/emailroleattribute"
 	"trec/ent/emailtemplate"
 	"trec/ent/predicate"
@@ -28,6 +29,7 @@ type EmailTemplateQuery struct {
 	fields                      []string
 	predicates                  []predicate.EmailTemplate
 	withRoleEdges               *RoleQuery
+	withEventEdge               *EmailEventQuery
 	withRoleEmailTemplates      *EmailRoleAttributeQuery
 	modifiers                   []func(*sql.Selector)
 	loadTotal                   []func(context.Context, []*EmailTemplate) error
@@ -84,6 +86,28 @@ func (etq *EmailTemplateQuery) QueryRoleEdges() *RoleQuery {
 			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, emailtemplate.RoleEdgesTable, emailtemplate.RoleEdgesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEventEdge chains the current query on the "event_edge" edge.
+func (etq *EmailTemplateQuery) QueryEventEdge() *EmailEventQuery {
+	query := &EmailEventQuery{config: etq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := etq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := etq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, selector),
+			sqlgraph.To(emailevent.Table, emailevent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, emailtemplate.EventEdgeTable, emailtemplate.EventEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,6 +319,7 @@ func (etq *EmailTemplateQuery) Clone() *EmailTemplateQuery {
 		order:                  append([]OrderFunc{}, etq.order...),
 		predicates:             append([]predicate.EmailTemplate{}, etq.predicates...),
 		withRoleEdges:          etq.withRoleEdges.Clone(),
+		withEventEdge:          etq.withEventEdge.Clone(),
 		withRoleEmailTemplates: etq.withRoleEmailTemplates.Clone(),
 		// clone intermediate query.
 		sql:    etq.sql.Clone(),
@@ -311,6 +336,17 @@ func (etq *EmailTemplateQuery) WithRoleEdges(opts ...func(*RoleQuery)) *EmailTem
 		opt(query)
 	}
 	etq.withRoleEdges = query
+	return etq
+}
+
+// WithEventEdge tells the query-builder to eager-load the nodes that are connected to
+// the "event_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (etq *EmailTemplateQuery) WithEventEdge(opts ...func(*EmailEventQuery)) *EmailTemplateQuery {
+	query := &EmailEventQuery{config: etq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	etq.withEventEdge = query
 	return etq
 }
 
@@ -398,8 +434,9 @@ func (etq *EmailTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*EmailTemplate{}
 		_spec       = etq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			etq.withRoleEdges != nil,
+			etq.withEventEdge != nil,
 			etq.withRoleEmailTemplates != nil,
 		}
 	)
@@ -428,6 +465,12 @@ func (etq *EmailTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		if err := etq.loadRoleEdges(ctx, query, nodes,
 			func(n *EmailTemplate) { n.Edges.RoleEdges = []*Role{} },
 			func(n *EmailTemplate, e *Role) { n.Edges.RoleEdges = append(n.Edges.RoleEdges, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := etq.withEventEdge; query != nil {
+		if err := etq.loadEventEdge(ctx, query, nodes, nil,
+			func(n *EmailTemplate, e *EmailEvent) { n.Edges.EventEdge = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -516,6 +559,32 @@ func (etq *EmailTemplateQuery) loadRoleEdges(ctx context.Context, query *RoleQue
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (etq *EmailTemplateQuery) loadEventEdge(ctx context.Context, query *EmailEventQuery, nodes []*EmailTemplate, init func(*EmailTemplate), assign func(*EmailTemplate, *EmailEvent)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*EmailTemplate)
+	for i := range nodes {
+		fk := nodes[i].EventID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(emailevent.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "event_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

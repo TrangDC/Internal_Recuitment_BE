@@ -124,6 +124,13 @@ func Signature(v string) predicate.EmailTemplate {
 	})
 }
 
+// EventID applies equality check predicate on the "event_id" field. It's identical to EventIDEQ.
+func EventID(v uuid.UUID) predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEventID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.EmailTemplate {
 	return predicate.EmailTemplate(func(s *sql.Selector) {
@@ -727,6 +734,42 @@ func StatusNotIn(vs ...Status) predicate.EmailTemplate {
 	})
 }
 
+// EventIDEQ applies the EQ predicate on the "event_id" field.
+func EventIDEQ(v uuid.UUID) predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEventID), v))
+	})
+}
+
+// EventIDNEQ applies the NEQ predicate on the "event_id" field.
+func EventIDNEQ(v uuid.UUID) predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEventID), v))
+	})
+}
+
+// EventIDIn applies the In predicate on the "event_id" field.
+func EventIDIn(vs ...uuid.UUID) predicate.EmailTemplate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldEventID), v...))
+	})
+}
+
+// EventIDNotIn applies the NotIn predicate on the "event_id" field.
+func EventIDNotIn(vs ...uuid.UUID) predicate.EmailTemplate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldEventID), v...))
+	})
+}
+
 // HasRoleEdges applies the HasEdge predicate on the "role_edges" edge.
 func HasRoleEdges() predicate.EmailTemplate {
 	return predicate.EmailTemplate(func(s *sql.Selector) {
@@ -746,6 +789,34 @@ func HasRoleEdgesWith(preds ...predicate.Role) predicate.EmailTemplate {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RoleEdgesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, RoleEdgesTable, RoleEdgesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEventEdge applies the HasEdge predicate on the "event_edge" edge.
+func HasEventEdge() predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventEdgeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EventEdgeTable, EventEdgeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEventEdgeWith applies the HasEdge predicate on the "event_edge" edge with a given conditions (other predicates).
+func HasEventEdgeWith(preds ...predicate.EmailEvent) predicate.EmailTemplate {
+	return predicate.EmailTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EventEdgeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EventEdgeTable, EventEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -52,11 +52,16 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 	var roleIds []uuid.UUID
 	var err error
 	var record *ent.EmailTemplate
-	err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
+	// err = svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
+	// if err != nil {
+	// 	return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	// }
+	event, err := svc.repoRegistry.EmailEvent().GetEmailEvent(ctx, uuid.MustParse(input.EventID))
 	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+		svc.logger.Error(err.Error())
+		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusNotFound, util.ErrorFlagNotFound)
 	}
-	err = svc.repoRegistry.EmailTemplate().ValidSentToAction(input.Event, input.SendTo)
+	err = svc.repoRegistry.EmailTemplate().ValidSentToAction(event, input.SendTo)
 	if err != nil {
 		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
 	}
@@ -100,10 +105,10 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 func (svc *emailtemplateSvcImpl) UpdateEmailTemplate(ctx context.Context, emailTpId uuid.UUID, input ent.UpdateEmailTemplateInput, note string) (*ent.EmailTemplateResponse, error) {
 	var roleIds []uuid.UUID
 	var result *ent.EmailTemplate
-	err := svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
-	if err != nil {
-		return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
-	}
+	// err := svc.repoRegistry.EmailTemplate().ValidKeywordInput(input.Subject, input.Content, input.Event)
+	// if err != nil {
+	// 	return nil, util.WrapGQLError(ctx, err.Error(), http.StatusBadRequest, util.ErrorFlagValidateFail)
+	// }
 	record, err := svc.repoRegistry.EmailTemplate().GetEmailTemplate(ctx, emailTpId)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
@@ -287,11 +292,11 @@ func (svc *emailtemplateSvcImpl) freeWord(query *ent.EmailTemplateQuery, input *
 
 func (svc *emailtemplateSvcImpl) filter(ctx context.Context, query *ent.EmailTemplateQuery, input *ent.EmailTemplateFilter) {
 	if input != nil {
-		if input.Event != nil {
-			events := lo.Map(input.Event, func(item *ent.EmailTemplateEvent, index int) emailtemplate.Event {
-				return emailtemplate.Event(item.String())
+		if input.EventIds != nil {
+			eventIDs := lo.Map(input.EventIds, func(idStr *string, _ int) uuid.UUID {
+				return uuid.MustParse(*idStr)
 			})
-			query.Where(emailtemplate.EventIn(events...))
+			query.Where(emailtemplate.EventIDIn(eventIDs...))
 		}
 		if input.Status != nil {
 			query.Where(emailtemplate.StatusEQ(emailtemplate.Status(*input.Status)))

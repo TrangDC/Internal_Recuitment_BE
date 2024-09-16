@@ -2548,6 +2548,38 @@ func (c *EmailEventClient) GetX(ctx context.Context, id uuid.UUID) *EmailEvent {
 	return obj
 }
 
+// QueryTemplateEdges queries the template_edges edge of a EmailEvent.
+func (c *EmailEventClient) QueryTemplateEdges(ee *EmailEvent) *EmailTemplateQuery {
+	query := &EmailTemplateQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ee.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailevent.Table, emailevent.FieldID, id),
+			sqlgraph.To(emailtemplate.Table, emailtemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, emailevent.TemplateEdgesTable, emailevent.TemplateEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ee.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOutgoingEmailEdges queries the outgoing_email_edges edge of a EmailEvent.
+func (c *EmailEventClient) QueryOutgoingEmailEdges(ee *EmailEvent) *OutgoingEmailQuery {
+	query := &OutgoingEmailQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ee.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailevent.Table, emailevent.FieldID, id),
+			sqlgraph.To(outgoingemail.Table, outgoingemail.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, emailevent.OutgoingEmailEdgesTable, emailevent.OutgoingEmailEdgesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ee.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EmailEventClient) Hooks() []Hook {
 	return c.hooks.EmailEvent
@@ -2769,6 +2801,22 @@ func (c *EmailTemplateClient) QueryRoleEdges(et *EmailTemplate) *RoleQuery {
 			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, emailtemplate.RoleEdgesTable, emailtemplate.RoleEdgesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEventEdge queries the event_edge edge of a EmailTemplate.
+func (c *EmailTemplateClient) QueryEventEdge(et *EmailTemplate) *EmailEventQuery {
+	query := &EmailEventQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := et.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(emailtemplate.Table, emailtemplate.FieldID, id),
+			sqlgraph.To(emailevent.Table, emailevent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, emailtemplate.EventEdgeTable, emailtemplate.EventEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
 		return fromV, nil
@@ -4059,6 +4107,22 @@ func (c *OutgoingEmailClient) QueryCandidateEdge(oe *OutgoingEmail) *CandidateQu
 			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, id),
 			sqlgraph.To(candidate.Table, candidate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.CandidateEdgeTable, outgoingemail.CandidateEdgeColumn),
+		)
+		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEventEdge queries the event_edge edge of a OutgoingEmail.
+func (c *OutgoingEmailClient) QueryEventEdge(oe *OutgoingEmail) *EmailEventQuery {
+	query := &EmailEventQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := oe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(outgoingemail.Table, outgoingemail.FieldID, id),
+			sqlgraph.To(emailevent.Table, emailevent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, outgoingemail.EventEdgeTable, outgoingemail.EventEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
 		return fromV, nil
