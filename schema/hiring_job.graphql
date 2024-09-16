@@ -119,6 +119,7 @@ input UpdateHiringJobInput {
   salary_to: Int!
   currency: CurrencyEnum!
   hiring_team_id: ID!
+  created_by: ID!
   rec_team_id: ID!
   rec_in_charge_id: ID!
   priority: Int!

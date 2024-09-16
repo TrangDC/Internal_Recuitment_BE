@@ -1246,6 +1246,7 @@ type UpdateHiringJobInput struct {
 	SalaryTo           int                       `json:"salary_to"`
 	Currency           CurrencyEnum              `json:"currency"`
 	HiringTeamID       string                    `json:"hiring_team_id"`
+	CreatedBy          string                    `json:"created_by"`
 	RecTeamID          string                    `json:"rec_team_id"`
 	RecInChargeID      string                    `json:"rec_in_charge_id"`
 	Priority           int                       `json:"priority"`

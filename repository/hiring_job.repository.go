@@ -173,6 +173,7 @@ func (rps *hiringJobRepoImpl) UpdateHiringJob(ctx context.Context, record *ent.H
 		SetSalaryFrom(input.SalaryFrom).
 		SetSalaryTo(input.SalaryTo).
 		SetCurrency(hiringjob.Currency(input.Currency)).
+		SetCreatedBy(uuid.MustParse(input.CreatedBy)).
 		SetHiringTeamID(uuid.MustParse(input.HiringTeamID)).
 		SetRecTeamEdgeID(uuid.MustParse(input.RecTeamID)).
 		SetRecInChargeID(uuid.MustParse(input.RecInChargeID)).

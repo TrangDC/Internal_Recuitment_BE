@@ -8,7 +8,7 @@ ba5028d3-0daa-4eee-8c37-8978b5a33193,model.permissions.rec_teams.view,92f405c1-e
 ff275d34-1b80-41a5-934c-ab699a844769,model.permissions.rec_teams.update,92f405c1-eadf-4b05-ac0f-ff23ee87ff45,TRUE,TRUE,TRUE,UpdateRecTeam,ba5028d3-0daa-4eee-8c37-8978b5a33193,7
 0e4e1831-4492-4632-bed5-ae143a1f3655,model.permissions.rec_teams.delete,92f405c1-eadf-4b05-ac0f-ff23ee87ff45,FALSE,FALSE,TRUE,DeleteRecTeam,ba5028d3-0daa-4eee-8c37-8978b5a33193,8
 19375f3b-b652-4252-bba2-978aab0d0e09,model.permissions.hiring_jobs.view,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,TRUE,TRUE,TRUE,"GetHiringJob,GetAllHiringJobs,GetAllHiringJobsGroupByStatus",,9
-40da93ed-a521-45da-a14f-5586342ead4c,model.permissions.hiring_jobs.create,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,FALSE,TRUE,TRUE,CreateHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,10
+40da93ed-a521-45da-a14f-5586342ead4c,model.permissions.hiring_jobs.create,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,TRUE,TRUE,TRUE,CreateHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,10
 19593cf7-ce1c-4a57-aec3-1931161910ce,model.permissions.hiring_jobs.edit_pending,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,TRUE,TRUE,TRUE,UpdatePendingApprovalsHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,11
 729b336b-43d7-4d85-97d5-0177f66d698a,model.permissions.hiring_jobs.edit_opened,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,TRUE,TRUE,TRUE,UpdateOpenedHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,12
 329e5654-e526-46b3-83f4-01f5132f4eb2,model.permissions.hiring_jobs.close_job,a508edca-ac4f-4b10-a43a-ad4e53ec6ad7,TRUE,TRUE,TRUE,CloseHiringJob,19375f3b-b652-4252-bba2-978aab0d0e09,13
