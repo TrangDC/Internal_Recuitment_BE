@@ -402,6 +402,9 @@ func (oeu *OutgoingEmailUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := oeu.mutation.Status(); ok {
 		_spec.SetField(outgoingemail.FieldStatus, field.TypeEnum, value)
 	}
+	if oeu.mutation.EventCleared() {
+		_spec.ClearField(outgoingemail.FieldEvent, field.TypeEnum)
+	}
 	if oeu.mutation.CandidateEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -890,6 +893,9 @@ func (oeuo *OutgoingEmailUpdateOne) sqlSave(ctx context.Context) (_node *Outgoin
 	}
 	if value, ok := oeuo.mutation.Status(); ok {
 		_spec.SetField(outgoingemail.FieldStatus, field.TypeEnum, value)
+	}
+	if oeuo.mutation.EventCleared() {
+		_spec.ClearField(outgoingemail.FieldEvent, field.TypeEnum)
 	}
 	if oeuo.mutation.CandidateEdgeCleared() {
 		edge := &sqlgraph.EdgeSpec{

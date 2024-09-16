@@ -89,7 +89,7 @@ func NewService(azureADOAuthClient azuread.AzureADOAuth, azureStorage azurestora
 		storageService:              NewStorageService(azureStorage, logger),
 		userService:                 NewUserService(repoRegistry, dtoRegistry, logger),
 		jobPositionService:          NewJobPositionService(repoRegistry, dtoRegistry, logger),
-		hiringJobService:            NewHiringJobService(repoRegistry, dtoRegistry, logger),
+		hiringJobService:            NewHiringJobService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),
 		auditTrailService:           NewAuditTrailService(repoRegistry, logger),
 		candidateService:            NewCandidateService(repoRegistry, dtoRegistry, logger),
 		candidateJobService:         NewCandidateJobService(repoRegistry, serviceBusClient, dtoRegistry, logger, configs),

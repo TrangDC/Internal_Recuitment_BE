@@ -65,7 +65,7 @@ func (svc *candidateNoteSvcImpl) CreateCandidateNote(ctx context.Context, input 
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeCreate, "")
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeCreate, "")
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
@@ -94,7 +94,7 @@ func (svc *candidateNoteSvcImpl) UpdateCandidateNote(ctx context.Context, id uui
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
@@ -127,7 +127,7 @@ func (svc *candidateNoteSvcImpl) DeleteCandidateNote(ctx context.Context, id uui
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleCandidateNotes, jsonStr, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error())
 	}

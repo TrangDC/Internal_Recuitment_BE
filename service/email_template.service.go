@@ -95,7 +95,7 @@ func (svc *emailtemplateSvcImpl) CreateEmailTemplate(ctx context.Context, input 
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -149,7 +149,7 @@ func (svc *emailtemplateSvcImpl) UpdateEmailTemplate(ctx context.Context, emailT
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -173,7 +173,7 @@ func (svc emailtemplateSvcImpl) UpdateEmailTemplateStatus(ctx context.Context, e
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -201,7 +201,7 @@ func (svc *emailtemplateSvcImpl) DeleteEmailTemplate(ctx context.Context, emailT
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, emailTpId, audittrail.ModuleEmailTemplates, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}

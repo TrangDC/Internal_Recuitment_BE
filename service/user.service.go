@@ -98,7 +98,7 @@ func (svc *userSvcImpl) CreateUser(ctx context.Context, input *ent.NewUserInput,
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -132,7 +132,7 @@ func (svc *userSvcImpl) DeleteUser(ctx context.Context, id uuid.UUID, note strin
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -193,7 +193,7 @@ func (svc *userSvcImpl) UpdateUser(ctx context.Context, input *ent.UpdateUserInp
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -222,7 +222,7 @@ func (svc *userSvcImpl) UpdateUserStatus(ctx context.Context, input ent.UpdateUs
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, record.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -429,7 +429,7 @@ func (svc userSvcImpl) AuditTrailCreateRecTeamWLeader(ctx context.Context, userR
 	if userRecord.Edges.RecTeams != nil {
 		oldUserRec = userRecord.Edges.RecTeams.Name
 	}
-	err := repoRegistry.AuditTrail().AuditTrailMutation(ctx, userRecord.ID, audittrail.ModuleUsers,
+	_, err := repoRegistry.AuditTrail().AuditTrailMutation(ctx, userRecord.ID, audittrail.ModuleUsers,
 		svc.dtoRegistry.User().AuditTrailUpdateRecTeam(oldUserRec, recTeamName), audittrail.ActionTypeUpdate, note)
 	return err
 }

@@ -84,7 +84,7 @@ func (svc *recTeamSvcImpl) CreateRecTeam(ctx context.Context, input ent.NewRecTe
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -117,7 +117,7 @@ func (svc *recTeamSvcImpl) DeleteRecTeam(ctx context.Context, id uuid.UUID, note
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, id, audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -172,7 +172,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, uuid.MustParse(recTeamId), audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, uuid.MustParse(recTeamId), audittrail.ModuleRecTeams, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -182,7 +182,7 @@ func (svc *recTeamSvcImpl) UpdateRecTeam(ctx context.Context, recTeamId string, 
 			if err != nil {
 				svc.logger.Error(err.Error())
 			}
-			err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.RecTeamJobEdges[i].ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
+			_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.Edges.RecTeamJobEdges[i].ID, audittrail.ModuleHiringJobs, jsonString, audittrail.ActionTypeUpdate, note)
 			if err != nil {
 				svc.logger.Error(err.Error())
 			}

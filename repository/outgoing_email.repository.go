@@ -95,7 +95,7 @@ func (rps *outgoingEmailRepoImpl) CreateBulkOutgoingEmail(ctx context.Context, i
 			SetEmailTemplateID(v.ID).
 			SetCandidateID(candidateId).
 			SetRecipientType(v.RecipientType).
-			SetEvent(v.Event)
+			SetEventID(v.EventID)
 		createBulk = append(createBulk, create)
 	}
 	for _, v := range createBulk {

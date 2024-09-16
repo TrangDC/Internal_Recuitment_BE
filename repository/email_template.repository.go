@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"trec/dto"
 	"trec/ent"
 	"trec/ent/candidatejob"
 	"trec/ent/emailevent"
@@ -63,15 +64,12 @@ func (rps *emailtemplateRepoImpl) BuildDelete() *ent.EmailTemplateUpdate {
 }
 
 func (rps *emailtemplateRepoImpl) BuildQuery() *ent.EmailTemplateQuery {
-	return rps.client.EmailTemplate.Query().Where(emailtemplate.DeletedAtIsNil()).WithRoleEdges(
-		func(rq *ent.RoleQuery) {
-			rq.Where(role.DeletedAtIsNil()).WithUserEdges(
-				func(uq *ent.UserQuery) {
-					uq.Where(user.DeletedAtIsNil())
-				},
-			)
-		},
-	)
+	return rps.client.EmailTemplate.Query().Where(emailtemplate.DeletedAtIsNil()).
+		WithRoleEdges(func(rq *ent.RoleQuery) {
+			rq.Where(role.DeletedAtIsNil()).
+				WithUserEdges(func(uq *ent.UserQuery) { uq.Where(user.DeletedAtIsNil()) })
+		}).
+		WithEventEdge()
 }
 
 func (rps *emailtemplateRepoImpl) BuildGetOne(ctx context.Context, query *ent.EmailTemplateQuery) (*ent.EmailTemplate, error) {
@@ -228,20 +226,18 @@ func (rps emailtemplateRepoImpl) validKeyword(input string, keywordArray []strin
 	return nil
 }
 
-func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, oldRecord, record *ent.CandidateJob) ([]*ent.EmailTemplate, error) {
-	var result []*ent.EmailTemplate
-	var eventTrigger emailtemplate.Event
-	isTrigger := false
-	/*if oldRecord.Status == candidatejob.StatusApplied && record.Status == candidatejob.StatusKiv {
-		eventTrigger = emailtemplate.EventCandidateAppliedToKiv
+func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, oldRec, newRec *ent.CandidateJob) ([]*ent.EmailTemplate, error) {
+	var (
+		result    []*ent.EmailTemplate
+		action    emailevent.Action
+		isTrigger bool = false
+	)
+	if oldRec.Status == candidatejob.StatusApplied && newRec == nil {
+		action = emailevent.ActionCdApplied
 		isTrigger = true
 	}
-	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusKiv {
-		eventTrigger = emailtemplate.EventCandidateInterviewingToKiv
-		isTrigger = true
-	}*/
-	if oldRecord.Status == candidatejob.StatusInterviewing && record.Status == candidatejob.StatusOffering {
-		eventTrigger = emailtemplate.EventCandidateInterviewingToOffering
+	if newRec != nil {
+		action = dto.CdJobEmailAction[newRec.Status]
 		isTrigger = true
 	}
 	if !isTrigger {
@@ -249,7 +245,10 @@ func (rps emailtemplateRepoImpl) ValidAndGetEmailTemplates(ctx context.Context, 
 	}
 	emailTemplateQuery := rps.BuildQuery().Where(
 		emailtemplate.StatusEQ(emailtemplate.StatusActive),
-		emailtemplate.EventEQ(eventTrigger),
+		emailtemplate.HasEventEdgeWith(
+			emailevent.ModuleEQ(emailevent.ModuleApplication),
+			emailevent.ActionEQ(action),
+		),
 	)
 	return rps.BuildList(ctx, emailTemplateQuery)
 }

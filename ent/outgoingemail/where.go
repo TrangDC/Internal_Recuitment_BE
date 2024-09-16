@@ -898,6 +898,20 @@ func EventNotIn(vs ...Event) predicate.OutgoingEmail {
 	})
 }
 
+// EventIsNil applies the IsNil predicate on the "event" field.
+func EventIsNil() predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEvent)))
+	})
+}
+
+// EventNotNil applies the NotNil predicate on the "event" field.
+func EventNotNil() predicate.OutgoingEmail {
+	return predicate.OutgoingEmail(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEvent)))
+	})
+}
+
 // EventIDEQ applies the EQ predicate on the "event_id" field.
 func EventIDEQ(v uuid.UUID) predicate.OutgoingEmail {
 	return predicate.OutgoingEmail(func(s *sql.Selector) {

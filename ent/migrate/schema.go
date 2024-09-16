@@ -556,7 +556,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
+		{Name: "event", Type: field.TypeEnum, Nullable: true, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
 		{Name: "send_to", Type: field.TypeJSON},
 		{Name: "cc", Type: field.TypeJSON},
 		{Name: "bcc", Type: field.TypeJSON},
@@ -877,7 +877,7 @@ var (
 		{Name: "recipient_type", Type: field.TypeEnum, Enums: []string{"interviewer", "job_request", "job_rec_in_charge", "cd_job_rec_in_charge", "hiring_team_manager", "hiring_approver", "hiring_team_member", "rec_leader", "rec_member", "role", "candidate"}},
 		{Name: "email_template_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "sent", "failed"}, Default: "pending"},
-		{Name: "event", Type: field.TypeEnum, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
+		{Name: "event", Type: field.TypeEnum, Nullable: true, Enums: []string{"candidate_applied_to_kiv", "candidate_interviewing_to_kiv", "candidate_interviewing_to_offering", "created_interview", "updating_interview", "cancel_interview"}},
 		{Name: "candidate_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "event_id", Type: field.TypeUUID},
 	}

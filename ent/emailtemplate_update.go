@@ -79,6 +79,20 @@ func (etu *EmailTemplateUpdate) SetEvent(e emailtemplate.Event) *EmailTemplateUp
 	return etu
 }
 
+// SetNillableEvent sets the "event" field if the given value is not nil.
+func (etu *EmailTemplateUpdate) SetNillableEvent(e *emailtemplate.Event) *EmailTemplateUpdate {
+	if e != nil {
+		etu.SetEvent(*e)
+	}
+	return etu
+}
+
+// ClearEvent clears the value of the "event" field.
+func (etu *EmailTemplateUpdate) ClearEvent() *EmailTemplateUpdate {
+	etu.mutation.ClearEvent()
+	return etu
+}
+
 // SetSendTo sets the "send_to" field.
 func (etu *EmailTemplateUpdate) SetSendTo(s []string) *EmailTemplateUpdate {
 	etu.mutation.SetSendTo(s)
@@ -382,6 +396,9 @@ func (etu *EmailTemplateUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := etu.mutation.Event(); ok {
 		_spec.SetField(emailtemplate.FieldEvent, field.TypeEnum, value)
 	}
+	if etu.mutation.EventCleared() {
+		_spec.ClearField(emailtemplate.FieldEvent, field.TypeEnum)
+	}
 	if value, ok := etu.mutation.SendTo(); ok {
 		_spec.SetField(emailtemplate.FieldSendTo, field.TypeJSON, value)
 	}
@@ -638,6 +655,20 @@ func (etuo *EmailTemplateUpdateOne) ClearDeletedAt() *EmailTemplateUpdateOne {
 // SetEvent sets the "event" field.
 func (etuo *EmailTemplateUpdateOne) SetEvent(e emailtemplate.Event) *EmailTemplateUpdateOne {
 	etuo.mutation.SetEvent(e)
+	return etuo
+}
+
+// SetNillableEvent sets the "event" field if the given value is not nil.
+func (etuo *EmailTemplateUpdateOne) SetNillableEvent(e *emailtemplate.Event) *EmailTemplateUpdateOne {
+	if e != nil {
+		etuo.SetEvent(*e)
+	}
+	return etuo
+}
+
+// ClearEvent clears the value of the "event" field.
+func (etuo *EmailTemplateUpdateOne) ClearEvent() *EmailTemplateUpdateOne {
+	etuo.mutation.ClearEvent()
 	return etuo
 }
 
@@ -973,6 +1004,9 @@ func (etuo *EmailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *EmailTe
 	}
 	if value, ok := etuo.mutation.Event(); ok {
 		_spec.SetField(emailtemplate.FieldEvent, field.TypeEnum, value)
+	}
+	if etuo.mutation.EventCleared() {
+		_spec.ClearField(emailtemplate.FieldEvent, field.TypeEnum)
 	}
 	if value, ok := etuo.mutation.SendTo(); ok {
 		_spec.SetField(emailtemplate.FieldSendTo, field.TypeJSON, value)

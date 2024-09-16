@@ -155,6 +155,14 @@ func (oec *OutgoingEmailCreate) SetEvent(o outgoingemail.Event) *OutgoingEmailCr
 	return oec
 }
 
+// SetNillableEvent sets the "event" field if the given value is not nil.
+func (oec *OutgoingEmailCreate) SetNillableEvent(o *outgoingemail.Event) *OutgoingEmailCreate {
+	if o != nil {
+		oec.SetEvent(*o)
+	}
+	return oec
+}
+
 // SetEventID sets the "event_id" field.
 func (oec *OutgoingEmailCreate) SetEventID(u uuid.UUID) *OutgoingEmailCreate {
 	oec.mutation.SetEventID(u)
@@ -332,9 +340,6 @@ func (oec *OutgoingEmailCreate) check() error {
 		if err := outgoingemail.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OutgoingEmail.status": %w`, err)}
 		}
-	}
-	if _, ok := oec.mutation.Event(); !ok {
-		return &ValidationError{Name: "event", err: errors.New(`ent: missing required field "OutgoingEmail.event"`)}
 	}
 	if v, ok := oec.mutation.Event(); ok {
 		if err := outgoingemail.EventValidator(v); err != nil {

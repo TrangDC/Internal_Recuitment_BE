@@ -69,8 +69,8 @@ func (d emailTemplateDtoImpl) AuditTrailUpdate(oldRecord *ent.EmailTemplate, new
 			case "":
 				continue
 			case "model.email_templates.event":
-				oldValueField = d.eventI18n(oldRecord.Event)
-				newValueField = d.eventI18n(newRecord.Event)
+				oldValueField = oldRecord.Edges.EventEdge.Name
+				newValueField = newRecord.Edges.EventEdge.Name
 			case "model.email_templates.status":
 				oldValueField = d.statusI18n(oldRecord.Status)
 				newValueField = d.statusI18n(newRecord.Status)
@@ -131,7 +131,7 @@ func (d emailTemplateDtoImpl) recordAudit(record *ent.EmailTemplate) []interface
 		case "":
 			continue
 		case "model.email_templates.event":
-			valueField = d.eventI18n(record.Event)
+			valueField = record.Edges.EventEdge.Name
 		case "model.email_templates.status":
 			valueField = d.statusI18n(record.Status)
 		}
@@ -196,24 +196,6 @@ func (d emailTemplateDtoImpl) emailTemplateSentToAtUpdate(oldRecord *ent.EmailTe
 	return atInterface
 }
 
-func (d emailTemplateDtoImpl) eventI18n(input emailtemplate.Event) string {
-	switch input {
-	case emailtemplate.EventCandidateAppliedToKiv:
-		return "model.email_templates.event_enum.candidate_applied_to_kiv"
-	case emailtemplate.EventCandidateInterviewingToKiv:
-		return "model.email_templates.event_enum.candidate_interviewing_to_kiv"
-	case emailtemplate.EventCandidateInterviewingToOffering:
-		return "model.email_templates.event_enum.candidate_interviewing_to_offering"
-	case emailtemplate.EventCreatedInterview:
-		return "model.email_templates.event_enum.created_interview"
-	case emailtemplate.EventUpdatingInterview:
-		return "model.email_templates.event_enum.updating_interview"
-	case emailtemplate.EventCancelInterview:
-		return "model.email_templates.event_enum.cancel_interview"
-	}
-	return ""
-}
-
 func (d emailTemplateDtoImpl) sentToI18n(input string) string {
 	switch input {
 	case ent.EmailTemplateSendToCandidate.String():
@@ -241,7 +223,7 @@ func (d emailTemplateDtoImpl) statusI18n(input emailtemplate.Status) string {
 
 func (d emailTemplateDtoImpl) formatFieldI18n(input string) string {
 	switch input {
-	case "Event":
+	case "EventID":
 		return "model.email_templates.event"
 	case "Cc":
 		return "model.email_templates.cc"

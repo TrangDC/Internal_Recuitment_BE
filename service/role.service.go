@@ -82,7 +82,7 @@ func (svc *roleSvcImpl) CreateRole(ctx context.Context, input ent.NewRoleInput, 
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeCreate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, result.ID, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeCreate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -144,7 +144,7 @@ func (svc *roleSvcImpl) UpdateRole(ctx context.Context, roleId uuid.UUID, input 
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, roleId, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeUpdate, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, roleId, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeUpdate, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -188,7 +188,7 @@ func (svc *roleSvcImpl) DeleteRole(ctx context.Context, roleId uuid.UUID, note s
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
-	err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, roleId, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeDelete, note)
+	_, err = svc.repoRegistry.AuditTrail().AuditTrailMutation(ctx, roleId, audittrail.ModuleRoles, jsonString, audittrail.ActionTypeDelete, note)
 	if err != nil {
 		svc.logger.Error(err.Error(), zap.Error(err))
 	}
@@ -283,7 +283,7 @@ func (svc roleSvcImpl) updateUserPermissions(ctx context.Context, repoRegistry r
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}
-		err = repoRegistry.AuditTrail().AuditTrailMutation(ctx, userRec.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
+		_, err = repoRegistry.AuditTrail().AuditTrailMutation(ctx, userRec.ID, audittrail.ModuleUsers, jsonString, audittrail.ActionTypeUpdate, note)
 		if err != nil {
 			svc.logger.Error(err.Error(), zap.Error(err))
 		}

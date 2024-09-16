@@ -95,6 +95,10 @@ var hiringJobFieldI18n = map[string]models.I18nFormat{
 		AuditTrail: "model.hiring_jobs.note",
 		Email:      "Note",
 	},
+	"Skills": {
+		AuditTrail: "model.hiring_jobs.skills",
+		Email:      "Skill(s)",
+	},
 }
 
 func NewHiringJobDto() HiringJobDto {
@@ -281,7 +285,7 @@ func (d hiringJobDtoImpl) skillAuditTrail(record *ent.HiringJob, atInterface []i
 		return entity.Edges.SkillEdge.Name
 	})
 	atInterface = append(atInterface, models.AuditTrailCreateDelete{
-		Field: "model.hiring_jobs.skills",
+		Field: hiringJobFieldI18n["Skills"].AuditTrail,
 		Value: attachmentNames,
 	})
 	return atInterface
@@ -299,7 +303,7 @@ func (d hiringJobDtoImpl) skillAuditTrailUpdate(oldRecord *ent.HiringJob, newRec
 	})
 	if !CompareArray(oldUserNames, newUserNames) {
 		atInterface = append(atInterface, models.AuditTrailUpdate{
-			Field: "model.hiring_jobs.skills",
+			Field: hiringJobFieldI18n["Skills"].AuditTrail,
 			Value: models.ValueChange{
 				OldValue: oldUserNames,
 				NewValue: newUserNames,

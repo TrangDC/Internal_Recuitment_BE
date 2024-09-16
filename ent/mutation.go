@@ -18499,9 +18499,22 @@ func (m *EmailTemplateMutation) OldEvent(ctx context.Context) (v emailtemplate.E
 	return oldValue.Event, nil
 }
 
+// ClearEvent clears the value of the "event" field.
+func (m *EmailTemplateMutation) ClearEvent() {
+	m.event = nil
+	m.clearedFields[emailtemplate.FieldEvent] = struct{}{}
+}
+
+// EventCleared returns if the "event" field was cleared in this mutation.
+func (m *EmailTemplateMutation) EventCleared() bool {
+	_, ok := m.clearedFields[emailtemplate.FieldEvent]
+	return ok
+}
+
 // ResetEvent resets all changes to the "event" field.
 func (m *EmailTemplateMutation) ResetEvent() {
 	m.event = nil
+	delete(m.clearedFields, emailtemplate.FieldEvent)
 }
 
 // SetSendTo sets the "send_to" field.
@@ -19247,6 +19260,9 @@ func (m *EmailTemplateMutation) ClearedFields() []string {
 	if m.FieldCleared(emailtemplate.FieldDeletedAt) {
 		fields = append(fields, emailtemplate.FieldDeletedAt)
 	}
+	if m.FieldCleared(emailtemplate.FieldEvent) {
+		fields = append(fields, emailtemplate.FieldEvent)
+	}
 	if m.FieldCleared(emailtemplate.FieldSignature) {
 		fields = append(fields, emailtemplate.FieldSignature)
 	}
@@ -19269,6 +19285,9 @@ func (m *EmailTemplateMutation) ClearField(name string) error {
 		return nil
 	case emailtemplate.FieldDeletedAt:
 		m.ClearDeletedAt()
+		return nil
+	case emailtemplate.FieldEvent:
+		m.ClearEvent()
 		return nil
 	case emailtemplate.FieldSignature:
 		m.ClearSignature()
@@ -28712,9 +28731,22 @@ func (m *OutgoingEmailMutation) OldEvent(ctx context.Context) (v outgoingemail.E
 	return oldValue.Event, nil
 }
 
+// ClearEvent clears the value of the "event" field.
+func (m *OutgoingEmailMutation) ClearEvent() {
+	m.event = nil
+	m.clearedFields[outgoingemail.FieldEvent] = struct{}{}
+}
+
+// EventCleared returns if the "event" field was cleared in this mutation.
+func (m *OutgoingEmailMutation) EventCleared() bool {
+	_, ok := m.clearedFields[outgoingemail.FieldEvent]
+	return ok
+}
+
 // ResetEvent resets all changes to the "event" field.
 func (m *OutgoingEmailMutation) ResetEvent() {
 	m.event = nil
+	delete(m.clearedFields, outgoingemail.FieldEvent)
 }
 
 // SetEventID sets the "event_id" field.
@@ -29129,6 +29161,9 @@ func (m *OutgoingEmailMutation) ClearedFields() []string {
 	if m.FieldCleared(outgoingemail.FieldEmailTemplateID) {
 		fields = append(fields, outgoingemail.FieldEmailTemplateID)
 	}
+	if m.FieldCleared(outgoingemail.FieldEvent) {
+		fields = append(fields, outgoingemail.FieldEvent)
+	}
 	return fields
 }
 
@@ -29154,6 +29189,9 @@ func (m *OutgoingEmailMutation) ClearField(name string) error {
 		return nil
 	case outgoingemail.FieldEmailTemplateID:
 		m.ClearEmailTemplateID()
+		return nil
+	case outgoingemail.FieldEvent:
+		m.ClearEvent()
 		return nil
 	}
 	return fmt.Errorf("unknown OutgoingEmail nullable field %s", name)
